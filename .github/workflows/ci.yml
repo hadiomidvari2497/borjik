@@ -18,9 +18,6 @@ env:
   PHP_VERSION: "8.2"
 
 jobs:
-  # ─────────────────────────────────────────────
-  # Gate 1 — parallel quality checks (like the diagram)
-  # ─────────────────────────────────────────────
   lint:
     name: PHP Lint & Syntax Check
     runs-on: ubuntu-latest
@@ -57,17 +54,8 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
           tools: phpcs
           coverage: none
-      - name: Run PHP_CodeSniffer (PSR-12)
-        run: |
-          # Only application code; vendor is ignored by default when paths are explicit
-          phpcs --standard=PSR12 --extensions=php \
-            --ignore=*/vendor/*,*/storage/*,*/bootstrap/cache/* \
-            -n -p \
-            app bootstrap/app.php bootstrap/providers.php config database routes tests \
-            || {
-              echo "::warning::PHPCS reported style issues. Review output above."
-              exit 1
-            }
+      - name: Run PHP_CodeSniffer (PSR-12 on app code)
+        run: phpcs --standard=phpcs.xml
 
   static-analysis:
     name: Static Analysis (PHPStan)
@@ -100,8 +88,8 @@ jobs:
           php-version: ${{ env.PHP_VERSION }}
           tools: composer:v2
           coverage: none
-      - name: Composer audit
-        run: composer audit --no-interaction
+      - name: Composer audit (lock file)
+        run: composer audit --locked --no-interaction
 
   validate-config:
     name: Validate Config & JSON
@@ -212,9 +200,6 @@ jobs:
           CACHE_STORE: array
           SMS_DRIVER: log
 
-  # ─────────────────────────────────────────────
-  # Gate 2 — package only if every check passed
-  # ─────────────────────────────────────────────
   build:
     name: Build & Artifact
     runs-on: ubuntu-latest
@@ -264,7 +249,6 @@ jobs:
             -x ".phpunit.cache/*" \
             -x "phpstan.neon" \
             -x "phpcs.xml" \
-            -x "phpcs.xml.dist" \
             -x ".DS_Store" \
             -x "*/.DS_Store" \
             -x "*__MACOSX*"
@@ -277,9 +261,6 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  # ─────────────────────────────────────────────
-  # Gate 3 — only when something failed (diagram node)
-  # ─────────────────────────────────────────────
   diagnostics:
     name: CI Failure Diagnostics
     runs-on: ubuntu-latest
@@ -316,5 +297,4 @@ jobs:
           echo "| Tests | ${{ needs.tests.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Open the failed job log above for details." >> "$GITHUB_STEP_SUMMARY"
-          echo "Lint=${{ needs.lint.result }} Style=${{ needs.code-style.result }} PHPStan=${{ needs.static-analysis.result }} Security=${{ needs.security.result }} Config=${{ needs.validate-config.result }} Schema=${{ needs.schema.result }} Tests=${{ needs.tests.result }}"
           exit 1

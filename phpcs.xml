@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset name="Borjik">
+    <description>PSR-12 for application code (tests use PHPUnit snake_case names)</description>
+
+    <file>app</file>
+    <file>bootstrap/app.php</file>
+    <file>bootstrap/providers.php</file>
+    <file>config</file>
+    <file>database</file>
+    <file>routes</file>
+
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/storage/*</exclude-pattern>
+    <exclude-pattern>*/bootstrap/cache/*</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg value="n"/>
+    <arg value="p"/>
+
+    <rule ref="PSR12"/>
+</ruleset>

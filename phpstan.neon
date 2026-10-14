@@ -1,8 +1,5 @@
 parameters:
-    # Start conservative so CI is usable; raise level over time (1 → 5+).
     level: 0
     paths:
         - app
-    excludePaths:
-        - app/Console/Kernel.php
     reportUnmatchedIgnoredErrors: false
