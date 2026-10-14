@@ -50,6 +50,8 @@ class InvitationService
             );
 
             return Invitation::create([
+                // Set tenant explicitly as well as relying on the model hook.
+                'building_id' => $buildingId,
                 'user_id' => $user->id,
                 'role_id' => $role->id,
                 'mobile' => $mobile,
@@ -72,9 +74,15 @@ class InvitationService
     /** دعوت معتبر را با توکن پیدا می‌کند (بدون نیاز به ساختمان فعال). */
     public function find(string $token): Invitation
     {
-        $invitation = app(CurrentBuilding::class)->withoutScope(
-            fn () => Invitation::where('token_hash', hash('sha256', $token))->first()
-        );
+        // Invite links are public and must resolve regardless of the visitor's selected building.
+        // Remove all model scopes for this one token lookup; tenant membership is checked again
+        // when accepting the invitation, inside the invitation's own building context.
+        $token = trim($token);
+        $invitation = $token === ''
+            ? null
+            : Invitation::withoutGlobalScopes()
+                ->where('token_hash', hash('sha256', $token))
+                ->first();
 
         if (! $invitation || $invitation->accepted_at || $invitation->expires_at->isPast()) {
             throw new InvitationException('لینک دعوت نامعتبر یا منقضی شده است.');

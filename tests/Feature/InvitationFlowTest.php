@@ -65,6 +65,16 @@ class InvitationFlowTest extends TestCase
         $this->assertStringContainsString('برج یک', $this->gateway->sent[0][1]);
     }
 
+    public function test_invitation_link_can_be_found_without_a_selected_building(): void
+    {
+        $token = $this->invite();
+
+        // Simulate a visitor who has no building selected (or has another building selected).
+        $invitation = app(CurrentBuilding::class)->actingAs(999999, fn () => $this->service->find($token));
+
+        $this->assertSame($this->building->id, $invitation->building_id);
+    }
+
     public function test_accept_activates_membership(): void
     {
         $token = $this->invite();
