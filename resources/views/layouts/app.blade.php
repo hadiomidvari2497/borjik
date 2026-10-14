@@ -14,9 +14,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png">
 <link rel="apple-touch-icon" href="/pwa/icon-192.png">
 <title>@yield('title', 'داشبورد') | برجیک</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
