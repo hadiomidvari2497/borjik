@@ -71,7 +71,7 @@ class TeamTest extends TestCase
         return $this->actingAs($u)->withSession(['current_building_id' => $this->building->id]);
     }
 
-    private function status(User $u, string $role): ?string
+    private function roleStatus(User $u, string $role): ?string
     {
         return DB::table('building_user_roles as b')->join('roles as r', 'r.id', '=', 'b.role_id')
             ->where('b.building_id', $this->building->id)->where('b.user_id', $u->id)->where('r.key', $role)->value('b.status');
@@ -104,14 +104,14 @@ class TeamTest extends TestCase
     public function test_manager_can_deactivate_and_reactivate_staff_and_members(): void
     {
         $this->as($this->manager)->post(route('team.deactivate', $this->guard->id), ['scope' => 'staff'])->assertSessionHasNoErrors();
-        $this->assertSame('inactive', $this->status($this->guard, 'security'));
+        $this->assertSame('inactive', $this->roleStatus($this->guard, 'security'));
         $this->as($this->manager)->get(route('staff.index'))->assertSee('غیرفعال');
 
         $this->as($this->manager)->post(route('team.activate', $this->guard->id), ['scope' => 'staff'])->assertSessionHasNoErrors();
-        $this->assertSame('active', $this->status($this->guard, 'security'));
+        $this->assertSame('active', $this->roleStatus($this->guard, 'security'));
 
         $this->as($this->manager)->post(route('team.deactivate', $this->tenant->id), ['scope' => 'members'])->assertSessionHasNoErrors();
-        $this->assertSame('inactive', $this->status($this->tenant, 'tenant'));
+        $this->assertSame('inactive', $this->roleStatus($this->tenant, 'tenant'));
     }
 
     public function test_a_deactivated_person_loses_access_to_the_building(): void
@@ -125,31 +125,31 @@ class TeamTest extends TestCase
     public function test_a_manager_cannot_touch_the_owner_or_another_manager_or_themselves(): void
     {
         $this->as($this->manager)->post(route('team.deactivate', $this->owner->id), ['scope' => 'staff'])->assertForbidden();
-        $this->assertSame('active', $this->status($this->owner, 'owner'));
+        $this->assertSame('active', $this->roleStatus($this->owner, 'owner'));
 
         $this->as($this->manager)->post(route('team.deactivate', $this->manager->id), ['scope' => 'staff'])->assertSessionHasErrors('general');
         $this->as($this->manager)->put(route('staff.roles.update', $this->guard->id), ['roles' => ['security', 'manager']])->assertForbidden();
-        $this->assertNull($this->status($this->guard, 'manager'));
+        $this->assertNull($this->roleStatus($this->guard, 'manager'));
     }
 
     public function test_the_owner_can_manage_managers_but_not_themselves(): void
     {
         $this->as($this->owner)->post(route('team.deactivate', $this->manager->id), ['scope' => 'staff'])->assertSessionHasNoErrors();
-        $this->assertSame('inactive', $this->status($this->manager, 'manager'));
+        $this->assertSame('inactive', $this->roleStatus($this->manager, 'manager'));
 
         $this->as($this->owner)->post(route('team.deactivate', $this->owner->id), ['scope' => 'staff'])->assertSessionHasErrors('general');
         $this->as($this->owner)->put(route('staff.roles.update', $this->owner->id), ['roles' => []])->assertSessionHasErrors('general');
-        $this->assertSame('active', $this->status($this->owner, 'owner'));
+        $this->assertSame('active', $this->roleStatus($this->owner, 'owner'));
     }
 
     public function test_roles_can_be_added_and_removed(): void
     {
         $this->as($this->owner)->put(route('staff.roles.update', $this->guard->id), ['roles' => ['security', 'maintenance']])->assertSessionHasNoErrors();
-        $this->assertSame('active', $this->status($this->guard, 'maintenance')); // عضو فعال، نقش تازه هم فعال
+        $this->assertSame('active', $this->roleStatus($this->guard, 'maintenance')); // عضو فعال، نقش تازه هم فعال
 
         $this->as($this->manager)->put(route('staff.roles.update', $this->guard->id), ['roles' => ['maintenance', 'cleaning']])->assertSessionHasNoErrors();
-        $this->assertNull($this->status($this->guard, 'security'));
-        $this->assertSame('active', $this->status($this->guard, 'cleaning'));
+        $this->assertNull($this->roleStatus($this->guard, 'security'));
+        $this->assertSame('active', $this->roleStatus($this->guard, 'cleaning'));
 
         $this->as($this->owner)->put(route('staff.roles.update', $this->guard->id), ['roles' => ['bogus']])->assertSessionHasErrors('general');
     }
@@ -158,14 +158,14 @@ class TeamTest extends TestCase
     {
         $this->invite('09121111111', 'cleaning');
         $user = User::where('mobile', '09121111111')->firstOrFail();
-        $this->assertSame('invited', $this->status($user, 'cleaning'));
+        $this->assertSame('invited', $this->roleStatus($user, 'cleaning'));
 
         $this->as($this->manager)->delete(route('team.invitation.cancel', $user->id), ['scope' => 'staff'])->assertSessionHasNoErrors();
-        $this->assertNull($this->status($user, 'cleaning'));
+        $this->assertNull($this->roleStatus($user, 'cleaning'));
         $this->assertSame(0, app(CurrentBuilding::class)->withoutScope(fn () => Invitation::count()));
 
         $this->as($this->manager)->delete(route('team.invitation.cancel', $this->guard->id), ['scope' => 'staff'])->assertSessionHasErrors('general'); // فعال است، دعوتی ندارد
-        $this->assertSame('active', $this->status($this->guard, 'security'));
+        $this->assertSame('active', $this->roleStatus($this->guard, 'security'));
     }
 
     public function test_resending_an_invitation_creates_a_new_link_and_sms(): void
@@ -183,19 +183,19 @@ class TeamTest extends TestCase
         $user = User::where('mobile', '09121111111')->firstOrFail();
 
         $this->as($this->owner)->put(route('staff.roles.update', $user->id), ['roles' => ['security', 'maintenance']])->assertSessionHasNoErrors();
-        $this->assertSame('invited', $this->status($user, 'maintenance')); // هنوز دعوت را نپذیرفته
+        $this->assertSame('invited', $this->roleStatus($user, 'maintenance')); // هنوز دعوت را نپذیرفته
 
         app(InvitationService::class)->accept($token, $user);
 
-        $this->assertSame('active', $this->status($user, 'security'));
-        $this->assertSame('active', $this->status($user, 'maintenance'));
+        $this->assertSame('active', $this->roleStatus($user, 'security'));
+        $this->assertSame('active', $this->roleStatus($user, 'maintenance'));
     }
 
     public function test_only_the_owner_may_invite_managers(): void
     {
         $this->as($this->manager)->post(route('members.invite'), ['mobile' => '09121234567', 'role' => 'manager'])->assertForbidden();
         $this->as($this->owner)->post(route('members.invite'), ['mobile' => '09121234567', 'role' => 'manager'])->assertSessionHasNoErrors();
-        $this->assertSame('invited', $this->status(User::where('mobile', '09121234567')->firstOrFail(), 'manager'));
+        $this->assertSame('invited', $this->roleStatus(User::where('mobile', '09121234567')->firstOrFail(), 'manager'));
     }
 
     public function test_tenants_and_guards_cannot_open_the_management_pages(): void
