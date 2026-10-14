@@ -24,6 +24,9 @@ Route::get('/invite/{token}', [InvitationController::class, 'show'])->name('invi
 
 // کاربر واردشده (بدون نیاز به ساختمان)
 Route::middleware('auth')->group(function () {
+    Route::get('/my/invitations', [InvitationController::class, 'index'])->name('invitations.index');
+    Route::post('/my/invitations/{invitationId}/accept', [InvitationController::class, 'acceptExisting'])->whereNumber('invitationId')->name('invitations.accept');
+    Route::post('/my/invitations/{invitationId}/reject', [InvitationController::class, 'rejectExisting'])->whereNumber('invitationId')->name('invitations.reject');
     Route::post('/logout', [OtpLoginController::class, 'logout'])->name('logout');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
