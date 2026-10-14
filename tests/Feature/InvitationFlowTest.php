@@ -158,7 +158,7 @@ class InvitationFlowTest extends TestCase
             ->post(route('invitations.reject', $invitation->id))
             ->assertRedirect(route('invitations.index'));
 
-        $this->assertNotNull($invitation->fresh()->rejected_at);
+        $this->assertNotNull(Invitation::withoutGlobalScopes()->findOrFail($invitation->id)->rejected_at);
         $this->assertSame(
             'inactive',
             BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
