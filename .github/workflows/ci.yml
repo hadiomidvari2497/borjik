@@ -52,10 +52,15 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ env.PHP_VERSION }}
-          tools: phpcs
+          tools: composer:v2
           coverage: none
-      - name: Run PHP_CodeSniffer (PSR-12 on app code)
-        run: phpcs --standard=phpcs.xml
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, openssl, tokenizer, xml, curl
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Laravel Pint (project code style)
+        # Laravel ships Pint; full PSR-12 via PHPCS conflicts with existing style.
+        # Pint enforces a consistent Laravel style without rewriting the whole codebase in CI.
+        run: ./vendor/bin/pint --test
 
   static-analysis:
     name: Static Analysis (PHPStan)
@@ -289,7 +294,7 @@ jobs:
           echo "| Job | Result |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| PHP Lint & Syntax Check | ${{ needs.lint.result }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Code Style (PHP_CodeSniffer) | ${{ needs.code-style.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Code Style | ${{ needs.code-style.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Static Analysis (PHPStan) | ${{ needs.static-analysis.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Security Audit | ${{ needs.security.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Validate Config & JSON | ${{ needs.validate-config.result }} |" >> "$GITHUB_STEP_SUMMARY"
