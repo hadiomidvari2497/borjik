@@ -105,12 +105,13 @@ class OtpFlowTest extends TestCase
 
         $user->forceFill(['status' => 'inactive'])->save();
 
-        $this->post('/two-factor/challenge', ['code' => Totp::code($secret)])
-            ->assertRedirect(route('login'))
-            ->assertSessionHasErrors('mobile');
+        $response = $this->post('/two-factor/challenge', ['code' => Totp::code($secret)]);
+
+        $response->assertRedirect(route('login'))
+            ->assertSessionHasErrors('mobile')
+            ->assertSessionMissing('2fa_user_id');
 
         $this->assertGuest();
-        $this->assertSessionMissing('2fa_user_id');
     }
 
     public function test_otp_text_is_not_stored_in_sms_logs(): void

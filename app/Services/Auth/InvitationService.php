@@ -92,16 +92,18 @@ class InvitationService
             throw new InvitationException('این دعوت برای شماره‌ی دیگری ارسال شده است.');
         }
 
-        DB::transaction(function () use ($invitation, $user) {
-            $invitation->forceFill(['accepted_at' => now()])->save();
+        app(CurrentBuilding::class)->actingAs((int) $invitation->building_id, function () use ($invitation, $user) {
+            DB::transaction(function () use ($invitation, $user) {
+                $invitation->forceFill(['accepted_at' => now()])->save();
 
-            // همه‌ی نقش‌های «دعوت‌شده»‌ی این شخص در این ساختمان فعال می‌شود (ممکن است بعد از دعوت نقش دیگری هم اضافه شده باشد)
-            BuildingUserRole::where(['building_id' => $invitation->building_id, 'user_id' => $user->id, 'status' => 'invited'])
-                ->update(['status' => 'active', 'joined_at' => now()]);
+                // همه‌ی نقش‌های «دعوت‌شده»‌ی این شخص در این ساختمان فعال می‌شود (ممکن است بعد از دعوت نقش دیگری هم اضافه شده باشد)
+                BuildingUserRole::where(['building_id' => $invitation->building_id, 'user_id' => $user->id, 'status' => 'invited'])
+                    ->update(['status' => 'active', 'joined_at' => now()]);
 
-            if ($user->status === 'invited') {
-                $user->update(['status' => 'active']);
-            }
+                if ($user->status === 'invited') {
+                    $user->update(['status' => 'active']);
+                }
+            });
         });
 
         return $invitation;
