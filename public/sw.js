@@ -1,5 +1,5 @@
-const CACHE = 'borjik-v2';
-const SHELL = ['/offline.html', '/css/app.css', '/js/app.js', '/pwa/icon-192.png', '/pwa/icon-512.png'];
+const CACHE = 'borjik-v3';
+const SHELL = ['/offline.html', '/css/app.css', '/css/fonts.css', '/fonts/vazirmatn/Vazirmatn-Regular.woff2', '/fonts/vazirmatn/Vazirmatn-Medium.woff2', '/fonts/vazirmatn/Vazirmatn-Bold.woff2', '/fonts/vazirmatn/Vazirmatn-ExtraBold.woff2', '/js/app.js', '/pwa/icon-192.png', '/pwa/icon-512.png'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

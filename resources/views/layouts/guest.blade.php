@@ -6,9 +6,8 @@
 <meta name="theme-color" content="#2a9b8f">
 <meta name="color-scheme" content="light">
 <title>@yield('title', 'برجیک')</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
 <link rel="stylesheet" href="{{ asset('css/jdate.css') }}">
 </head>
