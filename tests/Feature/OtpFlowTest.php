@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\SmsLog;
 use App\Models\User;
 use App\Services\Sms\SmsGateway;
+use App\Support\Totp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -82,6 +83,34 @@ class OtpFlowTest extends TestCase
 
         $this->post(route('login.otp'), ['mobile' => '09123456789'])->assertSessionHasErrors('mobile');
         $this->assertCount(0, $this->gateway->sent);
+    }
+
+    public function test_inactive_user_cannot_complete_a_two_factor_challenge(): void
+    {
+        $secret = Totp::generateSecret();
+        $user = User::create([
+            'mobile' => '09129999999',
+            'first_name' => 'کاربر',
+            'last_name' => 'غیرفعال',
+            'status' => 'active',
+            'password' => 'correct-password',
+            'two_factor_enabled' => true,
+            'two_factor_secret' => $secret,
+        ]);
+
+        $this->post(route('login.password'), [
+            'mobile' => $user->mobile,
+            'password' => 'correct-password',
+        ])->assertRedirect(route('two-factor.challenge'));
+
+        $user->forceFill(['status' => 'inactive'])->save();
+
+        $this->post('/two-factor/challenge', ['code' => Totp::code($secret)])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('mobile');
+
+        $this->assertGuest();
+        $this->assertSessionMissing('2fa_user_id');
     }
 
     public function test_otp_text_is_not_stored_in_sms_logs(): void

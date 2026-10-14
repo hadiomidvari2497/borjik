@@ -35,5 +35,22 @@ trait BelongsToBuilding
 
             $model->building_id = $current->id();
         });
+
+        static::updating(function (Model $model) {
+            $current = app(CurrentBuilding::class);
+
+            if ($current->bypassing()) {
+                return;
+            }
+
+            if ($current->id() === null) {
+                throw new TenantException('ساختمان فعالی تنظیم نشده است.');
+            }
+
+            if ((int) $model->getRawOriginal('building_id') !== $current->id()
+                || (int) $model->building_id !== $current->id()) {
+                throw new TenantException('تغییر ساختمان رکورد یا ویرایش رکورد ساختمان دیگر مجاز نیست.');
+            }
+        });
     }
 }

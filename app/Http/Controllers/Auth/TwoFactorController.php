@@ -21,6 +21,13 @@ class TwoFactorController extends Controller
     public function verifyChallenge(Request $request)
     {
         $user = User::findOrFail((int) $request->session()->get('2fa_user_id'));
+
+        if ($user->status !== 'active') {
+            $request->session()->forget('2fa_user_id');
+
+            return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
+        }
+
         $code = MobileNumber::toLatinDigits((string) $request->input('code'));
 
         if (! $user->two_factor_secret || ! Totp::verify($user->two_factor_secret, $code)) {

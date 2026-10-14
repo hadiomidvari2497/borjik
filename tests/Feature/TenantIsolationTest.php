@@ -53,6 +53,19 @@ class TenantIsolationTest extends TestCase
         ]));
     }
 
+    public function test_updating_a_record_cannot_move_it_to_another_building(): void
+    {
+        $cb = app(CurrentBuilding::class);
+
+        $this->expectException(TenantException::class);
+
+        $cb->actingAs($this->b1->id, function () {
+            $block = Block::firstOrFail();
+            $block->building_id = $this->b2->id;
+            $block->save();
+        });
+    }
+
     public function test_bypass_sees_all_buildings(): void
     {
         $this->assertSame(2, app(CurrentBuilding::class)->withoutScope(fn () => Block::count()));

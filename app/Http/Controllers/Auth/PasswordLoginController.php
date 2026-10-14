@@ -32,6 +32,10 @@ class PasswordLoginController extends Controller
 
     public static function finish(Request $request, User $user)
     {
+        if ($user->status !== 'active') {
+            return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
+        }
+
         $user->forceFill(['last_login_at' => now()])->save();
         Auth::login($user);
         $request->session()->regenerate();
