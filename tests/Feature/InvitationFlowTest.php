@@ -56,12 +56,16 @@ class InvitationFlowTest extends TestCase
 
     public function test_invite_creates_invited_user_membership_and_sms(): void
     {
+        // APP_URL may be stale on XAMPP; invite URLs must point to the app that received the request.
+        config(['app.url' => 'https://wrong.example']);
         $token = $this->invite();
 
         $user = User::where('mobile', '09121112233')->firstOrFail();
         $this->assertSame('invited', $user->status);
         $this->assertSame('invited', BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value);
         $this->assertStringContainsString($token, $this->gateway->sent[0][1]);
+        $this->assertStringContainsString('/invite/'.$token, $this->gateway->sent[0][1]);
+        $this->assertStringNotContainsString('wrong.example', $this->gateway->sent[0][1]);
         $this->assertStringContainsString('برج یک', $this->gateway->sent[0][1]);
     }
 
