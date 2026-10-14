@@ -1,0 +1,271 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+/** هفت نقش ثابت، مجوزها و ماتریس نقش ← مجوز (بند ۲.۲ سند). */
+class RolePermissionSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $now = now();
+
+        foreach ([
+            ['owner', 'مالک ساختمان', true],
+            ['manager', 'مدیر ساختمان', true],
+            ['security', 'حراست', true],
+            ['cleaning', 'نظافت', true],
+            ['maintenance', 'تعمیرات', true],
+            ['unit_owner', 'مالک واحد', false],
+            ['tenant', 'مستأجر', false],
+        ] as [$key, $name, $isStaff]) {
+            DB::table('roles')->updateOrInsert(['key' => $key], ['name_fa' => $name, 'is_staff' => $isStaff, 'updated_at' => $now, 'created_at' => $now]);
+        }
+
+        foreach ([
+            'building' => [
+                'building.manage',
+                'building.view',
+            ],
+            'structure' => [
+                'block.manage',
+                'unit.manage',
+                'unit.view',
+                'unit.view.own',
+                'parking.manage',
+                'storage.manage',
+            ],
+            'people' => [
+                'staff.manage',
+                'member.manage',
+                'contract.manage',
+                'contract.view.own',
+            ],
+            'finance' => [
+                'expense.manage',
+                'charge.settings',
+                'charge.calculate',
+                'invoice.view.all',
+                'invoice.view.own',
+                'payment.submit',
+                'payment.review',
+            ],
+            'tickets' => [
+                'ticket.create',
+                'ticket.view.all',
+                'ticket.view.assigned',
+                'ticket.respond',
+                'request.create',
+                'request.view.all',
+                'request.view.domain',
+                'request.view.own',
+                'rating.give',
+                'rating.view',
+            ],
+            'operations' => [
+                'shift.manage',
+                'shift.view',
+                'supply.manage',
+            ],
+            'communication' => [
+                'event.manage',
+                'event.view',
+                'poll.manage',
+                'poll.vote',
+                'sms.templates',
+                'notification.view',
+            ],
+            'archive' => [
+                'document.manage',
+                'document.view',
+                'phonebook.building',
+                'phonebook.personal',
+                'report.view.all',
+                'report.view.own',
+                'export.data',
+                'audit.view',
+                'subscription.manage',
+            ],
+        ] as $group => $keys) {
+            foreach ($keys as $key) {
+                DB::table('permissions')->updateOrInsert(['key' => $key], ['group_name' => $group, 'updated_at' => $now, 'created_at' => $now]);
+            }
+        }
+
+        $roleIds = DB::table('roles')->pluck('id', 'key');
+        $permIds = DB::table('permissions')->pluck('id', 'key');
+
+        foreach ([
+            'owner' => [
+                'building.manage',
+                'building.view',
+                'block.manage',
+                'unit.manage',
+                'unit.view',
+                'unit.view.own',
+                'parking.manage',
+                'storage.manage',
+                'staff.manage',
+                'member.manage',
+                'contract.manage',
+                'contract.view.own',
+                'expense.manage',
+                'charge.settings',
+                'charge.calculate',
+                'invoice.view.all',
+                'invoice.view.own',
+                'payment.submit',
+                'payment.review',
+                'ticket.create',
+                'ticket.view.all',
+                'ticket.view.assigned',
+                'ticket.respond',
+                'request.create',
+                'request.view.all',
+                'request.view.domain',
+                'request.view.own',
+                'rating.give',
+                'rating.view',
+                'shift.manage',
+                'shift.view',
+                'supply.manage',
+                'event.manage',
+                'event.view',
+                'poll.manage',
+                'poll.vote',
+                'sms.templates',
+                'notification.view',
+                'document.manage',
+                'document.view',
+                'phonebook.building',
+                'phonebook.personal',
+                'report.view.all',
+                'report.view.own',
+                'export.data',
+                'audit.view',
+                'subscription.manage',
+            ],
+            'manager' => [
+                'building.manage',
+                'building.view',
+                'block.manage',
+                'unit.manage',
+                'unit.view',
+                'unit.view.own',
+                'parking.manage',
+                'storage.manage',
+                'staff.manage',
+                'member.manage',
+                'contract.manage',
+                'contract.view.own',
+                'expense.manage',
+                'charge.settings',
+                'charge.calculate',
+                'invoice.view.all',
+                'invoice.view.own',
+                'payment.submit',
+                'payment.review',
+                'ticket.create',
+                'ticket.view.all',
+                'ticket.view.assigned',
+                'ticket.respond',
+                'request.create',
+                'request.view.all',
+                'request.view.domain',
+                'request.view.own',
+                'rating.give',
+                'rating.view',
+                'shift.manage',
+                'shift.view',
+                'supply.manage',
+                'event.manage',
+                'event.view',
+                'poll.manage',
+                'poll.vote',
+                'sms.templates',
+                'notification.view',
+                'document.manage',
+                'document.view',
+                'phonebook.building',
+                'phonebook.personal',
+                'report.view.all',
+                'report.view.own',
+                'audit.view',
+            ],
+            'security' => [
+                'ticket.view.assigned',
+                'ticket.respond',
+                'request.view.domain',
+                'event.view',
+                'document.view',
+                'phonebook.personal',
+                'report.view.own',
+                'notification.view',
+                'building.view',
+                'shift.view',
+            ],
+            'cleaning' => [
+                'ticket.view.assigned',
+                'ticket.respond',
+                'request.view.domain',
+                'event.view',
+                'document.view',
+                'phonebook.personal',
+                'report.view.own',
+                'notification.view',
+                'building.view',
+            ],
+            'maintenance' => [
+                'ticket.view.assigned',
+                'ticket.respond',
+                'request.view.domain',
+                'event.view',
+                'document.view',
+                'phonebook.personal',
+                'report.view.own',
+                'notification.view',
+                'building.view',
+                'supply.manage',
+            ],
+            'unit_owner' => [
+                'unit.view.own',
+                'invoice.view.own',
+                'payment.submit',
+                'contract.view.own',
+                'request.create',
+                'request.view.own',
+                'rating.give',
+                'event.view',
+                'poll.vote',
+                'document.view',
+                'phonebook.personal',
+                'report.view.own',
+                'notification.view',
+                'building.view',
+            ],
+            'tenant' => [
+                'unit.view.own',
+                'invoice.view.own',
+                'payment.submit',
+                'request.create',
+                'request.view.own',
+                'rating.give',
+                'event.view',
+                'poll.vote',
+                'document.view',
+                'phonebook.personal',
+                'report.view.own',
+                'notification.view',
+                'building.view',
+                'contract.view.own',
+            ],
+        ] as $role => $keys) {
+            DB::table('role_permission')->where('role_id', $roleIds[$role])->delete();
+            DB::table('role_permission')->insert(
+                collect($keys)->map(fn ($k) => ['role_id' => $roleIds[$role], 'permission_id' => $permIds[$k]])->all()
+            );
+        }
+    }
+}
