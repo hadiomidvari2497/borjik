@@ -25,7 +25,8 @@
   </p>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
     @if($subscription)
-      <a class="btn" href="{{ route('buildings.create') }}">ساخت ساختمان</a>
+      <a class="btn" href="{{ route('invitations.index') }}">مشاهده‌ی دعوت‌نامه‌ها</a>
+      <a class="btn sec" href="{{ route('buildings.create') }}">ساخت ساختمان</a>
       <span class="btn sec" style="cursor:default">اشتراک فعال: {{ \App\Support\Fa::num($subscription->units_limit) }} واحد تا {{ \App\Support\Fa::date($subscription->expires_at, 'Y/m/d') }}</span>
     @else
       <a class="btn" href="{{ \Illuminate\Support\Facades\Route::has('subscription.plans') ? route('subscription.plans') : '#features' }}">تهیه‌ی اشتراک</a>
