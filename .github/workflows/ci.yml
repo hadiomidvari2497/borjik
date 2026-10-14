@@ -14,68 +14,194 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PHP_VERSION: "8.2"
+
 jobs:
-  test:
-    name: Tests (PHP ${{ matrix.php }})
+  # ─────────────────────────────────────────────
+  # Gate 1 — parallel quality checks (like the diagram)
+  # ─────────────────────────────────────────────
+  lint:
+    name: PHP Lint & Syntax Check
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        php: ["8.2"]
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
-          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, openssl, tokenizer, xml, curl
+          php-version: ${{ env.PHP_VERSION }}
           coverage: none
-          tools: composer:v2
+      - name: Lint all PHP files
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r -d '' f; do
+            if ! php -l "$f" >/dev/null; then
+              echo "FAIL: $f"
+              fail=$((fail + 1))
+            fi
+          done < <(find app bootstrap config database routes tests -type f -name '*.php' -print0)
+          echo "Checked PHP sources."
+          if [ "$fail" -gt 0 ]; then
+            echo "$fail file(s) failed syntax check."
+            exit 1
+          fi
+          echo "Syntax OK."
 
-      - name: Get Composer cache dir
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+  code-style:
+    name: Code Style (PHP_CodeSniffer)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: phpcs
+          coverage: none
+      - name: Run PHP_CodeSniffer (PSR-12)
+        run: |
+          # Only application code; vendor is ignored by default when paths are explicit
+          phpcs --standard=PSR12 --extensions=php \
+            --ignore=*/vendor/*,*/storage/*,*/bootstrap/cache/* \
+            -n -p \
+            app bootstrap/app.php bootstrap/providers.php config database routes tests \
+            || {
+              echo "::warning::PHPCS reported style issues. Review output above."
+              exit 1
+            }
 
+  static-analysis:
+    name: Static Analysis (PHPStan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: phpstan
+          coverage: none
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, openssl, tokenizer, xml, curl
       - name: Cache Composer
         uses: actions/cache@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            composer-${{ runner.os }}-${{ matrix.php }}-
-
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock') }}
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: PHPStan
+        run: phpstan analyse --configuration=phpstan.neon --no-progress --memory-limit=1G
 
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+      - name: Composer audit
+        run: composer audit --no-interaction
+
+  validate-config:
+    name: Validate Config & JSON
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, openssl, tokenizer, xml, curl
+      - name: Validate composer.json
+        run: composer validate --strict --no-check-publish
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Prepare .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+      - name: Config cache (syntax of config/*.php)
+        run: |
+          php artisan config:clear
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+        env:
+          APP_ENV: production
+          APP_DEBUG: "false"
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          SESSION_DRIVER: array
+          CACHE_STORE: array
+          QUEUE_CONNECTION: sync
+          SMS_DRIVER: log
+
+  schema:
+    name: Database Schema Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, openssl, tokenizer, xml, curl
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          touch database/database.sqlite
+      - name: Migrate (SQLite)
+        run: php artisan migrate --force --no-interaction
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
+          SESSION_DRIVER: array
+          CACHE_STORE: array
+          QUEUE_CONNECTION: sync
+          SMS_DRIVER: log
+      - name: Migrate fresh + seed
+        run: php artisan migrate:fresh --seed --force --no-interaction
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ${{ github.workspace }}/database/database.sqlite
+          SESSION_DRIVER: array
+          CACHE_STORE: array
+          QUEUE_CONNECTION: sync
+          SMS_DRIVER: log
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+          extensions: mbstring, pdo_sqlite, sqlite3, bcmath, ctype, fileinfo, openssl, tokenizer, xml, curl
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ env.PHP_VERSION }}-${{ hashFiles('composer.lock') }}
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
       - name: Prepare environment
         run: |
           cp .env.example .env
           php artisan key:generate --force
           echo "SMS_DRIVER=log" >> .env
           echo "QUEUE_CONNECTION=sync" >> .env
-          echo "SESSION_DRIVER=array" >> .env
-          echo "CACHE_STORE=array" >> .env
-
-      - name: PHP syntax check
-        run: |
-          set -e
-          fail=0
-          while IFS= read -r -d '' f; do
-            if ! php -l "$f" > /dev/null; then
-              echo "FAIL: $f"
-              fail=$((fail + 1))
-            fi
-          done < <(find app bootstrap config database routes tests -type f -name "*.php" -print0 2>/dev/null)
-          if [ "$fail" -gt 0 ]; then
-            echo "$fail file(s) have syntax errors."
-            exit 1
-          fi
-          echo "Syntax OK."
-
-      - name: Run tests
+      - name: Run PHPUnit
         run: php artisan test
         env:
           APP_ENV: testing
@@ -86,22 +212,37 @@ jobs:
           CACHE_STORE: array
           SMS_DRIVER: log
 
-  package:
-    name: Production ZIP
+  # ─────────────────────────────────────────────
+  # Gate 2 — package only if every check passed
+  # ─────────────────────────────────────────────
+  build:
+    name: Build & Artifact
     runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-
+    needs:
+      - lint
+      - code-style
+      - static-analysis
+      - security
+      - validate-config
+      - schema
+      - tests
+    if: |
+      always() &&
+      needs.lint.result == 'success' &&
+      needs.code-style.result == 'success' &&
+      needs.static-analysis.result == 'success' &&
+      needs.security.result == 'success' &&
+      needs.validate-config.result == 'success' &&
+      needs.schema.result == 'success' &&
+      needs.tests.result == 'success' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build release archive
+      - uses: actions/checkout@v4
+      - name: Build production ZIP
         run: |
-          set -e
+          set -euo pipefail
           SHORT=$(git rev-parse --short HEAD)
           OUT="borjik-${SHORT}.zip"
-
           zip -r "$OUT" . \
             -x ".git/*" \
             -x ".github/*" \
@@ -121,15 +262,13 @@ jobs:
             -x "*.log" \
             -x ".phpunit.result.cache" \
             -x ".phpunit.cache/*" \
-            -x "README.md" \
-            -x "*.md" \
+            -x "phpstan.neon" \
+            -x "phpcs.xml" \
+            -x "phpcs.xml.dist" \
             -x ".DS_Store" \
             -x "*/.DS_Store" \
             -x "*__MACOSX*"
-
           ls -lh "$OUT"
-          echo "ARTIFACT=$OUT" >> "$GITHUB_ENV"
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -137,3 +276,45 @@ jobs:
           path: borjik-*.zip
           if-no-files-found: error
           retention-days: 30
+
+  # ─────────────────────────────────────────────
+  # Gate 3 — only when something failed (diagram node)
+  # ─────────────────────────────────────────────
+  diagnostics:
+    name: CI Failure Diagnostics
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - code-style
+      - static-analysis
+      - security
+      - validate-config
+      - schema
+      - tests
+    if: |
+      always() &&
+      (needs.lint.result == 'failure' ||
+       needs.code-style.result == 'failure' ||
+       needs.static-analysis.result == 'failure' ||
+       needs.security.result == 'failure' ||
+       needs.validate-config.result == 'failure' ||
+       needs.schema.result == 'failure' ||
+       needs.tests.result == 'failure')
+    steps:
+      - name: Summarize failures
+        run: |
+          echo "## CI Failure Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Job | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| PHP Lint & Syntax Check | ${{ needs.lint.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Code Style (PHP_CodeSniffer) | ${{ needs.code-style.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Static Analysis (PHPStan) | ${{ needs.static-analysis.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Security Audit | ${{ needs.security.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Validate Config & JSON | ${{ needs.validate-config.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Database Schema Validation | ${{ needs.schema.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tests | ${{ needs.tests.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Open the failed job log above for details." >> "$GITHUB_STEP_SUMMARY"
+          echo "Lint=${{ needs.lint.result }} Style=${{ needs.code-style.result }} PHPStan=${{ needs.static-analysis.result }} Security=${{ needs.security.result }} Config=${{ needs.validate-config.result }} Schema=${{ needs.schema.result }} Tests=${{ needs.tests.result }}"
+          exit 1
