@@ -92,12 +92,19 @@ class InvitationService
             throw new InvitationException('این دعوت برای شماره‌ی دیگری ارسال شده است.');
         }
 
-        app(CurrentBuilding::class)->actingAs((int) $invitation->building_id, function () use ($invitation, $user) {
-            DB::transaction(function () use ($invitation, $user) {
-                $invitation->forceFill(['accepted_at' => now()])->save();
+        $buildingId = (int) $invitation->building_id;
+
+        app(CurrentBuilding::class)->actingAs($buildingId, function () use ($invitation, $user, $buildingId) {
+            DB::transaction(function () use ($invitation, $user, $buildingId) {
+                // Re-load inside the tenant context so the global scope and model events use the same building.
+                $scopedInvitation = Invitation::query()
+                    ->where('building_id', $buildingId)
+                    ->findOrFail($invitation->getKey());
+
+                $scopedInvitation->forceFill(['accepted_at' => now()])->save();
 
                 // همه‌ی نقش‌های «دعوت‌شده»‌ی این شخص در این ساختمان فعال می‌شود (ممکن است بعد از دعوت نقش دیگری هم اضافه شده باشد)
-                BuildingUserRole::where(['building_id' => $invitation->building_id, 'user_id' => $user->id, 'status' => 'invited'])
+                BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $user->id, 'status' => 'invited'])
                     ->update(['status' => 'active', 'joined_at' => now()]);
 
                 if ($user->status === 'invited') {
