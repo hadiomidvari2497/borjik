@@ -18,14 +18,14 @@
   <h2>به برجیک خوش آمدید{{ auth()->user()->display_name ? '، '.auth()->user()->display_name : '' }}</h2>
   <p>
     @if($pendingInvites)
-      دعوت‌نامه‌ی یک ساختمان برای شما ثبت شده است. لینک داخل پیامک دعوت را باز کنید تا عضویت‌تان فعال شود.
+      دعوت‌نامه‌ی یک ساختمان برای شما ثبت شده است. از صفحه‌ی دعوت‌نامه‌ها می‌توانید آن را بپذیرید یا رد کنید.
     @else
       شما هنوز عضو هیچ ساختمانی نیستید. می‌توانید امکانات زیر را ببینید؛ برای کار با آن‌ها ساختمان خودتان را با اشتراک بسازید، یا اگر مدیر ساختمانی هستید که شما را دعوت می‌کند، لینک پیامک را باز کنید.
     @endif
   </p>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+    <a class="btn" href="{{ route('invitations.index') }}">مشاهده‌ی دعوت‌نامه‌ها</a>
     @if($subscription)
-      <a class="btn" href="{{ route('invitations.index') }}">مشاهده‌ی دعوت‌نامه‌ها</a>
       <a class="btn sec" href="{{ route('buildings.create') }}">ساخت ساختمان</a>
       <span class="btn sec" style="cursor:default">اشتراک فعال: {{ \App\Support\Fa::num($subscription->units_limit) }} واحد تا {{ \App\Support\Fa::date($subscription->expires_at, 'Y/m/d') }}</span>
     @else
