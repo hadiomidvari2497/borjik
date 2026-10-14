@@ -17,6 +17,7 @@ class Invitation extends Model
         return [
             'expires_at' => 'datetime',
             'accepted_at' => 'datetime',
+            'rejected_at' => 'datetime',
         ];
     }
 

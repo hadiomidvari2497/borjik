@@ -138,4 +138,61 @@ class InvitationFlowTest extends TestCase
         $this->expectException(InvitationException::class);
         $this->invite();
     }
+
+    public function test_existing_user_can_view_and_reject_invitation_from_inbox(): void
+    {
+        $user = User::create(['mobile' => '09121112233', 'first_name' => 'کاربر', 'last_name' => 'ثبت‌نام‌شده', 'status' => 'active']);
+        $this->invite('09121112233');
+
+        $this->actingAs($user)
+            ->get(route('invitations.index'))
+            ->assertOk()
+            ->assertSee('دعوت‌نامه‌های من')
+            ->assertSee('برج یک')
+            ->assertSee('پذیرفتن دعوت')
+            ->assertSee('رد کردن');
+
+        $invitation = Invitation::withoutGlobalScopes()->where('user_id', $user->id)->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('invitations.reject', $invitation->id))
+            ->assertRedirect(route('invitations.index'));
+
+        $this->assertNotNull(Invitation::withoutGlobalScopes()->findOrFail($invitation->id)->rejected_at);
+        $this->assertSame(
+            'inactive',
+            BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
+        );
+    }
+
+    public function test_invitation_inbox_only_shows_current_users_invitations(): void
+    {
+        $this->invite('09121112233');
+        $other = User::create(['mobile' => '09129998877', 'status' => 'active']);
+
+        $this->actingAs($other)
+            ->get(route('invitations.index'))
+            ->assertOk()
+            ->assertSee('دعوت‌نامه‌ی فعالی ندارید')
+            ->assertDontSee('برج یک');
+    }
+
+
+    public function test_existing_user_can_accept_invitation_from_inbox(): void
+    {
+        $user = User::create(['mobile' => '09121112233', 'first_name' => 'کاربر', 'last_name' => 'ثبت‌نام‌شده', 'status' => 'active']);
+        $this->invite('09121112233');
+        $invitation = Invitation::withoutGlobalScopes()->where('user_id', $user->id)->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('invitations.accept', $invitation->id))
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertNotNull(Invitation::withoutGlobalScopes()->findOrFail($invitation->id)->accepted_at);
+        $this->assertSame(
+            'active',
+            BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
+        );
+    }
+
 }

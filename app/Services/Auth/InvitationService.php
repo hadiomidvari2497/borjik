@@ -97,9 +97,9 @@ class InvitationService
             throw new InvitationException('لینک دعوت نامعتبر یا منقضی شده است.');
         }
 
-        if ($invitation->accepted_at) {
-            Log::info('Invitation token lookup rejected.', ['reason' => 'already_accepted', 'invitation_id' => $invitation->getKey()]);
-            throw new InvitationException('لینک دعوت نامعتبر یا منقضی شده است.');
+        if ($invitation->accepted_at || $invitation->rejected_at) {
+            Log::info('Invitation token lookup rejected.', ['reason' => $invitation->accepted_at ? 'already_accepted' : 'already_rejected', 'invitation_id' => $invitation->getKey()]);
+            throw new InvitationException('این دعوت‌نامه قبلاً تعیین تکلیف شده است.');
         }
 
         if (! $invitation->expires_at || $invitation->expires_at->isPast()) {
@@ -110,27 +110,42 @@ class InvitationService
         return $invitation;
     }
 
-    /** دعوت را برای کاربر واردشده می‌پذیرد؛ شماره‌ی کاربر باید همان شماره‌ی دعوت‌شده باشد. */
+    /** پذیرش با توکن پیامکی؛ رفتار قبلی حفظ می‌شود. */
     public function accept(string $token, User $user): Invitation
     {
-        $invitation = $this->find($token);
+        return $this->acceptInvitation($this->find($token), $user);
+    }
 
-        if ($invitation->mobile !== $user->mobile) {
-            throw new InvitationException('این دعوت برای شماره‌ی دیگری ارسال شده است.');
+    /** پذیرش یک رکورد دعوت متعلق به کاربر واردشده. */
+    public function acceptInvitation(Invitation $invitation, User $user): Invitation
+    {
+        if ((int) $invitation->user_id !== (int) $user->id || $invitation->mobile !== $user->mobile) {
+            throw new InvitationException('این دعوت برای حساب کاربری دیگری ارسال شده است.');
+        }
+
+        if ($invitation->accepted_at || $invitation->rejected_at) {
+            throw new InvitationException('این دعوت‌نامه قبلاً تعیین تکلیف شده است.');
+        }
+
+        if (! $invitation->expires_at || $invitation->expires_at->isPast()) {
+            throw new InvitationException('مهلت این دعوت‌نامه به پایان رسیده است.');
         }
 
         $buildingId = (int) $invitation->building_id;
 
         app(CurrentBuilding::class)->actingAs($buildingId, function () use ($invitation, $user, $buildingId) {
             DB::transaction(function () use ($invitation, $user, $buildingId) {
-                // Re-load inside the tenant context so the global scope and model events use the same building.
                 $scopedInvitation = Invitation::query()
                     ->where('building_id', $buildingId)
+                    ->lockForUpdate()
                     ->findOrFail($invitation->getKey());
+
+                if ($scopedInvitation->accepted_at || $scopedInvitation->rejected_at || ! $scopedInvitation->expires_at || $scopedInvitation->expires_at->isPast()) {
+                    throw new InvitationException('این دعوت‌نامه دیگر قابل پذیرش نیست.');
+                }
 
                 $scopedInvitation->forceFill(['accepted_at' => now()])->save();
 
-                // همه‌ی نقش‌های «دعوت‌شده»‌ی این شخص در این ساختمان فعال می‌شود (ممکن است بعد از دعوت نقش دیگری هم اضافه شده باشد)
                 BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $user->id, 'status' => 'invited'])
                     ->update(['status' => 'active', 'joined_at' => now()]);
 
@@ -141,5 +156,41 @@ class InvitationService
         });
 
         return $invitation;
+    }
+
+    /** رد دعوت توسط همان کاربری که دعوت‌نامه به حسابش تعلق دارد. */
+    public function reject(Invitation $invitation, User $user): void
+    {
+        if ((int) $invitation->user_id !== (int) $user->id || $invitation->mobile !== $user->mobile) {
+            throw new InvitationException('این دعوت برای حساب کاربری دیگری ارسال شده است.');
+        }
+
+        $buildingId = (int) $invitation->building_id;
+
+        app(CurrentBuilding::class)->actingAs($buildingId, function () use ($invitation, $user, $buildingId) {
+            DB::transaction(function () use ($invitation, $user, $buildingId) {
+                $scopedInvitation = Invitation::query()
+                    ->where('building_id', $buildingId)
+                    ->lockForUpdate()
+                    ->findOrFail($invitation->getKey());
+
+                if ($scopedInvitation->accepted_at || $scopedInvitation->rejected_at) {
+                    throw new InvitationException('این دعوت‌نامه قبلاً تعیین تکلیف شده است.');
+                }
+
+                if (! $scopedInvitation->expires_at || $scopedInvitation->expires_at->isPast()) {
+                    throw new InvitationException('مهلت این دعوت‌نامه به پایان رسیده است.');
+                }
+
+                $scopedInvitation->forceFill(['rejected_at' => now()])->save();
+
+                BuildingUserRole::where([
+                    'building_id' => $buildingId,
+                    'user_id' => $user->id,
+                    'role_id' => $scopedInvitation->role_id,
+                    'status' => 'invited',
+                ])->update(['status' => 'inactive']);
+            });
+        });
     }
 }
