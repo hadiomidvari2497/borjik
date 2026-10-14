@@ -54,7 +54,6 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate --force
-          # CI-friendly overrides (tests already use sqlite :memory: via phpunit.xml)
           echo "SMS_DRIVER=log" >> .env
           echo "QUEUE_CONNECTION=sync" >> .env
           echo "SESSION_DRIVER=array" >> .env
@@ -77,7 +76,7 @@ jobs:
           echo "Syntax OK."
 
       - name: Run tests
-        run: php artisan test --parallel --processes=2
+        run: php artisan test
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
@@ -103,8 +102,6 @@ jobs:
           SHORT=$(git rev-parse --short HEAD)
           OUT="borjik-${SHORT}.zip"
 
-          # Production-ready source (no vendor — run composer on server)
-          # Exclude: tests, docs, CI, git, local env, caches, node_modules
           zip -r "$OUT" . \
             -x ".git/*" \
             -x ".github/*" \
@@ -112,7 +109,8 @@ jobs:
             -x "vendor/*" \
             -x "node_modules/*" \
             -x ".env" \
-            -x ".env.*" \
+            -x ".env.backup" \
+            -x ".env.production" \
             -x "storage/logs/*" \
             -x "storage/framework/cache/*" \
             -x "storage/framework/sessions/*" \
@@ -128,10 +126,6 @@ jobs:
             -x ".DS_Store" \
             -x "*/.DS_Store" \
             -x "*__MACOSX*"
-
-          # Keep .env.example inside the zip (needed for deploy)
-          # zip already includes it unless matched by .env.* — re-add explicitly
-          zip "$OUT" .env.example 2>/dev/null || true
 
           ls -lh "$OUT"
           echo "ARTIFACT=$OUT" >> "$GITHUB_ENV"
