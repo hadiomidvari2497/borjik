@@ -75,6 +75,15 @@ class InvitationFlowTest extends TestCase
         $this->assertSame($this->building->id, $invitation->building_id);
     }
 
+    public function test_invitation_token_tolerates_trailing_sms_link_punctuation(): void
+    {
+        $token = $this->invite();
+
+        $invitation = $this->service->find($token . '.)');
+
+        $this->assertSame($this->building->id, $invitation->building_id);
+    }
+
     public function test_public_invitation_page_loads_without_a_selected_building(): void
     {
         $token = $this->invite();
