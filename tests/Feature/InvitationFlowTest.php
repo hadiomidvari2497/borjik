@@ -177,4 +177,22 @@ class InvitationFlowTest extends TestCase
             ->assertDontSee('برج یک');
     }
 
+
+    public function test_existing_user_can_accept_invitation_from_inbox(): void
+    {
+        $user = User::create(['mobile' => '09121112233', 'first_name' => 'کاربر', 'last_name' => 'ثبت‌نام‌شده', 'status' => 'active']);
+        $this->invite('09121112233');
+        $invitation = Invitation::withoutGlobalScopes()->where('user_id', $user->id)->firstOrFail();
+
+        $this->actingAs($user)
+            ->post(route('invitations.accept', $invitation->id))
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertNotNull(Invitation::withoutGlobalScopes()->findOrFail($invitation->id)->accepted_at);
+        $this->assertSame(
+            'active',
+            BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
+        );
+    }
+
 }
