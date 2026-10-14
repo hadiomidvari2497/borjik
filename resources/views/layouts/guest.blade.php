@@ -27,10 +27,11 @@
     </div>
     <div class="bp-foot">© برجیک — سامانه‌ی مدیریت ساختمان</div>
   </aside>
+
   <main class="form-panel">
-    <div class="fp-inner @yield('panel-class')">
-      <div class="mlogo"><div class="logo">ب</div><b>برجیک</b></div>
-      @if(session('status'))<div class="ok">{{ session('status') }}</div>@endif
+    <div class="fp-inner @yield('wide')">
+      @if(session('status'))<div class="alert ok">{{ session('status') }}</div>@endif
+      @if(session('warning'))<div class="alert warn">{{ session('warning') }}</div>@endif
       @yield('content')
     </div>
   </main>

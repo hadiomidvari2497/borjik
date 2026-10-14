@@ -2,44 +2,53 @@
 @section('title', 'ورود | برجیک')
 @section('content')
 @if($step === 'code')
-  <h1>کد تأیید را وارد کنید</h1>
-  <p class="sub">کد ۶ رقمی به شماره‌ی {{ $mobile }} پیامک شد.</p>
+  <h1 class="h1">کد تأیید را وارد کنید</h1>
+  <p class="lead">کد ۶ رقمی به شماره‌ی <b dir="ltr">{{ \App\Support\Fa::digits($mobile) }}</b> پیامک شد.</p>
   <form method="POST" action="{{ route('login.otp.verify') }}">@csrf
-    <label for="code">کد تأیید</label>
-    <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" autofocus required>
-    @error('code')<div class="err">{{ $message }}</div>@enderror
-    <button>ورود</button>
+    <div class="field">
+      <input class="otp" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" data-digits required>
+      @error('code')<div class="err">{{ $message }}</div>@enderror
+    </div>
+    <button class="btn" type="submit">ورود</button>
   </form>
-  <form method="POST" action="{{ route('login.otp') }}">@csrf
-    <input type="hidden" name="mobile" value="{{ $mobile }}">
-    <button class="link" type="submit">ارسال دوباره‌ی کد</button>
-    @error('mobile')<div class="err">{{ $message }}</div>@enderror
-  </form>
-@else
-  <h1>ورود به برجیک</h1>
-  <p class="sub">با شماره‌ی موبایل وارد شوید یا ثبت‌نام کنید.</p>
-  <div class="tabs">
-    <button type="button" class="on" data-t="otp">کد پیامکی</button>
-    <button type="button" data-t="pw">رمز عبور</button>
+  <div class="row">
+    <form method="POST" action="{{ route('login.reset') }}">@csrf<button class="lnk" type="submit">ویرایش شماره</button></form>
+    <form method="POST" action="{{ route('login.otp') }}" data-countdown="60">@csrf
+      <input type="hidden" name="mobile" value="{{ $mobile }}">
+      <button class="lnk" type="submit" data-resend>ارسال دوباره‌ی کد<span data-count-label></span></button>
+    </form>
   </div>
-  <form method="POST" action="{{ route('login.otp') }}" data-p="otp">@csrf
-    <label for="m1">شماره‌ی موبایل</label>
-    <input id="m1" name="mobile" inputmode="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" value="{{ old('mobile') }}" required>
-    @error('mobile')<div class="err">{{ $message }}</div>@enderror
-    <button>دریافت کد</button>
+  @error('mobile')<div class="alert err" style="margin-top:14px">{{ $message }}</div>@enderror
+@else
+  <h1 class="h1">ورود به برجیک</h1>
+  <p class="lead">با شماره‌ی موبایل وارد شوید یا ثبت‌نام کنید؛ نیازی به رمز عبور نیست.</p>
+
+  <div class="seg" role="tablist">
+    <button type="button" class="on" data-tab="otp" role="tab">کد پیامکی</button>
+    <button type="button" data-tab="pw" role="tab">رمز عبور</button>
+  </div>
+
+  <form method="POST" action="{{ route('login.otp') }}" data-pane="otp">@csrf
+    <div class="field">
+      <label for="m1">شماره‌ی موبایل</label>
+      <div class="phone"><input id="m1" name="mobile" inputmode="tel" autocomplete="tel" placeholder="۹۱۲۳۴۵۶۷۸۹" value="{{ old('mobile') }}" required></div>
+      @error('mobile')<div class="err">{{ $message }}</div>@enderror
+    </div>
+    <button class="btn" type="submit">دریافت کد تأیید</button>
   </form>
-  <form method="POST" action="{{ route('login.password') }}" data-p="pw" hidden>@csrf
-    <label for="m2">شماره‌ی موبایل</label>
-    <input id="m2" name="mobile" inputmode="tel" value="{{ old('mobile') }}" required>
-    <label for="pw">رمز عبور</label>
-    <input id="pw" type="password" name="password" autocomplete="current-password" required>
-    <button>ورود</button>
+
+  <form method="POST" action="{{ route('login.password') }}" data-pane="pw" hidden>@csrf
+    <div class="field">
+      <label for="m2">شماره‌ی موبایل</label>
+      <div class="phone"><input id="m2" name="mobile" inputmode="tel" autocomplete="tel" placeholder="۹۱۲۳۴۵۶۷۸۹" value="{{ old('mobile') }}" required></div>
+    </div>
+    <div class="field">
+      <label for="pw">رمز عبور</label>
+      <div class="pw"><input id="pw" type="password" name="password" autocomplete="current-password" required><button type="button">نمایش</button></div>
+    </div>
+    <button class="btn" type="submit">ورود</button>
   </form>
-  <script>
-    document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
-      document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-      document.querySelectorAll('form[data-p]').forEach(f => f.hidden = f.dataset.p !== b.dataset.t);
-    });
-  </script>
+
+  <p class="fine">با ورود، قوانین و حریم خصوصی برجیک را می‌پذیرید.</p>
 @endif
 @endsection

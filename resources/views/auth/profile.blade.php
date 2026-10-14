@@ -1,41 +1,60 @@
+@php
+  $done = (bool) $user->profile_completed_at;
+  $type = old('person_type', $user->person_type?->value ?? 'real');
+  $birth = old('birth_date', \App\Support\JalaliDate::format($user->birth_date));
+@endphp
 @extends('layouts.guest')
-@section('title', 'تکمیل پروفایل | برجیک')
+@section('title', ($done ? 'پروفایل من' : 'تکمیل پروفایل').' | برجیک')
+@section('wide', 'wide')
 @section('content')
-  <h1>{{ $user->profile_completed_at ? 'پروفایل من' : 'تکمیل پروفایل' }}</h1>
-  <p class="sub">برای ادامه، اطلاعات هویتی را کامل کنید. عکس پروفایل اختیاری است.</p>
+  @unless($done)<div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></div>@endunless
+  <h1 class="h1">{{ $done ? 'پروفایل من' : 'یک قدم تا شروع کار' }}</h1>
+  <p class="lead">{{ $done ? 'اطلاعات هویتی خود را ویرایش کنید.' : 'برای ادامه، اطلاعات هویتی‌تان را کامل کنید. عکس پروفایل اختیاری است و بعداً هم می‌توانید اضافه کنید.' }}</p>
+
   <form method="POST" action="{{ route('profile.update') }}">@csrf
-    <label for="pt">نوع شخص</label>
-    <select id="pt" name="person_type">
-      <option value="real" @selected(old('person_type', $user->person_type?->value) !== 'legal')>حقیقی</option>
-      <option value="legal" @selected(old('person_type', $user->person_type?->value) === 'legal')>حقوقی</option>
-    </select>
-    <div data-for="real">
-      <label>نام</label><input name="first_name" value="{{ old('first_name', $user->first_name) }}">
-      @error('first_name')<div class="err">{{ $message }}</div>@enderror
-      <label>نام خانوادگی</label><input name="last_name" value="{{ old('last_name', $user->last_name) }}">
-      @error('last_name')<div class="err">{{ $message }}</div>@enderror
+    <div class="seg" role="radiogroup" aria-label="نوع شخص">
+      <label><input type="radio" name="person_type" value="real" @checked($type !== 'legal')><span>شخص حقیقی</span></label>
+      <label><input type="radio" name="person_type" value="legal" @checked($type === 'legal')><span>شخص حقوقی</span></label>
     </div>
-    <div data-for="legal" hidden>
-      <label>نام شرکت</label><input name="company_name" value="{{ old('company_name', $user->company_name) }}">
-      @error('company_name')<div class="err">{{ $message }}</div>@enderror
+
+    <div class="grid2" data-for="real">
+      <div class="field"><label for="first_name">نام</label><input id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" autocomplete="given-name">@error('first_name')<div class="err">{{ $message }}</div>@enderror</div>
+      <div class="field"><label for="last_name">نام خانوادگی</label><input id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" autocomplete="family-name">@error('last_name')<div class="err">{{ $message }}</div>@enderror</div>
     </div>
-    <label>کد ملی (حقوقی: شناسه‌ی ملی)</label><input name="national_code" inputmode="numeric" value="{{ old('national_code', $user->national_code) }}">
-    @error('national_code')<div class="err">{{ $message }}</div>@enderror
-    <label>تاریخ تولد (حقوقی: تأسیس) — شمسی</label><input name="birth_date" placeholder="۱۳۷۰/۰۵/۱۲" value="{{ old('birth_date') }}">
-    @error('birth_date')<div class="err">{{ $message }}</div>@enderror
-    <label>آدرس (اختیاری)</label><textarea name="address" rows="2">{{ old('address', $user->address) }}</textarea>
-    <label>رمز عبور (اختیاری، حداقل ۸ کاراکتر)</label><input type="password" name="password" autocomplete="new-password">
-    <input type="password" name="password_confirmation" placeholder="تکرار رمز عبور" style="margin-top:8px">
-    @error('password')<div class="err">{{ $message }}</div>@enderror
-    <button>ذخیره</button>
+    <div class="field" data-for="legal" hidden><label for="company_name">نام شرکت یا سازمان</label><input id="company_name" name="company_name" value="{{ old('company_name', $user->company_name) }}">@error('company_name')<div class="err">{{ $message }}</div>@enderror</div>
+
+    <div class="grid2">
+      <div class="field">
+        <label for="national_code"><span data-label-real="کد ملی" data-label-legal="شناسه‌ی ملی">کد ملی</span></label>
+        <input id="national_code" name="national_code" inputmode="numeric" maxlength="11" data-digits value="{{ old('national_code', $user->national_code) }}" dir="ltr" style="text-align:right">
+        @error('national_code')<div class="err">{{ $message }}</div>@enderror
+      </div>
+      <div class="field">
+        <label for="birth_date"><span data-label-real="تاریخ تولد" data-label-legal="تاریخ تأسیس">تاریخ تولد</span></label>
+        <input id="birth_date" name="birth_date" class="jdate" data-max="today" data-min="1300/01/01" placeholder="انتخاب از تقویم" value="{{ $birth }}">
+        @error('birth_date')<div class="err">{{ $message }}</div>@enderror
+      </div>
+    </div>
+
+    <div class="field"><label for="address">آدرس <span class="opt">(اختیاری)</span></label><textarea id="address" name="address" rows="2">{{ old('address', $user->address) }}</textarea></div>
+
+    <details class="more" @if($errors->has('password')) open @endif>
+      <summary>تعیین رمز عبور (اختیاری)</summary>
+      <p class="hint" style="margin-bottom:10px">با رمز عبور می‌توانید بدون پیامک وارد شوید. اگر نگذارید، همیشه با کد پیامکی وارد می‌شوید.</p>
+      <div class="grid2">
+        <div class="field"><label for="password">رمز عبور</label><div class="pw"><input id="password" type="password" name="password" autocomplete="new-password"><button type="button">نمایش</button></div><div class="hint">حداقل ۸ کاراکتر</div></div>
+        <div class="field"><label for="password_confirmation">تکرار رمز عبور</label><input id="password_confirmation" type="password" name="password_confirmation" autocomplete="new-password"></div>
+      </div>
+      @error('password')<div class="err" style="color:var(--err);font-size:12.5px">{{ $message }}</div>@enderror
+    </details>
+
+    <button class="btn" type="submit">{{ $done ? 'ذخیره‌ی تغییرات' : 'ذخیره و ادامه' }}</button>
   </form>
-  @if($user->profile_completed_at)
-    <p class="sub" style="margin-top:14px">تأیید دومرحله‌ای:
-      @if($user->two_factor_enabled) فعال است @else <a href="{{ route('profile.two-factor') }}">فعال‌سازی</a> @endif
-    </p>
+
+  @if($done)
+    <div class="row">
+      <span>تأیید دومرحله‌ای: {{ $user->two_factor_enabled ? 'فعال است' : 'غیرفعال' }}</span>
+      @unless($user->two_factor_enabled)<a class="lnk" href="{{ route('profile.two-factor') }}">فعال‌سازی</a>@endunless
+    </div>
   @endif
-  <script>
-    const s = document.getElementById('pt'), f = () => document.querySelectorAll('[data-for]').forEach(d => d.hidden = d.dataset.for !== s.value);
-    s.onchange = f; f();
-  </script>
 @endsection
