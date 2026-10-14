@@ -1,15 +1,29 @@
-# Vendor assets (SweetAlert2)
+# SweetAlert2 (local, no CDN)
 
-Packed as base64+gzip to keep the repository lean.
+Version **11.26.25**
+
+## Generate the JS/CSS files
+
+From the project root:
 
 ```bash
-php scripts/expand-vendor.php
+php scripts/install-sweetalert2.php
 ```
 
-Also runs automatically after `composer install` / `composer update`.
+This expands the `.pack` files into:
 
-Produces:
 - `sweetalert2.min.css`
 - `sweetalert2.all.min.js`
 
-Version: SweetAlert2 **11.26.x** (local files, not CDN).
+## Or download once yourself and commit
+
+```bash
+mkdir -p public/vendor/sweetalert2
+curl -L -o public/vendor/sweetalert2/sweetalert2.min.css https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.min.css
+curl -L -o public/vendor/sweetalert2/sweetalert2.all.min.js https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js
+git add public/vendor/sweetalert2
+git commit -m "vendor: SweetAlert2 11.26.25 local assets"
+git push
+```
+
+Layout loads these files automatically when they exist.
