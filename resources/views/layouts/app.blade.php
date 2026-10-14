@@ -49,6 +49,10 @@
     </div>
 
     <nav class="nav" aria-label="منوی اصلی">
+      <div class="grp">حساب کاربری</div>
+      <a href="{{ route('invitations.index') }}" @class(['on' => request()->routeIs('invitations.*')]) @if(request()->routeIs('invitations.*')) aria-current="page" @endif>
+        <svg class="i"><use href="#inbox"/></svg>دعوت‌نامه‌های من
+      </a>
       @foreach($menu as $group)
         <div class="grp">{{ $group['title'] }}</div>
         @foreach($group['items'] as $item)
