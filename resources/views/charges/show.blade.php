@@ -61,7 +61,7 @@
   </table></div>
 
   @if($status === 'calculated')
-    <form method="POST" action="{{ route('charges.publish', $period->id) }}" onsubmit="return confirm('با انتشار، صورت‌حساب شارژ برای واحدها صادر می‌شود. ادامه می‌دهید؟')">@csrf
+    <form method="POST" action="{{ route('charges.publish', $period->id) }}" data-confirm="با انتشار، صورت‌حساب شارژ برای واحدها صادر می‌شود. ادامه می‌دهید؟" data-confirm-title="انتشار شارژ">@csrf
       @if($skipped)<label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px"><input type="checkbox" name="confirm_skipped" value="1" style="width:auto">بدون واحدهای محاسبه‌نشده منتشر شود</label>@endif
       <div class="fbar"><button class="btn" type="submit">انتشار و صدور صورت‌حساب</button></div>
     </form>

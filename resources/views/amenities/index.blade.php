@@ -52,10 +52,10 @@
         </td>
         <td class="act">
           @if($open)
-            <form method="POST" action="{{ route("{$p}.release", $it->id) }}" onsubmit="return confirm('اختصاص این {{ $cfg['title'] }} لغو شود؟')">@csrf<button class="btn sec sm" type="submit">آزادسازی</button></form>
+            <form method="POST" action="{{ route("{$p}.release", $it->id) }}" data-confirm="اختصاص این {{ $cfg['title'] }} لغو شود؟" data-confirm-title="آزادسازی">@csrf<button class="btn sec sm" type="submit">آزادسازی</button></form>
           @endif
           <a class="btn sec sm" href="{{ route("{$p}.edit", $it->id) }}">ویرایش</a>
-          <form method="POST" action="{{ route("{$p}.destroy", $it->id) }}" onsubmit="return confirm('حذف شود؟')">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
+          <form method="POST" action="{{ route("{$p}.destroy", $it->id) }}" data-confirm="حذف شود؟" data-confirm-title="حذف" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
         </td>
       </tr>
     @endforeach

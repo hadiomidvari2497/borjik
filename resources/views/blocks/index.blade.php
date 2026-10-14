@@ -14,7 +14,7 @@
         <td>{{ \App\Support\Fa::digits($b->floors_count) }}</td><td>{{ \App\Support\Fa::num($b->units_count) }}</td>
         <td class="act">
           <a class="btn sec sm" href="{{ route('blocks.edit', $b) }}">ویرایش</a>
-          <form method="POST" action="{{ route('blocks.destroy', $b) }}" onsubmit="return confirm('این بلوک حذف شود؟')">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
+          <form method="POST" action="{{ route('blocks.destroy', $b) }}" data-confirm="این بلوک حذف شود؟" data-confirm-title="حذف بلوک" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
         </td>
       </tr>
     @endforeach

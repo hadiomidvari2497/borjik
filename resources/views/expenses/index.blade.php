@@ -21,7 +21,7 @@
     <tbody>
     @foreach($expenses as $e)
       <tr><td><b>{{ $e->title }}</b></td><td>{{ $e->category?->name ?? '—' }}</td><td>{{ $F::money($e->amount) }}</td>
-        <td class="act">@unless($locked)<form method="POST" action="{{ route('expenses.destroy', $e->id) }}" onsubmit="return confirm('این هزینه حذف شود؟')">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>@endunless</td></tr>
+        <td class="act">@unless($locked)<form method="POST" action="{{ route('expenses.destroy', $e->id) }}" data-confirm="این هزینه حذف شود؟" data-confirm-title="حذف هزینه" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>@endunless</td></tr>
     @endforeach
     <tr><td colspan="2"><b>جمع هزینه‌ها</b></td><td colspan="2"><b>{{ $F::money($total) }}</b></td></tr>
     </tbody>
