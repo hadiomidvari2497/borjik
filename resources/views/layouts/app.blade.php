@@ -17,9 +17,18 @@
 <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+<link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('css/toast.css') }}">
 </head>
 <body>
 @include('partials.icons')
+
+{{-- Flash → Toast (hidden carriers for ui.js) --}}
+@if(session('status'))<div data-borjik-flash="status" hidden>{{ session('status') }}</div>@endif
+@if(session('success'))<div data-borjik-flash="success" hidden>{{ session('success') }}</div>@endif
+@if(session('warning'))<div data-borjik-flash="warning" hidden>{{ session('warning') }}</div>@endif
+@if(session('error'))<div data-borjik-flash="error" hidden>{{ session('error') }}</div>@endif
+@if($errors->has('general'))<div data-borjik-flash="error" hidden>{{ $errors->first('general') }}</div>@endif
 
 <div class="app">
   <div class="scrim" id="scrim"></div>
@@ -27,7 +36,6 @@
   <aside class="side" id="side">
     <div class="brand"><div class="logo">ب</div><div><b>برجیک</b><span>سامانه مدیریت ساختمان</span></div></div>
 
-    {{-- سوئیچ بین ساختمان‌های کاربر --}}
     <div class="sw" id="sw">
       <button type="button" id="swb" aria-haspopup="true" aria-expanded="false">
         <svg class="i"><use href="#bld"/></svg>
@@ -93,9 +101,6 @@
 
     <div class="scroll">
       <section class="panel">
-        @if(session('status'))<div class="warnbox" style="background:var(--brand-soft);border-color:transparent">{{ session('status') }}</div>@endif
-        @if(session('warning'))<div class="warnbox">{{ session('warning') }}</div>@endif
-        @if($errors->has('general'))<div class="warnbox">{{ $errors->first('general') }}</div>@endif
         @yield('content')
       </section>
     </div>
@@ -109,6 +114,9 @@
   </main>
 </div>
 
+<script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('js/ui.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
 </body>
 </html>
