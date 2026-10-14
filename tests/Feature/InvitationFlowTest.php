@@ -75,6 +75,18 @@ class InvitationFlowTest extends TestCase
         $this->assertSame($this->building->id, $invitation->building_id);
     }
 
+    public function test_public_invitation_page_loads_without_a_selected_building(): void
+    {
+        $token = $this->invite();
+
+        // Exercise the actual public HTTP route, not only the service method.
+        $response = $this->get(route('invite.show', $token));
+
+        $response->assertOk();
+        $response->assertSee('برج یک');
+        $response->assertSee($token);
+    }
+
     public function test_accept_activates_membership(): void
     {
         $token = $this->invite();
