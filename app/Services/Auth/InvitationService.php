@@ -66,7 +66,12 @@ class InvitationService
             'inviter' => $inviter->display_name,
             'building' => Building::find($buildingId)->name,
             'role' => $role->name_fa,
-            'link' => route('invite.show', $token),
+            // Build the public link from the current request origin/base path. On XAMPP, APP_URL
+            // is often left at http://localhost even when the app lives under /borjik/public;
+            // that sends invitations to a different Laravel app (or a route with no invitation).
+            'link' => request()->getSchemeAndHttpHost()
+                .rtrim(request()->getBaseUrl(), '/')
+                .route('invite.show', $token, false),
         ], $user->id, $buildingId);
 
         return [$invitation, $token];
