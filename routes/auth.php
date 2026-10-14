@@ -12,6 +12,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [OtpLoginController::class, 'show'])->name('login');
     Route::post('/login/otp', [OtpLoginController::class, 'send'])->middleware('throttle:otp-send')->name('login.otp');
     Route::post('/login/otp/verify', [OtpLoginController::class, 'verify'])->middleware('throttle:otp-verify')->name('login.otp.verify');
+    Route::post('/login/reset', [OtpLoginController::class, 'reset'])->name('login.reset');
     Route::post('/login/password', [PasswordLoginController::class, 'store'])->middleware('throttle:otp-verify')->name('login.password');
 
     Route::get('/two-factor/challenge', [TwoFactorController::class, 'challenge'])->name('two-factor.challenge');

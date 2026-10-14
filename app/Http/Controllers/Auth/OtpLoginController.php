@@ -90,6 +90,14 @@ class OtpLoginController extends Controller
         return $flash ? $redirect->with('warning', $flash) : $redirect;
     }
 
+    /** برگشت به مرحله‌ی ورود شماره (ویرایش موبایل). */
+    public function reset(Request $request)
+    {
+        $request->session()->forget('otp_mobile');
+
+        return redirect()->route('login');
+    }
+
     public function logout(Request $request)
     {
         Auth::logout();
