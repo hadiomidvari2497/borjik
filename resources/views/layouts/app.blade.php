@@ -67,10 +67,7 @@
           </a>
         @endforeach
       @endforeach
-    </nav>
-
-    <div class="grp">دعوت‌نامه‌ها</div>
-    <nav class="nav" aria-label="دعوت‌نامه‌ها">
+      <div class="grp">دعوت‌نامه‌ها</div>
       <a href="{{ route('invitations.index') }}" @class(['on' => request()->routeIs('invitations.*')]) @if(request()->routeIs('invitations.*')) aria-current="page" @endif>
         <svg class="i"><use href="#inbox"/></svg>دعوت‌نامه‌های من
       </a>
