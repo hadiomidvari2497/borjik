@@ -9,19 +9,20 @@
 ## فهرست مطالب
 
 1. [پیش‌نیازها](#پیش‌نیازها)
-2. [نصب (ویندوز / XAMPP)](#نصب-ویندوز--xampp)
-3. [نصب (لینوکس / macOS)](#نصب-لینوکس--macos)
-4. [پیکربندی `.env`](#پیکربندی-env)
-5. [اولین ورود و راه‌اندازی](#اولین-ورود-و-راه‌اندازی)
-6. [معماری و مفاهیم](#معماری-و-مفاهیم)
-7. [نقش‌ها و دسترسی‌ها](#نقش‌ها-و-دسترسی‌ها)
-8. [ماژول‌های اصلی](#ماژول‌های-اصلی)
-9. [پیامک (SMS)](#پیامک-sms)
-10. [دستورات Artisan اختصاصی](#دستورات-artisan-اختصاصی)
-11. [ساختار پوشه‌ها](#ساختار-پوشه‌ها)
-12. [تست و CI](#تست-و-ci)
-13. [عیب‌یابی رایج](#عیب‌یابی-رایج)
-14. [نکات توسعه](#نکات-توسعه)
+2. [مراحل نصب سریع (خلاصه)](#مراحل-نصب-سریع-خلاصه)
+3. [نصب کامل — ویندوز / XAMPP](#نصب-کامل--ویندوز--xampp)
+4. [نصب کامل — لینوکس / macOS](#نصب-کامل--لینوکس--macos)
+5. [پیکربندی `.env`](#پیکربندی-env)
+6. [اولین ورود و راه‌اندازی](#اولین-ورود-و-راه‌اندازی)
+7. [معماری و مفاهیم](#معماری-و-مفاهیم)
+8. [نقش‌ها و دسترسی‌ها](#نقش‌ها-و-دسترسی‌ها)
+9. [ماژول‌های اصلی](#ماژول‌های-اصلی)
+10. [پیامک (SMS)](#پیامک-sms)
+11. [دستورات Artisan اختصاصی](#دستورات-artisan-اختصاصی)
+12. [ساختار پوشه‌ها](#ساختار-پوشه‌ها)
+13. [تست و CI](#تست-و-ci)
+14. [عیب‌یابی رایج](#عیب‌یابی-رایج)
+15. [نکات توسعه](#نکات-توسعه)
 
 ---
 
@@ -33,7 +34,7 @@
 | Composer | 2.x |
 | پایگاه‌داده | **MySQL 8** / MariaDB (پیشنهادی برای لوکال با XAMPP) یا SQLite |
 | وب‌سرور | `php artisan serve` یا Apache/Nginx با Document Root روی `public/` |
-| Node.js | اختیاری؛ فقط اگر بخواهید Vite/`npm run build` را اجرا کنید. رابط فعلی عمدتاً CSS/JS استاتیک در `public/` دارد |
+| Node.js | اختیاری؛ رابط فعلی عمدتاً CSS/JS استاتیک در `public/` دارد |
 
 وابستگی‌های Composer مهم:
 
@@ -42,9 +43,38 @@
 
 ---
 
-## نصب (ویندوز / XAMPP)
+## مراحل نصب سریع (خلاصه)
 
-### ۱) کلون یا دانلود
+اگر محیط آماده است، این دستورات کافی‌اند:
+
+```bash
+git clone https://github.com/hadiomidvari2497/borjik.git
+cd borjik
+composer install
+cp .env.example .env          # ویندوز: copy .env.example .env
+php artisan key:generate
+# .env را برای دیتابیس ویرایش کنید (بخش پایین)
+php artisan migrate --seed
+php artisan serve
+```
+
+سپس مرورگر: [http://localhost:8000](http://localhost:8000)
+
+---
+
+## نصب کامل — ویندوز / XAMPP
+
+این مسیر برای تست روی **ویندوز + XAMPP** است (همان چیزی که معمولاً روی سیستم لوکال استفاده می‌شود).
+
+### مرحله ۱ — نصب نرم‌افزارها
+
+1. [XAMPP](https://www.apachefriends.org/) را نصب کنید (PHP 8.2 توصیه می‌شود).
+2. [Composer](https://getcomposer.org/download/) را نصب کنید.
+3. از XAMPP Control Panel سرویس **MySQL** را Start کنید. Apache اختیاری است؛ با `php artisan serve` هم کار می‌کند.
+
+### مرحله ۲ — دریافت پروژه
+
+**روش A — Git:**
 
 ```cmd
 cd C:\xampp\htdocs
@@ -52,29 +82,37 @@ git clone https://github.com/hadiomidvari2497/borjik.git borjik
 cd borjik
 ```
 
-یا ZIP را از GitHub بگیرید و در `C:\xampp\htdocs\borjik` استخراج کنید.
+**روش B — ZIP از GitHub:**
 
-### ۲) وابستگی‌ها
+1. از صفحهٔ ریپو گزینه **Code → Download ZIP** را بزنید (یا Artifact `borjik-release` از Actions).
+2. محتویات را در `C:\xampp\htdocs\borjik` استخراج کنید طوری که فایل `artisan` مستقیم داخل همین پوشه باشد.
+
+### مرحله ۳ — نصب پکیج‌های PHP
 
 ```cmd
+cd C:\xampp\htdocs\borjik
 composer install
 ```
 
-### ۳) محیط و کلید
+اگر `composer` در PATH نبود، مسیر کامل PHP و Composer را استفاده کنید.
+
+### مرحله ۴ — فایل محیط (`.env`)
 
 ```cmd
 copy .env.example .env
 php artisan key:generate
 ```
 
-### ۴) پایگاه‌داده در MySQL (XAMPP)
+### مرحله ۵ — ساخت دیتابیس MySQL
 
-1. XAMPP Control Panel → **MySQL** را Start کنید.
-2. در phpMyAdmin یک دیتابیس بسازید، مثلاً `borjik` با collation `utf8mb4_unicode_ci`.
-3. در `.env` این مقادیر را تنظیم کنید:
+1. باز کردن [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
+2. تب **Databases** → نام: `borjik` → Collation: `utf8mb4_unicode_ci` → Create
+3. فایل `.env` را با Notepad یا VS Code باز کنید و این مقادیر را بگذارید:
 
 ```env
 APP_NAME=برجیک
+APP_ENV=local
+APP_DEBUG=true
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
@@ -90,31 +128,68 @@ CACHE_STORE=database
 SMS_DRIVER=log
 ```
 
-> **مهم برای توسعه:** `QUEUE_CONNECTION=sync` باعث می‌شود Job ارسال SMS بلافاصله اجرا شود و کد OTP در لاگ دیده شود. اگر `database` بماند باید `php artisan queue:work` جداگانه روشن باشد.
+> **مهم**
+> - `DB_PASSWORD` در XAMPP پیش‌فرض معمولاً خالی است.
+> - `QUEUE_CONNECTION=sync` یعنی Job پیامک فوری اجرا می‌شود و کد OTP در لاگ دیده می‌شود.
+> - اگر `QUEUE_CONNECTION=database` باشد باید جداگانه `php artisan queue:work` را هم اجرا کنید.
 
-### ۵) مایگریشن و Seed
+### مرحله ۶ — مایگریشن و دادهٔ اولیه
 
 ```cmd
 php artisan migrate --seed
 ```
 
-این کار جداول را می‌سازد و Seedهای زیر را اجرا می‌کند:
+این دستور:
 
-- `RolePermissionSeeder` — نقش‌ها و مجوزها
-- `SubscriptionPlanSeeder` — پلن‌های اشتراک
-- `ProvinceCitySeeder` — استان و شهر
+- همهٔ جداول را می‌سازد
+- نقش‌ها و مجوزها (`RolePermissionSeeder`)
+- پلن‌های اشتراک (`SubscriptionPlanSeeder`)
+- استان و شهر (`ProvinceCitySeeder`)
 
-### ۶) اجرا
+را وارد می‌کند.
+
+اگر دیتابیس را از صفر می‌خواهید (همهٔ داده پاک می‌شود):
+
+```cmd
+php artisan migrate:fresh --seed
+```
+
+### مرحله ۷ — اجرای سرور
 
 ```cmd
 php artisan serve
 ```
 
-آدرس: [http://localhost:8000](http://localhost:8000)
+آدرس برنامه: **http://localhost:8000**
+
+صفحهٔ ورود: **http://localhost:8000/login**
+
+### مرحله ۸ — اولین ورود (توسعه)
+
+1. یک شماره موبایل وارد کنید (مثلاً `09121234567`).
+2. کد OTP را از لاگ بخوانید:
+
+```cmd
+findstr /i "SMS" storage\logs\laravel.log
+```
+
+یا فایل `storage\logs\laravel.log` را باز کنید و دنبال متن «کد ورود» بگردید.
+
+3. کد ۶ رقمی را وارد کنید.
+4. پروفایل را کامل کنید (نام، کد ملی، تاریخ تولد شمسی مثل `1370/05/12`).
+5. اشتراک دستی بدهید تا بتوانید ساختمان بسازید:
+
+```cmd
+php artisan borjik:grant-subscription 09121234567 50 12
+```
+
+6. به آدرس زیر بروید و ساختمان بسازید:
+
+**http://localhost:8000/buildings/create**
 
 ---
 
-## نصب (لینوکس / macOS)
+## نصب کامل — لینوکس / macOS
 
 ```bash
 git clone https://github.com/hadiomidvari2497/borjik.git
@@ -122,20 +197,45 @@ cd borjik
 composer install
 cp .env.example .env
 php artisan key:generate
-# ویرایش .env برای MySQL یا SQLite
+```
+
+`.env` را برای MySQL یا SQLite ویرایش کنید، سپس:
+
+```bash
 php artisan migrate --seed
 php artisan serve
 ```
 
-برای SQLite:
+### حالت SQLite (بدون MySQL)
+
+```bash
+touch database/database.sqlite
+```
+
+در `.env`:
 
 ```env
 DB_CONNECTION=sqlite
-# فایل database/database.sqlite را بسازید:
-# touch database/database.sqlite
+# DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD را برای MySQL کامنت کنید
+
+SESSION_DRIVER=database
+QUEUE_CONNECTION=sync
+CACHE_STORE=database
+SMS_DRIVER=log
 ```
 
-و خطوط `DB_HOST` / `DB_DATABASE` مربوط به MySQL را خالی یا کامنت بگذارید.
+سپس:
+
+```bash
+php artisan migrate --seed
+php artisan serve
+```
+
+یافتن OTP:
+
+```bash
+grep -i SMS storage/logs/laravel.log
+```
 
 ---
 
@@ -143,15 +243,15 @@ DB_CONNECTION=sqlite
 
 | متغیر | توضیح |
 |--------|--------|
-| `APP_KEY` | با `key:generate` ساخته می‌شود |
-| `APP_URL` | آدرس عمومی اپ (برای لینک دعوت و assetها) |
+| `APP_KEY` | با `php artisan key:generate` ساخته می‌شود |
+| `APP_URL` | آدرس عمومی اپ (لینک دعوت و asset) |
 | `DB_*` | اتصال دیتابیس |
-| `SESSION_DRIVER` | ترجیحاً `database` در پروداکشن؛ در تست‌ها از `array` استفاده می‌شود |
-| `QUEUE_CONNECTION` | توسعه: `sync` — پروداکشن: `database` + worker |
+| `SESSION_DRIVER` | لوکال/پروداکشن: `database` — بعد از migrate جدول `sessions` ساخته می‌شود |
+| `QUEUE_CONNECTION` | توسعه: `sync` — پروداکشن: `database` + `queue:work` |
 | `CACHE_STORE` | `database` یا `file` / `redis` |
-| `SMS_DRIVER` | پیش‌فرض `log` (فقط لاگ). برای پروداکشن باید درایور واقعی پیاده شود |
+| `SMS_DRIVER` | توسعه: `log` — پروداکشن: درایور واقعی SMS |
 
-پس از تغییر `.env`:
+پس از هر تغییر مهم در `.env`:
 
 ```bash
 php artisan config:clear
@@ -165,34 +265,20 @@ php artisan view:clear
 
 ### جریان ورود
 
-1. باز کردن `/login`
-2. وارد کردن شماره موبایل (مثلاً `09121234567`)
-3. دریافت کد OTP:
-   - با `SMS_DRIVER=log` کد در `storage/logs/laravel.log` نوشته می‌شود (جستجو برای `SMS` یا متن قالب OTP)
-4. وارد کردن کد ۶ رقمی
-5. تکمیل پروفایل (نام، کد ملی، تاریخ تولد شمسی به صورت `۱۳۷۰/۰۵/۱۲` یا از تقویم شمسی UI)
+1. `/login`
+2. شماره موبایل
+3. کد OTP (در توسعه از لاگ)
+4. تکمیل پروفایل
+5. `borjik:grant-subscription` برای اشتراک
+6. `/buildings/create`
 
-### اشتراک دستی (توسعه)
-
-تا وقتی درگاه پرداخت اشتراک آماده نیست، بدون اشتراک فعال نمی‌توانید ساختمان جدید بسازید. بعد از حداقل یک بار ورود با شماره:
-
-```bash
-php artisan borjik:grant-subscription 09121234567 50 12
-```
-
-- آرگومان ۱: موبایل کاربر
-- آرگومان ۲: سقف تعداد واحد (پیش‌فرض ۵۰)
-- آرگومان ۳: مدت به ماه (پیش‌فرض ۱۲)
-
-سپس به `/buildings/create` بروید و ساختمان بسازید.
-
-### ترتیب منطقی کار بعد از ساخت ساختمان
+### ترتیب کار بعد از ساخت ساختمان
 
 1. بلوک‌ها → واحدها (و در صورت نیاز پارکینگ / انباری)
 2. تنظیمات شارژ (`/charge-settings`)
 3. ثبت هزینه‌های ماه (`/expenses`)
 4. باز کردن دوره شارژ، محاسبه، انتشار (`/charges`)
-5. دعوت اعضا / پرسنل از صفحات Staff و Members
+5. دعوت اعضا / پرسنل از Staff و Members
 
 ---
 
@@ -203,100 +289,85 @@ php artisan borjik:grant-subscription 09121234567 50 12
 - هر کاربر می‌تواند در چند ساختمان نقش داشته باشد.
 - ساختمان فعال در session با کلید `current_building_id` نگه داشته می‌شود.
 - Middleware `building` (`SetCurrentBuilding`) ساختمان جاری را تنظیم می‌کند.
-- جداسازی داده با Scope/Concern روی مدل‌های وابسته به ساختمان انجام می‌شود تا رکورد ساختمان دیگر نشت نکند.
+- جداسازی داده با Scope/Concern روی مدل‌های وابسته به ساختمان انجام می‌شود.
 
 ### Middlewareهای اختصاصی
 
 | Alias | کلاس | نقش |
 |-------|------|------|
-| `profile.complete` | `EnsureProfileComplete` | اجبار تکمیل پروفایل قبل از ورود به اپ |
-| `building` | `SetCurrentBuilding` | وجود و تنظیم ساختمان فعال |
-| `subscription.active` | `RequireActiveSubscription` | برای ساخت بلوک/واحد جدید |
+| `profile.complete` | `EnsureProfileComplete` | اجبار تکمیل پروفایل |
+| `building` | `SetCurrentBuilding` | ساختمان فعال |
+| `subscription.active` | `RequireActiveSubscription` | ساخت بلوک/واحد جدید |
 
 ### روت‌ها
 
 - `routes/auth.php` — لاگین OTP، رمز، پروفایل، 2FA، دعوت
-- `routes/app.php` — داشبورد، ساختمان، واحد، شارژ، پرداخت، تیم و …
+- `routes/app.php` — داشبورد، ساختمان، واحد، شارژ، پرداخت، تیم
 - `routes/web.php` — اتصال به فایل‌های بالا
 
-ساخت **اولین** ساختمان فقط با `auth` + `profile.complete` است (بدون `building`)، تا مشکل «عضو هیچ ساختمانی نیستید» دور زده شود.
+ساخت **اولین** ساختمان فقط با `auth` + `profile.complete` است (بدون `building`).
 
 ### تاریخ شمسی
 
 - پکیج `morilog/jalali`
-- هلپرهای `App\Support\JalaliDate` و نمایش ارقام با `App\Support\Fa`
-- UI انتخاب تاریخ: `public/js/jdate.js` + `public/css/jdate.css`
-
-### MySQL و ستون‌های زمانی
-
-در محیط‌های MySQL با SQL mode سخت، برای فیلدهایی مثل `starts_at` / `expires_at` / `ends_at` از نوع `dateTime` در مایگریشن استفاده شده تا خطای *Invalid default value* رخ ندهد.
+- `App\Support\JalaliDate` و `App\Support\Fa`
+- UI: `public/js/jdate.js` + `public/css/jdate.css`
 
 ---
 
 ## نقش‌ها و دسترسی‌ها
 
-با `RolePermissionSeeder` نقش‌هایی مانند مالک (`owner`)، مدیر (`manager`)، نگهبان (`security`)، مستأجر (`tenant`) و سایر نقش‌های پرسنلی تعریف می‌شوند و مجوزها (مثل `unit.view`, `charge.calculate`, `payment.review`, `staff.manage`) به آن‌ها وصل می‌شوند.
+با `RolePermissionSeeder` نقش‌هایی مانند `owner`، `manager`، `security`، `tenant` و سایر نقش‌های پرسنلی تعریف می‌شوند.
 
-منوی سایدبار از `config/menu.php` و منطق دسترسی از permissionها ساخته می‌شود.
+منو از `config/menu.php` و دسترسی از permissionها ساخته می‌شود.
 
 ---
 
 ## ماژول‌های اصلی
 
-| ماژول | مسیر تقریبی | توضیح |
-|--------|-------------|--------|
-| ورود / OTP | `/login` | پیامک یا رمز عبور؛ روت `login.reset` برای ویرایش شماره |
-| پروفایل | `/profile` | حقیقی/حقوقی، کد ملی، تاریخ شمسی، رمز اختیاری |
-| 2FA | `/profile/two-factor` | TOTP (مثلاً Google Authenticator) |
-| ساختمان | `/buildings`, `/building/settings` | ساخت، سوییچ، تنظیمات |
-| بلوک / واحد | `/blocks`, `/units` | CRUD و ثبت گروهی واحد |
-| پارکینگ / انباری | `/parkings`, `/storages` | ساخت، اختصاص به واحد، آزادسازی |
-| تنظیمات شارژ | `/charge-settings` | روش محاسبه، جریمه دیرکرد، قواعد ثابت، دسته هزینه |
-| هزینه‌ها | `/expenses` | ثبت هزینه ماه شمسی |
-| شارژ | `/charges` | باز کردن دوره، محاسبه، انتشار صورت‌حساب |
-| پرداخت من | `/my/invoices`, `/my/payments` | مشاهده بدهی و ثبت فیش |
-| بررسی فیش | `/payments` | تأیید / رد توسط مدیر |
-| پرسنل / اعضا | `/staff`, `/members` | دعوت، نقش، فعال/غیرفعال |
-
-### روش‌های محاسبه شارژ
-
-سرویس `App\Services\Charge\ChargeCalculator` چند روش را پشتیبانی می‌کند (ثابت واحدی، متراژ، نفری، ترکیبی، نسبتی روی کل هزینه‌ها، هزینه‌های واقعی بر اساس مبنای تقسیم دسته و …). تست واحد: `tests/Unit/ChargeCalculatorTest.php`.
+| ماژول | مسیر | توضیح |
+|--------|------|--------|
+| ورود / OTP | `/login` | پیامک یا رمز؛ `login.reset` برای ویرایش شماره |
+| پروفایل | `/profile` | حقیقی/حقوقی، کد ملی، تاریخ شمسی |
+| 2FA | `/profile/two-factor` | TOTP |
+| ساختمان | `/buildings` | ساخت، سوییچ، تنظیمات |
+| بلوک / واحد | `/blocks`, `/units` | CRUD و ثبت گروهی |
+| پارکینگ / انباری | `/parkings`, `/storages` | اختصاص به واحد |
+| تنظیمات شارژ | `/charge-settings` | روش محاسبه و قواعد |
+| هزینه‌ها | `/expenses` | هزینه ماه شمسی |
+| شارژ | `/charges` | محاسبه و انتشار |
+| پرداخت من | `/my/invoices`, `/my/payments` | فیش |
+| بررسی فیش | `/payments` | تأیید / رد |
+| پرسنل / اعضا | `/staff`, `/members` | دعوت و نقش |
 
 ---
 
 ## پیامک (SMS)
 
-پیکربندی در `config/sms.php`:
-
 ```env
 SMS_DRIVER=log
 ```
 
-- درایور `log`: متن را در لاگ می‌نویسد (مناسب توسعه).
-- قالب‌های پیش‌فرض: OTP، یادآوری هزینه، تأیید/رد فیش، دعوت.
-- برای پروداکشن باید کلاسی پیاده‌سازی‌کننده `App\Services\Sms\SmsGateway` بنویسید و در binding سرویس ثبت کنید.
+- درایور `log`: فقط در لاگ (مناسب توسعه)
+- قالب‌ها در `config/sms.php`: OTP، یادآوری هزینه، تأیید/رد فیش، دعوت
 
-یافتن کد OTP در توسعه (ویندوز):
+ویندوز:
 
 ```cmd
 findstr /i "SMS" storage\logs\laravel.log
 ```
-
-یا محتوای آخرین خطوط `storage/logs/laravel.log` را باز کنید.
 
 ---
 
 ## دستورات Artisan اختصاصی
 
 ```bash
-# اعطای اشتراک دستی برای تست
+# اشتراک دستی (توسعه)
 php artisan borjik:grant-subscription {mobile} {units=50} {months=12}
 
-# یادآوری ثبت هزینه (قابل زمان‌بندی در scheduler)
-php artisan borjik:remind-expenses   # نام دقیق را با php artisan list | findstr borjik ببینید
+# یادآوری ثبت هزینه
+php artisan list | findstr borjik
 ```
-
-دستور یادآوری: `App\Console\Commands\RemindExpenses`.
 
 ---
 
@@ -304,56 +375,40 @@ php artisan borjik:remind-expenses   # نام دقیق را با php artisan lis
 
 ```
 app/
-  Console/Commands/     # GrantSubscription، RemindExpenses
-  Http/Controllers/     # Auth + دامنه کسب‌وکار
-  Http/Middleware/      # building، profile.complete، subscription.active
+  Console/Commands/
+  Http/Controllers/
+  Http/Middleware/
   Models/
-  Services/             # Auth، Charge، Sms، Payment، …
-  Support/              # Fa، JalaliDate، MobileNumber، CurrentBuilding، …
+  Services/
+  Support/
 config/
-  menu.php              # ساختار منو
-  sms.php               # درایور و قالب پیامک
-database/
-  migrations/
-  seeders/
-public/
-  css/                  # app.css، auth.css، jdate.css
-  js/                   # app.js، auth.js، jdate.js
+  menu.php
+  sms.php
+database/migrations/
+database/seeders/
+public/css/
+public/js/
 resources/views/
-  auth/                 # login، profile، two-factor
-  layouts/              # app، guest
-  …
-routes/
-  auth.php
-  app.php
-  web.php
+routes/auth.php
+routes/app.php
+routes/web.php
 tests/
-  Feature/              # OTP، دعوت، شارژ، CRUD، تیم، …
-  Unit/                 # ChargeCalculator، MobileNumber، …
 ```
 
 ---
 
 ## تست و CI
 
-### محلی
-
 ```bash
 php artisan test
 ```
 
-`phpunit.xml` برای تست از SQLite در حافظه (`:memory:`) استفاده می‌کند.
+GitHub Actions (`.github/workflows/ci.yml`):
 
-### GitHub Actions
+- Lint، PHPStan، Security Audit، اعتبارسنجی config، مایگریشن، Tests
+- در موفقیت روی `main`: Artifact به نام **`borjik-release`**
 
-فایل `.github/workflows/ci.yml`:
-
-1. نصب Composer و PHP 8.2
-2. بررسی سینتکس PHP
-3. اجرای `php artisan test`
-4. در صورت موفقیت روی `push` به `main`: ساخت **Artifact** به نام `borjik-release` (ZIP سورس بدون `vendor`، `tests`، `.env`، لاگ و …)
-
-وضعیت اجرا: [Actions](https://github.com/hadiomidvari2497/borjik/actions)
+وضعیت: [Actions](https://github.com/hadiomidvari2497/borjik/actions)
 
 ---
 
@@ -361,31 +416,27 @@ php artisan test
 
 | مشکل | راه حل |
 |------|--------|
-| `Route [login.reset] not defined` | روت `POST /login/reset` و متد `OtpLoginController@reset` باید وجود داشته باشد؛ سپس `php artisan route:clear` |
+| `Route [login.reset] not defined` | `php artisan route:clear`؛ روت در `routes/auth.php` باشد |
 | `Table '…sessions' doesn't exist` | `php artisan migrate` یا موقتاً `SESSION_DRIVER=file` |
-| `Invalid default value for 'expires_at'` / timestamp | از مایگریشن‌های به‌روز با `dateTime` استفاده کنید؛ در صورت دیتابیس قدیمی: `migrate:fresh --seed` (داده پاک می‌شود) |
+| `Invalid default value for timestamp` | `migrate:fresh --seed` (داده پاک می‌شود) |
 | کد OTP نمی‌آید | `SMS_DRIVER=log` و `QUEUE_CONNECTION=sync`؛ لاگ را بخوانید |
-| تاریخ تولد `validation.regex` | فرمت `YYYY/MM/DD` شمسی مثل `1370/05/12` |
-| `403 شما عضو هیچ ساختمانی نیستید` | اشتراک بدهید (`borjik:grant-subscription`) و به `/buildings/create` بروید |
-| Fatal در تست: override `status()` | در تست‌ها نام متد کمکی نباید `status` باشد (تداخل با PHPUnit 11) |
-| CSS/JS صفحه ورود قدیمی است | فایل‌های `public/css/auth.css` و `public/js/*` را به‌روز کنید و Hard Refresh (`Ctrl+F5`) |
+| تاریخ تولد نامعتبر | فرمت `1370/05/12` |
+| `403 شما عضو هیچ ساختمانی نیستید` | `borjik:grant-subscription` سپس `/buildings/create` |
+| CSS قدیمی | Hard Refresh (`Ctrl+F5`) |
 
 ---
 
 ## نکات توسعه
 
-- **صفحات مهمان (ورود/پروفایل):** layout در `resources/views/layouts/guest.blade.php` و استایل جدا در `public/css/auth.css`.
-- **اپ اصلی:** `layouts/app.blade.php` + `public/css/app.css`.
-- پس از افزودن روت یا تغییر config همیشه کش را پاک کنید.
-- برای پروداکشن: `APP_DEBUG=false`، درایور SMS واقعی، queue worker، و پشتیبان‌گیری دیتابیس.
-- فایل `.env` را هرگز commit نکنید.
+- صفحات مهمان: `resources/views/layouts/guest.blade.php` + `public/css/auth.css`
+- اپ اصلی: `layouts/app.blade.php` + `public/css/app.css`
+- `.env` را commit نکنید
+- پروداکشن: `APP_DEBUG=false`، SMS واقعی، queue worker، بکاپ دیتابیس
 
 ---
 
 ## لایسنس
 
-کد اسکلت Laravel تحت [MIT](https://opensource.org/licenses/MIT) است. منطق کسب‌وکار برجیک متعلق به مالک پروژه است؛ قبل از استفاده تجاری با صاحب ریپو هماهنگ کنید.
-
----
+اسکلت Laravel تحت [MIT](https://opensource.org/licenses/MIT). منطق کسب‌وکار برجیک متعلق به مالک پروژه است.
 
 **ریپو:** [github.com/hadiomidvari2497/borjik](https://github.com/hadiomidvari2497/borjik)
