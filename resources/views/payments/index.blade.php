@@ -29,8 +29,8 @@
         <td>@if(isset($files[$r->id]))<a class="btn sec sm" href="{{ route('files.show', $files[$r->id]) }}" target="_blank" rel="noopener">مشاهده</a>@endif</td>
         <td class="act">
           @if($r->status->value === 'pending')
-            <form method="POST" action="{{ route('payments.approve', $r->id) }}" onsubmit="return confirm('فیش تأیید شود؟')">@csrf<button class="btn sm" type="submit">تأیید</button></form>
-            <form method="POST" action="{{ route('payments.reject', $r->id) }}" style="display:flex;gap:6px" onsubmit="var r = prompt('دلیل رد فیش:'); if (!r) return false; this.reason.value = r; return true;">@csrf<input type="hidden" name="reason"><button class="btn dng sm" type="submit">رد</button></form>
+            <form method="POST" action="{{ route('payments.approve', $r->id) }}" data-confirm="فیش تأیید شود؟" data-confirm-title="تأیید فیش">@csrf<button class="btn sm" type="submit">تأیید</button></form>
+            <form method="POST" action="{{ route('payments.reject', $r->id) }}" data-prompt="دلیل رد فیش را بنویسید" data-prompt-title="رد فیش" data-prompt-name="reason" data-confirm-icon="warning">@csrf<input type="hidden" name="reason"><button class="btn dng sm" type="submit">رد</button></form>
           @endif
         </td>
       </tr>

@@ -48,7 +48,7 @@
         <td class="act">
           @can('unit.manage')
             <a class="btn sec sm" href="{{ route('units.edit', $u) }}">ویرایش</a>
-            <form method="POST" action="{{ route('units.destroy', $u) }}" onsubmit="return confirm('این واحد حذف شود؟')">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
+            <form method="POST" action="{{ route('units.destroy', $u) }}" data-confirm="این واحد حذف شود؟" data-confirm-title="حذف واحد" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
           @endcan
         </td>
       </tr>

@@ -1,4 +1,4 @@
-/* Bootstrap 5.3–compatible toasts (local subset) — themed for Borjik */
+/* Bootstrap 5.3–style toasts + SweetAlert-like modal (local) */
 .borjik-toast-container {
   z-index: 1090;
   inset-inline-end: 0;
@@ -6,9 +6,7 @@
   max-width: 100%;
   pointer-events: none;
 }
-.borjik-toast-container .toast {
-  pointer-events: auto;
-}
+.borjik-toast-container .toast { pointer-events: auto; }
 .toast {
   --bs-toast-padding-x: 0.85rem;
   --bs-toast-padding-y: 0.65rem;
@@ -16,18 +14,16 @@
   width: var(--bs-toast-max-width);
   max-width: 100%;
   font-size: 0.9rem;
-  pointer-events: auto;
-  background-clip: padding-box;
   border: 1px solid transparent;
   box-shadow: 0 10px 30px rgba(23, 48, 45, 0.18);
   border-radius: 14px;
   opacity: 0;
   transition: opacity 0.15s linear, transform 0.15s ease;
   transform: translateY(-6px);
+  margin-bottom: 0.75rem;
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast.hiding { opacity: 0; }
-.toast:not(.show) { display: none; }
 .toast-body {
   padding: var(--bs-toast-padding-y) var(--bs-toast-padding-x);
   word-wrap: break-word;
@@ -40,10 +36,8 @@
   height: 0.7em;
   padding: 0.35em;
   margin-inline-end: 0.5rem;
-  color: inherit;
   background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23666'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707A1 1 0 0 1 .293.293z'/%3e%3c/svg%3e") center/0.7em auto no-repeat;
   border: 0;
-  border-radius: 0.25rem;
   opacity: 0.6;
   cursor: pointer;
 }
@@ -71,17 +65,100 @@
 [data-theme="dark"] .borjik-toast-info { background: #1a2a36; color: #a8c8e0; border-color: #2a4560; }
 [data-theme="dark"] .toast .btn-close { filter: invert(1); opacity: 0.7; }
 
-.borjik-swal { font-family: Vazirmatn, Tahoma, sans-serif !important; border-radius: 18px !important; }
+/* Local modal (SweetAlert-like) */
+#borjik-swal-root {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+#borjik-swal-root.open { display: flex; }
+.borjik-swal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+.borjik-swal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 100%);
+  background: #fff;
+  color: #17302d;
+  border-radius: 18px;
+  padding: 28px 24px 20px;
+  box-shadow: 0 24px 60px rgba(23, 48, 45, 0.25);
+  font-family: Vazirmatn, Tahoma, sans-serif;
+  text-align: center;
+}
+[data-theme="dark"] .borjik-swal-panel {
+  background: #1c2a28;
+  color: #e8f0ee;
+}
+.borjik-swal-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 700;
+  background: #e8f3f1;
+  color: #1f6a63;
+}
+.borjik-swal-icon[data-icon="warning"] { background: #fff4e1; color: #9a5b00; }
+.borjik-swal-icon[data-icon="error"] { background: #fdeceb; color: #b3322a; }
+.borjik-swal-icon[data-icon="success"] { background: #e8f6f3; color: #1f6a63; }
+.borjik-swal-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 8px; }
+.borjik-swal-text { margin: 0 0 18px; color: #6a7f7b; font-size: 0.92rem; line-height: 1.7; }
+[data-theme="dark"] .borjik-swal-text { color: #a0b5b0; }
+.borjik-swal-input-wrap { margin-bottom: 16px; }
+.borjik-swal-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #dbe6e3;
+  border-radius: 12px;
+  font: inherit;
+  background: #fff;
+  color: inherit;
+}
+[data-theme="dark"] .borjik-swal-input {
+  background: #152220;
+  border-color: #2f4541;
+}
+.borjik-swal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
 .borjik-swal-confirm {
-  background: linear-gradient(135deg, #2a9b8f, #1f6a63) !important;
-  color: #fff !important; border: 0 !important; border-radius: 12px !important;
-  padding: 10px 18px !important; font: inherit !important; font-weight: 700 !important;
-  margin: 0 6px !important; cursor: pointer !important;
+  background: linear-gradient(135deg, #2a9b8f, #1f6a63);
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 .borjik-swal-cancel {
-  background: transparent !important; color: #1f6a63 !important;
-  border: 1.5px solid #dbe6e3 !important; border-radius: 12px !important;
-  padding: 10px 18px !important; font: inherit !important; font-weight: 600 !important;
-  margin: 0 6px !important; cursor: pointer !important;
+  background: transparent;
+  color: #1f6a63;
+  border: 1.5px solid #dbe6e3;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
-.swal2-input, .swal2-textarea { font-family: Vazirmatn, Tahoma, sans-serif !important; border-radius: 12px !important; }
+[data-theme="dark"] .borjik-swal-cancel {
+  color: #8fd4c4;
+  border-color: #2f4541;
+}
+
+/* If real SweetAlert2 is loaded later */
+.borjik-swal { font-family: Vazirmatn, Tahoma, sans-serif !important; border-radius: 18px !important; }
