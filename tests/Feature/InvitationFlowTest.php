@@ -160,9 +160,29 @@ class InvitationFlowTest extends TestCase
 
         $this->assertNotNull(Invitation::withoutGlobalScopes()->findOrFail($invitation->id)->rejected_at);
         $this->assertSame(
-            'inactive',
+            'rejected',
             BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
         );
+
+        // A rejected invitation cannot be reactivated; the inviter must send a fresh invitation.
+        $this->actingAs($this->owner)
+            ->post(route('team.activate', $user->id), ['scope' => 'members'])
+            ->assertSessionHasErrors('general');
+
+        $this->assertSame(
+            'rejected',
+            BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
+        );
+
+        $this->actingAs($this->owner)->withSession(['current_building_id' => $this->building->id])
+            ->post(route('members.invite'), ['mobile' => $user->mobile, 'role' => 'tenant'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(
+            'invited',
+            BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
+        );
+        $this->assertSame(2, Invitation::withoutGlobalScopes()->where('user_id', $user->id)->count());
     }
 
     public function test_invitation_inbox_only_shows_current_users_invitations(): void
