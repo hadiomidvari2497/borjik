@@ -5,9 +5,11 @@ use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\BuildingSwitchController;
 use App\Http\Controllers\ChargeController;
 use App\Http\Controllers\ChargeSettingController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\MyContractController;
 use App\Http\Controllers\MyInvoiceController;
 use App\Http\Controllers\MyPaymentController;
 use App\Http\Controllers\PaymentController;
@@ -96,6 +98,17 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/{id}/calculate', 'calculate')->whereNumber('id')->name('calculate');
         Route::post('/{id}/publish', 'publish')->whereNumber('id')->name('publish');
     });
+
+    Route::middleware('can:contract.manage')->prefix('contracts')->name('contracts.')->controller(ContractController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{id}', 'show')->whereNumber('id')->name('show');
+        Route::post('/{id}/end', 'end')->whereNumber('id')->name('end');
+        Route::put('/{id}/payer', 'payer')->whereNumber('id')->name('payer');
+        Route::post('/{id}/file', 'file')->whereNumber('id')->name('file');
+    });
+    Route::get('/my/contracts', [MyContractController::class, 'index'])->middleware('can:contract.view.own')->name('my.contracts');
 
     Route::get('/files/{id}', [FileController::class, 'show'])->whereNumber('id')->name('files.show');
 
