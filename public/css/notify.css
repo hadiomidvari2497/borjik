@@ -1,0 +1,85 @@
+/* پوسته‌ی تاست‌ها (Bootstrap 5.3 Toast) و دیالوگ‌های SweetAlert2 — همه از متغیرهای خود اپ استفاده می‌کنند
+   تا تم روشن/تیره خودکار دنبال شود. مقدار پس از ویرگول، پیش‌فرض صفحه‌های مهمان است. */
+
+/* ─── Toast ─── */
+.toast-container.borjik-toasts {
+  position: fixed;
+  z-index: 3100;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  inset-inline: 0;
+  margin-inline: auto;
+  width: min(380px, calc(100vw - 24px));
+  padding: 0;
+}
+.borjik-toast {
+  --bs-toast-bg: var(--card, #fff);
+  --bs-toast-color: var(--text, #17302d);
+  --bs-toast-border-color: var(--line, #dfe6e4);
+  --bs-toast-header-bg: transparent;
+  --bs-toast-header-color: var(--text, #17302d);
+  --bs-toast-header-border-color: var(--line, #dfe6e4);
+  --bs-toast-border-radius: 14px;
+  --bs-toast-font-size: .92rem;
+  --bs-toast-box-shadow: var(--shadow, 0 8px 24px rgba(23, 48, 45, .18));
+  --bk-accent: var(--info, #3b82c4);
+  width: 100%;
+  margin-bottom: .6rem;
+  font-family: inherit;
+  border-inline-start: 4px solid var(--bk-accent);
+  backdrop-filter: none;
+}
+.borjik-toast-success { --bk-accent: var(--ok, #2a9b8f); }
+.borjik-toast-danger  { --bk-accent: var(--danger, #e0453a); }
+.borjik-toast-warning { --bk-accent: var(--warn, #e8a33d); }
+.borjik-toast-info    { --bk-accent: var(--info, #3b82c4); }
+.borjik-toast .toast-header { font-weight: 700; }
+.borjik-toast .borjik-toast-title { margin-inline-end: auto; color: var(--bk-accent); }
+.borjik-toast .toast-body { line-height: 1.8; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .borjik-toast .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+}
+:root[data-theme="dark"] .borjik-toast .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+
+/* ─── SweetAlert2 ─── */
+.swal2-container { z-index: 3000; }
+.swal2-popup.borjik-swal {
+  font-family: inherit;
+  border-radius: 20px;
+  padding: 1.5rem 1.25rem 1.25rem;
+  background: var(--card, #fff);
+  color: var(--text, #17302d);
+  box-shadow: var(--shadow, 0 24px 60px rgba(23, 48, 45, .25));
+}
+.borjik-swal .swal2-title { font-size: 1.15rem; font-weight: 800; color: inherit; padding: .4rem 0 0; }
+.borjik-swal .swal2-html-container { color: var(--muted, #667a77); font-size: .92rem; line-height: 1.9; margin: .6rem 0 0; }
+.borjik-swal .swal2-actions { gap: 10px; margin-top: 1.2rem; }
+.borjik-swal-confirm,
+.borjik-swal-cancel {
+  min-width: 92px;
+  border: 0;
+  border-radius: 12px;
+  padding: .65rem 1.2rem;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.borjik-swal-confirm { background: var(--brand, #2a9b8f); color: #fff; }
+.borjik-swal-confirm.is-danger { background: var(--danger, #e0453a); }
+.borjik-swal-cancel { background: var(--track, #dde6e4); color: var(--text, #17302d); }
+.borjik-swal-confirm:focus-visible,
+.borjik-swal-cancel:focus-visible { outline: 3px solid var(--brand-soft, rgba(42, 155, 143, .35)); outline-offset: 2px; }
+.borjik-swal .swal2-textarea,
+.borjik-swal .swal2-input {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--line, #dfe6e4);
+  border-radius: 12px;
+  margin: 1rem 0 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.borjik-swal .swal2-textarea:focus,
+.borjik-swal .swal2-input:focus { border-color: var(--brand, #2a9b8f); box-shadow: 0 0 0 3px var(--brand-soft, rgba(42, 155, 143, .2)); }
+.borjik-swal .swal2-validation-message { background: transparent; color: var(--danger, #e0453a); font-size: .85rem; }

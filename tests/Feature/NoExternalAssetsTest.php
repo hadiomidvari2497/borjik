@@ -9,7 +9,7 @@ class NoExternalAssetsTest extends TestCase
 {
     public function test_views_and_static_assets_do_not_load_external_resources(): void
     {
-        $roots = [resource_path('views'), public_path('css'), public_path('js'), public_path('sw.js'), public_path('offline.html')];
+        $roots = [resource_path('views'), public_path('css'), public_path('js'), public_path('vendor'), public_path('sw.js'), public_path('offline.html')];
         $patterns = [
             '/<(?:link|script|img|source|iframe|video|audio)\b[^>]*\b(?:src|href)\s*=\s*["\']?(?:https?:)?\/\//i',
             '/url\(\s*["\']?(?:https?:)?\/\//i',

@@ -1,224 +1,171 @@
+/* اعلان‌ها و تأییدها — کاملاً لوکال
+   • تاست‌ها: Bootstrap 5.3 Toast (vendor/bootstrap)
+   • سؤال بله/خیر و دریافت متن: SweetAlert2 (vendor/sweetalert2)
+   استفاده: <form data-confirm="..."> ، <form data-prompt="...">  یا  Borjik.toast / Borjik.confirm / Borjik.prompt */
 (function (window, document) {
   'use strict';
 
   var Borjik = window.Borjik || {};
 
-  /* ─── Bootstrap 5.3–style toasts (local, no CDN) ─── */
-  Borjik.toast = function (message, options) {
-    options = options || {};
-    var type = options.type || 'info';
-    var delay = options.delay != null ? options.delay : 4500;
+  /* ─── Toast ─── */
+  var TITLES = { success: 'موفق', danger: 'خطا', warning: 'هشدار', info: 'اطلاع' };
+  var DELAYS = { success: 4000, info: 5000, warning: 7000, danger: 9000 };
 
-    var container = document.getElementById('borjik-toast-root');
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'borjik-toast-root';
-      container.className = 'toast-container position-fixed p-3 borjik-toast-container';
-      container.setAttribute('aria-live', 'polite');
-      container.setAttribute('aria-atomic', 'true');
-      document.body.appendChild(container);
-    }
-
-    var el = document.createElement('div');
-    el.className = 'toast borjik-toast borjik-toast-' + type + ' show';
-    el.setAttribute('role', 'status');
-    el.innerHTML =
-      '<div class="d-flex">' +
-        '<div class="toast-body"></div>' +
-        '<button type="button" class="btn-close me-2 m-auto" aria-label="بستن"></button>' +
-      '</div>';
-    el.querySelector('.toast-body').textContent = String(message == null ? '' : message);
-
-    var closeBtn = el.querySelector('.btn-close');
-    var hide = function () {
-      el.classList.remove('show');
-      el.classList.add('hiding');
-      setTimeout(function () { el.remove(); }, 200);
-    };
-    closeBtn.addEventListener('click', hide);
-    container.appendChild(el);
-    setTimeout(hide, delay);
-  };
-
-  Borjik.toastSuccess = function (m, o) { Borjik.toast(m, Object.assign({ type: 'success' }, o || {})); };
-  Borjik.toastError = function (m, o) { Borjik.toast(m, Object.assign({ type: 'danger' }, o || {})); };
-  Borjik.toastWarning = function (m, o) { Borjik.toast(m, Object.assign({ type: 'warning' }, o || {})); };
-  Borjik.toastInfo = function (m, o) { Borjik.toast(m, Object.assign({ type: 'info' }, o || {})); };
-
-  /* ─── SweetAlert2-compatible confirm (uses Swal if present, else local modal) ─── */
-  function ensureLocalModal() {
-    if (document.getElementById('borjik-swal-root')) return;
-    var root = document.createElement('div');
-    root.id = 'borjik-swal-root';
-    root.innerHTML =
-      '<div class="borjik-swal-backdrop" data-swal-cancel></div>' +
-      '<div class="borjik-swal-panel" role="dialog" aria-modal="true">' +
-        '<div class="borjik-swal-icon" data-swal-icon></div>' +
-        '<h3 class="borjik-swal-title" data-swal-title></h3>' +
-        '<p class="borjik-swal-text" data-swal-text></p>' +
-        '<div class="borjik-swal-input-wrap" data-swal-input-wrap hidden>' +
-          '<input class="borjik-swal-input" data-swal-input type="text">' +
-        '</div>' +
-        '<div class="borjik-swal-actions">' +
-          '<button type="button" class="borjik-swal-cancel" data-swal-cancel>خیر</button>' +
-          '<button type="button" class="borjik-swal-confirm" data-swal-ok>بله</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(root);
+  function normType(t) {
+    t = String(t || 'info').toLowerCase();
+    if (t === 'error') return 'danger';
+    if (t === 'status') return 'success';
+    return TITLES[t] ? t : 'info';
   }
 
-  function localFire(opts) {
-    ensureLocalModal();
-    var root = document.getElementById('borjik-swal-root');
-    var title = root.querySelector('[data-swal-title]');
-    var text = root.querySelector('[data-swal-text]');
-    var icon = root.querySelector('[data-swal-icon]');
-    var wrap = root.querySelector('[data-swal-input-wrap]');
-    var input = root.querySelector('[data-swal-input]');
-    var okBtn = root.querySelector('[data-swal-ok]');
-    var cancelBtns = root.querySelectorAll('[data-swal-cancel]');
-
-    title.textContent = opts.title || 'تأیید';
-    text.textContent = opts.text || '';
-    icon.setAttribute('data-icon', opts.icon || 'question');
-    icon.textContent = ({ question: '?', warning: '!', success: '✓', error: '×', info: 'i' })[opts.icon || 'question'] || '?';
-    okBtn.textContent = opts.confirmButtonText || 'بله';
-    cancelBtns.forEach(function (b) {
-      if (b.tagName === 'BUTTON') b.textContent = opts.cancelButtonText || 'خیر';
-    });
-
-    var wantsInput = !!opts.input;
-    wrap.hidden = !wantsInput;
-    if (wantsInput) {
-      input.value = opts.inputValue || '';
-      input.placeholder = opts.inputPlaceholder || '';
-      setTimeout(function () { input.focus(); }, 50);
+  function toastRoot() {
+    var c = document.getElementById('borjik-toasts');
+    if (!c) {
+      c = document.createElement('div');
+      c.id = 'borjik-toasts';
+      c.className = 'toast-container borjik-toasts';
+      document.body.appendChild(c);
     }
+    return c;
+  }
 
-    root.classList.add('open');
+  Borjik.toast = function (message, options) {
+    options = options || {};
+    var type = normType(options.type);
 
-    return new Promise(function (resolve) {
-      function cleanup(result) {
-        root.classList.remove('open');
-        okBtn.onclick = null;
-        cancelBtns.forEach(function (b) { b.onclick = null; });
-        resolve(result);
+    var el = document.createElement('div');
+    el.className = 'toast borjik-toast borjik-toast-' + type;
+    el.setAttribute('role', type === 'danger' ? 'alert' : 'status');
+    el.setAttribute('aria-live', type === 'danger' ? 'assertive' : 'polite');
+    el.setAttribute('aria-atomic', 'true');
+
+    var head = document.createElement('div');
+    head.className = 'toast-header';
+    var title = document.createElement('strong');
+    title.className = 'borjik-toast-title';
+    title.textContent = options.title || TITLES[type];
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'btn-close';
+    close.setAttribute('data-bs-dismiss', 'toast');
+    close.setAttribute('aria-label', 'بستن');
+    head.appendChild(title);
+    head.appendChild(close);
+
+    var body = document.createElement('div');
+    body.className = 'toast-body';
+    body.textContent = String(message == null ? '' : message);   // textContent: ضد XSS
+
+    el.appendChild(head);
+    el.appendChild(body);
+    toastRoot().appendChild(el);
+
+    var delay = options.delay != null ? options.delay : DELAYS[type];
+    if (window.bootstrap && window.bootstrap.Toast) {
+      var inst = new window.bootstrap.Toast(el, { autohide: true, delay: delay });
+      el.addEventListener('hidden.bs.toast', function () { el.remove(); });
+      inst.show();
+      return inst;
+    }
+    // اگر فایل Bootstrap لود نشد، اعلان همچنان نمایش داده می‌شود
+    el.classList.add('show');
+    var rm = function () { el.remove(); };
+    close.addEventListener('click', rm);
+    setTimeout(rm, delay);
+  };
+
+  Borjik.toastSuccess = function (m, o) { return Borjik.toast(m, Object.assign({ type: 'success' }, o || {})); };
+  Borjik.toastError   = function (m, o) { return Borjik.toast(m, Object.assign({ type: 'danger' }, o || {})); };
+  Borjik.toastWarning = function (m, o) { return Borjik.toast(m, Object.assign({ type: 'warning' }, o || {})); };
+  Borjik.toastInfo    = function (m, o) { return Borjik.toast(m, Object.assign({ type: 'info' }, o || {})); };
+
+  /* ─── SweetAlert2 ─── */
+  function swalOptions(extra, danger) {
+    return Object.assign({
+      heightAuto: false,          // چیدمان تمام‌صفحه‌ی اپ به‌هم نریزد
+      scrollbarPadding: false,
+      returnFocus: true,
+      buttonsStyling: false,
+      showCancelButton: true,
+      customClass: {
+        popup: 'borjik-swal',
+        confirmButton: danger ? ['borjik-swal-confirm', 'is-danger'] : ['borjik-swal-confirm'],
+        cancelButton: 'borjik-swal-cancel'
       }
-      okBtn.onclick = function () {
-        if (wantsInput) {
-          var v = input.value;
-          if (opts.inputValidator) {
-            var err = opts.inputValidator(v);
-            if (err) { Borjik.toastWarning(err); return; }
-          }
-          cleanup({ isConfirmed: true, value: v });
-        } else {
-          cleanup({ isConfirmed: true });
-        }
-      };
-      cancelBtns.forEach(function (b) {
-        b.onclick = function () { cleanup({ isConfirmed: false }); };
-      });
-    });
+    }, extra);
   }
 
   Borjik.confirm = function (opts) {
     opts = typeof opts === 'string' ? { text: opts } : (opts || {});
-    var fire = (window.Swal && Swal.fire)
-      ? function () {
-          return Swal.fire({
-            title: opts.title || 'تأیید',
-            text: opts.text || '',
-            icon: opts.icon || 'question',
-            showCancelButton: true,
-            confirmButtonText: opts.confirmText || 'بله',
-            cancelButtonText: opts.cancelText || 'خیر',
-            reverseButtons: true,
-            focusCancel: true,
-            customClass: {
-              popup: 'borjik-swal',
-              confirmButton: 'borjik-swal-confirm',
-              cancelButton: 'borjik-swal-cancel'
-            },
-            buttonsStyling: false
-          }).then(function (r) { return !!r.isConfirmed; });
-        }
-      : function () {
-          return localFire({
-            title: opts.title || 'تأیید',
-            text: opts.text || '',
-            icon: opts.icon || 'question',
-            confirmButtonText: opts.confirmText || 'بله',
-            cancelButtonText: opts.cancelText || 'خیر'
-          }).then(function (r) { return !!r.isConfirmed; });
-        };
-    return fire();
+    if (!window.Swal) { return Promise.resolve(window.confirm(opts.text || opts.title || '')); }
+    var danger = opts.icon === 'warning' || opts.danger === true;
+    return window.Swal.fire(swalOptions({
+      title: opts.title || 'تأیید عملیات',
+      text: opts.text || '',
+      icon: opts.icon || 'question',
+      confirmButtonText: opts.confirmText || 'بله',
+      cancelButtonText: opts.cancelText || 'خیر',
+      focusCancel: danger
+    }, danger)).then(function (r) { return !!r.isConfirmed; });
   };
 
   Borjik.prompt = function (opts) {
     opts = typeof opts === 'string' ? { text: opts } : (opts || {});
-    var fire = (window.Swal && Swal.fire)
-      ? function () {
-          return Swal.fire({
-            title: opts.title || 'ورود اطلاعات',
-            text: opts.text || '',
-            input: opts.input || 'text',
-            inputPlaceholder: opts.placeholder || '',
-            inputValue: opts.value || '',
-            showCancelButton: true,
-            confirmButtonText: opts.confirmText || 'تأیید',
-            cancelButtonText: opts.cancelText || 'انصراف',
-            reverseButtons: true,
-            inputValidator: opts.required === false ? undefined : function (value) {
-              if (!value || !String(value).trim()) return 'این فیلد الزامی است';
-            },
-            customClass: {
-              popup: 'borjik-swal',
-              confirmButton: 'borjik-swal-confirm',
-              cancelButton: 'borjik-swal-cancel'
-            },
-            buttonsStyling: false
-          }).then(function (r) { return r.isConfirmed ? r.value : null; });
-        }
-      : function () {
-          return localFire({
-            title: opts.title || 'ورود اطلاعات',
-            text: opts.text || '',
-            icon: 'info',
-            input: true,
-            inputPlaceholder: opts.placeholder || '',
-            inputValue: opts.value || '',
-            confirmButtonText: opts.confirmText || 'تأیید',
-            cancelButtonText: opts.cancelText || 'انصراف',
-            inputValidator: opts.required === false ? undefined : function (value) {
-              if (!value || !String(value).trim()) return 'این فیلد الزامی است';
-            }
-          }).then(function (r) { return r.isConfirmed ? r.value : null; });
-        };
-    return fire();
+    if (!window.Swal) { var v = window.prompt(opts.text || opts.title || ''); return Promise.resolve(v ? v : null); }
+    var required = opts.required !== false;
+    return window.Swal.fire(swalOptions({
+      title: opts.title || 'ورود اطلاعات',
+      text: opts.text || '',
+      input: 'textarea',
+      inputPlaceholder: opts.placeholder || '',
+      inputValue: opts.value || '',
+      inputAttributes: { maxlength: String(opts.maxlength || 255), 'aria-label': opts.title || opts.text || '' },
+      confirmButtonText: opts.confirmText || 'تأیید',
+      cancelButtonText: opts.cancelText || 'انصراف',
+      inputValidator: required ? function (value) {
+        if (!value || !String(value).trim()) { return 'این فیلد الزامی است.'; }
+      } : undefined
+    }, false)).then(function (r) { return r.isConfirmed ? String(r.value || '').trim() : null; });
   };
 
-  function bindConfirms() {
+  /* ─── فرم‌ها: data-confirm / data-prompt ─── */
+  function bindForms() {
+    if (Borjik._bound) { return; }
+    Borjik._bound = true;
+
     document.addEventListener('submit', function (e) {
       var form = e.target;
-      if (!form || form.tagName !== 'FORM') return;
+      if (!form || form.tagName !== 'FORM') { return; }
 
       var confirmMsg = form.getAttribute('data-confirm');
       var promptMsg = form.getAttribute('data-prompt');
-      var promptName = form.getAttribute('data-prompt-name') || 'reason';
-      if (!confirmMsg && !promptMsg) return;
+      if (!confirmMsg && !promptMsg) { return; }
 
-      if (form.dataset.borjikConfirmed === '1') {
+      if (form.dataset.borjikConfirmed === '1') {   // ارسال دوم، بعد از تأیید کاربر
         delete form.dataset.borjikConfirmed;
         return;
       }
 
       e.preventDefault();
       e.stopPropagation();
+      if (window.Swal && window.Swal.isVisible && window.Swal.isVisible()) { return; }
 
-      var chain = Promise.resolve(true);
+      var submitter = e.submitter || null;
+      var promptName = form.getAttribute('data-prompt-name') || 'reason';
+
+      function go() {
+        form.dataset.borjikConfirmed = '1';
+        try {
+          if (submitter) { form.requestSubmit(submitter); } else { form.requestSubmit(); }
+        } catch (err) {
+          delete form.dataset.borjikConfirmed;
+          form.submit();
+        }
+      }
+
+      var step = Promise.resolve(true);
       if (confirmMsg) {
-        chain = Borjik.confirm({
+        step = Borjik.confirm({
           title: form.getAttribute('data-confirm-title') || 'تأیید عملیات',
           text: confirmMsg,
           icon: form.getAttribute('data-confirm-icon') || 'question',
@@ -227,22 +174,18 @@
         });
       }
 
-      chain.then(function (ok) {
-        if (!ok) return;
-        if (!promptMsg) {
-          form.dataset.borjikConfirmed = '1';
-          if (form.requestSubmit) form.requestSubmit();
-          else form.submit();
-          return;
-        }
+      step.then(function (ok) {
+        if (!ok) { return; }
+        if (!promptMsg) { go(); return; }
         return Borjik.prompt({
           title: form.getAttribute('data-prompt-title') || 'توضیح',
           text: promptMsg,
           placeholder: form.getAttribute('data-prompt-placeholder') || '',
           confirmText: form.getAttribute('data-prompt-ok') || 'تأیید',
+          maxlength: parseInt(form.getAttribute('data-prompt-maxlength'), 10) || 255,
           required: form.getAttribute('data-prompt-required') !== '0'
         }).then(function (value) {
-          if (value == null) return;
+          if (value == null) { return; }
           var input = form.querySelector('[name="' + promptName + '"]');
           if (!input) {
             input = document.createElement('input');
@@ -251,31 +194,26 @@
             form.appendChild(input);
           }
           input.value = value;
-          form.dataset.borjikConfirmed = '1';
-          if (form.requestSubmit) form.requestSubmit();
-          else form.submit();
+          go();
         });
       });
     }, true);
   }
 
+  /* ─── پیام‌های flash سرور → تاست ─── */
   Borjik.flashFromPage = function () {
     document.querySelectorAll('[data-borjik-flash]').forEach(function (n) {
-      var type = n.getAttribute('data-borjik-flash') || 'info';
       var msg = (n.textContent || '').trim();
-      if (!msg) return;
-      if (type === 'success' || type === 'status') Borjik.toastSuccess(msg);
-      else if (type === 'danger' || type === 'error') Borjik.toastError(msg);
-      else if (type === 'warning') Borjik.toastWarning(msg);
-      else Borjik.toastInfo(msg);
+      var type = n.getAttribute('data-borjik-flash') || 'info';
       n.remove();
+      if (msg) { Borjik.toast(msg, { type: type }); }
     });
   };
 
-  document.addEventListener('DOMContentLoaded', function () {
-    bindConfirms();
-    Borjik.flashFromPage();
-  });
+  function ready(fn) {
+    if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', fn); } else { fn(); }
+  }
+  ready(function () { bindForms(); Borjik.flashFromPage(); });
 
   window.Borjik = Borjik;
 })(window, document);
