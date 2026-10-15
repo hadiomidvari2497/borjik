@@ -12,10 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 /** با انقضای اشتراک، افزودن ساختمان/بلوک/واحد غیرفعال می‌شود و داده‌ها فقط‌خواندنی می‌مانند (بند ۴.۴). */
 class RequireActiveSubscription
 {
-    public function handle(Request $request, Closure $next, BuildingService $buildings): Response
+    public function handle(Request $request, Closure $next): Response
     {
         $building = Building::findOrFail(app(CurrentBuilding::class)->id());
-        $subscription = $buildings->ensureActiveSubscription($building);
+        $subscription = app(BuildingService::class)->ensureActiveSubscription($building);
 
         abort_unless(
             $subscription && $subscription->isActive(),
