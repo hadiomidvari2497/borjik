@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Building;
+use App\Services\BuildingService;
 use App\Support\CurrentBuilding;
 use Closure;
 use Illuminate\Http\Request;
