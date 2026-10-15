@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\SubscriptionPlan;
+use App\Support\MobileNumber;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class SubscriptionPlanController extends Controller
+{
+    public function index()
+    {
+        $plans = SubscriptionPlan::query()
+            ->withCount('subscriptions')
+            ->orderByDesc('is_active')
+            ->orderBy('units_limit')
+            ->orderBy('duration_months')
+            ->get();
+
+        return view('admin.plans.index', compact('plans'));
+    }
+
+    public function create()
+    {
+        return view('admin.plans.form', ['plan' => null]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $this->validated($request);
+        SubscriptionPlan::create($data);
+
+        return redirect()->route('admin.plans.index')->with('status', 'پلن جدید ذخیره شد.');
+    }
+
+    public function edit(int $id)
+    {
+        $plan = SubscriptionPlan::findOrFail($id);
+
+        return view('admin.plans.form', compact('plan'));
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $plan = SubscriptionPlan::findOrFail($id);
+        $plan->update($this->validated($request, $plan->id));
+
+        return redirect()->route('admin.plans.index')->with('status', 'پلن به‌روز شد.');
+    }
+
+    public function destroy(int $id)
+    {
+        $plan = SubscriptionPlan::withCount('subscriptions')->findOrFail($id);
+
+        if ($plan->subscriptions_count > 0) {
+            // به‌جای حذف سخت، غیرفعال می‌کنیم تا تاریخچه حفظ شود
+            $plan->update(['is_active' => false]);
+
+            return redirect()->route('admin.plans.index')
+                ->with('warning', 'این پلن قبلاً استفاده شده؛ به‌جای حذف، غیرفعال شد.');
+        }
+
+        $plan->delete();
+
+        return redirect()->route('admin.plans.index')->with('status', 'پلن حذف شد.');
+    }
+
+    private function validated(Request $request, ?int $ignoreId = null): array
+    {
+        $request->merge([
+            'price' => MobileNumber::toLatinDigits((string) $request->input('price', '0')),
+            'units_limit' => MobileNumber::toLatinDigits((string) $request->input('units_limit', '0')),
+            'duration_months' => MobileNumber::toLatinDigits((string) $request->input('duration_months', '1')),
+        ]);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100', Rule::unique('subscription_plans', 'name')->ignore($ignoreId)],
+            'units_limit' => ['required', 'integer', 'min:1', 'max:100000'],
+            'duration_months' => ['required', 'integer', 'min:1', 'max:120'],
+            'price' => ['required', 'integer', 'min:0'], // 0 = رایگان
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $data['is_active'] = $request->boolean('is_active');
+        $data['price'] = (int) $data['price'];
+        $data['units_limit'] = (int) $data['units_limit'];
+        $data['duration_months'] = (int) $data['duration_months'];
+
+        return $data;
+    }
+}
