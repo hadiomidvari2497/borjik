@@ -19,6 +19,7 @@
   @else
     <p style="color:var(--muted);margin:8px 0 16px;line-height:1.8">
       برای ساخت ساختمان و استفاده از امکانات سامانه، یکی از پلن‌های زیر را انتخاب کنید.
+      پلن‌های رایگان بدون پرداخت فعال می‌شوند.
     </p>
   @endif
 </div>
@@ -26,21 +27,38 @@
 <div class="card">
   <div class="page-h"><h2>پلن‌ها</h2></div>
   @if($plans->isEmpty())
-    <div class="empty">پلنی تعریف نشده است.</div>
+    <div class="empty">در حال حاضر پلنی برای نمایش وجود ندارد. لطفاً بعداً دوباره سر بزنید.</div>
   @else
     <div class="feat" style="margin-top:8px">
       @foreach($plans as $plan)
+        @php $free = (int) $plan->price === 0; @endphp
         <div class="card" style="margin:0">
-          <b>{{ $plan->name }}</b>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <b>{{ $plan->name }}</b>
+            @if($free)<span class="pill">رایگان</span>@endif
+          </div>
           <p style="margin:8px 0;color:var(--muted);line-height:1.7">
             سقف واحد: <b>{{ $F::num($plan->units_limit) }}</b><br>
             مدت: <b>{{ $F::num($plan->duration_months) }} ماه</b><br>
-            قیمت: <b>{{ $F::money($plan->price) }}</b>
+            قیمت:
+            <b>
+              @if($free)
+                رایگان
+              @else
+                {{ $F::money($plan->price) }}
+              @endif
+            </b>
           </p>
-          <form method="POST" action="{{ route('subscription.subscribe', $plan->id) }}" data-confirm="این پلن فعال شود؟" data-confirm-title="فعال‌سازی اشتراک">
+          <form method="POST" action="{{ route('subscription.subscribe', $plan->id) }}"
+            data-confirm="{{ $free ? 'پلن رایگان فعال شود؟' : 'این پلن فعال شود؟' }}"
+            data-confirm-title="فعال‌سازی اشتراک">
             @csrf
-            <button class="btn" type="submit" style="width:100%;justify-content:center">
-              {{ $subscription ? 'تمدید / تعویض به این پلن' : 'انتخاب و فعال‌سازی' }}
+            <button class="btn {{ $free ? '' : 'sec' }}" type="submit" style="width:100%;justify-content:center">
+              @if($subscription)
+                {{ $free ? 'تعویض به پلن رایگان' : 'تمدید / تعویض به این پلن' }}
+              @else
+                {{ $free ? 'فعال‌سازی رایگان' : 'انتخاب و فعال‌سازی' }}
+              @endif
             </button>
           </form>
         </div>
