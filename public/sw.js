@@ -1,5 +1,5 @@
-const CACHE = 'borjik-v3';
-const SHELL = ['/offline.html', '/css/app.css', '/css/fonts.css', '/fonts/vazirmatn/Vazirmatn-Regular.woff2', '/fonts/vazirmatn/Vazirmatn-Medium.woff2', '/fonts/vazirmatn/Vazirmatn-Bold.woff2', '/fonts/vazirmatn/Vazirmatn-ExtraBold.woff2', '/js/app.js', '/pwa/icon-192.png', '/pwa/icon-512.png'];
+const CACHE = 'borjik-v4';
+const SHELL = ['/offline.html', '/css/app.css', '/css/fonts.css', '/fonts/vazirmatn/Vazirmatn-Regular.woff2', '/fonts/vazirmatn/Vazirmatn-Medium.woff2', '/fonts/vazirmatn/Vazirmatn-Bold.woff2', '/fonts/vazirmatn/Vazirmatn-ExtraBold.woff2', '/css/notify.css', '/js/ui.js', '/vendor/bootstrap/bootstrap-toast.rtl.min.css', '/vendor/bootstrap/bootstrap.bundle.min.js', '/vendor/sweetalert2/sweetalert2.min.css', '/vendor/sweetalert2/sweetalert2.min.js', '/js/app.js', '/pwa/icon-192.png', '/pwa/icon-512.png'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

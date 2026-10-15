@@ -10,8 +10,16 @@
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
 <link rel="stylesheet" href="{{ asset('css/jdate.css') }}">
+<link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap-toast.rtl.min.css') }}">
+<link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
+<link rel="stylesheet" href="{{ asset('css/notify.css') }}">
 </head>
 <body class="auth">
+@if(session('status'))<div data-borjik-flash="status" hidden>{{ session('status') }}</div>@endif
+@if(session('success'))<div data-borjik-flash="success" hidden>{{ session('success') }}</div>@endif
+@if(session('warning'))<div data-borjik-flash="warning" hidden>{{ session('warning') }}</div>@endif
+@if(session('error'))<div data-borjik-flash="error" hidden>{{ session('error') }}</div>@endif
+@if($errors->has('general'))<div data-borjik-flash="error" hidden>{{ $errors->first('general') }}</div>@endif
 <div class="shell">
   <aside class="brand-panel">
     <div class="bp-top"><div class="logo">ب</div><b>برجیک</b></div>
@@ -29,12 +37,13 @@
 
   <main class="form-panel">
     <div class="fp-inner @yield('wide')">
-      @if(session('status'))<div class="alert ok">{{ session('status') }}</div>@endif
-      @if(session('warning'))<div class="alert warn">{{ session('warning') }}</div>@endif
       @yield('content')
     </div>
   </main>
 </div>
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
+<script src="{{ asset('js/ui.js') }}"></script>
 <script src="{{ asset('js/jdate.js') }}"></script>
 <script src="{{ asset('js/auth.js') }}"></script>
 </body>

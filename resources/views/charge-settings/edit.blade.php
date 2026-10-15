@@ -46,7 +46,7 @@
       <tr><td>{{ $r->name }}</td><td>{{ $r->bedrooms !== null ? \App\Support\Fa::digits($r->bedrooms) : 'مهم نیست' }}</td>
         <td>{{ $r->has_parking === null ? 'مهم نیست' : ($r->has_parking ? 'دارد' : 'ندارد') }}</td><td>{{ $r->has_storage === null ? 'مهم نیست' : ($r->has_storage ? 'دارد' : 'ندارد') }}</td>
         <td>{{ \App\Support\Fa::money($r->amount) }}</td>
-        <td class="act"><form method="POST" action="{{ route('charge-settings.rules.destroy', $r->id) }}">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form></td></tr>
+        <td class="act"><form method="POST" action="{{ route('charge-settings.rules.destroy', $r->id) }}" data-confirm="این قاعده حذف شود؟" data-confirm-title="حذف قاعده" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form></td></tr>
     @endforeach
   </tbody></table></div>
   @endif
@@ -68,7 +68,7 @@
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>نام</th><th>نوع</th><th>مبنای تقسیم</th><th></th></tr></thead><tbody>
     @foreach($categories as $c)
       <tr><td>{{ $c->name }}</td><td>{{ $c->kind === 'fixed' ? 'ثابت' : 'متغیر' }}</td><td>{{ ['equal' => 'مساوی بین واحدها', 'area' => 'متراژ', 'persons' => 'تعداد نفرات'][$c->split_basis] ?? $c->split_basis }}</td>
-        <td class="act"><form method="POST" action="{{ route('charge-settings.categories.destroy', $c->id) }}" onsubmit="return confirm('حذف شود؟')">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form></td></tr>
+        <td class="act"><form method="POST" action="{{ route('charge-settings.categories.destroy', $c->id) }}" data-confirm="این دسته‌ی هزینه حذف شود؟" data-confirm-title="حذف دسته‌ی هزینه" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form></td></tr>
     @endforeach
   </tbody></table></div>
   <form method="POST" action="{{ route('charge-settings.categories.store') }}" style="margin-top:12px">@csrf

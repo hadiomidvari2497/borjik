@@ -431,6 +431,11 @@ GitHub Actions (`.github/workflows/ci.yml`):
 - صفحات مهمان: `resources/views/layouts/guest.blade.php` + `public/css/auth.css`
 - اپ اصلی: `layouts/app.blade.php` + `public/css/app.css`
 - `.env` را commit نکنید
+- اعلان‌ها (بدون CDN): تاست = Bootstrap 5.3 Toast، سؤال بله/خیر = SweetAlert2؛ فایل‌ها در `public/vendor` (راهنمای به‌روزرسانی: `public/vendor/README.md`)
+  - تأیید قبل از ارسال فرم: `<form data-confirm="متن سؤال" data-confirm-title="عنوان" data-confirm-icon="warning">` (با `warning` دکمه‌ی بله قرمز می‌شود)
+  - گرفتن متن (مثل دلیل رد): `<form data-prompt="توضیح" data-prompt-name="reason">`
+  - پیام‌ها: `->with('status'|'success'|'warning'|'error', ...)` یا `withErrors(['general' => ...])` خودکار تاست می‌شوند؛ از جاوااسکریپت: `Borjik.toastSuccess('...')`
+  - `confirm()` / `alert()` / `prompt()` بومی مرورگر ممنوع است (تست `NoNativeDialogsTest` بررسی می‌کند)
 - پروداکشن: `APP_DEBUG=false`، SMS واقعی، queue worker، بکاپ دیتابیس
 
 ---

@@ -5,10 +5,6 @@
   <h1 class="h1">دعوت‌نامه‌های من</h1>
   <p class="lead">دعوت‌های مربوط به حساب شما را ببینید و برای هرکدام تصمیم بگیرید.</p>
 
-  @if($errors->has('general'))
-    <div class="alert err" style="margin-bottom:14px">{{ $errors->first('general') }}</div>
-  @endif
-
   @if($invitations->isEmpty())
     <div class="card" style="padding:24px;text-align:center;margin-top:20px">
       <h2 style="margin:0 0 8px">دعوت‌نامه‌ی فعالی ندارید</h2>
@@ -34,7 +30,7 @@
             <form method="POST" action="{{ route('invitations.accept', $invitation->id) }}">@csrf
               <button class="btn" type="submit">پذیرفتن دعوت</button>
             </form>
-            <form method="POST" action="{{ route('invitations.reject', $invitation->id) }}" onsubmit="return confirm('از رد این دعوت‌نامه مطمئن هستید؟')">@csrf
+            <form method="POST" action="{{ route('invitations.reject', $invitation->id) }}" data-confirm="از رد این دعوت‌نامه مطمئن هستید؟" data-confirm-title="رد دعوت‌نامه" data-confirm-icon="warning">@csrf
               <button class="btn sec" type="submit">رد کردن</button>
             </form>
           </div>

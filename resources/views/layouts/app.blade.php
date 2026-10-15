@@ -17,10 +17,9 @@
 <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-@if(file_exists(public_path('vendor/sweetalert2/sweetalert2.min.css')))
+<link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap-toast.rtl.min.css') }}">
 <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
-@endif
-<link rel="stylesheet" href="{{ asset('css/toast.css') }}">
+<link rel="stylesheet" href="{{ asset('css/notify.css') }}">
 </head>
 <body>
 @include('partials.icons')
@@ -112,9 +111,8 @@
   </main>
 </div>
 
-@if(file_exists(public_path('vendor/sweetalert2/sweetalert2.all.min.js')))
-<script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
-@endif
+<script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('vendor/sweetalert2/sweetalert2.min.js') }}"></script>
 <script src="{{ asset('js/ui.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
 </body>
