@@ -47,6 +47,7 @@
           @foreach($myBuildings as $b)
             <li>
               <form method="POST" action="{{ route('building.switch', $b['id']) }}">@csrf
+                <input type="hidden" name="membership_id" value="{{ $b['membership_id'] }}">
                 <button type="submit">{{ $b['name'] }}<small>{{ $b['roles'] }}</small></button>
               </form>
             </li>
