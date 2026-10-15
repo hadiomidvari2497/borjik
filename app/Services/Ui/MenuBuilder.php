@@ -14,8 +14,8 @@ class MenuBuilder
     private array $counts = [];
 
     /**
-     * منوی «پیش‌نمایش» برای کاربر بدون ساختمان: همه‌ی امکاناتی که یک مالک ساختمان دارد دیده می‌شود،
-     * ولی قفل است و تا تهیه‌ی اشتراک و ساخت ساختمان کار نمی‌کند.
+     * منوی «پیش‌نمایش» برای کاربر بدون ساختمان: امکانات مالک دیده می‌شود ولی قفل است،
+     * به‌جز داشبورد و «اشتراک» که برای خرید/تمدید باید همیشه باز باشد.
      */
     public function preview(): array
     {
@@ -33,9 +33,24 @@ class MenuBuilder
                     continue;
                 }
                 $isHome = $item['route'] === 'dashboard';
+                $isSubscription = str_starts_with($item['route'], 'subscription.');
+                $routeName = $isSubscription && Route::has('subscription.show')
+                    ? 'subscription.show'
+                    : $item['route'];
+                $exists = Route::has($routeName);
                 $items[] = [
-                    'label' => $item['label'], 'icon' => $item['icon'], 'url' => route('dashboard').($isHome ? '' : '#features'),
-                    'active' => $isHome, 'badge' => 0, 'locked' => ! $isHome,
+                    'label' => $item['label'],
+                    'icon' => $item['icon'],
+                    'url' => $isHome
+                        ? route('dashboard')
+                        : ($isSubscription && $exists
+                            ? route($routeName)
+                            : route('dashboard').'#features'),
+                    'active' => $isHome
+                        ? request()->routeIs('dashboard')
+                        : ($isSubscription && request()->routeIs('subscription.*')),
+                    'badge' => 0,
+                    'locked' => ! $isHome && ! $isSubscription,
                 ];
             }
             if ($items) {
