@@ -8,6 +8,7 @@ use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Invitation;
 use App\Models\Role;
+use App\Models\SmsLog;
 use App\Models\User;
 use App\Services\Auth\InvitationService;
 use App\Services\TeamService;
@@ -194,6 +195,49 @@ class InvitationFlowTest extends TestCase
             BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
         );
         $this->assertSame(2, Invitation::withoutGlobalScopes()->where('user_id', $user->id)->count());
+    }
+
+    public function test_changing_role_after_rejection_sends_a_new_invitation(): void
+    {
+        $user = User::create([
+            'mobile' => '09121112233',
+            'first_name' => 'کاربر',
+            'last_name' => 'ردکننده',
+            'status' => 'active',
+        ]);
+
+        $token = $this->invite($user->mobile, 'manager');
+        $invitation = $this->service->find($token);
+        $this->service->reject($invitation, $user);
+
+        app(CurrentBuilding::class)->actingAs($this->building->id, function () use ($user) {
+            app(TeamService::class)->updateRoles($this->owner, $user->id, ['owner']);
+        });
+
+        $ownerRoleId = Role::where('key', 'owner')->value('id');
+        $this->assertSame(
+            'invited',
+            BuildingUserRole::where('building_id', $this->building->id)
+                ->where('user_id', $user->id)
+                ->where('role_id', $ownerRoleId)
+                ->value('status')
+        );
+
+        $newInvitation = Invitation::withoutGlobalScopes()
+            ->where('building_id', $this->building->id)
+            ->where('user_id', $user->id)
+            ->where('role_id', $ownerRoleId)
+            ->whereNull('rejected_at')
+            ->whereNull('accepted_at')
+            ->first();
+
+        $this->assertNotNull($newInvitation, 'Changing the role must create a fresh invitation.');
+        $this->assertSame(2, SmsLog::where('user_id', $user->id)->where('template_key', 'invitation')->count());
+        $this->assertDatabaseMissing('building_user_roles', [
+            'building_id' => $this->building->id,
+            'user_id' => $user->id,
+            'role_id' => Role::where('key', 'manager')->value('id'),
+        ]);
     }
 
     public function test_invitation_inbox_only_shows_current_users_invitations(): void
