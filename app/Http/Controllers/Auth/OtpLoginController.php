@@ -7,6 +7,7 @@ use App\Exceptions\OtpException;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\Auth\InvitationService;
+use App\Services\Auth\LoginDestinationService;
 use App\Services\Auth\OtpService;
 use App\Support\MobileNumber;
 use Illuminate\Http\Request;
@@ -74,18 +75,25 @@ class OtpLoginController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        app(LoginDestinationService::class)->applyAfterLogin($request, $user);
 
         $flash = null;
         if ($inviteToken) {
             try {
                 $invitation = $invitations->accept($inviteToken, $user);
-                $request->session()->put('current_building_id', $invitation->building_id);
+                $membershipId = \Illuminate\Support\Facades\DB::table('building_user_roles')
+                    ->where('user_id', $user->id)->where('building_id', $invitation->building_id)
+                    ->where('role_id', $invitation->role_id)->where('status', 'active')->value('id');
+                if ($membershipId) {
+                    $request->session()->put('current_building_user_role_id', (int) $membershipId);
+                    $request->session()->put('current_building_id', (int) $invitation->building_id);
+                }
             } catch (InvitationException $e) {
                 $flash = $e->getMessage();
             }
         }
 
-        $redirect = redirect()->intended(route('dashboard'));
+        $redirect = redirect()->route('dashboard');
 
         return $flash ? $redirect->with('warning', $flash) : $redirect;
     }
@@ -100,6 +108,10 @@ class OtpLoginController extends Controller
 
     public function logout(Request $request)
     {
+        if ($request->user()) {
+            app(LoginDestinationService::class)->rememberOnLogout($request, $request->user());
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
