@@ -1,61 +1,43 @@
-@php
-  $done = (bool) $user->profile_completed_at;
-  $type = old('person_type', $user->person_type?->value ?? 'real');
-  $birth = old('birth_date', \App\Support\JalaliDate::format($user->birth_date));
-@endphp
-@extends('layouts.guest')
-@section('title', ($done ? 'پروفایل من' : 'تکمیل پروفایل').' | برجیک')
-@section('wide', 'wide')
+@php($done = true)
+@extends('layouts.app')
+@section('title', 'پروفایل من')
 @section('content')
-  @unless($done)<div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></div>@endunless
-  <h1 class="h1">{{ $done ? 'پروفایل من' : 'یک قدم تا شروع کار' }}</h1>
-  <p class="lead">{{ $done ? 'اطلاعات هویتی خود را ویرایش کنید.' : 'برای ادامه، اطلاعات هویتی‌تان را کامل کنید. عکس پروفایل اختیاری است و بعداً هم می‌توانید اضافه کنید.' }}</p>
+  <style>
+    .profile-page .lead{color:var(--muted);font-size:13px;margin:-10px 0 8px}
+    .profile-page .field{margin-bottom:16px;min-width:0}
+    .profile-page .field label{display:block;font-size:13px;font-weight:600;margin-bottom:7px}
+    .profile-page .field .opt,.profile-page .hint{color:var(--muted);font-size:12px;font-weight:400}
+    .profile-page .field input,.profile-page .field textarea,.profile-page .field select{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--card);font:inherit;color:var(--text)}
+    .profile-page .field textarea{resize:vertical;min-height:76px}
+    .profile-page .field input:focus,.profile-page .field textarea:focus,.profile-page .field select:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
+    .profile-page .field .err,.profile-page .profile-error{color:var(--danger);font-size:12px;margin-top:6px}
+    .profile-page .profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
+    .profile-page .profile-seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;height:auto;background:var(--track);padding:4px;border-radius:14px;margin:4px 0 18px}
+    .profile-page .profile-seg label{margin:0;cursor:pointer;text-align:center}
+    .profile-page .profile-seg input{position:absolute;opacity:0;pointer-events:none}
+    .profile-page .profile-seg span{display:block;padding:9px;border-radius:10px}
+    .profile-page .profile-seg input:checked+span{background:var(--card);color:var(--brand);font-weight:700;box-shadow:var(--shadow)}
+    .profile-page .profile-more{border:1px dashed var(--line);border-radius:14px;padding:4px 14px;margin:8px 0 18px}
+    .profile-page .profile-more summary{cursor:pointer;padding:10px 0;font-weight:600;color:var(--brand)}
+    .profile-page .profile-more[open]{padding-bottom:12px}
+    .profile-page .pw{position:relative}
+    .profile-page .pw input{padding-inline-end:54px}
+    .profile-page .pw button{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);padding:6px;color:var(--muted);font-size:12px}
+    .profile-page .profile-submit{margin-top:6px}
+    .profile-page .profile-settings{margin-top:20px}
+    .profile-page .radio-option{display:flex!important;align-items:center;gap:9px;cursor:pointer}
+    .profile-page .radio-option input{width:16px!important;height:16px;accent-color:var(--brand)}
+    @media(max-width:640px){.profile-page .profile-grid{grid-template-columns:1fr}}
+  </style>
+  <div class="profile-page">
+    <h2 style="font-size:20px;font-weight:800">پروفایل من</h2>
+    <p class="lead">اطلاعات هویتی خود را ویرایش کنید.</p>
+    @include('auth.partials.profile-form')
 
-  <form method="POST" action="{{ route('profile.update') }}">@csrf
-    <div class="seg" role="radiogroup" aria-label="نوع شخص">
-      <label><input type="radio" name="person_type" value="real" @checked($type !== 'legal')><span>شخص حقیقی</span></label>
-      <label><input type="radio" name="person_type" value="legal" @checked($type === 'legal')><span>شخص حقوقی</span></label>
-    </div>
-
-    <div class="grid2" data-for="real">
-      <div class="field"><label for="first_name">نام</label><input id="first_name" name="first_name" value="{{ old('first_name', $user->first_name) }}" autocomplete="given-name">@error('first_name')<div class="err">{{ $message }}</div>@enderror</div>
-      <div class="field"><label for="last_name">نام خانوادگی</label><input id="last_name" name="last_name" value="{{ old('last_name', $user->last_name) }}" autocomplete="family-name">@error('last_name')<div class="err">{{ $message }}</div>@enderror</div>
-    </div>
-    <div class="field" data-for="legal" hidden><label for="company_name">نام شرکت یا سازمان</label><input id="company_name" name="company_name" value="{{ old('company_name', $user->company_name) }}">@error('company_name')<div class="err">{{ $message }}</div>@enderror</div>
-
-    <div class="grid2">
-      <div class="field">
-        <label for="national_code"><span data-label-real="کد ملی" data-label-legal="شناسه‌ی ملی">کد ملی</span></label>
-        <input id="national_code" name="national_code" inputmode="numeric" maxlength="11" data-digits value="{{ old('national_code', $user->national_code) }}" dir="ltr" style="text-align:right">
-        @error('national_code')<div class="err">{{ $message }}</div>@enderror
-      </div>
-      <div class="field">
-        <label for="birth_date"><span data-label-real="تاریخ تولد" data-label-legal="تاریخ تأسیس">تاریخ تولد</span></label>
-        <input id="birth_date" name="birth_date" class="jdate" data-max="today" data-min="1300/01/01" placeholder="انتخاب از تقویم" value="{{ $birth }}">
-        @error('birth_date')<div class="err">{{ $message }}</div>@enderror
-      </div>
-    </div>
-
-    <div class="field"><label for="address">آدرس <span class="opt">(اختیاری)</span></label><textarea id="address" name="address" rows="2">{{ old('address', $user->address) }}</textarea></div>
-
-    <details class="more" @if($errors->has('password')) open @endif>
-      <summary>تعیین رمز عبور (اختیاری)</summary>
-      <p class="hint" style="margin-bottom:10px">با رمز عبور می‌توانید بدون پیامک وارد شوید. اگر نگذارید، همیشه با کد پیامکی وارد می‌شوید.</p>
-      <div class="grid2">
-        <div class="field"><label for="password">رمز عبور</label><div class="pw"><input id="password" type="password" name="password" autocomplete="new-password"><button type="button">نمایش</button></div><div class="hint">حداقل ۸ کاراکتر</div></div>
-        <div class="field"><label for="password_confirmation">تکرار رمز عبور</label><input id="password_confirmation" type="password" name="password_confirmation" autocomplete="new-password"></div>
-      </div>
-      @error('password')<div class="err" style="color:var(--err);font-size:12.5px">{{ $message }}</div>@enderror
-    </details>
-
-    <button class="btn" type="submit">{{ $done ? 'ذخیره‌ی تغییرات' : 'ذخیره و ادامه' }}</button>
-  </form>
-
-  @if($done)
     @if($loginDestinations->isNotEmpty())
-      <div class="card" style="margin-top:18px">
+      <div class="card profile-settings">
         <h2>تنظیمات ورود</h2>
-        <p class="hint">مشخص کنید بعد از ورود به حساب، کدام ساختمان و نقش باز شود.</p>
+        <p class="hint" style="margin-bottom:14px">مشخص کنید بعد از ورود به حساب، کدام ساختمان و نقش باز شود.</p>
         <form method="POST" action="{{ route('profile.login-destination') }}">@csrf
           <div class="field"><label class="radio-option"><input type="radio" name="login_destination_mode" value="fixed" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'fixed')><span>همیشه به مقصد مشخص‌شده بروم</span></label></div>
           <div class="field">
@@ -68,15 +50,15 @@
             </select>
             @error('preferred_membership_id')<div class="err">{{ $message }}</div>@enderror
           </div>
-          <div class="field"><label class="radio-option"><input type="radio" name="login_destination_mode" value="last" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'last' )><span>بازگشت به آخرین ساختمان و نقشی که در آن بودم</span></label></div>
+          <div class="field"><label class="radio-option"><input type="radio" name="login_destination_mode" value="last" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'last')><span>بازگشت به آخرین ساختمان و نقشی که در آن بودم</span></label></div>
           @error('login_destination_mode')<div class="err">{{ $message }}</div>@enderror
           <button class="btn" type="submit">ذخیره تنظیمات ورود</button>
         </form>
       </div>
     @endif
-    <div class="row">
+    <div class="row" style="margin-top:18px">
       <span>تأیید دومرحله‌ای: {{ $user->two_factor_enabled ? 'فعال است' : 'غیرفعال' }}</span>
-      @unless($user->two_factor_enabled)<a class="lnk" href="{{ route('profile.two-factor') }}">فعال‌سازی</a>@endunless
+      @unless($user->two_factor_enabled)<a class="link" href="{{ route('profile.two-factor') }}">فعال‌سازی</a>@endunless
     </div>
-  @endif
+  </div>
 @endsection
