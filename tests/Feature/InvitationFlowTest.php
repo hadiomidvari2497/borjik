@@ -164,6 +164,12 @@ class InvitationFlowTest extends TestCase
             BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
         );
 
+        $this->actingAs($this->owner)->withSession(['current_building_id' => $this->building->id])
+            ->get(route('members.index'))
+            ->assertOk()
+            ->assertSee('رد شده')
+            ->assertSee('ارسال دعوت جدید');
+
         // A rejected invitation cannot be reactivated; the inviter must send a fresh invitation.
         $this->actingAs($this->owner)->withSession(['current_building_id' => $this->building->id])
             ->post(route('team.activate', $user->id), ['scope' => 'members'])
