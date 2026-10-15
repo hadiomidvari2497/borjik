@@ -7,13 +7,49 @@ use App\Rules\IranianNationalId;
 use App\Support\MobileNumber;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Morilog\Jalali\Jalalian;
 
 class ProfileController extends Controller
 {
     public function edit(Request $request)
     {
-        return view('auth.profile', ['user' => $request->user()]);
+        $destinations = DB::table('building_user_roles as bur')
+            ->join('buildings as b', 'b.id', '=', 'bur.building_id')
+            ->join('roles as r', 'r.id', '=', 'bur.role_id')
+            ->where('bur.user_id', $request->user()->id)
+            ->where('bur.status', 'active')->whereNull('b.deleted_at')
+            ->orderBy('b.name')->orderBy('r.name_fa')
+            ->get(['bur.id as membership_id', 'b.name as building_name', 'r.name_fa as role_name']);
+
+        return view('auth.profile', ['user' => $request->user(), 'loginDestinations' => $destinations]);
+    }
+
+    public function updateLoginDestination(Request $request)
+    {
+        $data = $request->validate([
+            'login_destination_mode' => ['required', Rule::in(['fixed', 'last'])],
+            'preferred_membership_id' => ['nullable', 'integer'],
+        ]);
+
+        $preferredId = null;
+        if ($data['login_destination_mode'] === 'fixed') {
+            $preferredId = (int) ($data['preferred_membership_id'] ?? 0);
+            $valid = $preferredId > 0 && DB::table('building_user_roles as bur')
+                ->join('buildings as b', 'b.id', '=', 'bur.building_id')
+                ->where('bur.id', $preferredId)->where('bur.user_id', $request->user()->id)
+                ->where('bur.status', 'active')->whereNull('b.deleted_at')->exists();
+            if (! $valid) {
+                return back()->withErrors(['preferred_membership_id' => 'برای مقصد ثابت، یک ساختمان و نقش معتبر انتخاب کنید.'])->withInput();
+            }
+        }
+
+        $request->user()->forceFill([
+            'login_destination_mode' => $data['login_destination_mode'],
+            'preferred_building_user_role_id' => $preferredId,
+        ])->save();
+
+        return redirect()->route('profile.edit')->with('status', 'تنظیمات ورود ذخیره شد.');
     }
 
     public function update(Request $request)
