@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\MobileNumber;
+use App\Services\Auth\LoginDestinationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,6 +41,8 @@ class PasswordLoginController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        app(LoginDestinationService::class)->applyAfterLogin($request, $user);
+
+        return redirect()->route('dashboard');
     }
 }
