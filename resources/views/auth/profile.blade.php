@@ -57,7 +57,7 @@
         <h2>تنظیمات ورود</h2>
         <p class="hint">مشخص کنید بعد از ورود به حساب، کدام ساختمان و نقش باز شود.</p>
         <form method="POST" action="{{ route('profile.login-destination') }}">@csrf
-          <div class="field"><label><input type="radio" name="login_destination_mode" value="fixed" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'fixed')> همیشه به مقصد مشخص‌شده بروم</label></div>
+          <div class="field"><label class="radio-option"><input type="radio" name="login_destination_mode" value="fixed" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'fixed')><span>همیشه به مقصد مشخص‌شده بروم</span></label></div>
           <div class="field">
             <label for="preferred_membership_id">ساختمان و نقش پیش‌فرض</label>
             <select id="preferred_membership_id" name="preferred_membership_id">
@@ -68,7 +68,7 @@
             </select>
             @error('preferred_membership_id')<div class="err">{{ $message }}</div>@enderror
           </div>
-          <div class="field"><label><input type="radio" name="login_destination_mode" value="last" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'last')> بازگشت به آخرین ساختمان و نقشی که در آن بودم</label></div>
+          <div class="field"><label class="radio-option"><input type="radio" name="login_destination_mode" value="last" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'last' )><span>بازگشت به آخرین ساختمان و نقشی که در آن بودم</span></label></div>
           @error('login_destination_mode')<div class="err">{{ $message }}</div>@enderror
           <button class="btn" type="submit">ذخیره تنظیمات ورود</button>
         </form>
