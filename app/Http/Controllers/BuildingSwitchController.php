@@ -7,18 +7,24 @@ use Illuminate\Support\Facades\DB;
 
 class BuildingSwitchController extends Controller
 {
-    /** سوئیچ سریع بین ساختمان‌ها = تغییر Tenant فعلی. */
+    /** رفتن به یک مقصد مجاز (ساختمان + نقش). */
     public function __invoke(Request $request, int $building)
     {
-        $isMember = DB::table('building_user_roles')
-            ->where('user_id', $request->user()->id)
-            ->where('building_id', $building)
-            ->where('status', 'active')
-            ->exists();
+        $query = DB::table('building_user_roles as bur')
+            ->join('buildings as b', 'b.id', '=', 'bur.building_id')
+            ->where('bur.user_id', $request->user()->id)
+            ->where('bur.building_id', $building)
+            ->where('bur.status', 'active')->whereNull('b.deleted_at');
 
-        abort_unless($isMember, 403);
+        if ($request->filled('membership_id')) {
+            $query->where('bur.id', (int) $request->input('membership_id'));
+        }
 
-        $request->session()->put('current_building_id', $building);
+        $membership = $query->orderBy('bur.id')->first(['bur.id', 'bur.building_id']);
+        abort_unless($membership, 403);
+
+        $request->session()->put('current_building_id', (int) $membership->building_id);
+        $request->session()->put('current_building_user_role_id', (int) $membership->id);
 
         return redirect()->route('dashboard');
     }
