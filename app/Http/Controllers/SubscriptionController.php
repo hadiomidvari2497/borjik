@@ -46,7 +46,7 @@ class SubscriptionController extends Controller
                 ->where('status', 'active')
                 ->update(['status' => 'expired']);
 
-            Subscription::create([
+            $subscription = Subscription::create([
                 'user_id' => $user->id,
                 'plan_id' => $plan->id,
                 'units_limit' => $plan->units_limit,
@@ -54,6 +54,17 @@ class SubscriptionController extends Controller
                 'expires_at' => now()->addMonths(max(1, (int) $plan->duration_months)),
                 'status' => 'active',
             ]);
+
+            // با تغییر پلن، ساختمان‌های قبلی هم زیر پوشش اشتراک جدید قرار می‌گیرند.
+            // سقف واحدها برای مجموع ساختمان‌های منتقل‌شده محاسبه می‌شود.
+            $previousSubscriptionIds = Subscription::where('user_id', $user->id)
+                ->where('id', '!=', $subscription->id)
+                ->pluck('id');
+
+            if ($previousSubscriptionIds->isNotEmpty()) {
+                \App\Models\Building::whereIn('subscription_id', $previousSubscriptionIds)
+                    ->update(['subscription_id' => $subscription->id]);
+            }
         });
 
         $label = ((int) $plan->price === 0) ? 'رایگان' : $plan->name;
