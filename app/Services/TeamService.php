@@ -48,7 +48,7 @@ class TeamService
                 'name' => $first->person_type === 'legal' ? (string) $first->company_name : trim($first->first_name.' '.$first->last_name),
                 'mobile' => $first->mobile,
                 'roles' => $g->pluck('name_fa', 'key')->all(),
-                'status' => in_array('active', $statuses, true) ? 'active' : (in_array('invited', $statuses, true) ? 'invited' : 'inactive'),
+                'status' => in_array('active', $statuses, true) ? 'active' : (in_array('invited', $statuses, true) ? 'invited' : (in_array('rejected', $statuses, true) ? 'rejected' : 'inactive')),
                 'joined_at' => $g->pluck('joined_at')->filter()->min(),
             ];
         })->values();
