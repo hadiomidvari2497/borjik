@@ -27,6 +27,37 @@ class BuildingService
             ->where('expires_at', '>', now())->orderByDesc('expires_at')->first();
     }
 
+    /**
+     * ساختمان‌هایی را که به اشتراک منقضی‌شده‌ی سازنده وصل مانده‌اند، به اشتراک فعال جدید او منتقل می‌کند.
+     * این مسیر برای ساختمان‌هایی است که پیش از اصلاح فرایند تغییر اشتراک ساخته شده‌اند.
+     */
+    public function ensureActiveSubscription(Building $building): ?Subscription
+    {
+        $building->loadMissing('subscription');
+
+        if ($building->subscription?->isActive()) {
+            return $building->subscription;
+        }
+
+        $owner = $building->createdBy;
+        $subscription = $owner ? $this->activeSubscription($owner) : null;
+
+        if (! $subscription) {
+            return $building->subscription;
+        }
+
+        if ((int) $building->subscription_id !== (int) $subscription->id) {
+            DB::table('buildings')
+                ->where('id', $building->id)
+                ->update(['subscription_id' => $subscription->id]);
+
+            $building->subscription_id = $subscription->id;
+            $building->setRelation('subscription', $subscription);
+        }
+
+        return $subscription;
+    }
+
     /** ساخت ساختمان: سازنده «مالک ساختمان» می‌شود و به اشتراک فعال خودش وصل می‌گردد. */
     public function create(User $user, array $data): Building
     {
