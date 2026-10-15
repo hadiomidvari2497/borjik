@@ -222,7 +222,7 @@ class InvitationFlowTest extends TestCase
             BuildingUserRole::where('building_id', $this->building->id)
                 ->where('user_id', $user->id)
                 ->where('role_id', $ownerRoleId)
-                ->value('status')
+                ->firstOrFail()->status->value
         );
 
         $newInvitation = Invitation::withoutGlobalScopes()
