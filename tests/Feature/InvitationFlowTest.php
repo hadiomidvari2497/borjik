@@ -210,6 +210,8 @@ class InvitationFlowTest extends TestCase
         $invitation = $this->service->find($token);
         $this->service->reject($invitation, $user);
 
+        $this->actingAs($this->owner);
+
         app(CurrentBuilding::class)->actingAs($this->building->id, function () use ($user) {
             app(TeamService::class)->updateRoles($this->owner, $user->id, ['owner']);
         });
