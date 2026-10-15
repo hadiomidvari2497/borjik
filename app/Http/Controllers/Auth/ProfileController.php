@@ -22,7 +22,7 @@ class ProfileController extends Controller
             ->orderBy('b.name')->orderBy('r.name_fa')
             ->get(['bur.id as membership_id', 'b.name as building_name', 'r.name_fa as role_name']);
 
-        return view('auth.profile', ['user' => $request->user(), 'loginDestinations' => $destinations]);
+        return view($request->user()->profile_completed_at ? 'auth.profile' : 'auth.profile-complete', ['user' => $request->user(), 'loginDestinations' => $destinations]);
     }
 
     public function updateLoginDestination(Request $request)
