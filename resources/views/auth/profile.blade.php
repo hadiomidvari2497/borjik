@@ -52,6 +52,28 @@
   </form>
 
   @if($done)
+    @if($loginDestinations->isNotEmpty())
+      <div class="card" style="margin-top:18px">
+        <h2>تنظیمات ورود</h2>
+        <p class="hint">مشخص کنید بعد از ورود به حساب، کدام ساختمان و نقش باز شود.</p>
+        <form method="POST" action="{{ route('profile.login-destination') }}">@csrf
+          <div class="field"><label><input type="radio" name="login_destination_mode" value="fixed" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'fixed')> همیشه به مقصد مشخص‌شده بروم</label></div>
+          <div class="field">
+            <label for="preferred_membership_id">ساختمان و نقش پیش‌فرض</label>
+            <select id="preferred_membership_id" name="preferred_membership_id">
+              <option value="">انتخاب ساختمان و نقش</option>
+              @foreach($loginDestinations as $destination)
+                <option value="{{ $destination->membership_id }}" @selected((string) old('preferred_membership_id', $user->preferred_building_user_role_id) === (string) $destination->membership_id)>{{ $destination->building_name }} — {{ $destination->role_name }}</option>
+              @endforeach
+            </select>
+            @error('preferred_membership_id')<div class="err">{{ $message }}</div>@enderror
+          </div>
+          <div class="field"><label><input type="radio" name="login_destination_mode" value="last" @checked(old('login_destination_mode', $user->login_destination_mode ?? 'last') === 'last')> بازگشت به آخرین ساختمان و نقشی که در آن بودم</label></div>
+          @error('login_destination_mode')<div class="err">{{ $message }}</div>@enderror
+          <button class="btn" type="submit">ذخیره تنظیمات ورود</button>
+        </form>
+      </div>
+    @endif
     <div class="row">
       <span>تأیید دومرحله‌ای: {{ $user->two_factor_enabled ? 'فعال است' : 'غیرفعال' }}</span>
       @unless($user->two_factor_enabled)<a class="lnk" href="{{ route('profile.two-factor') }}">فعال‌سازی</a>@endunless
