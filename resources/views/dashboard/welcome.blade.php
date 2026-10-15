@@ -20,16 +20,17 @@
     @if($pendingInvites)
       دعوت‌نامه‌ی یک ساختمان برای شما ثبت شده است. از صفحه‌ی دعوت‌نامه‌ها می‌توانید آن را بپذیرید یا رد کنید.
     @else
-      شما هنوز عضو هیچ ساختمانی نیستید. می‌توانید امکانات زیر را ببینید؛ برای کار با آن‌ها ساختمان خودتان را با اشتراک بسازید، یا اگر مدیر ساختمانی هستید که شما را دعوت می‌کند، لینک پیامک را باز کنید.
+      شما هنوز عضو هیچ ساختمانی نیستید. می‌توانید امکانات زیر را ببینید؛ برای کار با آن‌ها ابتدا اشتراک تهیه کنید و ساختمان بسازید، یا دعوت‌نامه‌ی مدیر ساختمان را بپذیرید.
     @endif
   </p>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
-    <a class="btn" href="{{ route('invitations.index') }}">مشاهده‌ی دعوت‌نامه‌ها</a>
+    <a class="btn sec" href="{{ route('invitations.index') }}">مشاهده‌ی دعوت‌نامه‌ها</a>
     @if($subscription)
-      <a class="btn sec" href="{{ route('buildings.create') }}">ساخت ساختمان</a>
+      <a class="btn" href="{{ route('buildings.create') }}">ساخت ساختمان</a>
+      <a class="btn sec" href="{{ route('subscription.show') }}">مدیریت اشتراک</a>
       <span class="btn sec" style="cursor:default">اشتراک فعال: {{ \App\Support\Fa::num($subscription->units_limit) }} واحد تا {{ \App\Support\Fa::date($subscription->expires_at, 'Y/m/d') }}</span>
     @else
-      <a class="btn" href="{{ \Illuminate\Support\Facades\Route::has('subscription.plans') ? route('subscription.plans') : '#features' }}">تهیه‌ی اشتراک</a>
+      <a class="btn" href="{{ route('subscription.show') }}">تهیه‌ی اشتراک</a>
       <span class="btn sec" style="cursor:default">برای ساخت ساختمان اشتراک لازم است</span>
     @endif
   </div>

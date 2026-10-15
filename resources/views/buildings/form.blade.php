@@ -10,7 +10,10 @@
     @if($editing)<span class="pill">کد ساختمان: {{ \App\Support\Fa::digits($building->code) }}</span>@endif</div>
 
   @if($blocked)
-    <div class="warnbox" style="margin:12px 0">برای ساخت ساختمان باید اشتراک فعال داشته باشید. اشتراک را تهیه کنید یا (در توسعه) با دستور <code>php artisan borjik:grant-subscription {{ auth()->user()->mobile }}</code> فعال کنید.</div>
+    <div class="warnbox" style="margin:12px 0">
+      برای ساخت ساختمان باید اشتراک فعال داشته باشید.
+      <a href="{{ route('subscription.show') }}" class="btn sm" style="margin-inline-start:8px">رفتن به صفحهٔ اشتراک</a>
+    </div>
   @else
   <form method="POST" action="{{ $editing ? route('building.update') : route('buildings.store') }}" style="margin-top:12px">
     @csrf @if($editing) @method('PUT') @endif

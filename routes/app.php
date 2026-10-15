@@ -13,14 +13,20 @@ use App\Http\Controllers\MyPaymentController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\StorageController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 
-// ساخت اولین ساختمان: کاربر هنوز ساختمانی ندارد، پس بدون Middleware «building»
+// مسیرهایی که بدون ساختمان فعال هم باید در دسترس باشند (کاربر تازه‌وارد)
 Route::middleware(['auth', 'profile.complete'])->group(function () {
     Route::get('/buildings/create', [BuildingController::class, 'create'])->name('buildings.create');
     Route::post('/buildings', [BuildingController::class, 'store'])->name('buildings.store');
+
+    // اشتراک: خرید / مشاهده — قفل نیست
+    Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
+    Route::get('/subscription/plans', [SubscriptionController::class, 'show'])->name('subscription.plans');
+    Route::post('/subscription/plans/{id}', [SubscriptionController::class, 'subscribe'])->whereNumber('id')->name('subscription.subscribe');
 });
 
 // بخش‌های داخل ساختمان: ورود + پروفایل کامل + ساختمان فعال
@@ -55,7 +61,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::delete('/units/{unit}', [UnitController::class, 'destroy'])->whereNumber('unit')->name('units.destroy');
     });
 
-    // پارکینگ و انباری (کنترلر مشترک): ثبت، ساخت گروهی، اختصاص به واحد و آزادسازی
+    // پارکینگ و انباری
     foreach (['parkings' => [ParkingController::class, 'parking.manage'], 'storages' => [StorageController::class, 'storage.manage']] as $prefix => [$controller, $permission]) {
         Route::middleware("can:{$permission}")->prefix($prefix)->name("{$prefix}.")->group(function () use ($controller) {
             Route::get('/', [$controller, 'index'])->name('index');
@@ -71,7 +77,6 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         });
     }
 
-    // تنظیمات شارژ، قاعده‌های شارژ ثابت و دسته‌های هزینه
     Route::middleware('can:charge.settings')->prefix('charge-settings')->name('charge-settings.')->controller(ChargeSettingController::class)->group(function () {
         Route::get('/', 'edit')->name('edit');
         Route::put('/', 'update')->name('update');
@@ -81,14 +86,12 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::delete('/categories/{id}', 'destroyCategory')->whereNumber('id')->name('categories.destroy');
     });
 
-    // هزینه‌های ماهانه
     Route::middleware('can:expense.manage')->prefix('expenses')->name('expenses.')->controller(ExpenseController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
     });
 
-    // محاسبه و انتشار شارژ
     Route::middleware('can:charge.calculate')->prefix('charges')->name('charges.')->controller(ChargeController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'open')->name('open');
@@ -97,24 +100,20 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/{id}/publish', 'publish')->whereNumber('id')->name('publish');
     });
 
-    // فایل‌های خصوصی (تصویر فیش): فقط بارگذارکننده یا کسی که حق تأیید پرداخت دارد
     Route::get('/files/{id}', [FileController::class, 'show'])->whereNumber('id')->name('files.show');
 
-    // ساکن: صورت‌حساب‌ها و ثبت پرداخت
     Route::get('/my/invoices', [MyInvoiceController::class, 'index'])->middleware('can:invoice.view.own')->name('my.invoices');
     Route::middleware('can:payment.submit')->group(function () {
         Route::get('/my/payments', [MyPaymentController::class, 'index'])->name('my.payments');
         Route::post('/my/payments', [MyPaymentController::class, 'store'])->name('my.payments.store');
     });
 
-    // مدیر: بررسی و تأیید فیش‌ها
     Route::middleware('can:payment.review')->prefix('payments')->name('payments.')->controller(PaymentController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/{id}/approve', 'approve')->whereNumber('id')->name('approve');
         Route::post('/{id}/reject', 'reject')->whereNumber('id')->name('reject');
     });
 
-    // پرسنل و اعضای ساختمان (دعوت از طریق POST /members/invite در routes/auth.php)
     Route::get('/staff', [TeamController::class, 'staff'])->middleware('can:staff.manage')->name('staff.index');
     Route::put('/staff/{userId}/roles', [TeamController::class, 'updateRoles'])->whereNumber('userId')->middleware('can:staff.manage')->name('staff.roles.update');
     Route::get('/members', [TeamController::class, 'members'])->middleware('can:member.manage')->name('members.index');
