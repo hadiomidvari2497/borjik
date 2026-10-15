@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [OtpLoginController::class, 'logout'])->name('logout');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/login-destination', [ProfileController::class, 'updateLoginDestination'])->name('profile.login-destination');
     Route::get('/profile/two-factor', [TwoFactorController::class, 'setup'])->name('profile.two-factor');
     Route::post('/profile/two-factor', [TwoFactorController::class, 'confirm'])->name('profile.two-factor.confirm');
     Route::delete('/profile/two-factor', [TwoFactorController::class, 'disable'])->name('profile.two-factor.disable');
