@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Building;
 use App\Support\CurrentBuilding;
+use App\Services\BuildingService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,10 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 /** با انقضای اشتراک، افزودن ساختمان/بلوک/واحد غیرفعال می‌شود و داده‌ها فقط‌خواندنی می‌مانند (بند ۴.۴). */
 class RequireActiveSubscription
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, BuildingService $buildings): Response
     {
         $building = Building::findOrFail(app(CurrentBuilding::class)->id());
-        $subscription = $building->subscription;
+        $subscription = $buildings->ensureActiveSubscription($building);
 
         abort_unless(
             $subscription && $subscription->isActive(),
