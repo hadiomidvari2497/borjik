@@ -84,6 +84,7 @@ class ProfileController extends Controller
         }
 
         $user = $request->user();
+        $profileWasComplete = (bool) $user->profile_completed_at;
         $user->fill([
             'person_type' => $data['person_type'],
             'first_name' => $data['first_name'] ?? null,
@@ -100,6 +101,8 @@ class ProfileController extends Controller
         $user->profile_completed_at ??= now();
         $user->save();
 
-        return redirect()->route('dashboard')->with('status', 'پروفایل ذخیره شد.');
+        return $profileWasComplete
+            ? redirect()->route('profile.edit')->with('status', 'تغییرات پروفایل ذخیره شد.')
+            : redirect()->route('dashboard')->with('status', 'پروفایل ذخیره شد.');
     }
 }
