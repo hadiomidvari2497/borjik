@@ -214,7 +214,7 @@ class InvitationFlowTest extends TestCase
 
         app(CurrentBuilding::class)->actingAs($this->building->id, function () use ($user) {
             app(TeamService::class)->updateRoles($this->owner, $user->id, ['owner']);
-        });
+        }, ['owner']);
 
         $ownerRoleId = Role::where('key', 'owner')->value('id');
         $this->assertSame(
