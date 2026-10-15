@@ -189,7 +189,7 @@ class InvitationService
                     'user_id' => $user->id,
                     'role_id' => $scopedInvitation->role_id,
                     'status' => 'invited',
-                ])->update(['status' => 'inactive']);
+                ])->update(['status' => 'rejected']);
             });
         });
     }
