@@ -13,6 +13,7 @@ use App\Models\StorageAssignment;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use App\Services\SubscriptionLimit;
+use App\Services\BuildingService;
 use App\Services\UnitFinance;
 use App\Services\UnitService;
 use App\Support\CurrentBuilding;
@@ -22,7 +23,7 @@ use Illuminate\Validation\Rule;
 
 class UnitController extends Controller
 {
-    public function index(Request $request, SubscriptionLimit $limit, UnitFinance $finance)
+    public function index(Request $request, SubscriptionLimit $limit, UnitFinance $finance, BuildingService $buildingService)
     {
         $units = Unit::with('block')
             ->withCount([
@@ -35,7 +36,8 @@ class UnitController extends Controller
             ->orderBy('block_id')->orderByRaw('cast(number as unsigned), number')
             ->paginate(25)->withQueryString();
 
-        $sub = Building::find(app(CurrentBuilding::class)->id())->subscription;
+        $building = Building::findOrFail(app(CurrentBuilding::class)->id());
+        $sub = $buildingService->ensureActiveSubscription($building);
 
         return view('units.index', [
             'units' => $units,
