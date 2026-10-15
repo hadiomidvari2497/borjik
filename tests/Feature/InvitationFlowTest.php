@@ -165,7 +165,7 @@ class InvitationFlowTest extends TestCase
         );
 
         // A rejected invitation cannot be reactivated; the inviter must send a fresh invitation.
-        $this->actingAs($this->owner)
+        $this->actingAs($this->owner)->withSession(['current_building_id' => $this->building->id])
             ->post(route('team.activate', $user->id), ['scope' => 'members'])
             ->assertSessionHasErrors('general');
 
