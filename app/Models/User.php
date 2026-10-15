@@ -69,10 +69,16 @@ class User extends Authenticatable
             return [];
         }
 
-        return $this->permissionCache[$buildingId] ??= DB::table('building_user_roles as bur')
+        $currentBuilding = app(CurrentBuilding::class);
+        $currentBuildingRoles = $currentBuilding->id() === $buildingId ? $currentBuilding->roles() : [];
+        $cacheKey = $buildingId.':'.implode(',', $currentBuildingRoles);
+
+        return $this->permissionCache[$cacheKey] ??= DB::table('building_user_roles as bur')
+            ->join('roles as r', 'r.id', '=', 'bur.role_id')
             ->join('role_permission as rp', 'rp.role_id', '=', 'bur.role_id')
             ->join('permissions as p', 'p.id', '=', 'rp.permission_id')
             ->where('bur.user_id', $this->id)->where('bur.building_id', $buildingId)->where('bur.status', 'active')
+            ->when($currentBuildingRoles !== [], fn ($query) => $query->whereIn('r.key', $currentBuildingRoles))
             ->pluck('p.key')->unique()->values()->all();
     }
 
