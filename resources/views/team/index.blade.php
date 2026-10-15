@@ -2,7 +2,7 @@
   $F = \App\Support\Fa::class;
   $isStaff = $scope === 'staff';
   $title = $isStaff ? 'پرسنل ساختمان' : 'اعضای ساختمان';
-  $st = ['active' => ['فعال', ''], 'invited' => ['دعوت‌شده', 'h'], 'inactive' => ['غیرفعال', 'u']];
+  $st = ['active' => ['فعال', ''], 'invited' => ['دعوت‌شده', 'h'], 'rejected' => ['رد شده', 'u'], 'inactive' => ['غیرفعال', 'u']];
 @endphp
 @extends('layouts.app')
 @section('title', $title)
@@ -38,6 +38,8 @@
               <form method="POST" action="{{ route('team.deactivate', $p['user_id']) }}" data-confirm="این شخص غیرفعال شود؟ دسترسی‌اش به ساختمان قطع می‌شود ولی اطلاعاتش حفظ می‌ماند." data-confirm-title="غیرفعال‌سازی" data-confirm-icon="warning">@csrf<input type="hidden" name="scope" value="{{ $scope }}"><button class="btn dng sm" type="submit">غیرفعال‌سازی</button></form>
             @elseif($p['status'] === 'inactive')
               <form method="POST" action="{{ route('team.activate', $p['user_id']) }}">@csrf<input type="hidden" name="scope" value="{{ $scope }}"><button class="btn sec sm" type="submit">فعال‌سازی</button></form>
+            @elseif($p['status'] === 'rejected')
+              <form method="POST" action="{{ route('members.invite') }}">@csrf<input type="hidden" name="mobile" value="{{ $p['mobile'] }}"><input type="hidden" name="role" value="{{ array_key_first($p['roles']) }}"><button class="btn sec sm" type="submit">ارسال دعوت جدید</button></form>
             @else
               <form method="POST" action="{{ route('members.invite') }}">@csrf<input type="hidden" name="mobile" value="{{ $p['mobile'] }}"><input type="hidden" name="role" value="{{ array_key_first($p['roles']) }}"><button class="btn sec sm" type="submit">ارسال دوباره</button></form>
               <form method="POST" action="{{ route('team.invitation.cancel', $p['user_id']) }}" data-confirm="دعوت لغو شود؟" data-confirm-title="لغو دعوت" data-confirm-icon="warning">@csrf @method('DELETE')<input type="hidden" name="scope" value="{{ $scope }}"><button class="btn dng sm" type="submit">لغو دعوت</button></form>
