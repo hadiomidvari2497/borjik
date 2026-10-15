@@ -2,6 +2,7 @@
 @extends('layouts.app')
 @section('title', 'پروفایل من')
 @section('content')
+  <link rel="stylesheet" href="{{ asset('css/jdate.css') }}">
   <style>
     .profile-page .lead{color:var(--muted);font-size:13px;margin:-10px 0 8px}
     .profile-page .field{margin-bottom:16px;min-width:0}
@@ -61,4 +62,6 @@
       @unless($user->two_factor_enabled)<a class="link" href="{{ route('profile.two-factor') }}">فعال‌سازی</a>@endunless
     </div>
   </div>
+  <script src="{{ asset('js/jdate.js') }}"></script>
+  <script src="{{ asset('js/auth.js') }}"></script>
 @endsection
