@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             SubscriptionPlanSeeder::class,
             ProvinceCitySeeder::class,
+            AdminUserSeeder::class,
         ]);
     }
 }
