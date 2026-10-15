@@ -18,19 +18,19 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 
-// مسیرهایی که بدون ساختمان فعال هم باید در دسترس باشند (کاربر تازه‌وارد)
-Route::middleware(['auth', 'profile.complete'])->group(function () {
+/*
+| مسیرهایی که هم با ساختمان و هم بدون ساختمان کار می‌کنند.
+| middleware «building» ساختمان را از session می‌خواند (اگر باشد)؛
+| اگر نباشد فقط این مسیرها مجازند (SetCurrentBuilding).
+*/
+Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::get('/buildings/create', [BuildingController::class, 'create'])->name('buildings.create');
     Route::post('/buildings', [BuildingController::class, 'store'])->name('buildings.store');
 
-    // اشتراک: خرید / مشاهده — قفل نیست
     Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     Route::get('/subscription/plans', [SubscriptionController::class, 'show'])->name('subscription.plans');
     Route::post('/subscription/plans/{id}', [SubscriptionController::class, 'subscribe'])->whereNumber('id')->name('subscription.subscribe');
-});
 
-// بخش‌های داخل ساختمان: ورود + پروفایل کامل + ساختمان فعال
-Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::post('/buildings/{building}/switch', BuildingSwitchController::class)->name('building.switch');
 
@@ -38,7 +38,6 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::get('/building/settings', [BuildingController::class, 'edit'])->middleware('can:building.manage')->name('building.settings');
     Route::put('/building/settings', [BuildingController::class, 'update'])->middleware('can:building.manage')->name('building.update');
 
-    // بلوک‌ها: افزودن با اشتراک فعال؛ ویرایش و حذف همیشه ممکن است
     Route::middleware('can:block.manage')->group(function () {
         Route::resource('blocks', BlockController::class)->except(['show', 'create', 'store'])->whereNumber('block');
         Route::middleware('subscription.active')->group(function () {
@@ -47,7 +46,6 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         });
     });
 
-    // واحدها
     Route::get('/units', [UnitController::class, 'index'])->middleware('can:unit.view')->name('units.index');
     Route::middleware('can:unit.manage')->group(function () {
         Route::middleware('subscription.active')->group(function () {
@@ -61,7 +59,6 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::delete('/units/{unit}', [UnitController::class, 'destroy'])->whereNumber('unit')->name('units.destroy');
     });
 
-    // پارکینگ و انباری
     foreach (['parkings' => [ParkingController::class, 'parking.manage'], 'storages' => [StorageController::class, 'storage.manage']] as $prefix => [$controller, $permission]) {
         Route::middleware("can:{$permission}")->prefix($prefix)->name("{$prefix}.")->group(function () use ($controller) {
             Route::get('/', [$controller, 'index'])->name('index');
