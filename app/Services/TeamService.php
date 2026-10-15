@@ -7,6 +7,7 @@ use App\Models\BuildingUserRole;
 use App\Models\Invitation;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Auth\InvitationService;
 use App\Support\CurrentBuilding;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
@@ -144,14 +145,37 @@ class TeamService
         $joined = BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $userId, 'status' => 'active'])->exists();
 
         DB::transaction(function () use ($buildingId, $userId, $actor, $toAdd, $toRemove, $joined) {
-            foreach ($toAdd as $key) {
-                BuildingUserRole::updateOrCreate(
-                    ['building_id' => $buildingId, 'user_id' => $userId, 'role_id' => Role::where('key', $key)->value('id')],
-                    ['status' => $joined ? 'active' : 'invited', 'invited_by' => $actor->id, 'invited_at' => now(), 'joined_at' => $joined ? now() : null],
-                );
+            $user = User::findOrFail($userId);
+
+            // If the person has not joined yet, a new role must create a real invitation,
+            // including a fresh token and SMS; changing the membership row alone is not enough.
+            if (! $joined && $toAdd) {
+                foreach ($toAdd as $key) {
+                    app(InvitationService::class)->invite($user->mobile, $key, $actor);
+                }
+            } else {
+                foreach ($toAdd as $key) {
+                    BuildingUserRole::updateOrCreate(
+                        ['building_id' => $buildingId, 'user_id' => $userId, 'role_id' => Role::where('key', $key)->value('id')],
+                        ['status' => 'active', 'invited_by' => $actor->id, 'invited_at' => now(), 'joined_at' => now()],
+                    );
+                }
             }
+
             if ($toRemove) {
-                BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $userId])->whereIn('role_id', $this->roleIds($toRemove))->delete();
+                $removedRoleIds = $this->roleIds($toRemove);
+
+                // Invalidate any outstanding invitation for a role that is being removed.
+                Invitation::where('building_id', $buildingId)
+                    ->where('user_id', $userId)
+                    ->whereIn('role_id', $removedRoleIds)
+                    ->whereNull('accepted_at')
+                    ->whereNull('rejected_at')
+                    ->delete();
+
+                BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $userId])
+                    ->whereIn('role_id', $removedRoleIds)
+                    ->delete();
             }
         });
     }
