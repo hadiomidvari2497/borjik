@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Exceptions\InvitationException;
+use App\Exceptions\TeamException;
 use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Invitation;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Auth\InvitationService;
+use App\Services\TeamService;
 use App\Services\Sms\SmsGateway;
 use App\Support\CurrentBuilding;
 use Database\Seeders\RolePermissionSeeder;
@@ -172,18 +174,20 @@ class InvitationFlowTest extends TestCase
         );
 
         // A rejected invitation cannot be reactivated; the inviter must send a fresh invitation.
-        $this->actingAs($this->owner)->withSession(['current_building_id' => $this->building->id])
-            ->post(route('team.activate', $user->id), ['scope' => 'members'])
-            ->assertSessionHasErrors('general');
+        try {
+            app(CurrentBuilding::class)->actingAs($this->building->id, fn () => app(TeamService::class)
+                ->activate($this->owner, $user->id, 'members'));
+            $this->fail('A rejected membership must not be reactivated.');
+        } catch (TeamException) {
+            // Expected: rejected is distinct from inactive.
+        }
 
         $this->assertSame(
             'rejected',
             BuildingUserRole::where('user_id', $user->id)->firstOrFail()->status->value
         );
 
-        $this->actingAs($this->owner)->withSession(['current_building_id' => $this->building->id])
-            ->post(route('members.invite'), ['mobile' => $user->mobile, 'role' => 'tenant'])
-            ->assertSessionHasNoErrors();
+        $this->invite($user->mobile);
 
         $this->assertSame(
             'invited',
