@@ -1,6 +1,6 @@
 @php
   $type = old('person_type', $user->person_type?->value ?? 'real');
-  $birth = old('birth_date', \\App\\Support\\JalaliDate::format($user->birth_date));
+  $birth = old('birth_date', \App\Support\JalaliDate::format($user->birth_date));
 @endphp
 <form method="POST" action="{{ route('profile.update') }}">@csrf
   <div class="seg profile-seg" role="radiogroup" aria-label="نوع شخص">
