@@ -5,9 +5,11 @@ use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\BuildingSwitchController;
 use App\Http\Controllers\ChargeController;
 use App\Http\Controllers\ChargeSettingController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\MyContractController;
 use App\Http\Controllers\MyInvoiceController;
 use App\Http\Controllers\MyPaymentController;
 use App\Http\Controllers\PaymentController;
@@ -97,7 +99,19 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/{id}/publish', 'publish')->whereNumber('id')->name('publish');
     });
 
-    // فایل‌های خصوصی (تصویر فیش): فقط بارگذارکننده یا کسی که حق تأیید پرداخت دارد
+    // قراردادهای فروش و اجاره (مالک و مدیر) و «قرارداد من»
+    Route::middleware('can:contract.manage')->prefix('contracts')->name('contracts.')->controller(ContractController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{id}', 'show')->whereNumber('id')->name('show');
+        Route::post('/{id}/end', 'end')->whereNumber('id')->name('end');
+        Route::put('/{id}/payer', 'payer')->whereNumber('id')->name('payer');
+        Route::post('/{id}/file', 'file')->whereNumber('id')->name('file');
+    });
+    Route::get('/my/contracts', [MyContractController::class, 'index'])->middleware('can:contract.view.own')->name('my.contracts');
+
+    // فایل‌های خصوصی (تصویر فیش و فایل قرارداد): فقط بارگذارنده یا کسی که مجوز مربوطه را دارد
     Route::get('/files/{id}', [FileController::class, 'show'])->whereNumber('id')->name('files.show');
 
     // ساکن: صورت‌حساب‌ها و ثبت پرداخت

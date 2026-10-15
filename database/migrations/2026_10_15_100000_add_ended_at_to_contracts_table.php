@@ -1,0 +1,23 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('contracts', function (Blueprint $table) {
+            // تاریخ واقعیِ پایان قرارداد (end_date همان تاریخ پایانِ توافق‌شده است)
+            $table->date('ended_at')->nullable()->after('end_date');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('contracts', function (Blueprint $table) {
+            $table->dropColumn('ended_at');
+        });
+    }
+};
