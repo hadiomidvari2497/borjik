@@ -6,6 +6,7 @@ use App\Exceptions\InvitationException;
 use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Invitation;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\Auth\InvitationService;
 use App\Services\Sms\SmsGateway;
@@ -42,6 +43,12 @@ class InvitationFlowTest extends TestCase
 
         $this->owner = User::create(['mobile' => '09120000001', 'first_name' => 'مالک', 'last_name' => 'تست', 'status' => 'active']);
         $this->building = Building::create(['name' => 'برج یک', 'code' => '11111', 'created_by' => $this->owner->id]);
+        BuildingUserRole::create([
+            'building_id' => $this->building->id,
+            'user_id' => $this->owner->id,
+            'role_id' => Role::where('key', 'owner')->value('id'),
+            'status' => 'active',
+        ]);
         $this->service = app(InvitationService::class);
     }
 
