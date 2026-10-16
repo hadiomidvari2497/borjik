@@ -6,6 +6,7 @@ use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Role;
 use App\Models\Ticket;
+use App\Models\TicketComment;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,7 +50,7 @@ class RequestFlowTest extends TestCase
             ])->assertRedirect();
 
         $ticket = Ticket::withoutGlobalScopes()->where('kind', 'request')->firstOrFail();
-        $this->assertSame('review', $ticket->status->value);
+        $this->assertSame('new', $ticket->status->value);
         $this->assertDatabaseHas('ticket_assignees', [
             'building_id' => $this->building->id, 'ticket_id' => $ticket->id, 'user_id' => $this->maintenance->id,
         ]);
@@ -61,7 +62,23 @@ class RequestFlowTest extends TestCase
         $this->actingAs($this->cleaning)->withSession($this->sessionFor($this->cleaningMembership))
             ->get(route('requests.index'))->assertOk()->assertDontSee('خرابی پمپ آب');
         $this->actingAs($this->resident)->withSession($this->sessionFor($this->residentMembership))
-            ->get(route('my.requests.show', $ticket->id))->assertOk()->assertSee('خرابی پمپ آب')->assertSee('در حال بررسی');
+            ->get(route('my.requests.show', $ticket->id))->assertOk()->assertSee('خرابی پمپ آب')->assertSee('ثبت‌شده');
+    }
+
+
+    public function test_request_is_unassigned_until_first_matching_staff_claims_it(): void
+    {
+        $this->actingAs($this->resident)->withSession($this->sessionFor($this->residentMembership))->post(route('my.requests.store'), ['title' => 'خرابی آسانسور', 'description' => 'آسانسور خراب است.', 'category' => 'maintenance', 'priority' => 'high'])->assertRedirect();
+        $ticket = Ticket::withoutGlobalScopes()->where('kind', 'request')->firstOrFail();
+        $this->assertNull($ticket->accepted_by);
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.claim', $ticket->id))->assertRedirect();
+        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'accepted_by' => $this->maintenance->id]);
+        $this->assertDatabaseHas('ticket_events', ['ticket_id' => $ticket->id, 'type' => 'claimed']);
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'در حال بررسی', 'reply_to_id' => null])->assertRedirect()->assertSessionHasNoErrors();
+        $parent = TicketComment::withoutGlobalScopes()->where('ticket_id', $ticket->id)->firstOrFail();
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id])->assertRedirect();
+        $this->assertDatabaseHas('ticket_comments', ['ticket_id' => $ticket->id, 'body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id]);
+
     }
 
     private function makeUser(string $mobile, string $name): User

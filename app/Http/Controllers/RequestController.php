@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketAssignee;
 use App\Models\TicketComment;
+use App\Models\TicketEvent;
 use App\Models\TicketStatusLog;
 use App\Models\Unit;
 use App\Models\User;
@@ -27,7 +28,7 @@ class RequestController extends Controller
     {
         $user = $request->user();
         abort_unless($user->hasPermission('request.view.all') || $user->hasPermission('request.view.domain'), 403);
-        $query = Ticket::where('kind', 'request')->with(['createdBy', 'unit', 'assignees.user'])->latest();
+        $query = Ticket::where('kind', 'request')->with(['createdBy', 'unit', 'assignees.user', 'acceptedBy'])->latest();
         if (! $user->hasPermission('request.view.all')) {
             $query->whereHas('assignees', fn ($q) => $q->where('user_id', $user->id));
         }
@@ -46,7 +47,8 @@ class RequestController extends Controller
             'isMine' => $request->routeIs('my.requests.show'),
             'canManage' => $request->user()->hasPermission('request.view.all'),
             'canUpdateStatus' => $this->canUpdateStatus($request->user(), $item),
-            'staff' => $request->user()->hasPermission('request.view.all') ? $this->staffOptions() : collect(),
+            'canClaim' => $this->canClaim($request->user(), $item),
+            'staff' => $request->user()->hasPermission('request.view.all') ? $this->staffOptions($item->category) : collect(),
             'statuses' => $this->statusLabels(),
         ]);
     }
@@ -57,7 +59,7 @@ class RequestController extends Controller
         abort_unless($user->hasPermission('request.view.own') || $user->hasPermission('request.create'), 403);
         return view('my.requests', [
             'tickets' => Ticket::where('kind', 'request')->where('created_by', $user->id)
-                ->with(['unit', 'assignees.user'])->latest()->paginate(10),
+                ->with(['unit', 'assignees.user', 'acceptedBy'])->latest()->paginate(10),
             'categories' => self::CATEGORIES,
             'statuses' => $this->statusLabels(),
             'units' => Unit::query()
@@ -99,7 +101,7 @@ class RequestController extends Controller
                     ->where('bur.building_id', $buildingId)->where('bur.status', 'active')
                     ->where('r.key', $roleKey)->pluck('bur.user_id')->unique()->values()
                 : collect();
-            $initialStatus = $assigneeIds->isNotEmpty() ? TicketStatus::Review : TicketStatus::New;
+            $initialStatus = TicketStatus::New;
 
             $ticket = Ticket::create([
                 'building_id' => $buildingId,
@@ -120,10 +122,12 @@ class RequestController extends Controller
                 'building_id' => $buildingId, 'ticket_id' => $ticket->id,
                 'from_status' => null, 'to_status' => $initialStatus->value, 'user_id' => $user->id,
                 'note' => $assigneeIds->isNotEmpty()
-                    ? 'درخواست ثبت شد و هم‌زمان برای مدیر و پرسنل مرتبط ارسال شد.'
+                    ? 'درخواست ثبت شد؛ برای مدیر و پرسنل مرتبط قابل مشاهده است و هنوز مسئول مشخصی ندارد.'
                     : 'درخواست ثبت شد و برای بررسی مدیر ساختمان در صف قرار گرفت.',
                 'created_at' => now(),
             ]);
+            $this->recordEvent($ticket, $user, 'created', 'درخواست ثبت شد.');
+            if ($assigneeIds->isNotEmpty()) $this->recordEvent($ticket, $user, 'staff_notified', 'درخواست برای پرسنل مرتبط قابل مشاهده شد؛ مسئولیت هنوز پذیرفته نشده است.');
             return $ticket;
         });
 
@@ -133,31 +137,40 @@ class RequestController extends Controller
 
     public function assign(Request $request, int $ticket)
     {
-        $user = $request->user();
-        abort_unless($user->hasPermission('request.view.all'), 403);
-        $item = Ticket::where('kind', 'request')->findOrFail($ticket);
+        $user = $request->user(); abort_unless($user->hasPermission('request.view.all'), 403);
         $buildingId = app(CurrentBuilding::class)->id();
-        $data = $request->validate([
-            'user_id' => ['required', 'integer', Rule::exists('building_user_roles', 'user_id')
-                ->where('building_id', $buildingId)->where('status', 'active')],
-        ]);
-        $staffUser = User::whereKey($data['user_id'])->whereExists(function ($query) use ($buildingId) {
-            $query->selectRaw('1')->from('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')
-                ->whereColumn('bur.user_id', 'users.id')->where('bur.building_id', $buildingId)
-                ->where('bur.status', 'active')->whereIn('r.key', ['security', 'cleaning', 'maintenance']);
-        })->firstOrFail();
-
-        DB::transaction(function () use ($item, $staffUser, $user, $buildingId) {
-            $item->assignees()->delete();
-            TicketAssignee::create([
-                'building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $staffUser->id,
-                'assigned_by' => $user->id, 'assigned_at' => now(),
-            ]);
-            if ($item->status === TicketStatus::New) {
-                $this->changeStatus($item, TicketStatus::Review, $user, 'درخواست برای رسیدگی ارجاع شد.');
+        $data = $request->validate(['user_id' => ['nullable', 'integer', Rule::exists('building_user_roles', 'user_id')->where('building_id', $buildingId)->where('status', 'active')]]);
+        DB::transaction(function () use ($ticket, $data, $user, $buildingId) {
+            $item = Ticket::where('kind', 'request')->lockForUpdate()->findOrFail($ticket); $previous = $item->acceptedBy; $staffUser = null;
+            $roleKey = match ($item->category) { 'maintenance', 'facilities' => 'maintenance', 'cleaning' => 'cleaning', 'security' => 'security', default => null };
+            if (! empty($data['user_id'])) {
+                abort_unless($roleKey, 422, 'برای درخواست عمومی مسئول تخصصی تعریف نشده است.');
+                $staffUser = User::whereKey($data['user_id'])->whereExists(function ($query) use ($buildingId, $roleKey) { $query->selectRaw('1')->from('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')->whereColumn('bur.user_id', 'users.id')->where('bur.building_id', $buildingId)->where('bur.status', 'active')->where('r.key', $roleKey); })->firstOrFail();
             }
+            $item->assignees()->delete();
+            if ($staffUser) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $staffUser->id, 'assigned_by' => $user->id, 'assigned_at' => now(), 'accepted_at' => now()]);
+            elseif ($roleKey) { $ids = DB::table('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')->where('bur.building_id', $buildingId)->where('bur.status', 'active')->where('r.key', $roleKey)->pluck('bur.user_id')->unique(); foreach ($ids as $id) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $id, 'assigned_by' => $user->id, 'assigned_at' => now()]); }
+            $item->accepted_by = $staffUser?->id; $item->save();
+            $from = $previous ? ($previous->display_name ?: $previous->mobile) : 'بدون مسئول'; $to = $staffUser ? ($staffUser->display_name ?: $staffUser->mobile) : 'صف عمومی پرسنل مرتبط';
+            $this->recordEvent($item, $user, 'assignment_changed', "مدیر مسئول درخواست را از «{$from}» به «{$to}» تغییر داد.");
+            if ($item->status === TicketStatus::New && $staffUser) $this->changeStatus($item, TicketStatus::Review, $user, 'درخواست توسط مدیر به مسئول مشخص ارجاع شد.');
         });
-        return back()->with('status', 'درخواست به مسئول انتخاب‌شده ارجاع شد؛ مدیر همچنان به آن دسترسی دارد.');
+        return back()->with('status', 'مسئولیت درخواست به‌روزرسانی شد و تغییر در تاریخچه ثبت شد.');
+    }
+
+    public function claim(Request $request, int $ticket)
+    {
+        $user = $request->user(); abort_unless($user->hasPermission('ticket.respond'), 403);
+        DB::transaction(function () use ($ticket, $user) {
+            $item = Ticket::where('kind', 'request')->lockForUpdate()->findOrFail($ticket);
+            abort_unless($item->assignees()->where('user_id', $user->id)->exists(), 403);
+            if ($item->accepted_by !== null) abort(409, 'این درخواست قبلاً پذیرفته شده است.');
+            $assignee = $item->assignees()->where('user_id', $user->id)->lockForUpdate()->firstOrFail(); $assignee->accepted_at = now(); $assignee->save();
+            $item->accepted_by = $user->id; $item->save();
+            if ($item->status === TicketStatus::New) $this->changeStatus($item, TicketStatus::Review, $user, 'پرسنل مسئولیت درخواست را پذیرفت.');
+            $this->recordEvent($item, $user, 'claimed', 'مسئولیت درخواست توسط این نیرو پذیرفته شد.');
+        });
+        return back()->with('status', 'مسئولیت درخواست به شما واگذار شد.');
     }
 
     public function updateStatus(Request $request, int $ticket)
@@ -179,18 +192,16 @@ class RequestController extends Controller
     public function comment(Request $request, int $ticket)
     {
         $item = $this->visibleTicket($request, $ticket);
-        $data = $request->validate(['body' => ['required', 'string', 'max:5000']]);
-        TicketComment::create([
-            'building_id' => app(CurrentBuilding::class)->id(), 'ticket_id' => $item->id,
-            'user_id' => $request->user()->id, 'body' => $data['body'],
-        ]);
+        $data = $request->validate(['body' => ['required', 'string', 'max:5000'], 'reply_to_id' => ['nullable', 'integer', Rule::exists('ticket_comments', 'id')->where('ticket_id', $item->id)]]);
+        $comment = TicketComment::create(['building_id' => app(CurrentBuilding::class)->id(), 'ticket_id' => $item->id, 'user_id' => $request->user()->id, 'body' => $data['body'], 'reply_to_id' => $data['reply_to_id'] ?? null]);
+        $this->recordEvent($item, $request->user(), 'commented', empty($data['reply_to_id']) ? 'پیام جدیدی در گفت‌وگو ثبت شد.' : 'پاسخی به یک پیام در گفت‌وگو ثبت شد.', ['comment_id' => $comment->id, 'reply_to_id' => $comment->reply_to_id]);
         return back()->with('status', 'پیام شما ثبت شد.');
     }
 
     private function visibleTicket(Request $request, int $id): Ticket
     {
         $ticket = Ticket::where('kind', 'request')
-            ->with(['createdBy', 'unit', 'assignees.user', 'comments.user', 'statusLogs.user'])->findOrFail($id);
+            ->with(['createdBy', 'unit', 'assignees.user', 'acceptedBy', 'comments.user', 'comments.replyTo.user', 'statusLogs.user', 'events.user'])->findOrFail($id);
         $user = $request->user();
         $creator = (int) $ticket->created_by === (int) $user->id;
         $assigned = $ticket->assignees->contains(fn ($a) => (int) $a->user_id === (int) $user->id);
@@ -199,11 +210,15 @@ class RequestController extends Controller
         return $ticket;
     }
 
+    private function canClaim(User $user, Ticket $ticket): bool
+    {
+        return $user->hasPermission('ticket.respond') && $ticket->accepted_by === null && $ticket->assignees->contains(fn ($a) => (int) $a->user_id === (int) $user->id);
+    }
+
     private function canUpdateStatus(User $user, Ticket $ticket): bool
     {
         return $user->hasPermission('request.view.all') ||
-            ($user->hasPermission('ticket.respond') &&
-             $ticket->assignees->contains(fn ($a) => (int) $a->user_id === (int) $user->id));
+            ($user->hasPermission('ticket.respond') && (int) $ticket->accepted_by === (int) $user->id);
     }
 
     private function changeStatus(Ticket $ticket, TicketStatus $status, User $user, ?string $note): void
@@ -217,6 +232,7 @@ class RequestController extends Controller
             'from_status' => $previous?->value, 'to_status' => $status->value,
             'user_id' => $user->id, 'note' => $note, 'created_at' => now(),
         ]);
+        $this->recordEvent($ticket, $user, 'status_changed', 'وضعیت از «'.($previous?->value ?? '—').'» به «'.$status->value.'» تغییر کرد.'.($note ? ' '.$note : ''));
         if ($note !== null && trim($note) !== '') {
             TicketComment::create([
                 'building_id' => app(CurrentBuilding::class)->id(), 'ticket_id' => $ticket->id,
@@ -225,14 +241,16 @@ class RequestController extends Controller
         }
     }
 
-    private function staffOptions()
+    private function staffOptions(string $category)
     {
-        return User::select('users.id', 'users.first_name', 'users.last_name', 'users.mobile')
-            ->join('building_user_roles as bur', 'bur.user_id', '=', 'users.id')
-            ->join('roles as r', 'r.id', '=', 'bur.role_id')
-            ->where('bur.building_id', app(CurrentBuilding::class)->id())->where('bur.status', 'active')
-            ->whereIn('r.key', ['security', 'cleaning', 'maintenance'])->whereNull('users.deleted_at')
-            ->distinct()->orderBy('users.first_name')->get();
+        $roleKey = match ($category) { 'maintenance', 'facilities' => 'maintenance', 'cleaning' => 'cleaning', 'security' => 'security', default => null };
+        if (! $roleKey) return collect();
+        return User::select('users.id', 'users.first_name', 'users.last_name', 'users.mobile')->join('building_user_roles as bur', 'bur.user_id', '=', 'users.id')->join('roles as r', 'r.id', '=', 'bur.role_id')->where('bur.building_id', app(CurrentBuilding::class)->id())->where('bur.status', 'active')->where('r.key', $roleKey)->whereNull('users.deleted_at')->distinct()->orderBy('users.first_name')->get();
+    }
+
+    private function recordEvent(Ticket $ticket, ?User $user, string $type, string $description, array $metadata = []): void
+    {
+        TicketEvent::create(['building_id' => $ticket->building_id, 'ticket_id' => $ticket->id, 'user_id' => $user?->id, 'type' => $type, 'description' => $description, 'metadata' => $metadata ?: null, 'created_at' => now()]);
     }
 
     private function statusLabels(): array

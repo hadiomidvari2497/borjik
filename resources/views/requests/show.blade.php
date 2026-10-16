@@ -38,18 +38,26 @@
   </form>
 </div>
 @endif
+@php $replyTo = $ticket->comments->firstWhere('id', (int) request('reply_to_id')); @endphp
 <div class="card"><div class="page-h"><h2>گفت‌وگو و پاسخ‌ها</h2></div>
   @forelse($ticket->comments->sortBy('created_at') as $comment)
-    <div style="padding:12px 0;border-bottom:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>{{ $comment->user?->display_name ?: $comment->user?->mobile }}</b><small style="color:var(--muted)">{{ $comment->created_at?->format('Y/m/d H:i') }}</small></div><p style="white-space:pre-wrap;margin:6px 0 0">{{ $comment->body }}</p></div>
+    <div id="comment-{{ $comment->id }}" style="padding:12px 0;border-bottom:1px solid var(--line)">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><b>{{ $comment->user?->display_name ?: $comment->user?->mobile }}</b><small style="color:var(--muted)">{{ $comment->created_at?->format('Y/m/d H:i') }}</small></div>
+      @if($comment->replyTo)<a href="#comment-{{ $comment->reply_to_id }}" style="display:block;margin-top:6px;padding:8px;border-right:3px solid var(--primary);background:var(--soft);border-radius:6px;text-decoration:none;color:inherit"><small>در پاسخ به {{ $comment->replyTo->user?->display_name ?: $comment->replyTo->user?->mobile }}</small><div>{{ \Illuminate\Support\Str::limit($comment->replyTo->body, 180) }}</div></a>@endif
+      <p style="white-space:pre-wrap;margin:6px 0 0">{{ $comment->body }}</p>
+      <a class="btn sec sm" href="{{ route($isMine ? 'my.requests.show' : 'requests.show', $ticket->id) }}?reply_to_id={{ $comment->id }}#comment-form" style="display:inline-block;margin-top:8px">پاسخ به این پیام</a>
+    </div>
   @empty<div class="empty">هنوز پاسخی ثبت نشده است.</div>@endforelse
-  <form method="POST" action="{{ $isMine ? route('my.requests.comments.store', $ticket->id) : route('requests.comments.store', $ticket->id) }}" style="margin-top:14px">@csrf
+  <form id="comment-form" method="POST" action="{{ $isMine ? route('my.requests.comments.store', $ticket->id) : route('requests.comments.store', $ticket->id) }}" style="margin-top:14px">@csrf
+    <input type="hidden" name="reply_to_id" value="{{ old('reply_to_id', $replyTo?->id) }}">
+    @if($replyTo)<div style="padding:8px;margin-bottom:8px;border-right:3px solid var(--primary);background:var(--soft);border-radius:6px"><b>پاسخ به {{ $replyTo->user?->display_name ?: $replyTo->user?->mobile }}</b><div>{{ \Illuminate\Support\Str::limit($replyTo->body, 180) }}</div><a href="{{ route($isMine ? 'my.requests.show' : 'requests.show', $ticket->id) }}#comment-form">لغو پاسخ</a></div>@endif
     <div class="fld"><label for="body">ثبت پیام یا پاسخ</label><textarea id="body" name="body" rows="3" maxlength="5000" required placeholder="پیام خود را بنویسید...">{{ old('body') }}</textarea>@error('body')<div class="e">{{ $message }}</div>@enderror</div>
     <div class="fbar"><button class="btn" type="submit">ارسال پیام</button></div>
   </form>
 </div>
-<div class="card"><div class="page-h"><h2>تاریخچه وضعیت</h2></div>
-  @forelse($ticket->statusLogs->sortBy('created_at') as $log)
-    <div style="padding:9px 0;border-bottom:1px solid var(--line)"><b>{{ $statuses[$log->to_status] ?? $log->to_status }}</b><span style="color:var(--muted)"> — {{ $log->user?->display_name ?: 'سامانه' }} · {{ $log->created_at?->format('Y/m/d H:i') }}</span>@if($log->note)<div>{{ $log->note }}</div>@endif</div>
-  @empty<div class="empty">تاریخچه‌ای ثبت نشده است.</div>@endforelse
+<div class="card"><div class="page-h"><h2>تاریخچه کامل درخواست</h2></div>
+  @forelse($ticket->events->sortBy('created_at') as $event)
+    <div style="padding:10px 0;border-bottom:1px solid var(--line)"><b>{{ $event->description }}</b><div style="color:var(--muted);font-size:.9em">{{ $event->user?->display_name ?: $event->user?->mobile ?: 'سامانه' }} · {{ $event->created_at?->format('Y/m/d H:i') }}</div></div>
+  @empty<div class="empty">هنوز رویدادی ثبت نشده است.</div>@endforelse
 </div>
 @endsection
