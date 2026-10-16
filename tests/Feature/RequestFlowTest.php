@@ -74,7 +74,7 @@ class RequestFlowTest extends TestCase
         $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.claim', $ticket->id))->assertRedirect();
         $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'accepted_by' => $this->maintenance->id]);
         $this->assertDatabaseHas('ticket_events', ['ticket_id' => $ticket->id, 'type' => 'claimed']);
-        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'در حال بررسی'])->assertRedirect();
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'در حال بررسی', 'reply_to_id' => null])->assertRedirect();
         $parent = TicketComment::where('ticket_id', $ticket->id)->firstOrFail();
         $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id])->assertRedirect();
         $this->assertDatabaseHas('ticket_comments', ['ticket_id' => $ticket->id, 'body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id]);
