@@ -64,6 +64,22 @@ class RequestFlowTest extends TestCase
             ->get(route('my.requests.show', $ticket->id))->assertOk()->assertSee('خرابی پمپ آب')->assertSee('در حال بررسی');
     }
 
+
+    public function test_request_is_unassigned_until_first_matching_staff_claims_it(): void
+    {
+        $this->actingAs($this->resident)->withSession($this->sessionFor($this->residentMembership))->post(route('my.requests.store'), ['title' => 'خرابی آسانسور', 'description' => 'آسانسور خراب است.', 'category' => 'maintenance', 'priority' => 'high'])->assertRedirect();
+        $ticket = Ticket::withoutGlobalScopes()->where('kind', 'request')->firstOrFail();
+        $this->assertNull($ticket->accepted_by);
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.claim', $ticket->id))->assertRedirect();
+        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'accepted_by' => $this->maintenance->id]);
+        $this->assertDatabaseHas('ticket_events', ['ticket_id' => $ticket->id, 'type' => 'claimed']);
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'در حال بررسی'])->assertRedirect();
+        $parent = \\App\\Models\\TicketComment::where('ticket_id', $ticket->id)->firstOrFail();
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id])->assertRedirect();
+        $this->assertDatabaseHas('ticket_comments', ['ticket_id' => $ticket->id, 'body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id]);
+
+    }
+
     private function makeUser(string $mobile, string $name): User
     {
         return User::create([

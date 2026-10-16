@@ -9,7 +9,7 @@
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>شماره</th><th>عنوان</th><th>وضعیت</th><th>مسئول رسیدگی</th><th></th></tr></thead><tbody>
     @foreach($tickets as $ticket)
       <tr><td>{{ $ticket->number }}</td><td><b>{{ $ticket->title }}</b><small style="display:block;color:var(--muted)">{{ $ticket->created_at?->format('Y/m/d H:i') }}</small></td>
-      <td>{{ $statuses[$ticket->status->value] ?? $ticket->status->value }}</td><td>{{ $ticket->assignees->pluck('user.display_name')->filter()->join('، ') ?: 'در انتظار ارجاع مدیر' }}</td>
+      <td>{{ $statuses[$ticket->status->value] ?? $ticket->status->value }}</td><td>{{ $ticket->acceptedBy ? ($ticket->acceptedBy->display_name ?: $ticket->acceptedBy->mobile) : 'در انتظار قبول مسئولیت' }}</td>
       <td><a class="btn sec sm" href="{{ route('my.requests.show', $ticket->id) }}">جزئیات</a></td></tr>
     @endforeach
     </tbody></table></div><div style="margin-top:12px">{{ $tickets->links() }}</div>

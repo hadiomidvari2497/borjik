@@ -10,7 +10,7 @@
   @foreach($tickets as $ticket)
     <tr><td><b>{{ $ticket->title }}</b><small style="display:block;color:var(--muted)">{{ $ticket->number }} · {{ $ticket->created_at?->format('Y/m/d H:i') }}</small></td>
     <td>{{ $ticket->createdBy?->display_name ?: $ticket->createdBy?->mobile }}</td><td>{{ $priorityLabels[$ticket->priority->value] ?? $ticket->priority->value }}</td>
-    <td>{{ $statuses[$ticket->status->value] ?? $ticket->status->value }}</td><td>{{ $ticket->assignees->pluck('user.display_name')->filter()->join('، ') ?: 'ارجاع نشده' }}</td>
+    <td>{{ $statuses[$ticket->status->value] ?? $ticket->status->value }}</td><td>{{ $ticket->acceptedBy ? ($ticket->acceptedBy->display_name ?: $ticket->acceptedBy->mobile) : 'بدون مسئول' }}</td>
     <td><a class="btn sec sm" href="{{ route('requests.show', $ticket->id) }}">بررسی</a></td></tr>
   @endforeach
   </tbody></table></div><div style="margin-top:12px">{{ $tickets->links() }}</div>
