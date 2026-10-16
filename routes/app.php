@@ -13,6 +13,7 @@ use App\Http\Controllers\MyContractController;
 use App\Http\Controllers\MyInvoiceController;
 use App\Http\Controllers\MyPaymentController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\SubscriptionController;
@@ -132,4 +133,22 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/activate', 'activate')->name('activate');
         Route::delete('/invitation', 'cancelInvitation')->name('invitation.cancel');
     });
+
+    // درخواست‌های ساکنان: مدیر همه را می‌بیند و مسئول فقط درخواست‌های ارجاع‌شده به خودش را.
+    Route::middleware('can:request.view.domain')->prefix('requests')->name('requests.')->controller(RequestController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
+        Route::post('/{ticket}/comments', 'comment')->whereNumber('ticket')->name('comments.store');
+        Route::post('/{ticket}/status', 'updateStatus')->whereNumber('ticket')->name('status');
+        Route::post('/{ticket}/assign', 'assign')->whereNumber('ticket')->name('assign');
+    });
+    Route::middleware('can:request.create')->controller(RequestController::class)->group(function () {
+        Route::get('/my/requests', 'myIndex')->name('my.requests');
+        Route::post('/my/requests', 'store')->name('my.requests.store');
+    });
+    Route::middleware('can:request.view.own')->prefix('my/requests')->name('my.requests.')->controller(RequestController::class)->group(function () {
+        Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
+        Route::post('/{ticket}/comments', 'comment')->whereNumber('ticket')->name('comments.store');
+    });
+
 });
