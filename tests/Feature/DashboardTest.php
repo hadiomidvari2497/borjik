@@ -115,4 +115,38 @@ class DashboardTest extends TestCase
 
         $this->actingAs($newcomer)->get(route('units.index'))->assertRedirect(route('dashboard'));
     }
+
+    public function test_management_dashboard_highlights_overdue_tasks_and_urgent_tickets(): void
+    {
+        $owner = User::where('mobile', '09120000001')->firstOrFail();
+
+        app(CurrentBuilding::class)->actingAs($this->building->id, function () use ($owner): void {
+            Ticket::create([
+                'number' => 'DASH-OVERDUE-1',
+                'kind' => 'task',
+                'title' => 'تعمیر عقب‌افتاده',
+                'category' => 'maintenance',
+                'priority' => 'high',
+                'deadline' => now()->subDay(),
+                'status' => 'doing',
+                'created_by' => $owner->id,
+            ]);
+
+            Ticket::create([
+                'number' => 'DASH-URGENT-1',
+                'kind' => 'request',
+                'title' => 'درخواست اضطراری',
+                'category' => 'maintenance',
+                'priority' => 'urgent',
+                'status' => 'new',
+                'created_by' => $owner->id,
+            ]);
+        });
+
+        $this->open($owner)->assertOk()
+            ->assertSee('مرکز رسیدگی هوشمند')
+            ->assertSee('کارهای عقب‌افتاده')
+            ->assertSee('موارد اضطراری باز')
+            ->assertSee('رسیدگی');
+    }
 }
