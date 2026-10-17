@@ -214,3 +214,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 .tbl .act>.membership-change .membership-current{flex:1 1 auto;min-width:0}
 .tbl .act>.membership-change .membership-action{flex:0 0 auto}
 @media(max-width:860px){.tbl .act>.membership-change{flex:1 1 100%;width:100%}}
+
+
+/* Membership action: lightweight pill controls that sit neatly beside status actions */
+.tbl .act{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px}
+.tbl .act form{max-width:100%}
+.tbl .act>.membership-change{display:inline-flex;flex:0 1 auto;align-items:center;justify-content:flex-start;gap:6px;flex-wrap:wrap;width:auto;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:none}
+.membership-current{display:inline-flex;align-items:center;gap:7px;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+.membership-current-dot{width:7px;height:7px;box-shadow:0 0 0 3px var(--brand-soft)}
+.membership-current small{display:none}
+.membership-current b{font-size:11.5px;line-height:1.4}
+.btn.membership-action{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border:1px solid var(--brand);border-radius:999px;background:var(--brand-soft);color:var(--brand-d);font-size:11.5px;font-weight:700;box-shadow:none;white-space:nowrap}
+:root[data-theme="dark"] .btn.membership-action{color:var(--brand)}
+.btn.membership-action:hover{transform:translateY(-1px);background:var(--brand);color:#fff;box-shadow:0 3px 9px rgba(31,106,99,.15)}
+@media(max-width:860px){.tbl .act>.membership-change{width:auto;flex:0 1 auto}.tbl .act>.membership-change .membership-current{flex:0 0 auto}.tbl .act>.membership-change .membership-action{flex:0 1 auto}}

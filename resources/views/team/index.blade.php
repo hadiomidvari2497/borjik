@@ -51,7 +51,7 @@
                 @csrf
                 <span class="membership-current">
                   <span class="membership-current-dot"></span>
-                  <span><small>نوع عضویت فعلی</small><b>{{ $currentMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }}</b></span>
+                  <span><b>{{ $currentMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }}</b></span>
                 </span>
                 <input type="hidden" name="role" value="{{ $nextMemberRole }}">
                 <button class="btn membership-action" type="submit" data-confirm="نوع عضویت این عضو از {{ $currentMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }} به {{ $nextMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }} تغییر کند؟" data-confirm-title="تغییر نوع عضویت">
