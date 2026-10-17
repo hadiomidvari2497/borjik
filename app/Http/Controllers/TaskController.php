@@ -355,6 +355,7 @@ class TaskController extends Controller
             ]);
         });
 
+        $item->refresh();
         $newAssigneeIds = $validIds->diff($oldAssigneeIds);
         foreach (User::whereIn('id', $newAssigneeIds)->get() as $recipient) {
             $recipient->notify(new RequestAlertNotification(
