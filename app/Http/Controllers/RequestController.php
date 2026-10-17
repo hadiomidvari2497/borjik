@@ -334,8 +334,8 @@ class RequestController extends Controller
                 if ($defaultRoleKey) {
                     $roleQuery = Role::where('key', $defaultRoleKey)->where('is_staff', true)->where('is_active', true);
                     $buildingRole = (clone $roleQuery)->where('building_id', $buildingId)->value('id');
-                    $hasBuildingRoles = Role::where('building_id', $buildingId)->where('is_staff', true)->exists();
-                    $roleId = $buildingRole ?? (! $hasBuildingRoles ? (clone $roleQuery)->whereNull('building_id')->value('id') : null);
+                    $rolesInitialized = (bool) DB::table('buildings')->where('id', $buildingId)->value('staff_roles_initialized');
+                    $roleId = $buildingRole ?? (! $rolesInitialized ? (clone $roleQuery)->whereNull('building_id')->value('id') : null);
                 }
             }
             $assigneeIds = $roleId
