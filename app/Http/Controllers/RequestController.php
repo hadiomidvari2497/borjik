@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\TicketStatus;
 use App\Models\Role;
 use App\Models\Ticket;
+use App\Notifications\RequestAlertNotification;
 use App\Models\TicketAssignee;
 use App\Models\TicketComment;
 use App\Models\TicketEvent;
@@ -171,6 +172,12 @@ class RequestController extends Controller
                 'category' => $data['category'], 'priority' => $data['priority'],
                 'location' => $data['location'] ?? null, 'unit_id' => $data['unit_id'] ?? null,
                 'target_role_id' => $roleId, 'created_by' => $user->id, 'status' => $initialStatus->value,
+                'deadline' => now()->add(match ($data['priority']) {
+                    'urgent' => now()->diffInSeconds(now()->addHours(4)) > 0 ? hours(4) : hours(4),
+                    'high' => hours(24),
+                    'medium' => hours(72),
+                    default => hours(168),
+                }),
             ]);
 
             foreach ($assigneeIds as $assigneeId) {
@@ -285,6 +292,10 @@ class RequestController extends Controller
     private function changeStatus(Ticket $ticket, TicketStatus $status, User $user, ?string $note): void
     {
         $previous = $ticket->status;
+        if ($previous === $status) {
+            return;
+        }
+
         $ticket->status = $status;
         $ticket->closed_at = $status === TicketStatus::Closed ? now() : null;
         $ticket->save();
@@ -293,7 +304,29 @@ class RequestController extends Controller
             'from_status' => $previous?->value, 'to_status' => $status->value,
             'user_id' => $user->id, 'note' => $note, 'created_at' => now(),
         ]);
-        $this->recordEvent($ticket, $user, 'status_changed', 'وضعیت از «'.($previous?->value ?? '—').'» به «'.$status->value.'» تغییر کرد.'.($note ? ' '.$note : ''));
+        $statusLabels = $this->statusLabels();
+        $message = 'وضعیت درخواست «'.$ticket->title.'» از «'.($statusLabels[$previous?->value ?? ''] ?? '—').'» به «'.($statusLabels[$status->value] ?? $status->value).'» تغییر کرد.';
+        $this->recordEvent($ticket, $user, 'status_changed', $message.($note ? ' '.$note : ''));
+
+        $recipients = collect([$ticket->createdBy, $ticket->acceptedBy])
+            ->filter()
+            ->unique('id')
+            ->reject(fn ($recipient) => (int) $recipient->id === (int) $user->id);
+
+        foreach ($recipients as $recipient) {
+            $url = (int) $recipient->id === (int) $ticket->created_by
+                ? route('my.requests.show', $ticket->id)
+                : route('requests.show', $ticket->id);
+            $recipient->notify(new RequestAlertNotification(
+                buildingId: (int) $ticket->building_id,
+                ticketId: (int) $ticket->id,
+                event: 'status_changed',
+                title: 'تغییر وضعیت درخواست',
+                message: $message,
+                url: $url,
+            ));
+        }
+
         if ($note !== null && trim($note) !== '') {
             TicketComment::create([
                 'building_id' => app(CurrentBuilding::class)->id(), 'ticket_id' => $ticket->id,
