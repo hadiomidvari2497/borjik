@@ -12,6 +12,7 @@ return new class extends Migration
         Schema::table('roles', function (Blueprint $table) {
             $table->foreignId('building_id')->nullable()->after('id')->constrained('buildings')->cascadeOnDelete();
             $table->boolean('is_default')->default(false)->after('is_staff');
+            $table->boolean('is_active')->default(true)->after('is_default');
         });
         Schema::table('roles', function (Blueprint $table) {
             $table->dropUnique('roles_key_unique');
@@ -31,6 +32,7 @@ return new class extends Migration
                     'name_fa' => $template->name_fa,
                     'is_staff' => true,
                     'is_default' => true,
+                    'is_active' => true,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -77,7 +79,7 @@ return new class extends Migration
         Schema::table('roles', function (Blueprint $table) {
             $table->dropUnique('roles_building_id_key_unique');
             $table->dropConstrainedForeignId('building_id');
-            $table->dropColumn('is_default');
+            $table->dropColumn(['is_default', 'is_active']);
             $table->unique('key');
         });
         DB::table('roles')->whereNotNull('building_id')->delete();
