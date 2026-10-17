@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\TicketStatus;
 use App\Models\Role;
 use App\Models\Ticket;
+use App\Notifications\RequestAlertNotification;
 use App\Models\TicketAssignee;
 use App\Models\TicketComment;
 use App\Models\TicketEvent;
@@ -28,14 +29,52 @@ class RequestController extends Controller
     {
         $user = $request->user();
         abort_unless($user->hasPermission('request.view.all') || $user->hasPermission('request.view.domain'), 403);
-        $query = Ticket::where('kind', 'request')->with(['createdBy', 'unit', 'assignees.user', 'acceptedBy'])->latest();
+
+        $baseQuery = Ticket::where('kind', 'request')->with(['createdBy', 'unit', 'assignees.user', 'acceptedBy'])->latest();
         if (! $user->hasPermission('request.view.all')) {
-            $query->whereHas('assignees', fn ($q) => $q->where('user_id', $user->id));
+            $baseQuery->whereHas('assignees', fn ($q) => $q->where('user_id', $user->id));
         }
+
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::in(array_keys($this->statusLabels()))],
+            'priority' => ['nullable', Rule::in(['low', 'medium', 'high', 'urgent'])],
+            'category' => ['nullable', Rule::in(array_keys(self::CATEGORIES))],
+        ]);
+
+        $stats = ['total' => (clone $baseQuery)->count()];
+        foreach (array_keys($this->statusLabels()) as $status) {
+            $stats[$status] = (clone $baseQuery)->where('status', $status)->count();
+        }
+
+        $query = clone $baseQuery;
+        if (! empty($filters['q'])) {
+            $term = trim($filters['q']);
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', "%{$term}%")
+                    ->orWhere('number', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhere('location', 'like', "%{$term}%")
+                    ->orWhereHas('createdBy', fn ($creator) => $creator
+                        ->where(function ($name) use ($term) {
+                            $name->where('first_name', 'like', "%{$term}%")
+                                ->orWhere('last_name', 'like', "%{$term}%")
+                                ->orWhere('company_name', 'like', "%{$term}%");
+                        })
+                        ->orWhere('mobile', 'like', "%{$term}%"));
+            });
+        }
+        $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['priority'] ?? null, fn ($q, $priority) => $q->where('priority', $priority))
+            ->when($filters['category'] ?? null, fn ($q, $category) => $q->where('category', $category));
+
         return view('requests.index', [
-            'tickets' => $query->paginate(15),
+            'tickets' => $query->paginate(15)->withQueryString(),
             'canManage' => $user->hasPermission('request.view.all'),
             'statuses' => $this->statusLabels(),
+            'categories' => self::CATEGORIES,
+            'stats' => $stats,
+            'filters' => $filters,
         ]);
     }
 
@@ -57,14 +96,37 @@ class RequestController extends Controller
     {
         $user = $request->user();
         abort_unless($user->hasPermission('request.view.own') || $user->hasPermission('request.create'), 403);
+
+        $baseQuery = Ticket::where('kind', 'request')->where('created_by', $user->id);
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::in(array_keys($this->statusLabels()))],
+        ]);
+        $stats = ['total' => (clone $baseQuery)->count()];
+        foreach (array_keys($this->statusLabels()) as $status) {
+            $stats[$status] = (clone $baseQuery)->where('status', $status)->count();
+        }
+
+        $query = (clone $baseQuery)->with(['unit', 'assignees.user', 'acceptedBy'])->latest();
+        if (! empty($filters['q'])) {
+            $term = trim($filters['q']);
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', "%{$term}%")
+                    ->orWhere('number', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%");
+            });
+        }
+        $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
+
         return view('my.requests', [
-            'tickets' => Ticket::where('kind', 'request')->where('created_by', $user->id)
-                ->with(['unit', 'assignees.user', 'acceptedBy'])->latest()->paginate(10),
+            'tickets' => $query->paginate(10)->withQueryString(),
             'categories' => self::CATEGORIES,
             'statuses' => $this->statusLabels(),
             'units' => Unit::query()
                 ->when(! $user->hasPermission('request.view.all'), fn ($q) => $q->whereHas('parties', fn ($p) => $p->where('user_id', $user->id)->whereNull('to_date')))
                 ->with('block')->orderBy('number')->get(),
+            'stats' => $stats,
+            'filters' => $filters,
         ]);
     }
 
@@ -110,6 +172,12 @@ class RequestController extends Controller
                 'category' => $data['category'], 'priority' => $data['priority'],
                 'location' => $data['location'] ?? null, 'unit_id' => $data['unit_id'] ?? null,
                 'target_role_id' => $roleId, 'created_by' => $user->id, 'status' => $initialStatus->value,
+                'deadline' => match ($data['priority']) {
+                    'urgent' => now()->addHours(4),
+                    'high' => now()->addHours(24),
+                    'medium' => now()->addHours(72),
+                    default => now()->addHours(168),
+                },
             ]);
 
             foreach ($assigneeIds as $assigneeId) {
@@ -224,6 +292,10 @@ class RequestController extends Controller
     private function changeStatus(Ticket $ticket, TicketStatus $status, User $user, ?string $note): void
     {
         $previous = $ticket->status;
+        if ($previous === $status) {
+            return;
+        }
+
         $ticket->status = $status;
         $ticket->closed_at = $status === TicketStatus::Closed ? now() : null;
         $ticket->save();
@@ -232,7 +304,29 @@ class RequestController extends Controller
             'from_status' => $previous?->value, 'to_status' => $status->value,
             'user_id' => $user->id, 'note' => $note, 'created_at' => now(),
         ]);
-        $this->recordEvent($ticket, $user, 'status_changed', 'وضعیت از «'.($previous?->value ?? '—').'» به «'.$status->value.'» تغییر کرد.'.($note ? ' '.$note : ''));
+        $statusLabels = $this->statusLabels();
+        $message = 'وضعیت درخواست «'.$ticket->title.'» از «'.($statusLabels[$previous?->value ?? ''] ?? '—').'» به «'.($statusLabels[$status->value] ?? $status->value).'» تغییر کرد.';
+        $this->recordEvent($ticket, $user, 'status_changed', $message.($note ? ' '.$note : ''));
+
+        $recipients = collect([$ticket->createdBy, $ticket->acceptedBy])
+            ->filter()
+            ->unique('id')
+            ->reject(fn ($recipient) => (int) $recipient->id === (int) $user->id);
+
+        foreach ($recipients as $recipient) {
+            $url = (int) $recipient->id === (int) $ticket->created_by
+                ? route('my.requests.show', $ticket->id)
+                : route('requests.show', $ticket->id);
+            $recipient->notify(new RequestAlertNotification(
+                buildingId: (int) $ticket->building_id,
+                ticketId: (int) $ticket->id,
+                event: 'status_changed',
+                title: 'تغییر وضعیت درخواست',
+                message: $message,
+                url: $url,
+            ));
+        }
+
         if ($note !== null && trim($note) !== '') {
             TicketComment::create([
                 'building_id' => app(CurrentBuilding::class)->id(), 'ticket_id' => $ticket->id,

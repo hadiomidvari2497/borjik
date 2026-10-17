@@ -12,6 +12,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\MyContractController;
 use App\Http\Controllers\MyInvoiceController;
 use App\Http\Controllers\MyPaymentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ParkingController;
@@ -132,6 +133,11 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/deactivate', 'deactivate')->name('deactivate');
         Route::post('/activate', 'activate')->name('activate');
         Route::delete('/invitation', 'cancelInvitation')->name('invitation.cancel');
+    });
+
+    Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/{notification}/read', 'read')->name('read');
     });
 
     // درخواست‌های ساکنان: مدیر همه را می‌بیند و مسئول فقط درخواست‌های ارجاع‌شده به خودش را.
