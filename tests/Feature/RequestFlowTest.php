@@ -83,6 +83,47 @@ class RequestFlowTest extends TestCase
 
     }
 
+    public function test_a_request_can_only_be_claimed_once_and_duplicate_claims_are_rejected(): void
+    {
+        $this->actingAs($this->resident)->withSession($this->sessionFor($this->residentMembership))
+            ->post(route('my.requests.store'), [
+                'title' => 'بررسی تابلو برق', 'description' => 'تابلو نیاز به بررسی دارد.',
+                'category' => 'maintenance', 'priority' => 'medium',
+            ])->assertRedirect();
+
+        $ticket = Ticket::withoutGlobalScopes()->where('kind', 'request')->firstOrFail();
+        $session = $this->sessionFor($this->maintenanceMembership);
+
+        $this->actingAs($this->maintenance)->withSession($session)
+            ->post(route('requests.claim', $ticket->id))->assertRedirect();
+        $this->actingAs($this->maintenance)->withSession($session)
+            ->post(route('requests.claim', $ticket->id))->assertConflict();
+
+        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'accepted_by' => $this->maintenance->id]);
+        $this->assertDatabaseCount('ticket_events', 3);
+        $this->assertDatabaseHas('ticket_events', ['ticket_id' => $ticket->id, 'type' => 'claimed', 'user_id' => $this->maintenance->id]);
+    }
+
+    public function test_closed_request_cannot_be_claimed_by_staff(): void
+    {
+        $this->actingAs($this->resident)->withSession($this->sessionFor($this->residentMembership))
+            ->post(route('my.requests.store'), [
+                'title' => 'چراغ پارکینگ', 'description' => 'چراغ روشن نمی‌شود.',
+                'category' => 'maintenance', 'priority' => 'low',
+            ])->assertRedirect();
+
+        $ticket = Ticket::withoutGlobalScopes()->where('kind', 'request')->firstOrFail();
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->post(route('requests.status', $ticket->id), ['status' => 'closed', 'note' => 'درخواست بسته شد.'])
+            ->assertRedirect();
+
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
+            ->post(route('requests.claim', $ticket->id))->assertConflict();
+
+        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'accepted_by' => null, 'status' => 'closed']);
+    }
+
     public function test_manager_can_view_building_scoped_request_performance_report(): void
     {
         $createdAt = now()->subDays(2);
