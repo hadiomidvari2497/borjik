@@ -44,6 +44,9 @@ class CalendarController extends Controller
         $prevKey = sprintf('%04d/%02d', $month === 1 ? $year - 1 : $year, $month === 1 ? 12 : $month - 1);
         $nextKey = sprintf('%04d/%02d', $month === 12 ? $year + 1 : $year, $month === 12 ? 1 : $month + 1);
 
+        $filter = (string) $request->query('filter', 'all');
+        if (! in_array($filter, ['all', 'events', 'tasks', 'polls'], true)) { $filter = 'all'; }
+
         $items = collect();
         $customEvents = CalendarEvent::query()
             ->where('starts_at', '<', $end)
@@ -65,6 +68,8 @@ class CalendarController extends Controller
                 'starts_at' => $event->starts_at,
                 'managed' => $user->hasPermission('event.manage'),
                 'event_id' => $event->id,
+                'reminder_minutes' => $event->reminder_minutes,
+                'event_model' => $event,
             ]);
         }
 
@@ -80,7 +85,7 @@ class CalendarController extends Controller
                 'id' => 'task-'.$task->id, 'title' => $task->title, 'description' => null,
                 'date' => $task->deadline->toDateString(), 'time' => Fa::digits($task->deadline->format('H:i')),
                 'color' => 'amber', 'type' => 'مهلت تسک', 'url' => route('tickets.show', $task->id),
-                'starts_at' => $task->deadline, 'managed' => false, 'event_id' => null,
+                'starts_at' => $task->deadline, 'managed' => false, 'event_id' => null, 'reminder_minutes' => null, 'event_model' => null,
             ]);
         }
 
@@ -96,11 +101,16 @@ class CalendarController extends Controller
                         'date' => $date->toDateString(), 'time' => Fa::digits($date->format('H:i')),
                         'color' => $entry['color'], 'type' => $entry['type'],
                         'url' => $user->hasPermission('poll.manage') ? route('polls.show', $poll->id) : route('polls.index'),
-                        'starts_at' => $date, 'managed' => false, 'event_id' => null,
+                        'starts_at' => $date, 'managed' => false, 'event_id' => null, 'reminder_minutes' => null, 'event_model' => null,
                     ]);
                 }
             }
         }
+
+        $items = $items->filter(fn ($item) => $filter === 'all'
+            || ($filter === 'events' && $item['type'] === 'رویداد')
+            || ($filter === 'tasks' && $item['type'] === 'مهلت تسک')
+            || ($filter === 'polls' && in_array($item['type'], ['شروع نظرسنجی', 'پایان نظرسنجی'], true)))->values();
 
         $byDate = $items->groupBy('date');
         $days = collect(range(1, $daysCount))->map(function (int $day) use ($start, $byDate) {
@@ -124,6 +134,8 @@ class CalendarController extends Controller
             'upcoming' => $upcoming, 'canManage' => $user->hasPermission('event.manage'),
             'todayLabel' => JalaliDate::format(now()),
             'monthNames' => self::MONTHS,
+            'filter' => $filter,
+            'editableEvents' => CalendarEvent::query()->orderBy('starts_at')->get(),
         ]);
     }
 
@@ -139,6 +151,7 @@ class CalendarController extends Controller
             'end_time' => ['nullable', 'date_format:H:i'],
             'is_all_day' => ['nullable', 'boolean'],
             'color' => ['required', 'in:teal,blue,amber,rose,violet'],
+            'reminder_minutes' => ['nullable', 'integer', 'in:0,15,60,1440,10080'],
         ]);
 
         $start = JalaliDate::parse($data['start_date']);
@@ -161,10 +174,54 @@ class CalendarController extends Controller
             'ends_at' => $end,
             'is_all_day' => $allDay,
             'color' => $data['color'],
+            'reminder_minutes' => isset($data['reminder_minutes']) && $data['reminder_minutes'] !== '' && (int) $data['reminder_minutes'] > 0 ? (int) $data['reminder_minutes'] : null,
+            'reminder_sent_at' => null,
         ]);
 
         return redirect()->route('events.index', ['month' => Jalalian::fromCarbon($start)->format('Y/m')])
             ->with('status', 'رویداد با موفقیت به تقویم اضافه شد.');
+    }
+
+
+    public function update(Request $request, CurrentBuilding $current, int $event): RedirectResponse
+    {
+        abort_unless($current->id() && $request->user()->hasPermission('event.manage'), 403);
+        $item = CalendarEvent::query()->findOrFail($event);
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:180'],
+            'description' => ['nullable', 'string', 'max:3000'],
+            'start_date' => ['required', 'string', 'max:10'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'end_date' => ['nullable', 'string', 'max:10'],
+            'end_time' => ['nullable', 'date_format:H:i'],
+            'is_all_day' => ['nullable', 'boolean'],
+            'color' => ['required', 'in:teal,blue,amber,rose,violet'],
+            'reminder_minutes' => ['nullable', 'integer', 'in:0,15,60,1440,10080'],
+        ]);
+        $start = JalaliDate::parse($data['start_date']);
+        $end = ! empty($data['end_date']) ? JalaliDate::parse($data['end_date']) : null;
+        if (! $start || (! empty($data['end_date']) && ! $end)) {
+            return back()->withErrors(['start_date' => 'تاریخ شمسی واردشده معتبر نیست.'])->withInput();
+        }
+        $allDay = $request->boolean('is_all_day');
+        $start = $allDay ? $start->startOfDay() : $start->setTimeFromTimeString($data['start_time'] ?? '09:00');
+        $end = $end ? ($allDay ? $end->endOfDay() : $end->setTimeFromTimeString($data['end_time'] ?? ($data['start_time'] ?? '10:00'))) : ($allDay ? $start->copy()->endOfDay() : $start->copy()->addHour());
+        if ($end->lessThan($start)) {
+            return back()->withErrors(['end_date' => 'زمان پایان نمی‌تواند قبل از شروع باشد.'])->withInput();
+        }
+        $item->fill([
+            'title' => trim($data['title']),
+            'description' => trim((string) ($data['description'] ?? '')) ?: null,
+            'starts_at' => $start,
+            'ends_at' => $end,
+            'is_all_day' => $allDay,
+            'color' => $data['color'],
+            'reminder_minutes' => isset($data['reminder_minutes']) && (int) $data['reminder_minutes'] > 0 ? (int) $data['reminder_minutes'] : null,
+            'reminder_sent_at' => null,
+        ])->save();
+
+        return redirect()->route('events.index', ['month' => Jalalian::fromCarbon($start)->format('Y/m')])
+            ->with('status', 'رویداد با موفقیت ویرایش شد.');
     }
 
     public function destroy(Request $request, int $event): RedirectResponse
