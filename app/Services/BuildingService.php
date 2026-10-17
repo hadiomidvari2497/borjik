@@ -72,6 +72,8 @@ class BuildingService
                 'status' => 'active',
             ]);
 
+            $this->seedStaffRoles($building->id);
+
             BuildingUserRole::create([
                 'building_id' => $building->id,
                 'user_id' => $user->id,
@@ -89,6 +91,22 @@ class BuildingService
 
             return $building;
         });
+    }
+
+    private function seedStaffRoles(int $buildingId): void
+    {
+        $templates = Role::whereNull('building_id')->whereIn('key', ['security', 'cleaning', 'maintenance'])->with('permissions')->get();
+        foreach ($templates as $template) {
+            $role = Role::create([
+                'building_id' => $buildingId,
+                'key' => $template->key,
+                'name_fa' => $template->name_fa,
+                'is_staff' => true,
+                'is_default' => true,
+                'is_active' => true,
+            ]);
+            $role->permissions()->sync($template->permissions->modelKeys());
+        }
     }
 
     private function uniqueCode(): string
