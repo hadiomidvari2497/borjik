@@ -43,6 +43,15 @@ class DashboardData
 
         $tickets = $this->ticketCounts();
         $collections = $this->collections();
+        $pendingReceipts = PaymentReceipt::where('status', 'pending')->count();
+        $overdueTasks = Ticket::where('kind', 'task')
+            ->whereNotIn('status', self::CLOSED)
+            ->whereNotNull('deadline')
+            ->where('deadline', '<', now())
+            ->count();
+        $urgentTickets = Ticket::where('priority', 'urgent')
+            ->whereNotIn('status', self::CLOSED)
+            ->count();
 
         return [
             'units' => ['total' => $totalUnits, 'byStatus' => $byStatus, 'residents' => $residents],
@@ -56,7 +65,13 @@ class DashboardData
             'period' => $this->currentPeriod(),
             'events' => $this->upcomingEvents(),
             'collections' => $collections,
-            'pendingReceipts' => PaymentReceipt::where('status', 'pending')->count(),
+            'pendingReceipts' => $pendingReceipts,
+            'attention' => [
+                ['key' => 'overdue_invoices', 'count' => (int) $overdue->c],
+                ['key' => 'overdue_tasks', 'count' => $overdueTasks],
+                ['key' => 'urgent_tickets', 'count' => $urgentTickets],
+                ['key' => 'pending_receipts', 'count' => $pendingReceipts],
+            ],
         ];
     }
 
