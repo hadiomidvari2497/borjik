@@ -54,17 +54,20 @@ class MyUnitController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        $contracts = Contract::query()
-            ->with('unit.block')
-            ->where(function ($query) use ($user, $ownedUnitIds) {
-                $query->where('user_id', $user->id)
-                    ->orWhere(fn ($owned) => $owned
-                        ->where('type', 'rent')
-                        ->whereIn('unit_id', $ownedUnitIds));
-            })
-            ->orderByDesc('id')
-            ->get()
-            ->groupBy('unit_id');
+        $contracts = collect();
+        if ($user->hasPermission('contract.view.own')) {
+            $contracts = Contract::query()
+                ->with('unit.block')
+                ->where(function ($query) use ($user, $ownedUnitIds) {
+                    $query->where('user_id', $user->id)
+                        ->orWhere(fn ($owned) => $owned
+                            ->where('type', 'rent')
+                            ->whereIn('unit_id', $ownedUnitIds));
+                })
+                ->orderByDesc('id')
+                ->get()
+                ->groupBy('unit_id');
+        }
 
         $openInvoices = $invoices->filter(fn ($invoice) => in_array($invoice->status->value, ['unpaid', 'partial'], true));
         $debt = (int) $openInvoices->sum(fn ($invoice) => max(0, (int) $invoice->amount - (int) $invoice->paid_amount));
