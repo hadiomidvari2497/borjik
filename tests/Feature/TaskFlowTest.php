@@ -298,7 +298,7 @@ class TaskFlowTest extends TestCase
             'accepted_by' => $this->maintenance->id,
         ]);
         $this->assertNotNull(
-            \\App\\Models\\TicketAssignee::where('ticket_id', $ticket->id)
+            \App\Models\TicketAssignee::where('ticket_id', $ticket->id)
                 ->where('user_id', $this->maintenance->id)
                 ->value('accepted_at')
         );
