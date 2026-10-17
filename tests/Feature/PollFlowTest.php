@@ -108,6 +108,62 @@ class PollFlowTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_manager_can_view_non_anonymous_voter_details(): void
+    {
+        $poll = $this->createPoll('نتایج شفاف');
+        $option = $this->firstOption($poll);
+        $this->open($this->tenant, 'post', route('polls.vote', $poll->id), ['option_id' => $option->id]);
+
+        $this->open($this->owner, 'get', route('polls.show', $poll->id))
+            ->assertOk()->assertSee('نتایج شفاف')->assertSee('صبح')->assertSee('tenant');
+    }
+
+    public function test_manager_cannot_see_identity_on_anonymous_poll_details(): void
+    {
+        $poll = app(CurrentBuilding::class)->actingAs($this->building->id, function (): Poll {
+            $poll = Poll::create([
+                'title' => 'رأی مخفی',
+                'is_anonymous' => true,
+                'audience' => 'all',
+                'starts_at' => now()->subHour(),
+                'ends_at' => now()->addDay(),
+                'status' => 'open',
+                'created_by' => $this->owner->id,
+            ]);
+            $poll->options()->create(['text' => 'بله']);
+            $poll->options()->create(['text' => 'خیر']);
+            return $poll;
+        }, ['owner']);
+        $option = $this->firstOption($poll);
+        $this->open($this->tenant, 'post', route('polls.vote', $poll->id), ['option_id' => $option->id]);
+
+        $this->open($this->owner, 'get', route('polls.show', $poll->id))
+            ->assertOk()->assertSee('این نظرسنجی مخفی است')->assertDontSee('کاربر tenant');
+    }
+
+    public function test_member_can_submit_a_text_response_to_an_open_text_poll(): void
+    {
+        $poll = app(CurrentBuilding::class)->actingAs($this->building->id, function (): Poll {
+            return Poll::create([
+                'title' => 'نظر آزاد',
+                'response_type' => 'text',
+                'audience' => 'all',
+                'starts_at' => now()->subHour(),
+                'ends_at' => now()->addDay(),
+                'status' => 'open',
+                'created_by' => $this->owner->id,
+            ]);
+        }, ['owner']);
+
+        $this->open($this->tenant, 'post', route('polls.vote', $poll->id), ['answer' => 'بهتر است تعمیر صبح انجام شود.'])
+            ->assertRedirect(route('polls.index'));
+        $this->assertDatabaseHas('poll_votes', [
+            'poll_id' => $poll->id,
+            'answer' => 'بهتر است تعمیر صبح انجام شود.',
+            'option_id' => null,
+        ]);
+    }
+
     private function firstOption(Poll $poll): PollOption
     {
         return app(CurrentBuilding::class)->actingAs($this->building->id, fn () => $poll->options()->firstOrFail(), ['owner']);
