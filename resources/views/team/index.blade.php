@@ -8,7 +8,7 @@
 @section('title', $title)
 @section('content')
 <div class="card">
-  <div class="page-h"><h2>{{ $title }}</h2></div>
+  <div class="page-h" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><h2>{{ $title }}</h2>@if($isStaff)<a class="btn" href="{{ route('staff-roles.index') }}">مدیریت نقش‌های پرسنلی</a>@endif</div>
   <form method="POST" action="{{ route('members.invite') }}" style="margin-top:10px">@csrf
     <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:end">
       <div class="fld"><label for="mobile">شماره‌ی موبایل *</label><input id="mobile" name="mobile" inputmode="tel" placeholder="۰۹۱۲۳۴۵۶۷۸۹" value="{{ old('mobile') }}" required>@error('mobile')<div class="e">{{ $message }}</div>@enderror</div>
