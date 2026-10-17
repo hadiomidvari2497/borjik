@@ -87,7 +87,7 @@
 .mui-debt-value{display:block;font-size:14px;font-weight:900;margin-top:4px}
 .mui-text-link{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:850;color:#217564}
 .mui-text-link:hover{color:#144f47}
-.mui-lower{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr);gap:16px;margin-top:22px}
+.mui-lower{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr);gap:16px;margin-top:22px}.mui-lower-single{grid-template-columns:1fr}
 .mui-box{min-width:0;background:var(--mui-card);border:1px solid var(--mui-line);border-radius:20px;padding:20px}
 .mui-box-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
 .mui-box-head h3{margin:0;font-size:15px;font-weight:850}
@@ -179,7 +179,7 @@
       <div class="mui-empty-icon"><svg viewBox="0 0 24 24"><path d="M3 10 12 3l9 7M5 9v12h14V9M9 21v-7h6v7"/></svg></div>
       <h3>هنوز واحدی به حساب شما متصل نشده</h3>
       <p>به‌محض اینکه مدیریت ساختمان، مالکیت یا سکونت شما را ثبت کند، کارت اختصاصی واحد، اطلاعات ساکنین و وضعیت مالی اینجا نمایش داده می‌شود.</p>
-      <a class="mui-text-link" href="{{ route('my.contracts') }}">مشاهده قراردادهای من <span aria-hidden="true">←</span></a>
+      @can('contract.view.own')<a class="mui-text-link" href="{{ route('my.contracts') }}">مشاهده قراردادهای من <span aria-hidden="true">←</span></a>@endcan
     </div>
   @else
     <div class="mui-unit-list">
@@ -252,7 +252,7 @@
     </div>
   @endif
 
-  <div class="mui-lower">
+  <div class="mui-lower @cannot('contract.view.own') mui-lower-single @endcannot">
     <section class="mui-box">
       <div class="mui-box-head"><h3>صورت‌حساب‌های اخیر</h3><a href="{{ route('my.invoices') }}">همه صورت‌حساب‌ها ←</a></div>
       @if($invoices->isEmpty())
@@ -274,6 +274,7 @@
       @endif
     </section>
 
+    @can('contract.view.own')
     <section class="mui-box">
       <div class="mui-box-head"><h3>قراردادهای مرتبط</h3><a href="{{ route('my.contracts') }}">مشاهده همه ←</a></div>
       @php $visibleContracts = $contractsByUnit->flatten()->unique('id')->take(4); @endphp
@@ -287,12 +288,15 @@
         <div class="mui-empty-inline">قراردادی برای نمایش ثبت نشده است.</div>
       @endforelse
     </section>
+    @endcan
   </div>
 
   <section class="mui-quicklinks" aria-label="دسترسی سریع">
     <a class="mui-quicklink" href="{{ route('my.invoices') }}"><span class="mui-quicklink-icon"><svg viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-4 2-4-2-3 2zM8 8h8M8 12h8M8 16h4"/></svg></span><span><strong>صورت‌حساب‌های من</strong><small>مبالغ، سررسید و وضعیت تسویه</small></span></a>
     <a class="mui-quicklink" href="{{ route('my.payments') }}"><span class="mui-quicklink-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18M7 15h3"/></svg></span><span><strong>ثبت فیش پرداخت</strong><small>ارسال رسید برای بررسی مدیریت</small></span></a>
+    @can('contract.view.own')
     <a class="mui-quicklink" href="{{ route('my.contracts') }}"><span class="mui-quicklink-icon"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM15 3v5h4M9 12h7M9 16h7"/></svg></span><span><strong>قراردادهای من</strong><small>مرور قراردادهای خرید و اجاره</small></span></a>
+    @endcan
   </section>
 </div>
 @endsection
