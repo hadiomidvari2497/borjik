@@ -297,10 +297,17 @@ class TaskFlowTest extends TestCase
             'id' => $ticket->id,
             'accepted_by' => $this->maintenance->id,
         ]);
-        $this->assertNotNull(
+        $this->assertSame(
+            $acceptedAt->toDateTimeString(),
             \App\Models\TicketAssignee::where('ticket_id', $ticket->id)
                 ->where('user_id', $this->maintenance->id)
                 ->value('accepted_at')
+        );
+        $this->assertSame(
+            1,
+            \App\Models\TicketAssignee::where('ticket_id', $ticket->id)
+                ->where('user_id', $this->maintenance->id)
+                ->count()
         );
     }
 
