@@ -12,7 +12,7 @@
 </style>
 <div class="task-detail-page">
   <section class="task-detail-hero">
-    <div class="task-detail-top"><span class="task-detail-id">{{ $ticket->number }}</span><a class="task-detail-back" href="{{ route('tickets.index') }}">← بازگشت به تسک‌ها</a></div>
+    <div class="task-detail-top"><span class="task-detail-id">{{ $ticket->number }}</span><div style="display:flex;gap:8px;flex-wrap:wrap">@if($canManage)<a class="task-detail-back" href="{{ route('tickets.edit',$ticket->id) }}">ویرایش تسک</a>@endif<a class="task-detail-back" href="{{ route('tickets.index') }}">← بازگشت به تسک‌ها</a></div></div>
     <h2>{{ $ticket->title }}</h2>
     <div class="task-detail-bottom"><p>ثبت‌شده توسط {{ $ticket->createdBy?->display_name ?: $ticket->createdBy?->mobile }} · {{ $ticket->created_at?->format('Y/m/d H:i') }}</p><div class="task-detail-tags"><span class="task-detail-tag">{{ $statuses[$status] }}</span><span class="task-detail-tag">اولویت: {{ $priorities[$priority] }}</span><span class="task-detail-tag">{{ $categories[$ticket->category] ?? $ticket->category }}</span></div></div>
   </section>
