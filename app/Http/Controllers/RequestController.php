@@ -324,6 +324,20 @@ class RequestController extends Controller
 
         $ticket = DB::transaction(function () use ($data, $user, $buildingId) {
             $roleId = $data['target_role_id'] ?? null;
+            if (! $roleId) {
+                $defaultRoleKey = match ($data['category']) {
+                    'maintenance', 'facilities' => 'maintenance',
+                    'cleaning' => 'cleaning',
+                    'security' => 'security',
+                    default => null,
+                };
+                if ($defaultRoleKey) {
+                    $roleQuery = Role::where('key', $defaultRoleKey)->where('is_staff', true)->where('is_active', true);
+                    $buildingRole = (clone $roleQuery)->where('building_id', $buildingId)->value('id');
+                    $hasBuildingRoles = Role::where('building_id', $buildingId)->where('is_staff', true)->exists();
+                    $roleId = $buildingRole ?? (! $hasBuildingRoles ? (clone $roleQuery)->whereNull('building_id')->value('id') : null);
+                }
+            }
             $assigneeIds = $roleId
                 ? DB::table('building_user_roles as bur')
                     ->where('bur.building_id', $buildingId)->where('bur.status', 'active')
