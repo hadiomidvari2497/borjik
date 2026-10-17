@@ -68,8 +68,13 @@ class MenuBuilder
         foreach (config('menu') as $group) {
             $items = [];
             foreach ($group['items'] as $item) {
-                // «واحد من» فقط در زمینه‌ی عضویت ساکن نمایش داده می‌شود، نه زمینه‌ی مالک/مدیر.
+                // «واحد من» برای نقش‌های مالکیتی/مدیریتی نمایش داده نمی‌شود.
                 if ($item['route'] === 'my.units' && app(CurrentBuilding::class)->hasRole('owner', 'manager')) {
+                    continue;
+                }
+
+                // «درخواست‌های من» مخصوص ساکنان است؛ پرسنل و نقش‌های مدیریتی از درخواست‌های ساختمان استفاده می‌کنند.
+                if ($item['route'] === 'my.requests' && app(CurrentBuilding::class)->hasRole('owner', 'manager', 'security', 'cleaning', 'maintenance')) {
                     continue;
                 }
 
