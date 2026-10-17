@@ -172,7 +172,7 @@ class TaskController extends Controller
         ]);
 
         $roleId = $data['target_role_id'] ?? null;
-        if ($roleId && Role::where('building_id', $buildingId)->where('is_staff', true)->exists()) {
+        if ($roleId && DB::table('buildings')->where('id', $buildingId)->value('staff_roles_initialized')) {
             abort_unless(Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->whereKey($roleId)->exists(), 422, 'نقش انتخاب‌شده متعلق به این ساختمان نیست.');
         }
         $userIds = collect($data['user_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
@@ -723,7 +723,9 @@ class TaskController extends Controller
     {
         $buildingId = app(CurrentBuilding::class)->id();
         $roles = Role::query()->where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->orderBy('name_fa')->get();
-        return $roles->isNotEmpty() ? $roles : Role::query()->whereNull('building_id')->where('is_staff', true)->whereIn('key', ['security', 'cleaning', 'maintenance'])->orderBy('name_fa')->get();
+        return $roles->isNotEmpty() || DB::table('buildings')->where('id', $buildingId)->value('staff_roles_initialized')
+            ? $roles
+            : Role::query()->whereNull('building_id')->where('is_staff', true)->whereIn('key', ['security', 'cleaning', 'maintenance'])->orderBy('name_fa')->get();
     }
 
     private function staffOptions()
