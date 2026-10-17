@@ -427,6 +427,7 @@ class RequestController extends Controller
         $status = TicketStatus::from($data['status']);
         $changed = DB::transaction(function () use ($ticket, $status, $user, $data, $isManager) {
             $locked = Ticket::where('kind', 'request')->lockForUpdate()->findOrFail($ticket);
+            abort_unless($isManager || ($user->hasPermission('ticket.respond') && (int) $locked->accepted_by === (int) $user->id), 403);
             $previous = $locked->status->value;
             if ($previous === $status->value) {
                 return false;
