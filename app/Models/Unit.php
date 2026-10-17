@@ -7,10 +7,11 @@ use App\Enums\UnitStatus;
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\Auditable;
 
 class Unit extends Model
 {
-    use BelongsToBuilding, SoftDeletes;
+    use BelongsToBuilding, SoftDeletes, Auditable;
 
     protected $table = 'units';
     protected $guarded = ['id'];

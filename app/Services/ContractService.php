@@ -73,7 +73,8 @@ class ContractService
                 ]);
 
                 // اگر مستأجر دیگری هنوز به‌عنوان ساکن ثبت است، از تاریخ عقد پایان می‌یابد
-                UnitParty::where('unit_id', $locked->id)->where('relation', 'tenant')->whereNull('to_date')->update(['to_date' => $signedAt->toDateString()]);
+                UnitParty::where('unit_id', $locked->id)->where('relation', 'tenant')->whereNull('to_date')->get()
+                    ->each(fn (UnitParty $p) => $p->update(['to_date' => $signedAt]));
                 UnitParty::create(['unit_id' => $locked->id, 'user_id' => $tenant->id, 'relation' => 'tenant', 'contract_id' => $contract->id, 'from_date' => $signedAt]);
 
                 $this->syncUnitStatus($locked);
@@ -104,8 +105,8 @@ class ContractService
                 if ($current) {
                     $current->update(['to_date' => $soldAt->lt($current->from_date) ? $current->from_date : $soldAt]);
                 }
-                Contract::where('unit_id', $locked->id)->where('type', ContractType::Sale->value)->where('status', ContractStatus::Active->value)
-                    ->update(['status' => ContractStatus::Ended->value, 'ended_at' => $soldAt->toDateString()]);
+                Contract::where('unit_id', $locked->id)->where('type', ContractType::Sale->value)->where('status', ContractStatus::Active->value)->get()
+                    ->each(fn (Contract $c) => $c->update(['status' => ContractStatus::Ended, 'ended_at' => $soldAt]));
 
                 $contract = Contract::create([
                     'unit_id' => $locked->id, 'user_id' => $buyer->id, 'type' => ContractType::Sale,
@@ -135,7 +136,7 @@ class ContractService
 
             $today = today();
             $locked->update(['status' => ContractStatus::Ended, 'ended_at' => $today]);
-            UnitParty::where('contract_id', $locked->id)->whereNull('to_date')->update(['to_date' => $today->toDateString()]);
+            UnitParty::where('contract_id', $locked->id)->whereNull('to_date')->get()->each(fn (UnitParty $p) => $p->update(['to_date' => $today]));
             $this->syncUnitStatus(Unit::lockForUpdate()->findOrFail($locked->unit_id));
         });
     }

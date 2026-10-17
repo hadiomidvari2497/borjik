@@ -8,10 +8,11 @@ use App\Enums\TicketStatus;
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\Auditable;
 
 class Ticket extends Model
 {
-    use BelongsToBuilding, SoftDeletes;
+    use BelongsToBuilding, SoftDeletes, Auditable;
 
     protected $table = 'tickets';
     protected $guarded = ['id'];

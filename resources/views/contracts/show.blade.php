@@ -83,4 +83,5 @@
   </table></div>
 </div>
 @endif
+@include('partials.history', ['subject' => $contract])
 @endsection

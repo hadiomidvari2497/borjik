@@ -436,6 +436,9 @@ GitHub Actions (`.github/workflows/ci.yml`):
   - گرفتن متن (مثل دلیل رد): `<form data-prompt="توضیح" data-prompt-name="reason">`
   - پیام‌ها: `->with('status'|'success'|'warning'|'error', ...)` یا `withErrors(['general' => ...])` خودکار تاست می‌شوند؛ از جاوااسکریپت: `Borjik.toastSuccess('...')`
   - `confirm()` / `alert()` / `prompt()` بومی مرورگر ممنوع است (تست `NoNativeDialogsTest` بررسی می‌کند)
+- تاریخچه‌ی تغییرات (Audit Log): ایجاد/ویرایش/حذف/بازیابی هر موجودیت مهم خودکار ثبت می‌شود (چه کسی، چه زمانی، مقدار قبلی و جدید)؛ صفحه‌ی «تاریخچه تغییرات» (`/audit`، مالک و مدیر) و بخش تاریخچه در صفحه‌ی قرارداد و ویرایش واحد
+  - برای موجودیت جدید: `use Auditable;` در مدل + برچسب فارسی در `config/audit.php`؛ ستون‌های اسرار/حجیم: `protected array $auditExclude = [...]`
+  - فقط تغییرِ انجام‌شده از طریق مدل ثبت می‌شود؛ به‌جای `Model::where()->update()/delete()` از `->get()->each(fn ($m) => $m->update(...))` استفاده کنید
 - زمان‌بندی (Scheduler): `rent:issue-invoices` (صدور خودکار اجاره‌ی ماهانه، ۰۶:۰۰ UTC) و `charges:remind-expenses` هر روز اجرا می‌شوند؛ به شرط اینکه هر دقیقه `php artisan schedule:run` اجرا شود:
   - لینوکس (cron): `* * * * * cd /مسیر/برجیک && php artisan schedule:run >> /dev/null 2>&1`
   - ویندوز/XAMPP (Task Scheduler، تکرار هر ۱ دقیقه): `C:\xampp\php\php.exe C:\xampp\htdocs\borjik\artisan schedule:run`

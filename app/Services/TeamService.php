@@ -114,8 +114,8 @@ class TeamService
 
         $roleIds = $this->roleIds(self::rolesOf($scope));
         DB::transaction(function () use ($buildingId, $userId, $roleIds) {
-            BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $userId, 'status' => 'invited'])->whereIn('role_id', $roleIds)->delete();
-            Invitation::where('user_id', $userId)->whereNull('accepted_at')->whereIn('role_id', $roleIds)->delete();
+            BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $userId, 'status' => 'invited'])->whereIn('role_id', $roleIds)->get()->each(fn (BuildingUserRole $r) => $r->delete());
+            Invitation::where('user_id', $userId)->whereNull('accepted_at')->whereIn('role_id', $roleIds)->get()->each(fn (Invitation $i) => $i->delete());
         });
     }
 
@@ -230,11 +230,11 @@ class TeamService
                     ->whereIn('role_id', $removedRoleIds)
                     ->whereNull('accepted_at')
                     ->whereNull('rejected_at')
-                    ->delete();
+                    ->get()->each(fn ($m) => $m->delete());
 
                 BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $userId])
                     ->whereIn('role_id', $removedRoleIds)
-                    ->delete();
+                    ->get()->each(fn ($m) => $m->delete());
             }
         });
     }

@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\Auditable;
 
 class Expense extends Model
 {
-    use BelongsToBuilding, SoftDeletes;
+    use BelongsToBuilding, SoftDeletes, Auditable;
 
     protected $table = 'expenses';
     protected $guarded = ['id'];
