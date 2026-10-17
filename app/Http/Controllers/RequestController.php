@@ -55,7 +55,11 @@ class RequestController extends Controller
                     ->orWhere('description', 'like', "%{$term}%")
                     ->orWhere('location', 'like', "%{$term}%")
                     ->orWhereHas('createdBy', fn ($creator) => $creator
-                        ->where('display_name', 'like', "%{$term}%")
+                        ->where(function ($name) use ($term) {
+                            $name->where('first_name', 'like', "%{$term}%")
+                                ->orWhere('last_name', 'like', "%{$term}%")
+                                ->orWhere('company_name', 'like', "%{$term}%");
+                        })
                         ->orWhere('mobile', 'like', "%{$term}%"));
             });
         }
