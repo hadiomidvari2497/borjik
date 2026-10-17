@@ -289,6 +289,9 @@ class TaskController extends Controller
         ]);
 
         $roleId = $data['target_role_id'] ?? null;
+        if ($roleId && Role::where('building_id', $buildingId)->where('is_staff', true)->exists()) {
+            abort_unless(Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->whereKey($roleId)->exists(), 422, 'نقش انتخاب‌شده متعلق به این ساختمان نیست.');
+        }
         $userIds = collect($data['user_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
         if ($roleId) {
             $userIds = $userIds->merge(DB::table('building_user_roles')
