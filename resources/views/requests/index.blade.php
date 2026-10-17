@@ -21,6 +21,7 @@
       <a class="req-hero-action" href="{{ route('my.requests') }}"><span aria-hidden="true">＋</span> درخواست‌های من</a>
     </div>
   </section>
+  @if($canManage)<div><a class="req-hero-action" style="display:inline-flex" href="{{ route('requests.reports') }}">گزارش عملکرد در بازه زمانی ↗</a></div>@endif
   <section class="req-stats" aria-label="خلاصه وضعیت درخواست‌ها">
     <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">▤</div><div><b>{{ \App\Support\Fa::num($stats['total']) }}</b><span>کل درخواست‌ها</span></div></div>
     <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">✦</div><div><b>{{ \App\Support\Fa::num($stats['new']) }}</b><span>تازه ثبت‌شده</span></div></div>
