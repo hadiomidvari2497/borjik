@@ -9,7 +9,6 @@ use App\Models\Ticket;
 use App\Models\TicketComment;
 use App\Models\TicketStatusLog;
 use App\Models\User;
-use App\Support\CurrentBuilding;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -88,25 +87,23 @@ class RequestFlowTest extends TestCase
         $createdAt = now()->subDays(2);
         $resolvedAt = now()->subDay();
 
-        app(CurrentBuilding::class)->actingAs($this->building->id, function () use ($createdAt, $resolvedAt) {
-            $resolvedTicket = Ticket::create([
-                'building_id' => $this->building->id, 'number' => 'REQ-REPORT-001',
-                'kind' => 'request', 'title' => 'درخواست حل‌شده', 'description' => 'تست گزارش',
-                'category' => 'maintenance', 'priority' => 'medium', 'status' => 'done',
-                'created_by' => $this->resident->id, 'created_at' => $createdAt, 'updated_at' => $resolvedAt,
-            ]);
-            TicketStatusLog::create([
-                'building_id' => $this->building->id, 'ticket_id' => $resolvedTicket->id,
-                'from_status' => 'doing', 'to_status' => 'done', 'user_id' => $this->manager->id,
-                'note' => 'حل شد', 'created_at' => $resolvedAt,
-            ]);
-            Ticket::create([
-                'building_id' => $this->building->id, 'number' => 'REQ-REPORT-002',
-                'kind' => 'request', 'title' => 'درخواست باز', 'description' => 'تست گزارش',
-                'category' => 'general', 'priority' => 'low', 'status' => 'new',
-                'created_by' => $this->resident->id,
-            ]);
-        });
+        $resolvedTicket = Ticket::create([
+            'building_id' => $this->building->id, 'number' => 'REQ-REPORT-001',
+            'kind' => 'request', 'title' => 'درخواست حل‌شده', 'description' => 'تست گزارش',
+            'category' => 'maintenance', 'priority' => 'medium', 'status' => 'done',
+            'created_by' => $this->resident->id, 'created_at' => $createdAt, 'updated_at' => $resolvedAt,
+        ]);
+        TicketStatusLog::create([
+            'building_id' => $this->building->id, 'ticket_id' => $resolvedTicket->id,
+            'from_status' => 'doing', 'to_status' => 'done', 'user_id' => $this->manager->id,
+            'note' => 'حل شد', 'created_at' => $resolvedAt,
+        ]);
+        Ticket::create([
+            'building_id' => $this->building->id, 'number' => 'REQ-REPORT-002',
+            'kind' => 'request', 'title' => 'درخواست باز', 'description' => 'تست گزارش',
+            'category' => 'general', 'priority' => 'low', 'status' => 'new',
+            'created_by' => $this->resident->id,
+        ]);
 
         $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
             ->get(route('requests.reports'))
