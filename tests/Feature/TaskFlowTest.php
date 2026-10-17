@@ -188,7 +188,8 @@ class TaskFlowTest extends TestCase
                 'description' => 'شرح اولیه',
                 'category' => 'maintenance',
                 'priority' => 'medium',
-                'status' => 'new',
+                'status' => 'review',
+                'accepted_by' => $this->maintenance->id,
                 'created_by' => $this->manager->id,
             ]);
             \App\Models\TicketAssignee::create([
@@ -197,6 +198,7 @@ class TaskFlowTest extends TestCase
                 'user_id' => $this->maintenance->id,
                 'assigned_by' => $this->manager->id,
                 'assigned_at' => now(),
+                'accepted_at' => now(),
             ]);
 
             return $ticket;
@@ -222,6 +224,7 @@ class TaskFlowTest extends TestCase
             'title' => 'عنوان به‌روزشده',
             'category' => 'cleaning',
             'priority' => 'high',
+            'accepted_by' => null,
         ]);
         $this->assertDatabaseHas('ticket_assignees', [
             'ticket_id' => $ticket->id,
@@ -246,6 +249,59 @@ class TaskFlowTest extends TestCase
         $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
             ->get(route('tickets.index'))
             ->assertOk()->assertSee('مدیریت تیکت و تسک');
+    }
+
+    public function test_editing_task_preserves_acceptance_for_assignees_who_remain_assigned(): void
+    {
+        Notification::fake();
+        Queue::fake();
+
+        $acceptedAt = now()->subMinutes(5);
+        $ticket = app(CurrentBuilding::class)->actingAs($this->building->id, function () use ($acceptedAt) {
+            $ticket = Ticket::create([
+                'building_id' => $this->building->id,
+                'number' => 'TSK-TEST-004',
+                'kind' => 'task',
+                'title' => 'تسک پذیرفته‌شده',
+                'description' => 'شرح اولیه',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'status' => 'review',
+                'accepted_by' => $this->maintenance->id,
+                'created_by' => $this->manager->id,
+            ]);
+            \\App\\Models\\TicketAssignee::create([
+                'building_id' => $this->building->id,
+                'ticket_id' => $ticket->id,
+                'user_id' => $this->maintenance->id,
+                'assigned_by' => $this->manager->id,
+                'assigned_at' => now()->subHour(),
+                'accepted_at' => $acceptedAt,
+            ]);
+
+            return $ticket;
+        });
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->put(route('tickets.update', $ticket->id), [
+                'title' => 'تسک پذیرفته‌شده ویرایش‌شده',
+                'description' => 'شرح به‌روزشده',
+                'category' => 'maintenance',
+                'priority' => 'high',
+                'user_ids' => [$this->maintenance->id],
+            ])
+            ->assertRedirect(route('tickets.show', $ticket->id))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('tickets', [
+            'id' => $ticket->id,
+            'accepted_by' => $this->maintenance->id,
+        ]);
+        $this->assertNotNull(
+            \\App\\Models\\TicketAssignee::where('ticket_id', $ticket->id)
+                ->where('user_id', $this->maintenance->id)
+                ->value('accepted_at')
+        );
     }
 
     private function makeUser(string $mobile, string $name): User
