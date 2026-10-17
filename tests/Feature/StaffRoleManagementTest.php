@@ -97,7 +97,7 @@ class StaffRoleManagementTest extends TestCase
             'category' => 'general',
             'target_role_id' => $role->id,
             'priority' => 'medium',
-        ])->assertRedirect();
+        ])->assertRedirect()->assertSessionHasNoErrors();
 
         $ticket = \App\Models\Ticket::where('kind', 'request')->where('created_by', $resident->id)->firstOrFail();
         $this->assertSame($role->id, (int) $ticket->target_role_id);
