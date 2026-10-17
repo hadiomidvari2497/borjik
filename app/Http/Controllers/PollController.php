@@ -38,6 +38,20 @@ class PollController extends Controller
     {
         abort_unless($current->id(), 403);
 
+        foreach (['starts', 'ends'] as $prefix) {
+            if ($request->exists($prefix.'_date') || $request->exists($prefix.'_time')) {
+                $date = JalaliDate::parse($request->input($prefix.'_date'));
+                $time = (string) $request->input($prefix.'_time', '');
+                if (! $date || ! preg_match('/^(?:[01]\\d|2[0-3]):[0-5]\\d$/', $time)) {
+                    throw ValidationException::withMessages([
+                        $prefix.'_at' => $prefix === 'starts' ? 'تاریخ و ساعت شروع را به‌درستی انتخاب کنید.' : 'تاریخ و ساعت پایان را به‌درستی انتخاب کنید.',
+                    ]);
+                }
+
+                $request->merge([$prefix.'_at' => $date->setTimeFromTimeString($time)->format('Y-m-d H:i:s')]);
+            }
+        }
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:2000'],
