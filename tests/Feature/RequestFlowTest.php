@@ -100,7 +100,7 @@ class RequestFlowTest extends TestCase
             ->post(route('requests.claim', $ticket->id))->assertConflict();
 
         $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'accepted_by' => $this->maintenance->id]);
-        $this->assertDatabaseCount('ticket_events', 3);
+        $this->assertDatabaseCount('ticket_events', 4);
         $this->assertDatabaseHas('ticket_events', ['ticket_id' => $ticket->id, 'type' => 'claimed', 'user_id' => $this->maintenance->id]);
     }
 
