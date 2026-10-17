@@ -16,10 +16,10 @@
     </div>
   </section>
   <section class="myreq-stats" aria-label="خلاصه وضعیت درخواست‌های من">
-    <div class="myreq-stat"><b>{{ \\App\\Support\\Fa::num($stats['total']) }}</b><span>کل درخواست‌ها</span></div>
-    <div class="myreq-stat"><b>{{ \\App\\Support\\Fa::num($stats['new']) }}</b><span>تازه ثبت‌شده</span></div>
-    <div class="myreq-stat"><b>{{ \\App\\Support\\Fa::num($stats['doing'] + $stats['review']) }}</b><span>در حال پیگیری</span></div>
-    <div class="myreq-stat"><b>{{ \\App\\Support\\Fa::num($stats['done'] + $stats['closed']) }}</b><span>به پایان رسیده</span></div>
+    <div class="myreq-stat"><b>{{ \App\Support\Fa::num($stats['total']) }}</b><span>کل درخواست‌ها</span></div>
+    <div class="myreq-stat"><b>{{ \App\Support\Fa::num($stats['new']) }}</b><span>تازه ثبت‌شده</span></div>
+    <div class="myreq-stat"><b>{{ \App\Support\Fa::num($stats['doing'] + $stats['review']) }}</b><span>در حال پیگیری</span></div>
+    <div class="myreq-stat"><b>{{ \App\Support\Fa::num($stats['done'] + $stats['closed']) }}</b><span>به پایان رسیده</span></div>
   </section>
   <section class="card myreq-list">
     <div class="myreq-list-head"><div><h3>درخواست‌های من</h3><p>با جست‌وجو و فیلتر وضعیت، درخواست موردنظر را سریع پیدا کنید.</p></div></div>
