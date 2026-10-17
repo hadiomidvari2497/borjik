@@ -122,7 +122,7 @@ class TaskFlowTest extends TestCase
         $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'status' => 'doing']);
         $this->assertDatabaseHas('ticket_status_logs', [
             'ticket_id' => $ticket->id,
-            'from_status' => 'new',
+            'from_status' => 'review',
             'to_status' => 'doing',
         ]);
     }
