@@ -140,6 +140,20 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/{notification}/read', 'read')->name('read');
     });
 
+    // مدیریت تسک‌های پرسنل (جدا از درخواست‌های ثبت‌شده توسط ساکنین).
+    Route::prefix('tickets')->name('tickets.')->controller(\\App\\Http\\Controllers\\TaskController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
+        Route::post('/{ticket}/status', 'updateStatus')->whereNumber('ticket')->name('status');
+        Route::post('/{ticket}/claim', 'claim')->whereNumber('ticket')->name('claim');
+        Route::post('/{ticket}/assign', 'assign')->whereNumber('ticket')->name('assign');
+        Route::post('/{ticket}/comments', 'comment')->whereNumber('ticket')->name('comments.store');
+        Route::post('/{ticket}/ratings', 'rate')->whereNumber('ticket')->name('rate');
+        Route::get('/{ticket}/attachments/{attachment}', 'attachment')->whereNumber('ticket')->whereNumber('attachment')->name('attachments.show');
+    });
+
     // درخواست‌های ساکنان: مدیر همه را می‌بیند و مسئول فقط درخواست‌های ارجاع‌شده به خودش را.
     Route::middleware('can:request.view.domain')->prefix('requests')->name('requests.')->controller(RequestController::class)->group(function () {
         Route::get('/reports', 'reports')->middleware('can:request.view.all')->name('reports');
