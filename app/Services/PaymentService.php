@@ -38,19 +38,27 @@ class PaymentService
         $buildingId = app(CurrentBuilding::class)->id();
         $hash = hash_file('sha256', $upload->getRealPath());
 
-        // یک تصویر نباید دو بار برای دریافت اعتبار استفاده شود
-        $duplicate = File::where('building_id', $buildingId)->where('sha256', $hash)
-            ->whereIn('id', FileLink::where('attachable_type', self::FILE_TYPE)
-                ->whereIn('attachable_id', PaymentReceipt::whereIn('status', ['pending', 'approved'])->select('id'))->select('file_id'))
-            ->exists();
-        if ($duplicate) {
-            throw new DomainException('این تصویر فیش قبلاً ثبت شده است.');
-        }
-
         $meta = ['mime' => $upload->getMimeType(), 'size' => $upload->getSize(), 'name' => $upload->getClientOriginalName()];
-        $path = $upload->store("receipts/{$buildingId}", 'local');
 
-        return DB::transaction(function () use ($user, $unit, $amount, $paidAt, $note, $buildingId, $hash, $meta, $path) {
+        return DB::transaction(function () use ($user, $unit, $amount, $paidAt, $note, $buildingId, $hash, $meta, $upload) {
+            // Serialize receipt submissions for this building before checking the hash.
+            // Without this lock, simultaneous requests can both pass the duplicate check.
+            Building::query()->whereKey($buildingId)->lockForUpdate()->firstOrFail();
+
+            // Only pending/approved receipts reserve a hash; rejected receipts may be resubmitted.
+            $duplicate = File::where('building_id', $buildingId)->where('sha256', $hash)
+                ->whereIn('id', FileLink::where('attachable_type', self::FILE_TYPE)
+                    ->whereIn('attachable_id', PaymentReceipt::whereIn('status', ['pending', 'approved'])->select('id'))->select('file_id'))
+                ->exists();
+            if ($duplicate) {
+                throw new DomainException('این تصویر فیش قبلاً ثبت شده است.');
+            }
+
+            $path = $upload->store("receipts/{$buildingId}", 'local');
+            if (! is_string($path) || $path === '') {
+                throw new DomainException('ذخیره‌ی تصویر فیش ناموفق بود.');
+            }
+
             $file = File::create([
                 'uploader_id' => $user->id, 'building_id' => $buildingId, 'disk' => 'local', 'path' => $path,
                 'original_name' => $meta['name'], 'mime' => $meta['mime'], 'size' => $meta['size'], 'sha256' => $hash, 'visibility' => 'private',
