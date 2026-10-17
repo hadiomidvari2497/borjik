@@ -41,6 +41,7 @@ class PollController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'response_type' => ['nullable', 'in:choice,text'],
             'audience' => ['required', 'in:all,residents'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
@@ -49,9 +50,14 @@ class PollController extends Controller
             'options.*' => ['nullable', 'string', 'max:200'],
         ]);
 
-        $options = collect($data['options'])->map(fn ($value) => trim((string) $value))->filter()->unique()->values();
-        if ($options->count() < 2) {
+        $data['response_type'] = $data['response_type'] ?? 'choice';
+        $options = collect($data['options'] ?? [])->map(fn ($value) => trim((string) $value))->filter()->unique()->values();
+        if ($data['response_type'] === 'choice' && $options->count() < 2) {
             throw ValidationException::withMessages(['options' => 'حداقل دو گزینه‌ی متفاوت وارد کنید.']);
+        }
+
+        if ($data['response_type'] === 'text') {
+            $options = collect();
         }
 
         $start = now()->parse($data['starts_at']);
@@ -63,6 +69,7 @@ class PollController extends Controller
         $poll = DB::transaction(function () use ($data, $options, $request, $start, $end): Poll {
             $poll = Poll::create([
                 'title' => trim($data['title']),
+                'response_type' => $data['response_type'],
                 'description' => trim((string) ($data['description'] ?? '')) ?: null,
                 'audience' => $data['audience'],
                 'starts_at' => $start,
@@ -98,18 +105,26 @@ class PollController extends Controller
                     abort(403);
                 }
 
-                $option = PollOption::query()
-                    ->where('poll_id', $item->id)
-                    ->whereKey($request->validate(['option_id' => ['required', 'integer']])['option_id'])
-                    ->firstOrFail();
+                $voteData = $request->validate($item->response_type === 'text'
+                    ? ['answer' => ['required', 'string', 'max:5000']]
+                    : ['option_id' => ['required', 'integer']]);
+
+                $option = null;
+                if ($item->response_type === 'choice') {
+                    $option = PollOption::query()
+                        ->where('poll_id', $item->id)
+                        ->whereKey($voteData['option_id'])
+                        ->firstOrFail();
+                }
 
                 if (PollVote::where('poll_id', $item->id)->where('user_id', $request->user()->id)->exists()) {
-                    throw ValidationException::withMessages(['general' => 'رأی شما قبلاً ثبت شده است.']);
+                    throw ValidationException::withMessages(['general' => 'پاسخ شما قبلاً ثبت شده است.']);
                 }
 
                 PollVote::create([
                     'poll_id' => $item->id,
-                    'option_id' => $option->id,
+                    'option_id' => $option?->id,
+                    'answer' => $voteData['answer'] ?? null,
                     'user_id' => $request->user()->id,
                     'unit_id' => null,
                 ]);
@@ -123,6 +138,19 @@ class PollController extends Controller
         }
 
         return redirect()->route('polls.index')->with('status', 'رأی شما با موفقیت ثبت شد.');
+    }
+
+
+    public function show(Request $request, int $poll, CurrentBuilding $current): View
+    {
+        abort_unless($current->id() && $request->user()->hasPermission('poll.manage'), 403);
+
+        $item = Poll::query()
+            ->with(['createdBy', 'options' => fn ($query) => $query->withCount('votes'), 'votes.user', 'votes.option'])
+            ->withCount('votes')
+            ->findOrFail($poll);
+
+        return view('polls.show', ['poll' => $item]);
     }
 
     public function close(int $poll): RedirectResponse
