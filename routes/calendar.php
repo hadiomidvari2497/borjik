@@ -1,7 +1,7 @@
 <?php
 
-use App\\Http\\Controllers\\CalendarController;
-use Illuminate\\Support\\Facades\\Route;
+use App\Http\Controllers\CalendarController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::get('/calendar', [CalendarController::class, 'index'])->name('events.index');
