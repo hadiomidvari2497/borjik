@@ -134,9 +134,7 @@ class CalendarController extends Controller
             'upcoming' => $upcoming, 'canManage' => $user->hasPermission('event.manage'),
             'todayLabel' => JalaliDate::format(now()),
             'monthNames' => self::MONTHS,
-            'filter' => $filter,\n            'filter' => $filter,
             'filter' => $filter,
-            'editableEvents' => CalendarEvent::query()->orderBy('starts_at')->get(),
         ]);
     }
 
@@ -151,7 +149,7 @@ class CalendarController extends Controller
             'end_date' => ['nullable', 'string', 'max:10'],
             'end_time' => ['nullable', 'date_format:H:i'],
             'is_all_day' => ['nullable', 'boolean'],
-            'color' => ['required', 'in:teal,blue,amber,rose,violet'],\n            'reminder_minutes' => ['nullable', 'integer', 'in:0,15,60,1440,10080'],
+            'color' => ['required', 'in:teal,blue,amber,rose,violet'],
             'reminder_minutes' => ['nullable', 'integer', 'in:0,15,60,1440,10080'],
         ]);
 
