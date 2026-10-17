@@ -30,7 +30,7 @@
       <div class="task-switch"><a class="{{ $kanban?'active':'' }}" href="{{ route('tickets.index', array_merge(request()->query(),['view'=>'kanban'])) }}">نمای کانبان</a><a class="{{ !$kanban?'active':'' }}" href="{{ route('tickets.index', array_merge(request()->query(),['view'=>'list'])) }}">نمای فهرست</a></div>
     </div>
     @if($kanban)
-      <div class="kanban" id="task-kanban" data-can-move="{{ $canUpdateStatus ?? (auth()->user()->hasPermission('ticket.view.all') || auth()->user()->hasPermission('ticket.respond')) ? '1' : '0' }}">
+      <div class="kanban" id="task-kanban" data-can-move="{{ (auth()->user()->hasPermission('ticket.view.all') || auth()->user()->hasPermission('ticket.respond')) ? '1' : '0' }}">
         @foreach($statuses as $key=>$label)
           @php $columnTickets=$tickets->filter(fn($t)=>$t->status->value===$key); @endphp
           <section class="kanban-col" data-status="{{ $key }}">
