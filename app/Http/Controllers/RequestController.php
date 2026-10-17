@@ -548,9 +548,17 @@ class RequestController extends Controller
         $message = 'وضعیت درخواست «'.$ticket->title.'» از «'.($statusLabels[$previous?->value ?? ''] ?? '—').'» به «'.($statusLabels[$status->value] ?? $status->value).'» تغییر کرد.';
         $this->recordEvent($ticket, $user, 'status_changed', $message.($note ? ' '.$note : ''));
 
-        $recipients = collect([$ticket->createdBy, $ticket->acceptedBy])
-            ->filter()
-            ->unique('id')
+        $recipients = collect([$ticket->createdBy, $ticket->acceptedBy]);
+        if ($status === TicketStatus::Done) {
+            $managerIds = DB::table('building_user_roles as bur')
+                ->join('roles as r', 'r.id', '=', 'bur.role_id')
+                ->where('bur.building_id', $ticket->building_id)
+                ->where('bur.status', 'active')
+                ->where('r.key', 'manager')
+                ->pluck('bur.user_id');
+            $recipients = $recipients->merge(User::query()->whereIn('id', $managerIds)->get());
+        }
+        $recipients = $recipients->filter()->unique('id')
             ->reject(fn ($recipient) => (int) $recipient->id === (int) $user->id);
 
         foreach ($recipients as $recipient) {
