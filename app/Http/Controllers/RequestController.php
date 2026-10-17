@@ -13,6 +13,7 @@ use App\Models\TicketStatusLog;
 use App\Models\Unit;
 use App\Models\User;
 use App\Support\CurrentBuilding;
+use App\Support\JalaliDate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -56,15 +57,37 @@ class RequestController extends Controller
             : 0;
 
         $reportFilters = $request->validate([
-            'report_from' => ['nullable', 'date', 'before_or_equal:report_to'],
-            'report_to' => ['nullable', 'date', 'after_or_equal:report_from'],
+            'report_from' => ['nullable', 'string', 'max:10'],
+            'report_to' => ['nullable', 'string', 'max:10'],
         ]);
-        $reportFrom = ! empty($reportFilters['report_from'])
-            ? now()->parse($reportFilters['report_from'])->startOfMonth()
-            : now()->subMonths(5)->startOfMonth();
-        $reportTo = ! empty($reportFilters['report_to'])
-            ? now()->parse($reportFilters['report_to'])->endOfMonth()
-            : now()->endOfMonth();
+        $parseReportMonth = static function (?string $value): ?Carbon {
+            if (! $value) return null;
+            $value = \App\Support\MobileNumber::toLatinDigits(trim($value));
+            try {
+                if (preg_match('#^(\\d{4})/(\\d{1,2})$#', $value)) {
+                    return JalaliDate::parse($value.'/01')?->startOfMonth();
+                }
+                if (preg_match('#^(\\d{4})-(\\d{1,2})$#', $value)) {
+                    return Carbon::createFromFormat('!Y-m', $value)?->startOfMonth();
+                }
+            } catch (\\Throwable) {
+                return null;
+            }
+            return null;
+        };
+        $parsedReportFrom = $parseReportMonth($reportFilters['report_from'] ?? null);
+        $parsedReportTo = $parseReportMonth($reportFilters['report_to'] ?? null);
+        if (! empty($reportFilters['report_from']) && ! $parsedReportFrom) {
+            return back()->withErrors(['report_from' => 'ماه شروع معتبر نیست؛ قالب درست سال/ماه شمسی است.'])->withInput();
+        }
+        if (! empty($reportFilters['report_to']) && ! $parsedReportTo) {
+            return back()->withErrors(['report_to' => 'ماه پایان معتبر نیست؛ قالب درست سال/ماه شمسی است.'])->withInput();
+        }
+        $reportFrom = $parsedReportFrom ?? now()->subMonths(5)->startOfMonth();
+        $reportTo = ($parsedReportTo ?? now())->endOfMonth();
+        if ($reportTo->lt($reportFrom)) {
+            return back()->withErrors(['report_to' => 'ماه پایان باید برابر یا بعد از ماه شروع باشد.'])->withInput();
+        }
 
         $visibleTicketIds = (clone $baseQuery)->reorder()->pluck('tickets.id');
         $ticketCreatedAt = Ticket::whereIn('id', $visibleTicketIds)->pluck('created_at', 'id');
@@ -138,12 +161,23 @@ class RequestController extends Controller
         abort_unless($user->hasPermission('request.view.all'), 403);
 
         $filters = $request->validate([
-            'from' => ['nullable', 'date_format:Y-m-d'],
-            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'from' => ['nullable', 'string', 'max:20'],
+            'to' => ['nullable', 'string', 'max:20'],
         ]);
 
-        $from = isset($filters['from']) ? Carbon::parse($filters['from'])->startOfDay() : now()->startOfMonth()->startOfDay();
-        $to = isset($filters['to']) ? Carbon::parse($filters['to'])->endOfDay() : now()->endOfDay();
+        $from = isset($filters['from']) ? JalaliDate::parse($filters['from']) : now()->startOfMonth()->startOfDay();
+        $to = isset($filters['to']) ? JalaliDate::parse($filters['to']) : now()->endOfDay();
+        if (! $from) {
+            return back()->withErrors(['from' => 'تاریخ شروع معتبر نیست؛ تاریخ را به‌صورت شمسی وارد کنید.'])->withInput();
+        }
+        if (! $to) {
+            return back()->withErrors(['to' => 'تاریخ پایان معتبر نیست؛ تاریخ را به‌صورت شمسی وارد کنید.'])->withInput();
+        }
+        $from->startOfDay();
+        $to->endOfDay();
+        if ($to->lt($from)) {
+            return back()->withErrors(['to' => 'تاریخ پایان باید بعد از تاریخ شروع باشد.'])->withInput();
+        }
         if ($from->diffInDays($to) > 365) {
             return back()->withErrors(['to' => 'بازه گزارش نمی‌تواند بیشتر از یک سال باشد.'])->withInput();
         }
@@ -184,7 +218,7 @@ class RequestController extends Controller
         $lastDay = $to->copy()->startOfDay();
         while ($cursor->lte($lastDay)) {
             $key = $cursor->toDateString();
-            $days[$key] = ['date' => $key, 'created' => 0, 'resolved' => 0];
+            $days[$key] = ['date' => JalaliDate::format($cursor), 'created' => 0, 'resolved' => 0];
             $cursor->addDay();
         }
 
@@ -207,8 +241,8 @@ class RequestController extends Controller
         }
 
         return view('requests.reports', [
-            'from' => $from->toDateString(),
-            'to' => $to->toDateString(),
+            'from' => JalaliDate::format($from),
+            'to' => JalaliDate::format($to),
             'stats' => ['created' => $created, 'resolved' => $resolved, 'average_seconds' => $averageSeconds],
             'chart' => array_values($days),
         ]);

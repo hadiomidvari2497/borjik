@@ -20,7 +20,7 @@
   <section class="ticket-hero">
     <div class="ticket-hero-top"><span class="ticket-id">{{ $ticket->number }}</span><a class="ticket-back" href="{{ $backUrl }}">→ بازگشت به فهرست</a></div>
     <h2>{{ $ticket->title }}</h2>
-    <div class="ticket-hero-bottom"><span class="ticket-hero-sub">ثبت‌شده در {{ $ticket->created_at?->format('Y/m/d · H:i') }} توسط {{ $ticket->createdBy?->display_name ?: $ticket->createdBy?->mobile }}</span><div class="ticket-tags"><span class="ticket-tag ticket-status">{{ $statuses[$status] ?? $status }}</span><span class="ticket-tag">اولویت: {{ $priorityLabels[$priority] ?? $priority }}</span><span class="ticket-tag">{{ $categoryLabels[$ticket->category] ?? $ticket->category }}</span></div></div>
+    <div class="ticket-hero-bottom"><span class="ticket-hero-sub">ثبت‌شده در {{ \App\Support\Fa::num(\App\Support\JalaliDate::format($ticket->created_at).($ticket->created_at ? ' · '.$ticket->created_at->format('H:i') : '')) }} توسط {{ $ticket->createdBy?->display_name ?: $ticket->createdBy?->mobile }}</span><div class="ticket-tags"><span class="ticket-tag ticket-status">{{ $statuses[$status] ?? $status }}</span><span class="ticket-tag">اولویت: {{ $priorityLabels[$priority] ?? $priority }}</span><span class="ticket-tag">{{ $categoryLabels[$ticket->category] ?? $ticket->category }}</span></div></div>
   </section>
   <div class="ticket-grid">
     <div class="ticket-main-col">
@@ -39,7 +39,7 @@
         <div class="ticket-comments">
           @forelse($ticket->comments->sortBy('created_at') as $comment)
             <article class="ticket-comment" id="comment-{{ $comment->id }}">
-              <div class="ticket-comment-head"><span class="ticket-comment-author">{{ $comment->user?->display_name ?: $comment->user?->mobile ?: 'کاربر' }}</span><time class="ticket-comment-time">{{ $comment->created_at?->format('Y/m/d · H:i') }}</time></div>
+              <div class="ticket-comment-head"><span class="ticket-comment-author">{{ $comment->user?->display_name ?: $comment->user?->mobile ?: 'کاربر' }}</span><time class="ticket-comment-time">{{ \App\Support\Fa::num(\App\Support\JalaliDate::format($comment->created_at).($comment->created_at ? ' · '.$comment->created_at->format('H:i') : '')) }}</time></div>
               @if($comment->replyTo)<a class="ticket-reply-quote" href="#comment-{{ $comment->reply_to_id }}"><small>↳ در پاسخ به {{ $comment->replyTo->user?->display_name ?: $comment->replyTo->user?->mobile }}</small>{{ \Illuminate\Support\Str::limit($comment->replyTo->body, 180) }}</a>@endif
               <p class="ticket-comment-body">{{ $comment->body }}</p>
               <a class="ticket-reply-action" href="{{ $showUrl }}?reply_to_id={{ $comment->id }}#comment-form">↩ پاسخ به این پیام</a>
@@ -85,7 +85,7 @@
     <div class="ticket-card-head"><div class="ticket-card-icon">◷</div><div><h3>تاریخچه کامل درخواست</h3><p>رویدادها به ترتیب زمان ثبت شده‌اند.</p></div></div>
     <div class="ticket-timeline">
       @forelse($ticket->events->sortBy('created_at') as $event)
-        <div class="ticket-event"><div class="ticket-event-dot">•</div><div class="ticket-event-content"><b>{{ $event->description }}</b><small>{{ $event->user?->display_name ?: $event->user?->mobile ?: 'سامانه' }} · {{ $event->created_at?->format('Y/m/d · H:i') }}</small></div></div>
+        <div class="ticket-event"><div class="ticket-event-dot">•</div><div class="ticket-event-content"><b>{{ $event->description }}</b><small>{{ $event->user?->display_name ?: $event->user?->mobile ?: 'سامانه' }} · {{ \App\Support\Fa::num(\App\Support\JalaliDate::format($event->created_at).($event->created_at ? ' · '.$event->created_at->format('H:i') : '')) }}</small></div></div>
       @empty<div class="ticket-empty">هنوز رویدادی در تاریخچه ثبت نشده است.</div>@endforelse
     </div>
   </section>

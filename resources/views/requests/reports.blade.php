@@ -13,8 +13,8 @@
   <div class="report-top"><a class="report-back" href="{{ route('requests.index') }}">← بازگشت به درخواست‌ها</a></div>
   <section class="report-hero"><h2>گزارش عملکرد رسیدگی</h2><p>روند ثبت و حل درخواست‌های همین ساختمان را در بازه انتخابی بررسی کنید. آمار بر اساس تاریخ ثبت و تاریخ تغییر وضعیت به انجام‌شده یا بسته‌شده محاسبه می‌شود.</p></section>
   <form class="report-filter" method="GET" action="{{ route('requests.reports') }}">
-    <div><label for="report-from">از تاریخ</label><input id="report-from" type="date" name="from" value="{{ $from }}" required></div>
-    <div><label for="report-to">تا تاریخ</label><input id="report-to" type="date" name="to" value="{{ $to }}" min="{{ $from }}" required></div>
+    <div><label for="report-from">از تاریخ</label><input id="report-from" class="jdate" type="text" name="from" value="{{ old('from', $from) }}" placeholder="۱۴۰۵/۰۷/۰۱" autocomplete="off" required></div>
+    <div><label for="report-to">تا تاریخ</label><input id="report-to" class="jdate" type="text" name="to" value="{{ old('to', $to) }}" placeholder="۱۴۰۵/۰۷/۳۰" autocomplete="off" required></div>
     <button type="submit">نمایش گزارش</button>
   </form>
   @if($errors->has('to'))<p role="alert">{{ $errors->first('to') }}</p>@endif
@@ -32,7 +32,7 @@
       <div class="report-bars">
         @foreach($chart as $day)
           <div class="report-row">
-            <span class="report-date">{{ $day['date'] }}</span>
+            <span class="report-date">{{ \App\Support\Fa::num($day['date']) }}</span>
             <div class="report-bar-group">
               <div style="display:flex;align-items:center"><div class="report-bar" style="width:{{ max($day['created'] > 0 ? 2 : 0, ($day['created'] / $maxCount) * 100) }}%"></div><span class="report-value">{{ \App\Support\Fa::num($day['created']) }}</span></div>
               <div style="display:flex;align-items:center"><div class="report-bar resolved" style="width:{{ max($day['resolved'] > 0 ? 2 : 0, ($day['resolved'] / $maxCount) * 100) }}%"></div><span class="report-value">{{ \App\Support\Fa::num($day['resolved']) }}</span></div>

@@ -43,8 +43,8 @@
       <div><h3>گزارش روند ماهانه</h3><p>تعداد درخواست‌های ثبت‌شده و خاتمه‌یافته و میانگین زمان رسیدگی در بازه انتخابی</p></div>
     </div>
     <form class="req-report-filters" method="GET" action="{{ route('requests.index') }}">
-      <div><label for="report-from">از ماه</label><input id="report-from" type="month" name="report_from" value="{{ $reportFrom->format('Y-m') }}"></div>
-      <div><label for="report-to">تا ماه</label><input id="report-to" type="month" name="report_to" value="{{ $reportTo->format('Y-m') }}"></div>
+      <div><label for="report-from">از ماه</label><input id="report-from" type="text" name="report_from" value="{{ old('report_from', \App\Support\Fa::num(\Morilog\Jalali\Jalalian::fromCarbon($reportFrom)->format('Y/m'))) }}" placeholder="۱۴۰۵/۰۷" inputmode="numeric" autocomplete="off"></div>
+      <div><label for="report-to">تا ماه</label><input id="report-to" type="text" name="report_to" value="{{ old('report_to', \App\Support\Fa::num(\Morilog\Jalali\Jalalian::fromCarbon($reportTo)->format('Y/m'))) }}" placeholder="۱۴۰۵/۰۷" inputmode="numeric" autocomplete="off"></div>
       <button class="req-filter-btn" type="submit">نمایش گزارش</button>
     </form>
     <div class="req-report-wrap">
@@ -53,7 +53,7 @@
         <tbody>
           @forelse($reportRows as $row)
             <tr>
-              <td>{{ \App\Support\Fa::digits($row['month']) }}</td>
+              <td>{{ \App\Support\Fa::num(\Morilog\Jalali\Jalalian::fromCarbon(\Illuminate\Support\Carbon::parse($row['month'].'/01'))->format('Y/m')) }}</td>
               <td>{{ \App\Support\Fa::num($row['created']) }}</td>
               <td>{{ \App\Support\Fa::num($row['resolved']) }}</td>
               <td>@if($row['average_minutes'] === null) — @else {{ \App\Support\Fa::num(intdiv($row['average_minutes'], 1440)) }} روز و {{ \App\Support\Fa::num(intdiv($row['average_minutes'] % 1440, 60)) }} ساعت @endif</td>
@@ -93,7 +93,7 @@
           <tr>
             <td>
               <a class="req-title" href="{{ route('requests.show', $ticket->id) }}" aria-label="بررسی درخواست: {{ $ticket->title }}">{{ $ticket->title }}</a>
-              <div class="req-meta"><span class="req-id">{{ $ticket->number }}</span><span>·</span><span>{{ $ticket->created_at?->format('Y/m/d H:i') }}</span><span>·</span><span>{{ $categoryLabels[$ticket->category] ?? $ticket->category }}</span>@if($ticket->deadline && $ticket->deadline->isPast() && !in_array($status, ['done', 'closed'], true))<span class="req-overdue">عقب‌افتاده</span>@endif</div>
+              <div class="req-meta"><span class="req-id">{{ $ticket->number }}</span><span>·</span><span>{{ \App\Support\Fa::num(\App\Support\JalaliDate::format($ticket->created_at).($ticket->created_at ? ' '.$ticket->created_at->format('H:i') : '')) }}</span><span>·</span><span>{{ $categoryLabels[$ticket->category] ?? $ticket->category }}</span>@if($ticket->deadline && $ticket->deadline->isPast() && !in_array($status, ['done', 'closed'], true))<span class="req-overdue">عقب‌افتاده</span>@endif</div>
             </td>
             <td>{{ $ticket->createdBy?->display_name ?: $ticket->createdBy?->mobile ?: '—' }}</td>
             <td><span class="req-pill req-priority-{{ $priorityClasses[$priority] ?? 'medium' }}">{{ $priorityLabels[$priority] ?? $priority }}</span></td>

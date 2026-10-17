@@ -35,7 +35,7 @@
       @foreach($tickets as $ticket)
         @php $status = $ticket->status->value; $owner = $ticket->acceptedBy; $ownerName = $owner?->display_name ?: $owner?->mobile; @endphp
         <tr>
-          <td><a class="myreq-title" href="{{ route('my.requests.show', $ticket->id) }}" aria-label="مشاهده درخواست: {{ $ticket->title }}">{{ $ticket->title }}</a><div class="myreq-meta"><span>{{ $ticket->number }}</span><span>·</span><span>{{ $ticket->created_at?->format('Y/m/d H:i') }}</span>@if($ticket->deadline && $ticket->deadline->isPast() && !in_array($status, ['done', 'closed'], true))<span class="myreq-overdue">عقب‌افتاده</span>@endif</div></td>
+          <td><a class="myreq-title" href="{{ route('my.requests.show', $ticket->id) }}" aria-label="مشاهده درخواست: {{ $ticket->title }}">{{ $ticket->title }}</a><div class="myreq-meta"><span>{{ $ticket->number }}</span><span>·</span><span>{{ \App\Support\Fa::num(\App\Support\JalaliDate::format($ticket->created_at).($ticket->created_at ? ' '.$ticket->created_at->format('H:i') : '')) }}</span>@if($ticket->deadline && $ticket->deadline->isPast() && !in_array($status, ['done', 'closed'], true))<span class="myreq-overdue">عقب‌افتاده</span>@endif</div></td>
           <td><span class="myreq-pill myreq-status-{{ $statusClasses[$status] ?? 'new' }}">{{ $statuses[$status] ?? $status }}</span></td>
           <td>{{ $ownerName ?: 'در انتظار قبول مسئولیت' }}</td>
         </tr>
