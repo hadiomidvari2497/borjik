@@ -403,6 +403,9 @@ class RequestController extends Controller
             $item = Ticket::where('kind', 'request')->lockForUpdate()->findOrFail($ticket);
             abort_unless($item->assignees()->where('user_id', $user->id)->exists(), 403);
             if ($item->accepted_by !== null) abort(409, 'این درخواست قبلاً پذیرفته شده است.');
+            if (in_array($item->status->value, [TicketStatus::Done->value, TicketStatus::Closed->value], true)) {
+                abort(409, 'درخواست پایان‌یافته یا بسته‌شده قابل قبول مسئولیت نیست.');
+            }
             $assignee = $item->assignees()->where('user_id', $user->id)->lockForUpdate()->firstOrFail(); $assignee->accepted_at = now(); $assignee->save();
             $item->accepted_by = $user->id; $item->save();
             if ($item->status === TicketStatus::New) $this->changeStatus($item, TicketStatus::Review, $user, 'پرسنل مسئولیت درخواست را پذیرفت.');
@@ -431,8 +434,22 @@ class RequestController extends Controller
     {
         $item = $this->visibleTicket($request, $ticket);
         $data = $request->validate(['body' => ['required', 'string', 'max:5000'], 'reply_to_id' => ['nullable', 'integer', Rule::exists('ticket_comments', 'id')->where('ticket_id', $item->id)]]);
-        $comment = TicketComment::create(['building_id' => app(CurrentBuilding::class)->id(), 'ticket_id' => $item->id, 'user_id' => $request->user()->id, 'body' => $data['body'], 'reply_to_id' => $data['reply_to_id'] ?? null]);
-        $this->recordEvent($item, $request->user(), 'commented', empty($data['reply_to_id']) ? 'پیام جدیدی در گفت‌وگو ثبت شد.' : 'پاسخی به یک پیام در گفت‌وگو ثبت شد.', ['comment_id' => $comment->id, 'reply_to_id' => $comment->reply_to_id]);
+        DB::transaction(function () use ($item, $data, $request) {
+            $comment = TicketComment::create([
+                'building_id' => app(CurrentBuilding::class)->id(),
+                'ticket_id' => $item->id,
+                'user_id' => $request->user()->id,
+                'body' => $data['body'],
+                'reply_to_id' => $data['reply_to_id'] ?? null,
+            ]);
+            $this->recordEvent(
+                $item,
+                $request->user(),
+                'commented',
+                empty($data['reply_to_id']) ? 'پیام جدیدی در گفت‌وگو ثبت شد.' : 'پاسخی به یک پیام در گفت‌وگو ثبت شد.',
+                ['comment_id' => $comment->id, 'reply_to_id' => $comment->reply_to_id],
+            );
+        });
         return back()->with('status', 'پیام شما ثبت شد.');
     }
 
