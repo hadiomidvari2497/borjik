@@ -302,7 +302,8 @@ class TaskController extends Controller
         $oldAssigneeIds = [];
         DB::transaction(function () use ($item, $data, $user, $buildingId, $roleId, $validIds, $request, &$oldAssigneeIds) {
             $locked = Ticket::query()->where('kind', TicketKind::Task->value)->lockForUpdate()->findOrFail($item->id);
-            $oldAssigneeIds = $locked->assignees()->pluck('user_id')->map(fn ($id) => (int) $id)->all();
+            $currentAssignees = $locked->assignees()->get()->keyBy('user_id');
+            $oldAssigneeIds = $currentAssignees->keys()->map(fn ($id) => (int) $id)->all();
 
             $locked->fill([
                 'title' => $data['title'],
@@ -314,17 +315,29 @@ class TaskController extends Controller
                 'unit_id' => $data['unit_id'] ?? null,
                 'target_role_id' => $roleId,
             ]);
+
+            // If the primary assignee is removed, clear the claim so a new assignee can accept it.
+            if ($locked->accepted_by !== null && ! $validIds->contains((int) $locked->accepted_by)) {
+                $locked->accepted_by = null;
+            }
             $locked->save();
 
-            $locked->assignees()->delete();
+            // Keep existing assignment rows (and accepted_at) for staff who remain assigned.
+            foreach ($currentAssignees as $assignedUserId => $assignee) {
+                if (! $validIds->contains((int) $assignedUserId)) {
+                    $assignee->delete();
+                }
+            }
             foreach ($validIds as $staffId) {
-                TicketAssignee::create([
-                    'building_id' => $buildingId,
-                    'ticket_id' => $locked->id,
-                    'user_id' => $staffId,
-                    'assigned_by' => $user->id,
-                    'assigned_at' => now(),
-                ]);
+                if (! $currentAssignees->has($staffId)) {
+                    TicketAssignee::create([
+                        'building_id' => $buildingId,
+                        'ticket_id' => $locked->id,
+                        'user_id' => $staffId,
+                        'assigned_by' => $user->id,
+                        'assigned_at' => now(),
+                    ]);
+                }
             }
 
             foreach ($request->file('attachments', []) as $file) {
