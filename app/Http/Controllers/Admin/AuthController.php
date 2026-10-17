@@ -113,7 +113,28 @@ class AuthController extends Controller
         $request->session()->regenerate();
         $user->forceFill(['last_login_at' => now()])->save();
 
-        return redirect()->intended(route('admin.dashboard'));
+        return redirect()->to($this->landingUrl($request));
+    }
+
+    /**
+     * مقصد بعد از ورود: فقط اگر آدرس ذخیره‌شده (url.intended) داخل خود پنل مدیریت باشد.
+     * در غیر این صورت — مثلاً وقتی کاربر قبلاً صفحه‌ی پنل ساختمان را بدون ورود باز کرده و آدرسش در
+     * نشست مانده — ادمین به‌اشتباه به پنل ساختمان‌ها هدایت می‌شد.
+     */
+    private function landingUrl(Request $request): string
+    {
+        $home = route('admin.dashboard');
+        $intended = $request->session()->pull('url.intended');
+
+        if (! is_string($intended)) {
+            return $home;
+        }
+
+        $base = rtrim((string) parse_url($home, PHP_URL_PATH), '/');
+        $path = (string) parse_url($intended, PHP_URL_PATH);
+        $sameHost = parse_url($intended, PHP_URL_HOST) === parse_url($home, PHP_URL_HOST);
+
+        return $sameHost && ($path === $base || str_starts_with($path, $base.'/')) ? $intended : $home;
     }
 
     /** @return array{id:int, remember:bool, expires:int, tries:int}|null */

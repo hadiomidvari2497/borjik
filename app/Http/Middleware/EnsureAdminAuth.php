@@ -17,7 +17,8 @@ class EnsureAdminAuth
         if (! $admin || $admin->status !== 'active') {
             Auth::guard('admin')->logout();
 
-            return redirect()->route('admin.login')
+            // guest() آدرس درخواستی را برای بازگشت پس از ورود نگه می‌دارد (فقط GET)
+            return redirect()->guest(route('admin.login'))
                 ->with('error', 'برای ورود به پنل مدیریت وارد شوید.');
         }
 

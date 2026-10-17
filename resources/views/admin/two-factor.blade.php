@@ -1,4 +1,4 @@
-@extends('layouts.guest')
+@extends('layouts.admin-guest')
 @section('title', 'تأیید دومرحله‌ای مدیر')
 @section('content')
 <h1 class="h1">تأیید دومرحله‌ای</h1>
