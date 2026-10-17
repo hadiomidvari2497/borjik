@@ -278,26 +278,27 @@ class TaskController extends Controller
         $item = $this->visibleTask($request, $ticket);
         $user = $request->user();
         abort_unless($user->hasPermission('ticket.respond'), 403);
-        $assignee = $item->assignees()->where('user_id', $user->id)->lockForUpdate()->firstOrFail();
-        abort_if($item->accepted_by !== null && (int) $item->accepted_by !== (int) $user->id, 409, 'این تسک قبلاً توسط همکار دیگری پذیرفته شده است.');
+        DB::transaction(function () use ($item, $user) {
+            $locked = Ticket::query()->where('kind', TicketKind::Task->value)->lockForUpdate()->findOrFail($item->id);
+            $assignee = $locked->assignees()->where('user_id', $user->id)->lockForUpdate()->firstOrFail();
+            abort_if($locked->accepted_by !== null && (int) $locked->accepted_by !== (int) $user->id, 409, 'این تسک قبلاً توسط همکار دیگری پذیرفته شده است.');
 
-        DB::transaction(function () use ($item, $user, $assignee) {
             $assignee->accepted_at = now();
             $assignee->save();
-            if ($item->accepted_by === null) {
-                $item->accepted_by = $user->id;
-                if ($item->status->value === 'new') {
-                    $item->status = TicketStatus::Review;
+            if ($locked->accepted_by === null) {
+                $locked->accepted_by = $user->id;
+                if ($locked->status->value === 'new') {
+                    $locked->status = TicketStatus::Review;
                     TicketStatusLog::create([
-                        'building_id' => $item->building_id, 'ticket_id' => $item->id,
+                        'building_id' => $locked->building_id, 'ticket_id' => $locked->id,
                         'from_status' => 'new', 'to_status' => 'review',
                         'user_id' => $user->id, 'note' => 'پرسنل مسئولیت تسک را پذیرفت.', 'created_at' => now(),
                     ]);
                 }
-                $item->save();
+                $locked->save();
             }
             TicketEvent::create([
-                'building_id' => $item->building_id, 'ticket_id' => $item->id,
+                'building_id' => $locked->building_id, 'ticket_id' => $locked->id,
                 'user_id' => $user->id, 'type' => 'claimed',
                 'description' => 'مسئولیت تسک توسط '.($user->display_name ?: $user->mobile).' پذیرفته شد.',
                 'metadata' => null, 'created_at' => now(),
@@ -358,6 +359,9 @@ class TaskController extends Controller
         $newStatus = $data['status'];
         if ($oldStatus === $newStatus) {
             return back()->with('status', 'وضعیت تغییری نکرد.');
+        }
+        if ($newStatus === 'closed' && ! $user->hasPermission('ticket.view.all')) {
+            abort(403, 'بستن نهایی تسک فقط برای مدیر مجاز است.');
         }
         if ($oldStatus === 'closed' && ! $user->hasPermission('ticket.view.all')) {
             abort(403, 'تسک بسته‌شده فقط توسط مدیر قابل بازگشایی است.');
