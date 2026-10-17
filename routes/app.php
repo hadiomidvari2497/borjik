@@ -12,6 +12,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\MyContractController;
 use App\Http\Controllers\MyInvoiceController;
 use App\Http\Controllers\MyPaymentController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ParkingController;
@@ -134,7 +135,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::delete('/invitation', 'cancelInvitation')->name('invitation.cancel');
     });
 
-    Route::prefix('notifications')->name('notifications.')->controller(\\App\\Http\\Controllers\\NotificationController::class)->group(function () {
+    Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/{notification}/read', 'read')->name('read');
     });
