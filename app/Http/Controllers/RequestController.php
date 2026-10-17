@@ -257,7 +257,7 @@ class RequestController extends Controller
             'canManage' => $request->user()->hasPermission('request.view.all'),
             'canUpdateStatus' => $this->canUpdateStatus($request->user(), $item),
             'canClaim' => $this->canClaim($request->user(), $item),
-            'staff' => $request->user()->hasPermission('request.view.all') ? $this->staffOptions($item->category) : collect(),
+            'staff' => $request->user()->hasPermission('request.view.all') ? $this->staffOptions($item->target_role_id) : collect(),
             'statuses' => $this->statusLabels(),
         ]);
     }
@@ -587,11 +587,13 @@ class RequestController extends Controller
         }
     }
 
-    private function staffOptions(string $category)
+    private function staffOptions(?int $roleId)
     {
-        $roleKey = match ($category) { 'maintenance', 'facilities' => 'maintenance', 'cleaning' => 'cleaning', 'security' => 'security', default => null };
-        if (! $roleKey) return collect();
-        return User::select('users.id', 'users.first_name', 'users.last_name', 'users.mobile')->join('building_user_roles as bur', 'bur.user_id', '=', 'users.id')->join('roles as r', 'r.id', '=', 'bur.role_id')->where('bur.building_id', app(CurrentBuilding::class)->id())->where('bur.status', 'active')->where('r.key', $roleKey)->whereNull('users.deleted_at')->distinct()->orderBy('users.first_name')->get();
+        if (! $roleId) return collect();
+        return User::select('users.id', 'users.first_name', 'users.last_name', 'users.mobile')
+            ->join('building_user_roles as bur', 'bur.user_id', '=', 'users.id')
+            ->where('bur.building_id', app(CurrentBuilding::class)->id())->where('bur.status', 'active')
+            ->where('bur.role_id', $roleId)->whereNull('users.deleted_at')->distinct()->orderBy('users.first_name')->get();
     }
 
     private function recordEvent(Ticket $ticket, ?User $user, string $type, string $description, array $metadata = []): void
