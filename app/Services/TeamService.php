@@ -29,7 +29,8 @@ class TeamService
     {
         if ($scope !== 'staff') return self::MEMBERS;
         if (! $buildingId) return self::STAFF;
-        return array_values(array_unique(array_merge(['owner', 'manager'], Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->pluck('key')->all())));
+        $buildingKeys = Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->pluck('key')->all();
+        return array_values(array_unique(array_merge(['owner', 'manager'], $buildingKeys ?: ['security', 'cleaning', 'maintenance'])));
     }
 
     /** فهرست افراد یک گروه (پرسنل یا اعضا) با نقش‌ها و وضعیت کلی. @return Collection<int, array<string,mixed>> */
@@ -263,6 +264,9 @@ class TeamService
         return Role::whereIn('key', $keys)->where(function ($query) use ($buildingId, $keys) {
             $query->whereNull('building_id')->whereIn('key', array_values(array_intersect($keys, self::PROTECTED)));
             if ($buildingId) $query->orWhere('building_id', $buildingId);
+            if ($buildingId && ! Role::where('building_id', $buildingId)->where('is_staff', true)->exists()) {
+                $query->orWhereNull('building_id'); // compatibility for tests/legacy buildings created outside BuildingService
+            }
         })->pluck('id')->all();
     }
 
