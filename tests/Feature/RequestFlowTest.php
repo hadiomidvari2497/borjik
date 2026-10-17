@@ -159,6 +159,37 @@ class RequestFlowTest extends TestCase
             ->get(route('requests.reports'))->assertForbidden();
     }
 
+    public function test_manager_cannot_read_requests_from_another_building(): void
+    {
+        $otherBuilding = Building::create([
+            'name' => 'برج مستقل',
+            'code' => 'RQ002',
+            'created_by' => $this->manager->id,
+        ]);
+
+        $otherTicket = app(CurrentBuilding::class)->actingAs($otherBuilding->id, function () {
+            return Ticket::create([
+                'number' => 'REQ-OTHER-001',
+                'kind' => 'request',
+                'title' => 'درخواست محرمانه ساختمان دیگر',
+                'description' => 'این درخواست نباید در ساختمان فعلی دیده شود.',
+                'category' => 'maintenance',
+                'priority' => 'high',
+                'status' => 'new',
+                'created_by' => $this->resident->id,
+            ]);
+        });
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->get(route('requests.index'))
+            ->assertOk()
+            ->assertDontSee('درخواست محرمانه ساختمان دیگر');
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->get(route('requests.show', $otherTicket->id))
+            ->assertNotFound();
+    }
+
     private function makeUser(string $mobile, string $name): User
     {
         return User::create([
