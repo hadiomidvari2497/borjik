@@ -96,13 +96,12 @@ class TaskController extends Controller
             ->when($filters['assignee'] ?? null, fn ($q, $value) => $q->whereHas('assignees', fn ($a) => $a->where('user_id', $value)))
             ->when(($filters['overdue'] ?? null) === '1', fn ($q) => $q->whereNotIn('status', ['done', 'closed'])->whereNotNull('deadline')->where('deadline', '<', now()));
 
-        $tickets = $query->get();
         $staff = $this->staffOptions();
         $kanban = ($filters['view'] ?? 'kanban') === 'kanban';
+        $tickets = $kanban ? $query->get() : $query->paginate(20)->withQueryString();
 
         return view('tickets.index', [
             'tickets' => $tickets,
-            'paginatedTickets' => null,
             'staff' => $staff,
             'stats' => $stats,
             'filters' => $filters,
