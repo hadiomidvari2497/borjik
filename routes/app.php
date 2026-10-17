@@ -146,6 +146,8 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::get('/{ticket}/edit', 'edit')->whereNumber('ticket')->name('edit');
+        Route::put('/{ticket}', 'update')->whereNumber('ticket')->name('update');
         Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
         Route::post('/{ticket}/status', 'updateStatus')->whereNumber('ticket')->name('status');
         Route::post('/{ticket}/claim', 'claim')->whereNumber('ticket')->name('claim');
