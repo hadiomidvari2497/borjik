@@ -172,7 +172,7 @@ class CalendarTest extends TestCase
     {
         Notification::fake();
 
-        $event = app(\\App\\Support\\CurrentBuilding::class)->actingAs(
+        $event = app(\App\\Support\\CurrentBuilding::class)->actingAs(
             $this->building->id,
             fn () => CalendarEvent::create([
                 'created_by' => $this->owner->id,
