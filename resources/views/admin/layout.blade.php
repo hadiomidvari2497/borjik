@@ -38,6 +38,8 @@
       @if($adm->hasPermission('plans.manage'))<a href="{{ route('admin.plans.index') }}" @class(['on' => request()->routeIs('admin.plans.*')])>پلن‌های اشتراک</a>@endif
       @if($adm->hasPermission('admin.users.manage'))<a href="{{ route('admin.users.index') }}" @class(['on' => request()->routeIs('admin.users.*')])>کاربران ادمین</a>@endif
       @if($adm->hasPermission('admin.roles.manage'))<a href="{{ route('admin.roles.index') }}" @class(['on' => request()->routeIs('admin.roles.*')])>نقش‌ها و دسترسی‌ها</a>@endif
+      @if($adm->hasPermission('site.settings'))<a href="{{ route('admin.settings.edit') }}" @class(['on' => request()->routeIs('admin.settings.*')])>تنظیمات سایت</a>@endif
+      <a href="{{ route('admin.account') }}" @class(['on' => request()->routeIs('admin.account*')])>حساب من</a>
     </nav>
     <form method="POST" action="{{ route('admin.logout') }}" style="margin-top:24px">@csrf
       <button class="btn sec sm" type="submit" style="width:100%;justify-content:center">خروج</button>

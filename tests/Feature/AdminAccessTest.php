@@ -140,4 +140,41 @@ class AdminAccessTest extends TestCase
         $this->actingAs($s, 'admin')->delete("/admin/roles/{$role->id}")->assertSessionHas('error');
         $this->assertDatabaseHas('admin_roles', ['id' => $role->id]);
     }
+
+    public function test_admin_login_ignores_a_stale_building_panel_url(): void
+    {
+        $this->admin(['username' => 'boss', 'password' => 'secret-pass-1']);
+
+        // کاربر قبلاً صفحهٔ پنل ساختمان را بدون ورود باز کرده؛ آدرس آن در نشست می‌ماند
+        $this->get('/')->assertRedirect(route('login'));
+        $this->post('/admin/login', ['username' => 'boss', 'password' => 'secret-pass-1'])
+            ->assertRedirect(route('admin.dashboard'));
+        $this->assertNull(session('url.intended'));
+    }
+
+    public function test_admin_login_still_returns_to_the_admin_page_that_was_requested(): void
+    {
+        $this->admin(['username' => 'boss', 'password' => 'secret-pass-1', 'is_super' => true]);
+
+        $this->get('/admin/plans')->assertRedirect(route('admin.login'));
+        $this->post('/admin/login', ['username' => 'boss', 'password' => 'secret-pass-1'])
+            ->assertRedirect(url('/admin/plans'));
+    }
+
+    public function test_admin_login_never_redirects_to_another_host(): void
+    {
+        $this->admin(['username' => 'boss', 'password' => 'secret-pass-1']);
+
+        $this->withSession(['url.intended' => 'https://evil.example/admin/plans'])
+            ->post('/admin/login', ['username' => 'boss', 'password' => 'secret-pass-1'])
+            ->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_admin_login_page_uses_the_admin_layout(): void
+    {
+        $this->get('/admin/login')->assertOk()
+            ->assertSee('پنل مدیریت سیستم')
+            ->assertSee('class="field"', false)
+            ->assertDontSee('برای مدیران و ساکنین');
+    }
 }

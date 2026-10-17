@@ -22,6 +22,7 @@ class AdminUser extends Authenticatable
         return [
             'two_factor_enabled' => 'boolean',
             'is_super' => 'boolean',
+            'two_factor_secret' => 'encrypted',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];

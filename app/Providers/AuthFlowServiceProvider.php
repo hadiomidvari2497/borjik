@@ -32,5 +32,8 @@ class AuthFlowServiceProvider extends ServiceProvider
 
         // تأیید کد و ورود با رمز
         RateLimiter::for('otp-verify', fn (Request $r) => Limit::perMinute(10)->by('ip:'.$r->ip()));
+
+        // ورود به پنل مدیریت (رمز و کد ۲FA): سخت‌گیرانه‌تر از کاربران عادی
+        RateLimiter::for('admin-login', fn (Request $r) => Limit::perMinute(8)->by('admin-ip:'.$r->ip()));
     }
 }

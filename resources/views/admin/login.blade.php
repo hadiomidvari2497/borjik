@@ -1,22 +1,20 @@
-@extends('layouts.guest')
+@extends('layouts.admin-guest')
 @section('title', 'ورود مدیر سیستم')
 @section('content')
-<h1 class="h1">پنل مدیریت برجیک</h1>
-<p class="lead">ورود مدیر اصلی سیستم برای مدیریت پلن‌های اشتراک و تنظیمات سراسری.</p>
+<h1 class="h1">ورود به پنل مدیریت</h1>
+<p class="lead">برای مدیریت پلن‌های اشتراک و تنظیمات سراسری سامانه وارد شوید.</p>
 <form method="POST" action="{{ route('admin.login.submit') }}">
   @csrf
-  <div class="fld">
+  <div class="field">
     <label for="username">نام کاربری</label>
-    <input id="username" name="username" value="{{ old('username') }}" required autofocus>
+    <input id="username" name="username" dir="ltr" value="{{ old('username') }}" autocomplete="username" required autofocus>
     @error('username')<div class="err">{{ $message }}</div>@enderror
   </div>
-  <div class="fld">
+  <div class="field">
     <label for="password">رمز عبور</label>
-    <input id="password" type="password" name="password" required>
+    <div class="pw"><input id="password" type="password" name="password" dir="ltr" autocomplete="current-password" required><button type="button">نمایش</button></div>
   </div>
-  <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:10px 0">
-    <input type="checkbox" name="remember" value="1" style="width:auto"> مرا به خاطر بسپار
-  </label>
-  <button class="btn" type="submit" style="width:100%;justify-content:center">ورود</button>
+  <label class="check"><input type="checkbox" name="remember" value="1"> مرا به خاطر بسپار</label>
+  <button class="btn" type="submit">ورود</button>
 </form>
 @endsection

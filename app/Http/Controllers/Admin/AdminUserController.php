@@ -155,6 +155,21 @@ class AdminUserController extends Controller
         return redirect()->route('admin.users.index')->with('status', 'کاربر ادمین حذف شد.');
     }
 
+    /** ریست تأیید دومرحله‌ای یک ادمین دیگر (مثلاً گم‌شدن گوشی). */
+    public function resetTwoFactor(int $id)
+    {
+        $user = AdminUser::findOrFail($id);
+        $this->authorizeTarget($user);
+
+        if ($user->id === $this->actor()->id) {
+            return back()->with('error', 'تأیید دومرحله‌ای حساب خودتان را از بخش «حساب من» مدیریت کنید.');
+        }
+
+        $user->forceFill(['two_factor_secret' => null, 'two_factor_enabled' => false])->save();
+
+        return back()->with('status', 'تأیید دومرحله‌ای این کاربر غیرفعال شد.');
+    }
+
     private function actor(): AdminUser
     {
         /** @var AdminUser */

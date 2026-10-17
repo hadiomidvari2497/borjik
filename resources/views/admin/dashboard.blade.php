@@ -17,6 +17,7 @@
     @endif
     @if($adm->hasPermission('admin.users.manage'))<a class="btn sec" href="{{ route('admin.users.index') }}">کاربران ادمین</a>@endif
     @if($adm->hasPermission('admin.roles.manage'))<a class="btn sec" href="{{ route('admin.roles.index') }}">نقش‌ها و دسترسی‌ها</a>@endif
+    @if($adm->hasPermission('site.settings'))<a class="btn sec" href="{{ route('admin.settings.edit') }}">تنظیمات سایت</a>@endif
   </div>
 </div>
 @endsection

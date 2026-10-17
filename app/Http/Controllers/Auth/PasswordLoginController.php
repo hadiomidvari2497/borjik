@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\SiteSetting;
 use App\Models\User;
 use App\Support\MobileNumber;
 use App\Services\Auth\LoginDestinationService;
@@ -13,6 +14,10 @@ class PasswordLoginController extends Controller
 {
     public function store(Request $request)
     {
+        if (! SiteSetting::passwordLoginEnabled()) {
+            return back()->withErrors(['mobile' => 'ورود با رمز عبور در حال حاضر غیرفعال است.'])->withInput();
+        }
+
         $mobile = MobileNumber::normalize($request->input('mobile'));
         $password = (string) $request->input('password');
 
