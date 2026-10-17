@@ -21,6 +21,7 @@
 .poll-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
 .poll-description{white-space:pre-line;color:var(--muted,#667085);margin:8px 0}
 .poll-footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.poll-type-help{font-size:12px;color:var(--muted,#667085);margin-top:6px}
 </style>
 
 @if($canManage)
@@ -57,7 +58,15 @@
             <textarea id="poll-description" name="description" rows="3" maxlength="2000" placeholder="جزئیات لازم برای تصمیم‌گیری اعضا">{{ old('description') }}</textarea>
             @error('description')<div class="e">{{ $message }}</div>@enderror
         </div>
-        <div class="poll-form-grid" style="margin-top:12px">
+        <div class="fld" style="margin-top:12px">
+            <label for="poll-response-type">نوع نظرسنجی</label>
+            <select id="poll-response-type" name="response_type">
+                <option value="choice" @selected(old('response_type', 'choice') === 'choice')>گزینه‌ای</option>
+                <option value="text" @selected(old('response_type') === 'text')>تشریحی؛ پاسخ متنی</option>
+            </select>
+            <p class="poll-type-help">در نوع تشریحی، اعضا پاسخ خود را می‌نویسند و گزینه‌ای لازم نیست.</p>
+        </div>
+        <div id="poll-choice-options" class="poll-form-grid" style="margin-top:12px">
             @for($i=0;$i<4;$i++)
             <div class="fld">
                 <label for="poll-option-{{ $i+1 }}">گزینه {{ $F::digits($i+1) }} @if($i<2)*@endif</label>
@@ -66,6 +75,22 @@
             @endfor
         </div>
         @error('options')<div class="e" style="margin-top:8px">{{ $message }}</div>@enderror
+        <script>
+            (() => {
+                const type = document.getElementById('poll-response-type');
+                const options = document.getElementById('poll-choice-options');
+                const sync = () => {
+                    const choice = type.value === 'choice';
+                    options.hidden = !choice;
+                    options.querySelectorAll('input').forEach((input, index) => {
+                        input.required = choice && index < 2;
+                        input.disabled = !choice;
+                    });
+                };
+                type.addEventListener('change', sync);
+                sync();
+            })();
+        </script>
         <label class="poll-option" style="margin-top:12px">
             <input type="checkbox" name="is_anonymous" value="1" @checked(old('is_anonymous'))>
             رأی‌گیری مخفی باشد (هویت رأی‌دهندگان در نتایج نمایش داده نمی‌شود)
@@ -95,7 +120,7 @@
                 @endphp
                 <article class="poll-card">
                     <div class="poll-head">
-                        <h3 class="poll-title">{{ $poll->title }}</h3>
+                        <h3 class="poll-title">@if($canManage)<a href="{{ route('polls.show', $poll->id) }}">{{ $poll->title }}</a>@else{{ $poll->title }}@endif</h3>
                         <span class="poll-chip">
                             @if($ended)
                                 پایان‌یافته
@@ -110,7 +135,8 @@
                         <p class="poll-description">{{ $poll->description }}</p>
                     @endif
                     <div class="poll-meta">
-                        <span>{{ $F::digits($poll->votes_count) }} رأی</span>
+                        <span>{{ $F::digits($poll->votes_count) }} {{ $poll->response_type === 'text' ? 'پاسخ' : 'رأی' }}</span>
+                        <span>{{ $poll->response_type === 'text' ? 'تشریحی' : 'گزینه‌ای' }}</span>
                         <span>{{ $residentOnly ? 'مخصوص ساکنان' : 'تمام اعضای مجاز' }}</span>
                         @if($poll->is_anonymous)
                             <span>مخفی</span>
@@ -134,15 +160,22 @@
                         @if($canVote && $started && !$ended && (!$residentOnly || $eligibleRole))
                             <form method="POST" action="{{ route('polls.vote', $poll->id) }}">
                                 @csrf
-                                <div class="poll-options">
-                                    @foreach($poll->options as $option)
-                                        <label class="poll-option">
-                                            <input type="radio" name="option_id" value="{{ $option->id }}" required>
-                                            <span>{{ $option->text }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                                <button class="btn" type="submit">ثبت رأی</button>
+                                @if($poll->response_type === 'text')
+                                    <div class="fld">
+                                        <label for="poll-answer-{{ $poll->id }}">نظر شما</label>
+                                        <textarea id="poll-answer-{{ $poll->id }}" name="answer" rows="4" maxlength="5000" required placeholder="نظر خود را بنویسید..."></textarea>
+                                    </div>
+                                @else
+                                    <div class="poll-options">
+                                        @foreach($poll->options as $option)
+                                            <label class="poll-option">
+                                                <input type="radio" name="option_id" value="{{ $option->id }}" required>
+                                                <span>{{ $option->text }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <button class="btn" type="submit">ثبت {{ $poll->response_type === 'text' ? 'نظر' : 'رأی' }}</button>
                             </form>
                         @elseif($hasVoted)
                             <p class="poll-description">رأی شما ثبت شده است.</p>
@@ -155,6 +188,9 @@
                         @endif
                     @endif
 
+                    @if($canManage)
+                        <div class="poll-footer"><a class="btn sm" href="{{ route('polls.show', $poll->id) }}">جزئیات نظرسنجی</a></div>
+                    @endif
                     @if($canManage && !$ended)
                         <div class="poll-footer">
                             <form method="POST" action="{{ route('polls.close', $poll->id) }}" data-confirm="این رأی‌گیری بسته شود؟" data-confirm-title="بستن رأی‌گیری" data-confirm-icon="warning">
