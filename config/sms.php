@@ -16,6 +16,7 @@ return [
         'rent_invoice_issued' => 'برجیک: صورت‌حساب اجاره‌ی {month} واحد {unit} ساختمان «{building}» به مبلغ {amount} تومان صادر شد. مهلت پرداخت: {date}',
         'invitation' => 'شما از طرف {inviter} به ساختمان «{building}» با نقش {role} دعوت شده‌اید. ورود: {link}',
         'task_created' => 'برجیک: تسک «{title}» با شماره {number} به شما ارجاع شد. وارد سامانه شوید تا جزئیات را ببینید.',
+        'task_assigned' => 'برجیک: تسک «{title}» با شماره {number} به شما ارجاع شد. وارد سامانه شوید تا جزئیات را ببینید.',
         'task_status_changed' => 'برجیک: وضعیت تسک «{title}» به «{status}» تغییر کرد.',
     ],
 ];
