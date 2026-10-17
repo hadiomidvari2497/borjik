@@ -525,6 +525,7 @@ class TaskController extends Controller
         $newStatus = $data['status'];
         $changed = DB::transaction(function () use ($item, $user, $data, $newStatus, $isManager) {
             $locked = Ticket::query()->where('kind', TicketKind::Task->value)->lockForUpdate()->findOrFail($item->id);
+            abort_unless($isManager || ($user->hasPermission('ticket.respond') && $locked->assignees()->where('user_id', $user->id)->exists()), 403);
             $oldStatus = $locked->status->value;
             if ($oldStatus === $newStatus) {
                 return false;
