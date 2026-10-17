@@ -21,13 +21,24 @@
   @error('mobile')<div class="alert err" style="margin-top:14px">{{ $message }}</div>@enderror
 @else
   <h1 class="h1">ورود به برجیک</h1>
+  @if($otpEnabled)
   <p class="lead">با شماره‌ی موبایل وارد شوید یا ثبت‌نام کنید؛ نیازی به رمز عبور نیست.</p>
+  @else
+  <p class="lead">با شماره‌ی موبایل و رمز عبور وارد شوید.</p>
+  @endif
 
+  @if($otpEnabled && $passwordEnabled)
   <div class="seg" role="tablist">
     <button type="button" class="on" data-tab="otp" role="tab">کد پیامکی</button>
     <button type="button" data-tab="pw" role="tab">رمز عبور</button>
   </div>
+  @endif
 
+  @if(! $otpEnabled && ! $passwordEnabled)
+    <div class="alert err">ورود به سامانه موقتاً غیرفعال است. لطفاً بعداً تلاش کنید.</div>
+  @endif
+
+  @if($otpEnabled)
   <form method="POST" action="{{ route('login.otp') }}" data-pane="otp">@csrf
     <div class="field">
       <label for="m1">شماره‌ی موبایل</label>
@@ -36,8 +47,10 @@
     </div>
     <button class="btn" type="submit">دریافت کد تأیید</button>
   </form>
+  @endif
 
-  <form method="POST" action="{{ route('login.password') }}" data-pane="pw" hidden>@csrf
+  @if($passwordEnabled)
+  <form method="POST" action="{{ route('login.password') }}" data-pane="pw" @if($otpEnabled) hidden @endif>@csrf
     <div class="field">
       <label for="m2">شماره‌ی موبایل</label>
       <div class="phone"><input id="m2" name="mobile" inputmode="tel" autocomplete="tel" placeholder="۹۱۲۳۴۵۶۷۸۹" value="{{ old('mobile') }}" required></div>
@@ -48,6 +61,7 @@
     </div>
     <button class="btn" type="submit">ورود</button>
   </form>
+  @endif
 
   <p class="fine">با ورود، قوانین و حریم خصوصی برجیک را می‌پذیرید.</p>
 @endif

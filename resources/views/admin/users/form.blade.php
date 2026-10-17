@@ -75,4 +75,13 @@
     </div>
   </form>
 </div>
+@if($user && ! $isSelf && $user->two_factor_enabled)
+<div class="card" style="margin-top:16px">
+  <p style="margin:0 0 10px;line-height:1.8">تأیید دومرحله‌ای این کاربر فعال است. اگر دسترسی او به برنامه‌ی احراز هویت را از دست داده، می‌توانید آن را ریست کنید.</p>
+  <form method="POST" action="{{ route('admin.users.reset-two-factor', $user->id) }}" data-confirm="تأیید دومرحله‌ای این کاربر غیرفعال شود؟" data-confirm-title="ریست ۲FA" data-confirm-icon="warning">
+    @csrf
+    <button class="btn dng sm" type="submit">ریست تأیید دومرحله‌ای</button>
+  </form>
+</div>
+@endif
 @endsection
