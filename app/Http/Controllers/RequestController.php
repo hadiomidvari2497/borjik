@@ -46,6 +46,13 @@ class RequestController extends Controller
         foreach (array_keys($this->statusLabels()) as $status) {
             $stats[$status] = (clone $baseQuery)->where('status', $status)->count();
         }
+        $stats['resolved'] = $stats['done'] + $stats['closed'];
+        $stats['open'] = max(0, $stats['total'] - $stats['resolved']);
+        $stats['overdue'] = (clone $baseQuery)->whereNotIn('status', ['done', 'closed'])
+            ->whereNotNull('deadline')->where('deadline', '<', now())->count();
+        $stats['resolution_rate'] = $stats['total'] > 0
+            ? (int) round(($stats['resolved'] / $stats['total']) * 100)
+            : 0;
 
         $query = clone $baseQuery;
         if (! empty($filters['q'])) {
