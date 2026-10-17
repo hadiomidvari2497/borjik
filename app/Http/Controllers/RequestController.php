@@ -417,39 +417,92 @@ class RequestController extends Controller
     public function updateStatus(Request $request, int $ticket)
     {
         $item = $this->visibleTicket($request, $ticket);
-        abort_unless($this->canUpdateStatus($request->user(), $item), 403);
+        $user = $request->user();
+        $isManager = $user->hasPermission('request.view.all');
+        abort_unless($this->canUpdateStatus($user, $item), 403);
         $data = $request->validate([
             'status' => ['required', Rule::in(array_map(fn ($s) => $s->value, TicketStatus::cases()))],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
         $status = TicketStatus::from($data['status']);
-        if (! $request->user()->hasPermission('request.view.all') && $status === TicketStatus::Closed) {
-            abort(403);
+        $changed = DB::transaction(function () use ($ticket, $status, $user, $data, $isManager) {
+            $locked = Ticket::where('kind', 'request')->lockForUpdate()->findOrFail($ticket);
+            $previous = $locked->status->value;
+            if ($previous === $status->value) {
+                return false;
+            }
+            abort_unless($this->allowsStatusTransition($previous, $status->value, $isManager), 422, 'این تغییر وضعیت مجاز نیست.');
+            $this->changeStatus($locked, $status, $user, $data['note'] ?? null);
+            return true;
+        });
+        return back()->with('status', $changed ? 'وضعیت درخواست به‌روزرسانی شد.' : 'وضعیت تغییری نکرد.');
+    }
+
+    private function allowsStatusTransition(string $from, string $to, bool $isManager): bool
+    {
+        // done is the staff's completion report; closed is the manager's approval.
+        if ($to === TicketStatus::Closed->value) {
+            return $isManager && $from === TicketStatus::Done->value;
         }
-        $this->changeStatus($item, $status, $request->user(), $data['note'] ?? null);
-        return back()->with('status', 'وضعیت درخواست به‌روزرسانی شد.');
+        if ($from === TicketStatus::Closed->value || $from === TicketStatus::Done->value) {
+            return $isManager && $to === TicketStatus::Doing->value;
+        }
+
+        return match ($from) {
+            TicketStatus::New->value => $to === TicketStatus::Review->value,
+            TicketStatus::Review->value => in_array($to, [TicketStatus::Doing->value, TicketStatus::Waiting->value, TicketStatus::Done->value], true),
+            TicketStatus::Doing->value => in_array($to, [TicketStatus::Waiting->value, TicketStatus::Done->value], true),
+            TicketStatus::Waiting->value => in_array($to, [TicketStatus::Doing->value, TicketStatus::Done->value], true),
+            default => false,
+        };
     }
 
     public function comment(Request $request, int $ticket)
     {
         $item = $this->visibleTicket($request, $ticket);
         $data = $request->validate(['body' => ['required', 'string', 'max:5000'], 'reply_to_id' => ['nullable', 'integer', Rule::exists('ticket_comments', 'id')->where('ticket_id', $item->id)]]);
-        DB::transaction(function () use ($item, $data, $request) {
+        $user = $request->user();
+        $comment = DB::transaction(function () use ($item, $data, $user) {
             $comment = TicketComment::create([
-                'building_id' => app(CurrentBuilding::class)->id(),
+                'building_id' => $item->building_id,
                 'ticket_id' => $item->id,
-                'user_id' => $request->user()->id,
-                'body' => $data['body'],
+                'user_id' => $user->id,
+                'body' => trim($data['body']),
                 'reply_to_id' => $data['reply_to_id'] ?? null,
             ]);
             $this->recordEvent(
                 $item,
-                $request->user(),
+                $user,
                 'commented',
                 empty($data['reply_to_id']) ? 'پیام جدیدی در گفت‌وگو ثبت شد.' : 'پاسخی به یک پیام در گفت‌وگو ثبت شد.',
                 ['comment_id' => $comment->id, 'reply_to_id' => $comment->reply_to_id],
             );
+            return $comment;
         });
+
+        $recipients = collect([$item->createdBy, $item->acceptedBy])
+            ->filter()->unique('id')
+            ->reject(fn ($recipient) => (int) $recipient->id === (int) $user->id);
+        if ($comment->reply_to_id) {
+            $parent = $item->comments()->with('user')->find($comment->reply_to_id);
+            if ($parent?->user && (int) $parent->user->id !== (int) $user->id) {
+                $recipients->push($parent->user);
+            }
+        }
+        foreach ($recipients->unique('id') as $recipient) {
+            $url = (int) $recipient->id === (int) $item->created_by
+                ? route('my.requests.show', $item->id)
+                : route('requests.show', $item->id);
+            $recipient->notify(new RequestAlertNotification(
+                buildingId: (int) $item->building_id,
+                ticketId: (int) $item->id,
+                event: 'request_commented',
+                title: 'پیام جدید در درخواست',
+                message: ($user->display_name ?: $user->mobile).' در درخواست «'.$item->title.'» پیام گذاشت.',
+                url: $url,
+            ));
+        }
+
         return back()->with('status', 'پیام شما ثبت شد.');
     }
 
@@ -537,6 +590,6 @@ class RequestController extends Controller
     private function statusLabels(): array
     {
         return ['new' => 'ثبت‌شده', 'review' => 'در حال بررسی', 'doing' => 'در حال انجام',
-            'waiting' => 'در انتظار', 'done' => 'انجام‌شده', 'closed' => 'بسته‌شده'];
+            'waiting' => 'در انتظار', 'done' => 'پایان کار؛ در انتظار تأیید مدیر', 'closed' => 'تأیید مدیر و بسته‌شده'];
     }
 }
