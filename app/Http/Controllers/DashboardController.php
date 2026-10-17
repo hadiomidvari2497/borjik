@@ -23,7 +23,12 @@ class DashboardController extends Controller
         }
 
         if ($current->hasRole('owner', 'manager')) {
-            return view('dashboard.management', $data->management());
+            $trendDays = (int) $request->query('trend_days', 30);
+            if (! in_array($trendDays, [7, 30, 90], true)) {
+                $trendDays = 30;
+            }
+
+            return view('dashboard.management', $data->management($trendDays));
         }
         if ($current->hasRole('security', 'cleaning', 'maintenance')) {
             return view('dashboard.staff', $data->staff($request->user()));

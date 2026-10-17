@@ -23,7 +23,7 @@ class DashboardData
     private const CLOSED = ['done', 'closed'];
 
     /** مالک و مدیر. */
-    public function management(): array
+    public function management(int $trendDays = 30): array
     {
         $buildingId = app(CurrentBuilding::class)->id();
         $building = Building::with('subscription')->find($buildingId);
@@ -65,6 +65,7 @@ class DashboardData
             'period' => $this->currentPeriod(),
             'events' => $this->upcomingEvents(),
             'collections' => $collections,
+            'trend' => $this->trendAnalytics($trendDays),
             'pendingReceipts' => $pendingReceipts,
             'attention' => [
                 ['key' => 'overdue_invoices', 'count' => (int) $overdue->c],
@@ -129,6 +130,63 @@ class DashboardData
         }
 
         return compact('byStatus', 'openRequests', 'openTasks', 'urgent', 'allRequests') + ['total' => array_sum($byStatus)];
+    }
+
+    /** روند روزانه درخواست‌ها، بدهی سررسیدشده و وصولی تأییدشده در بازه انتخابی. */
+    private function trendAnalytics(int $days): array
+    {
+        $days = in_array($days, [7, 30, 90], true) ? $days : 30;
+        $from = today()->subDays($days - 1)->startOfDay();
+        $to = now();
+
+        $requestsByDay = Ticket::where('kind', 'request')
+            ->whereBetween('created_at', [$from, $to])
+            ->selectRaw('DATE(created_at) as day, COUNT(*) as total')
+            ->groupByRaw('DATE(created_at)')
+            ->pluck('total', 'day');
+
+        $debtByDay = Invoice::whereIn('status', ['unpaid', 'partial'])
+            ->whereBetween('due_date', [$from->toDateString(), $to->toDateString()])
+            ->selectRaw('DATE(due_date) as day, COALESCE(SUM(amount - paid_amount), 0) as total')
+            ->groupByRaw('DATE(due_date)')
+            ->pluck('total', 'day');
+
+        $collectionsByDay = PaymentReceipt::where('status', 'approved')
+            ->whereBetween('paid_at', [$from->toDateString(), $to->toDateString()])
+            ->selectRaw('DATE(paid_at) as day, COALESCE(SUM(amount), 0) as total')
+            ->groupByRaw('DATE(paid_at)')
+            ->pluck('total', 'day');
+
+        $rows = [];
+        $cursor = $from->copy();
+        while ($cursor->lte(today())) {
+            $key = $cursor->toDateString();
+            $rows[] = [
+                'date' => $key,
+                'label' => Jalalian::fromCarbon($cursor)->format('j/m'),
+                'requests' => (int) ($requestsByDay[$key] ?? 0),
+                'debt' => (int) ($debtByDay[$key] ?? 0),
+                'collections' => (int) ($collectionsByDay[$key] ?? 0),
+            ];
+            $cursor->addDay();
+        }
+
+        return [
+            'days' => $days,
+            'from' => Jalalian::fromCarbon($from)->format('Y/m/d'),
+            'to' => Jalalian::fromCarbon(today())->format('Y/m/d'),
+            'rows' => $rows,
+            'totals' => [
+                'requests' => array_sum(array_column($rows, 'requests')),
+                'debt' => array_sum(array_column($rows, 'debt')),
+                'collections' => array_sum(array_column($rows, 'collections')),
+            ],
+            'maxima' => [
+                'requests' => max(1, max(array_column($rows, 'requests'))),
+                'debt' => max(1, max(array_column($rows, 'debt'))),
+                'collections' => max(1, max(array_column($rows, 'collections'))),
+            ],
+        ];
     }
 
     /** وضعیت شارژ ماه جاری شمسی: دوره، تاریخ محاسبه، ثبت هزینه‌ها و روزهای مانده تا هشدار. */

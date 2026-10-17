@@ -117,6 +117,28 @@ class DashboardTest extends TestCase
         $this->actingAs($newcomer)->get(route('units.index'))->assertRedirect(route('dashboard'));
     }
 
+    public function test_management_dashboard_supports_selectable_trend_ranges(): void
+    {
+        $owner = User::where('mobile', '09120000001')->firstOrFail();
+
+        $this->actingAs($owner)->withSession(['current_building_id' => $this->building->id])
+            ->get('/?trend_days=7')->assertOk()
+            ->assertSee('روند درخواست‌ها، بدهی و وصولی')
+            ->assertSee('۷ روز')
+            ->assertSee('۳۰ روز')
+            ->assertSee('۹۰ روز')
+            ->assertSee('بدهی سررسیدشده در بازه')
+            ->assertSee('وصولی‌های تأییدشده');
+
+        $this->actingAs($owner)->withSession(['current_building_id' => $this->building->id])
+            ->get('/?trend_days=90')->assertOk()
+            ->assertSee('روند درخواست‌ها، بدهی و وصولی');
+
+        $this->actingAs($owner)->withSession(['current_building_id' => $this->building->id])
+            ->get('/?trend_days=999')->assertOk()
+            ->assertSee('۳۰ روز');
+    }
+
     public function test_management_dashboard_highlights_overdue_tasks_and_urgent_tickets(): void
     {
         $owner = User::where('mobile', '09120000001')->firstOrFail();
