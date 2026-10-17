@@ -1,5 +1,5 @@
 @php
-    $F = \\App\\Support\\Fa::class;
+    $F = \App\Support\Fa::class;
 @endphp
 @extends('layouts.app')
 @section('title', 'نظرسنجی و رأی‌گیری')
