@@ -174,7 +174,7 @@ class TeamService
             BuildingUserRole::where('id', $current->id)
                 ->where('building_id', $buildingId)
                 ->where('user_id', $userId)
-                ->delete();
+                ->get()->each(fn (BuildingUserRole $r) => $r->delete());
         });
     }
 
