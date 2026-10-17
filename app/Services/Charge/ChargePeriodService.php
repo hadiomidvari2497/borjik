@@ -100,19 +100,26 @@ class ChargePeriodService
     /** صدور صورت‌حساب شارژ برای هر واحد (مبلغ صفر رد می‌شود) و منتشر کردن دوره. تعداد صورت‌حساب‌ها برمی‌گردد. */
     public function publish(ChargePeriod $period): int
     {
-        if ($period->status !== PeriodStatus::Calculated) {
-            throw new ChargeException('ابتدا شارژ این دوره را محاسبه کنید.');
-        }
+        return DB::transaction(function () use ($period) {
+            // Reload and lock the period before checking its state or issuing invoices.
+            // A concurrent publisher waits here, then sees the committed Published status.
+            $period = ChargePeriod::query()
+                ->whereKey($period->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $amounts = $period->settings_snapshot['amounts'] ?? [];
-        $settings = ChargeSetting::firstOrFail();
-        $units = Unit::whereIn('id', array_keys($amounts))->get()->keyBy('id');
-        $parties = UnitParty::whereNull('to_date')->get()->groupBy('unit_id');
-        $rents = Contract::where('type', 'rent')->where('status', 'active')->get()->keyBy('unit_id');
-        $issued = today();
-        $due = today()->addDays((int) $settings->due_days);
+            if ($period->status !== PeriodStatus::Calculated) {
+                throw new ChargeException('ابتدا شارژ این دوره را محاسبه کنید.');
+            }
 
-        return DB::transaction(function () use ($amounts, $units, $parties, $rents, $period, $issued, $due) {
+            $amounts = $period->settings_snapshot['amounts'] ?? [];
+            $settings = ChargeSetting::firstOrFail();
+            $units = Unit::whereIn('id', array_keys($amounts))->get()->keyBy('id');
+            $parties = UnitParty::whereNull('to_date')->get()->groupBy('unit_id');
+            $rents = Contract::where('type', 'rent')->where('status', 'active')->get()->keyBy('unit_id');
+            $issued = today();
+            $due = today()->addDays((int) $settings->due_days);
+
             $count = 0;
             foreach ($amounts as $unitId => $amount) {
                 if ($amount <= 0 || ! $units->has($unitId)) {
@@ -144,7 +151,6 @@ class ChargePeriodService
             return $count;
         });
     }
-
     /** مسئول پرداخت شارژ (بند ۴.۱۵.۱): ساکن فعلی؛ در واحد اجاره‌ای طبق «شارژ بر عهده» قرارداد؛ در غیر این صورت مالک. */
     private function payerFor(Unit $unit, ?Contract $contract, Collection $parties): ?int
     {
