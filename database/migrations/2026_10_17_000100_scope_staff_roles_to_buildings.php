@@ -9,6 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::table('buildings', function (Blueprint $table) { $table->boolean('staff_roles_initialized')->default(false); });
         Schema::table('roles', function (Blueprint $table) {
             $table->foreignId('building_id')->nullable()->after('id')->constrained('buildings')->cascadeOnDelete();
             $table->boolean('is_default')->default(false)->after('is_staff');
@@ -56,6 +57,7 @@ return new class extends Migration
                 }
             }
         }
+        DB::table('buildings')->update(['staff_roles_initialized' => true]);
     }
 
     public function down(): void
@@ -84,5 +86,6 @@ return new class extends Migration
             $table->dropColumn(['is_default', 'is_active']);
             $table->unique('key');
         });
+        Schema::table('buildings', function (Blueprint $table) { $table->dropColumn('staff_roles_initialized'); });
     }
 };
