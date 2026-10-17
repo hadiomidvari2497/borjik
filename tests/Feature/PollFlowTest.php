@@ -72,7 +72,7 @@ class PollFlowTest extends TestCase
     public function test_eligible_member_can_vote_only_once_and_results_are_shown_after_vote(): void
     {
         $poll = $this->createPoll();
-        $option = $poll->options()->firstOrFail();
+        $option = $this->firstOption($poll);
 
         $this->open($this->tenant, 'post', route('polls.vote', $poll->id), ['option_id' => $option->id])
             ->assertRedirect(route('polls.index'));
@@ -90,7 +90,7 @@ class PollFlowTest extends TestCase
     {
         $poll = $this->createPoll();
         $otherPoll = $this->createPoll('نظرسنجی دیگر');
-        $foreignOption = $otherPoll->options()->firstOrFail();
+        $foreignOption = $this->firstOption($otherPoll);
 
         $this->open($this->tenant, 'post', route('polls.vote', $poll->id), ['option_id' => $foreignOption->id])
             ->assertNotFound();
@@ -106,6 +106,11 @@ class PollFlowTest extends TestCase
             'ends_at' => now()->addDay()->format('Y-m-d H:i:s'),
             'options' => ['بله', 'خیر'],
         ])->assertForbidden();
+    }
+
+    private function firstOption(Poll $poll): PollOption
+    {
+        return app(CurrentBuilding::class)->actingAs($this->building->id, fn () => $poll->options()->firstOrFail(), ['owner']);
     }
 
     private function createPoll(string $title = 'زمان تعمیر'): Poll
