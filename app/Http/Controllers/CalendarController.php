@@ -135,7 +135,6 @@ class CalendarController extends Controller
             'todayLabel' => JalaliDate::format(now()),
             'monthNames' => self::MONTHS,
             'filter' => $filter,
-            'editableEvents' => CalendarEvent::query()->orderBy('starts_at')->get(),
         ]);
     }
 

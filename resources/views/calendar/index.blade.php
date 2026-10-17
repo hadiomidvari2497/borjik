@@ -80,9 +80,9 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
             <div class="cal-toolbar">
                 <div class="cal-month"><div><h3>{{ $monthName }} {{ $F::digits((string) $year) }}</h3><small>تقویم ماهانه · شروع هفته از شنبه</small></div></div>
                 <div class="cal-nav">
-                    <a href="{{ route('events.index', ['month' => $prevKey]) }}" aria-label="ماه قبل" title="ماه قبل">›</a>
-                    <a class="cal-today" href="{{ route('events.index') }}">امروز</a>
-                    <a href="{{ route('events.index', ['month' => $nextKey]) }}" aria-label="ماه بعد" title="ماه بعد">‹</a>
+                    <a href="{{ route('events.index', ['month' => $prevKey, 'filter' => $filter]) }}" aria-label="ماه قبل" title="ماه قبل">›</a>
+                    <a class="cal-today" href="{{ route('events.index', ['filter' => $filter]) }}">امروز</a>
+                    <a href="{{ route('events.index', ['month' => $nextKey, 'filter' => $filter]) }}" aria-label="ماه بعد" title="ماه بعد">‹</a>
                 </div>
             </div>
             <nav class="cal-filters" aria-label="فیلتر تقویم">
@@ -164,12 +164,12 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
                                             @csrf @method('PUT')
                                             <div class="cal-field"><label>عنوان</label><input name="title" maxlength="180" required value="{{ $item['title'] }}"></div>
                                             <div class="cal-field"><label>توضیحات</label><textarea name="description" rows="2" maxlength="3000">{{ $item['description'] }}</textarea></div>
-                                            <div class="cal-field"><label>تاریخ شروع شمسی</label><input class="jdate" name="start_date" required autocomplete="off" value="{{ AppSupportJalaliDate::format($item['starts_at']) }}"></div>
+                                            <div class="cal-field"><label>تاریخ شروع شمسی</label><input class="jdate" name="start_date" required autocomplete="off" value="{{ \App\Support\JalaliDate::format($item['starts_at']) }}"></div>
                                             <div class="cal-two">
                                                 <div class="cal-field"><label>ساعت شروع</label><input name="start_time" type="time" value="{{ $item['starts_at']->format('H:i') }}"></div>
                                                 <div class="cal-field"><label>ساعت پایان</label><input name="end_time" type="time" value="{{ $item['event_model']->ends_at?->format('H:i') ?? $item['starts_at']->copy()->addHour()->format('H:i') }}"></div>
                                             </div>
-                                            <div class="cal-field"><label>تاریخ پایان (اختیاری)</label><input class="jdate" name="end_date" autocomplete="off" value="{{ $item['event_model']->ends_at ? AppSupportJalaliDate::format($item['event_model']->ends_at) : '' }}"></div>
+                                            <div class="cal-field"><label>تاریخ پایان (اختیاری)</label><input class="jdate" name="end_date" autocomplete="off" value="{{ $item['event_model']->ends_at ? \App\Support\JalaliDate::format($item['event_model']->ends_at) : '' }}"></div>
                                             <div class="cal-field"><label>رنگ رویداد</label><select name="color">@foreach(['teal'=>'سبز فیروزه‌ای','blue'=>'آبی','amber'=>'کهربایی','rose'=>'صورتی','violet'=>'بنفش'] as $colorKey=>$colorLabel)<option value="{{ $colorKey }}" @selected($item['color']===$colorKey)>{{ $colorLabel }}</option>@endforeach</select></div>
                                             <div class="cal-field"><label>یادآوری</label><select name="reminder_minutes">@foreach([0=>'بدون یادآوری',15=>'۱۵ دقیقه قبل',60=>'۱ ساعت قبل',1440=>'۱ روز قبل',10080=>'۱ هفته قبل'] as $minutes=>$label)<option value="{{ $minutes }}" @selected((int) $item['reminder_minutes']===$minutes)>{{ $label }}</option>@endforeach</select></div>
                                             <label class="cal-check"><input type="checkbox" name="is_all_day" value="1" @checked($item['event_model']->is_all_day)> رویداد تمام‌روزه است</label>
