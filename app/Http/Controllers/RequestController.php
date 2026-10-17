@@ -28,14 +28,48 @@ class RequestController extends Controller
     {
         $user = $request->user();
         abort_unless($user->hasPermission('request.view.all') || $user->hasPermission('request.view.domain'), 403);
-        $query = Ticket::where('kind', 'request')->with(['createdBy', 'unit', 'assignees.user', 'acceptedBy'])->latest();
+
+        $baseQuery = Ticket::where('kind', 'request')->with(['createdBy', 'unit', 'assignees.user', 'acceptedBy'])->latest();
         if (! $user->hasPermission('request.view.all')) {
-            $query->whereHas('assignees', fn ($q) => $q->where('user_id', $user->id));
+            $baseQuery->whereHas('assignees', fn ($q) => $q->where('user_id', $user->id));
         }
+
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::in(array_keys($this->statusLabels()))],
+            'priority' => ['nullable', Rule::in(['low', 'medium', 'high', 'urgent'])],
+            'category' => ['nullable', Rule::in(array_keys(self::CATEGORIES))],
+        ]);
+
+        $stats = ['total' => (clone $baseQuery)->count()];
+        foreach (array_keys($this->statusLabels()) as $status) {
+            $stats[$status] = (clone $baseQuery)->where('status', $status)->count();
+        }
+
+        $query = clone $baseQuery;
+        if (! empty($filters['q'])) {
+            $term = trim($filters['q']);
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', "%{$term}%")
+                    ->orWhere('number', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%")
+                    ->orWhere('location', 'like', "%{$term}%")
+                    ->orWhereHas('createdBy', fn ($creator) => $creator
+                        ->where('display_name', 'like', "%{$term}%")
+                        ->orWhere('mobile', 'like', "%{$term}%"));
+            });
+        }
+        $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['priority'] ?? null, fn ($q, $priority) => $q->where('priority', $priority))
+            ->when($filters['category'] ?? null, fn ($q, $category) => $q->where('category', $category));
+
         return view('requests.index', [
-            'tickets' => $query->paginate(15),
+            'tickets' => $query->paginate(15)->withQueryString(),
             'canManage' => $user->hasPermission('request.view.all'),
             'statuses' => $this->statusLabels(),
+            'categories' => self::CATEGORIES,
+            'stats' => $stats,
+            'filters' => $filters,
         ]);
     }
 
@@ -57,14 +91,37 @@ class RequestController extends Controller
     {
         $user = $request->user();
         abort_unless($user->hasPermission('request.view.own') || $user->hasPermission('request.create'), 403);
+
+        $baseQuery = Ticket::where('kind', 'request')->where('created_by', $user->id);
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::in(array_keys($this->statusLabels()))],
+        ]);
+        $stats = ['total' => (clone $baseQuery)->count()];
+        foreach (array_keys($this->statusLabels()) as $status) {
+            $stats[$status] = (clone $baseQuery)->where('status', $status)->count();
+        }
+
+        $query = (clone $baseQuery)->with(['unit', 'assignees.user', 'acceptedBy'])->latest();
+        if (! empty($filters['q'])) {
+            $term = trim($filters['q']);
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', "%{$term}%")
+                    ->orWhere('number', 'like', "%{$term}%")
+                    ->orWhere('description', 'like', "%{$term}%");
+            });
+        }
+        $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
+
         return view('my.requests', [
-            'tickets' => Ticket::where('kind', 'request')->where('created_by', $user->id)
-                ->with(['unit', 'assignees.user', 'acceptedBy'])->latest()->paginate(10),
+            'tickets' => $query->paginate(10)->withQueryString(),
             'categories' => self::CATEGORIES,
             'statuses' => $this->statusLabels(),
             'units' => Unit::query()
                 ->when(! $user->hasPermission('request.view.all'), fn ($q) => $q->whereHas('parties', fn ($p) => $p->where('user_id', $user->id)->whereNull('to_date')))
                 ->with('block')->orderBy('number')->get(),
+            'stats' => $stats,
+            'filters' => $filters,
         ]);
     }
 
