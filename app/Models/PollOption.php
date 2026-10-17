@@ -21,4 +21,5 @@ class PollOption extends Model
 
     public function building() { return $this->belongsTo(Building::class); }
     public function poll() { return $this->belongsTo(Poll::class, 'poll_id'); }
+    public function votes() { return $this->hasMany(PollVote::class, 'option_id'); }
 }
