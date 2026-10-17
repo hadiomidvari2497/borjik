@@ -6,6 +6,7 @@ use App\Models\Block;
 use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\ChargeSetting;
+use App\Models\ChargePeriod;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Role;
@@ -14,6 +15,8 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\Charge\ChargeException;
+use App\Services\Charge\ChargePeriodService;
 use App\Services\Sms\SmsGateway;
 use App\Support\CurrentBuilding;
 use Database\Seeders\RolePermissionSeeder;
@@ -149,6 +152,27 @@ class ChargeFlowTest extends TestCase
         $this->addExpense(5000)->assertSessionHasErrors('general');           // قفل پس از انتشار
         $this->as()->post(route('charges.publish', $periodId))->assertSessionHasErrors('general'); // انتشار دوباره
         $this->assertSame(2, DB::table('invoices')->count());
+    }
+
+    public function test_publish_rechecks_the_fresh_period_state_before_issuing_invoices(): void
+    {
+        $this->unit('1');
+        $this->addExpense(100000);
+        $periodId = (int) DB::table('charge_periods')->value('id');
+        $this->as()->post(route('charges.calculate', $periodId))->assertRedirect();
+
+        // Keep a stale model like a request that loaded the period before another publisher finished.
+        $stalePeriod = $this->db(fn () => ChargePeriod::findOrFail($periodId));
+        $this->db(fn () => DB::table('charge_periods')->where('id', $periodId)->update(['status' => 'published']));
+
+        try {
+            $this->db(fn () => app(ChargePeriodService::class)->publish($stalePeriod));
+            $this->fail('Publishing an already-published period should be rejected.');
+        } catch (ChargeException $exception) {
+            $this->assertSame('ابتدا شارژ این دوره را محاسبه کنید.', $exception->getMessage());
+        }
+
+        $this->assertSame(0, DB::table('invoices')->count());
     }
 
     public function test_changing_expenses_invalidates_a_calculated_period(): void
