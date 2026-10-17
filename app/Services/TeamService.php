@@ -219,7 +219,7 @@ class TeamService
             } else {
                 foreach ($toAdd as $key) {
                     BuildingUserRole::updateOrCreate(
-                        ['building_id' => $buildingId, 'user_id' => $userId, 'role_id' => (in_array($key, self::PROTECTED, true) ? Role::whereNull('building_id')->where('key', $key)->value('id') : Role::where('building_id', $buildingId)->where('key', $key)->value('id'))],
+                        ['building_id' => $buildingId, 'user_id' => $userId, 'role_id' => (in_array($key, self::PROTECTED, true) ? Role::whereNull('building_id')->where('key', $key)->value('id') : (Role::where('building_id', $buildingId)->where('key', $key)->value('id') ?? (! Role::where('building_id', $buildingId)->where('is_staff', true)->exists() ? Role::whereNull('building_id')->where('key', $key)->value('id') : null)))],
                         ['status' => 'active', 'invited_by' => $actor->id, 'invited_at' => now(), 'joined_at' => now()],
                     );
                 }
