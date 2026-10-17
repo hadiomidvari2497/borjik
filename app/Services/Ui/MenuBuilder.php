@@ -120,7 +120,7 @@ class MenuBuilder
             'payments' => PaymentReceipt::where('status', 'pending')->count(),
             'tickets' => $this->openTickets($user, 'task'),
             'requests' => $this->openTickets($user, 'request'),
-            'notifications' => $user->unreadNotifications()->where('building_id', app(CurrentBuilding::class)->id())->count(),
+            'notifications' => $user->unreadNotifications()->where('data->building_id', app(CurrentBuilding::class)->id())->count(),
             default => 0,
         };
     }
