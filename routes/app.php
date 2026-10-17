@@ -142,6 +142,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
 
     // درخواست‌های ساکنان: مدیر همه را می‌بیند و مسئول فقط درخواست‌های ارجاع‌شده به خودش را.
     Route::middleware('can:request.view.domain')->prefix('requests')->name('requests.')->controller(RequestController::class)->group(function () {
+        Route::get('/reports', 'reports')->middleware('can:request.view.all')->name('reports');
         Route::get('/', 'index')->name('index');
         Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
         Route::post('/{ticket}/comments', 'comment')->whereNumber('ticket')->name('comments.store');
