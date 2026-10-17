@@ -39,7 +39,9 @@
 <div class="card" style="margin-bottom:16px">
   <div class="hd"><h2 style="margin:0">مرکز رسیدگی هوشمند</h2><small>{{ \App\Support\Fa::num($actionable->count()) }} مورد نیازمند اقدام</small></div>
   @forelse($actionable as $item)
-    @php\n      $label = $attentionMeta[$item['key']][0];\n      $description = $attentionMeta[$item['key']][1];\n      $routeName = $attentionMeta[$item['key']][2];\n    @endphp
+    @php($label = $attentionMeta[$item['key']][0])
+    @php($description = $attentionMeta[$item['key']][1])
+    @php($routeName = $attentionMeta[$item['key']][2])
     <div class="kv">
       <div>
         <b>{{ $label }}</b><br>
