@@ -13,6 +13,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\MyContractController;
 use App\Http\Controllers\MyInvoiceController;
 use App\Http\Controllers\MyPaymentController;
+use App\Http\Controllers\MyUnitController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RequestController;
@@ -114,7 +115,8 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::put('/{id}/payer', 'payer')->whereNumber('id')->name('payer');
         Route::post('/{id}/file', 'file')->whereNumber('id')->name('file');
     });
-    Route::get('/my/contracts', [MyContractController::class, 'index'])->middleware('can:contract.view.own')->name('my.contracts');\n    Route::get('/my/unit', [MyUnitController::class, 'index'])->middleware('can:unit.view.own')->name('my.units');
+    Route::get('/my/contracts', [MyContractController::class, 'index'])->middleware('can:contract.view.own')->name('my.contracts');
+    Route::get('/my/unit', [MyUnitController::class, 'index'])->middleware('can:unit.view.own')->name('my.units');\n    Route::get('/my/unit', [MyUnitController::class, 'index'])->middleware('can:unit.view.own')->name('my.units');
 
     Route::get('/files/{id}', [FileController::class, 'show'])->whereNumber('id')->name('files.show');
 
