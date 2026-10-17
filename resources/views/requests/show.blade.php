@@ -90,8 +90,9 @@
       @endif
       @if($canUpdateStatus)
         <section class="card"><div class="ticket-card-head"><div class="ticket-card-icon">↻</div><div><h3>به‌روزرسانی وضعیت</h3><p>پیشرفت کار را ثبت کنید</p></div></div>
+          @if($status === 'done')<p class="ticket-hint">پرسنل پایان کار را اعلام کرده است؛ درخواست تا تأیید مدیر بسته نمی‌شود.</p>@endif
           <form class="ticket-form" method="POST" action="{{ route('requests.status', $ticket->id) }}">@csrf
-            <div class="fld"><label for="status">وضعیت جدید</label><select id="status" name="status" required>@foreach($statuses as $key => $label)<option value="{{ $key }}" @selected($status === $key)>{{ $label }}</option>@endforeach</select></div>
+            <div class="fld"><label for="status">وضعیت جدید</label><select id="status" name="status" required>@foreach($statuses as $key => $label)@if($key !== 'closed' || $canManage)<option value="{{ $key }}" @selected($status === $key)>{{ $label }}</option>@endif @endforeach</select></div>
             <div class="fld"><label for="note">یادداشت پیشرفت (اختیاری)</label><textarea id="note" name="note" rows="3" maxlength="1000" placeholder="مثلاً قطعه سفارش داده شد..."></textarea></div>
             <button class="btn" type="submit">ثبت به‌روزرسانی</button>
           </form>
