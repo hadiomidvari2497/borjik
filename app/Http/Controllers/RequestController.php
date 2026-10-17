@@ -66,6 +66,7 @@ class RequestController extends Controller
             : now()->endOfMonth();
 
         $visibleTicketIds = (clone $baseQuery)->reorder()->pluck('tickets.id');
+        $ticketCreatedAt = Ticket::whereIn('id', $visibleTicketIds)->pluck('created_at', 'id');
         $completionLogs = TicketStatusLog::query()
             ->whereIn('ticket_id', $visibleTicketIds)
             ->whereIn('to_status', ['done', 'closed'])
@@ -82,8 +83,8 @@ class RequestController extends Controller
             $monthEnd = $cursor->copy()->endOfMonth();
             $createdCount = (clone $baseQuery)->whereBetween('created_at', [$monthStart, $monthEnd])->count();
             $resolvedLogs = $completionLogs->filter(fn ($log) => $log->created_at >= $monthStart && $log->created_at <= $monthEnd);
-            $durations = $resolvedLogs->map(function ($log) use ($visibleTicketIds) {
-                $createdAt = Ticket::whereKey($log->ticket_id)->value('created_at');
+            $durations = $resolvedLogs->map(function ($log) use ($ticketCreatedAt) {
+                $createdAt = $ticketCreatedAt->get($log->ticket_id);
                 return $createdAt ? max(0, \Illuminate\Support\Carbon::parse($createdAt)->diffInMinutes($log->created_at, false)) : null;
             })->filter(fn ($minutes) => $minutes !== null);
             $reportRows->push([
