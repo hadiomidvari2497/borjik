@@ -13,6 +13,9 @@ use App\Support\CurrentBuilding;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class TicketAttachmentSecurityTest extends TestCase
@@ -91,6 +94,64 @@ class TicketAttachmentSecurityTest extends TestCase
         $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
             ->get(route('tickets.attachments.show', [$ownTicket->id, $otherAttachment->id]))
             ->assertNotFound();
+    }
+
+
+    public function test_task_upload_accepts_allowed_private_attachments(): void
+    {
+        Notification::fake();
+        Queue::fake();
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->post(route('tickets.store'), [
+                'title' => 'تسک با پیوست',
+                'description' => 'بررسی آپلود فایل مجاز',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'attachments' => [UploadedFile::fake()->create('manual.pdf', 20, 'application/pdf')],
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $ticket = Ticket::withoutGlobalScopes()->where('title', 'تسک با پیوست')->firstOrFail();
+        $attachment = TicketAttachment::withoutGlobalScopes()->where('ticket_id', $ticket->id)->firstOrFail();
+
+        $this->assertSame($this->building->id, $attachment->building_id);
+        $this->assertStringStartsWith('ticket-attachments/'.$this->building->id.'/'.$ticket->id.'/', $attachment->path);
+        Storage::disk('local')->assertExists($attachment->path);
+    }
+
+    public function test_task_upload_rejects_disallowed_file_types_and_oversized_attachments(): void
+    {
+        Notification::fake();
+        Queue::fake();
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->from(route('tickets.create'))
+            ->post(route('tickets.store'), [
+                'title' => 'تسک با فایل نامعتبر',
+                'description' => 'فایل اجرایی نباید پذیرفته شود',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'attachments' => [UploadedFile::fake()->create('payload.exe', 20, 'application/octet-stream')],
+            ])
+            ->assertRedirect(route('tickets.create'))
+            ->assertSessionHasErrors('attachments.0');
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->from(route('tickets.create'))
+            ->post(route('tickets.store'), [
+                'title' => 'تسک با فایل حجیم',
+                'description' => 'فایل بزرگ‌تر از محدودیت نباید پذیرفته شود',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'attachments' => [UploadedFile::fake()->create('large.pdf', 10241, 'application/pdf')],
+            ])
+            ->assertRedirect(route('tickets.create'))
+            ->assertSessionHasErrors('attachments.0');
+
+        $this->assertDatabaseMissing('tickets', ['title' => 'تسک با فایل نامعتبر']);
+        $this->assertDatabaseMissing('tickets', ['title' => 'تسک با فایل حجیم']);
     }
 
     private function makeTask(Building $building, User $creator): Ticket
