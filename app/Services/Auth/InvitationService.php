@@ -33,10 +33,10 @@ class InvitationService
     {
         $mobile = MobileNumber::normalize($mobile) ?? throw new InvitationException('شماره‌ی موبایل معتبر نیست.');
         $buildingId = app(CurrentBuilding::class)->id() ?? throw new InvitationException('ساختمان فعالی انتخاب نشده است.');
-        $buildingHasRoles = Role::where('building_id', $buildingId)->where('is_staff', true)->exists();
-        $role = Role::where('key', $roleKey)->where(function ($query) use ($buildingId, $roleKey, $buildingHasRoles) {
+        $rolesInitialized = (bool) DB::table('buildings')->where('id', $buildingId)->value('staff_roles_initialized');
+        $role = Role::where('key', $roleKey)->where(function ($query) use ($buildingId, $roleKey, $rolesInitialized) {
             $query->where('building_id', $buildingId);
-            if (in_array($roleKey, ['owner', 'manager', 'unit_owner', 'tenant'], true) || ! $buildingHasRoles) $query->orWhereNull('building_id');
+            if (in_array($roleKey, ['owner', 'manager', 'unit_owner', 'tenant'], true) || ! $rolesInitialized) $query->orWhereNull('building_id');
         })->where('is_active', true)->firstOr(fn () => throw new InvitationException('نقش نامعتبر است.'));
 
         $user = User::firstOrCreate(['mobile' => $mobile], ['status' => 'invited']);
