@@ -7,6 +7,7 @@ use App\Models\ChargePeriod;
 use App\Models\ChargeSetting;
 use App\Models\Expense;
 use App\Models\SmsLog;
+use App\Services\Notifier;
 use App\Services\Sms\SmsSender;
 use App\Support\CurrentBuilding;
 use App\Support\Fa;
@@ -24,15 +25,15 @@ class RemindExpenses extends Command
 
     protected $description = 'یادآوری ثبت هزینه‌های ماه پیش از تاریخ محاسبه‌ی شارژ';
 
-    public function handle(SmsSender $sms, CurrentBuilding $current): int
+    public function handle(SmsSender $sms, Notifier $notifier, CurrentBuilding $current): int
     {
         $today = now()->startOfDay();
         $j = Jalalian::fromCarbon($today);
         $monthStart = (new Jalalian($j->getYear(), $j->getMonth(), 1))->toCarbon()->startOfDay();
         $sent = 0;
 
-        Building::where('status', 'active')->get()->each(function (Building $building) use (&$sent, $sms, $current, $today, $j, $monthStart) {
-            $current->actingAs($building->id, function () use (&$sent, $sms, $building, $today, $j, $monthStart) {
+        Building::where('status', 'active')->get()->each(function (Building $building) use (&$sent, $sms, $notifier, $current, $today, $j, $monthStart) {
+            $current->actingAs($building->id, function () use (&$sent, $sms, $notifier, $building, $today, $j, $monthStart) {
                 $setting = ChargeSetting::first();
                 if (! $setting) {
                     return;
@@ -62,6 +63,9 @@ class RemindExpenses extends Command
                     $sms->sendTemplate('expense_reminder', $user->mobile, [
                         'month' => Fa::MONTHS[$j->getMonth() - 1], 'building' => $building->name, 'date' => Fa::date($calc),
                     ], $user->id, $building->id);
+                    $notifier->send((int) $user->id, (int) $building->id, 'expense_reminder', 'یادآوری ثبت هزینه‌ها',
+                        'هزینه‌های '.Fa::MONTHS[$j->getMonth() - 1].' هنوز ثبت نشده است؛ شارژ در '.Fa::date($calc).' محاسبه می‌شود.',
+                        route('expenses.index'), ['level' => 'warning', 'category' => 'expense', 'key' => 'expense-reminder:'.$j->getYear().$j->getMonth(), 'label' => 'ثبت هزینه‌ها']);
                     $sent++;
                 }
             });

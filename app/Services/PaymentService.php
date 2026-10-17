@@ -29,7 +29,7 @@ class PaymentService
 {
     public const FILE_TYPE = 'payment_receipt';
 
-    public function __construct(private readonly SmsSender $sms)
+    public function __construct(private readonly SmsSender $sms, private readonly Notifier $notifier)
     {
     }
 
@@ -40,7 +40,7 @@ class PaymentService
 
         $meta = ['mime' => $upload->getMimeType(), 'size' => $upload->getSize(), 'name' => $upload->getClientOriginalName()];
 
-        return DB::transaction(function () use ($user, $unit, $amount, $paidAt, $note, $buildingId, $hash, $meta, $upload) {
+        $receipt = DB::transaction(function () use ($user, $unit, $amount, $paidAt, $note, $buildingId, $hash, $meta, $upload) {
             // Serialize receipt submissions for this building before checking the hash.
             // Without this lock, simultaneous requests can both pass the duplicate check.
             Building::query()->whereKey($buildingId)->lockForUpdate()->firstOrFail();
@@ -71,6 +71,10 @@ class PaymentService
 
             return $receipt;
         });
+
+        $this->notifyManagers($receipt, $user);
+
+        return $receipt;
     }
 
     public function approve(PaymentReceipt $receipt, User $reviewer): void
@@ -149,6 +153,24 @@ class PaymentService
         });
     }
 
+    /** فیش تازه ثبت‌شده را به مالک و مدیرها اعلان می‌کند (غیر از خودِ ثبت‌کننده). */
+    private function notifyManagers(PaymentReceipt $receipt, User $submitter): void
+    {
+        $unit = Unit::with('block')->find($receipt->unit_id);
+        if (! $unit) {
+            return;
+        }
+        $buildingId = (int) $receipt->building_id;
+
+        $this->notifier->send(
+            $this->notifier->managers($buildingId)->reject(fn (User $m) => $m->id === $submitter->id),
+            $buildingId, 'receipt_submitted', 'فیش پرداخت جدید',
+            ($submitter->display_name ?: $submitter->mobile).' فیشی به مبلغ '.Fa::num($receipt->amount).' تومان برای واحد '.$unit->block->name.' / '.Fa::digits($unit->number).' ثبت کرد.',
+            route('payments.index'),
+            ['category' => 'payment', 'key' => 'receipt:'.$receipt->id.':submitted', 'label' => 'بررسی فیش‌ها'],
+        );
+    }
+
     private function notify(PaymentReceipt $receipt, string $template): void
     {
         $user = User::find($receipt->user_id);
@@ -156,6 +178,14 @@ class PaymentService
         if (! $user || ! $unit) {
             return;
         }
+
+        $unitLabel = $unit->block->name.' / '.Fa::digits($unit->number);
+        $approved = $template === 'receipt_approved';
+        $this->notifier->send($user, (int) $receipt->building_id, $template,
+            $approved ? 'فیش پرداخت شما تأیید شد' : 'فیش پرداخت شما رد شد',
+            'فیش '.Fa::num($receipt->amount).' تومانی واحد '.$unitLabel.($approved ? ' تأیید شد و به حساب واحد اضافه شد.' : ' رد شد. دلیل: '.($receipt->reject_reason ?: '—')),
+            route('my.payments'),
+            ['level' => $approved ? 'success' : 'warning', 'category' => 'payment', 'key' => 'receipt:'.$receipt->id.':'.($approved ? 'approved' : 'rejected'), 'label' => 'مشاهده پرداخت‌ها']);
 
         $this->sms->sendTemplate($template, $user->mobile, [
             'amount' => Fa::num($receipt->amount),

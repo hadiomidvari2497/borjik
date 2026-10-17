@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ChargePeriodService
 {
-    public function __construct(private readonly ChargeCalculator $calculator, private readonly \App\Services\PaymentService $payments)
+    public function __construct(private readonly ChargeCalculator $calculator, private readonly \App\Services\PaymentService $payments, private readonly \App\Services\Notifier $notifier)
     {
     }
 
@@ -100,7 +100,10 @@ class ChargePeriodService
     /** صدور صورت‌حساب شارژ برای هر واحد (مبلغ صفر رد می‌شود) و منتشر کردن دوره. تعداد صورت‌حساب‌ها برمی‌گردد. */
     public function publish(ChargePeriod $period): int
     {
-        return DB::transaction(function () use ($period) {
+        $totals = [];
+        $meta = [];
+
+        $count = DB::transaction(function () use ($period, &$totals, &$meta) {
             // Reload and lock the period before checking its state or issuing invoices.
             // A concurrent publisher waits here, then sees the committed Published status.
             $period = ChargePeriod::query()
@@ -119,6 +122,7 @@ class ChargePeriodService
             $rents = Contract::where('type', 'rent')->where('status', 'active')->get()->keyBy('unit_id');
             $issued = today();
             $due = today()->addDays((int) $settings->due_days);
+            $meta = ['period_id' => $period->id, 'building_id' => (int) $period->building_id, 'year' => $period->jalali_year, 'month' => $period->jalali_month, 'due' => $due];
 
             $count = 0;
             foreach ($amounts as $unitId => $amount) {
@@ -128,11 +132,13 @@ class ChargePeriodService
                 $unit = $units[$unitId];
                 $contract = $unit->status === UnitStatus::Rented ? $rents->get($unit->id) : null;
 
+                $payer = $this->payerFor($unit, $contract, $parties);
+
                 Invoice::create([
                     'unit_id' => $unit->id,
                     'period_id' => $period->id,
                     'contract_id' => $contract?->id,
-                    'payer_user_id' => $this->payerFor($unit, $contract, $parties),
+                    'payer_user_id' => $payer,
                     'type' => InvoiceType::Charge,
                     'number' => sprintf('CH-%d%02d-%d', $period->jalali_year, $period->jalali_month, $unit->id),
                     'amount' => $amount,
@@ -143,6 +149,10 @@ class ChargePeriodService
                     'breakdown' => ['method' => $period->settings_snapshot['settings']['method'] ?? null],
                 ]);
                 $count++;
+                if ($payer) {
+                    $totals[$payer]['count'] = ($totals[$payer]['count'] ?? 0) + 1;
+                    $totals[$payer]['sum'] = ($totals[$payer]['sum'] ?? 0) + (int) $amount;
+                }
                 $this->payments->reallocate($unit->id); // مازاد پرداخت‌های قبلی از همین صورت‌حساب کم می‌شود
             }
 
@@ -150,6 +160,26 @@ class ChargePeriodService
 
             return $count;
         });
+
+        $this->announce($totals, $meta);
+
+        return $count;
+    }
+
+    /** هر مسئول پرداخت یک اعلان درون‌سامانه‌ای دریافت می‌کند (بند ۴.۱۵: پیامک و اعلان). */
+    private function announce(array $totals, array $meta): void
+    {
+        if ($totals === [] || $meta === []) {
+            return;
+        }
+        $month = \App\Support\Fa::MONTHS[$meta['month'] - 1].' '.\App\Support\Fa::digits($meta['year']);
+
+        foreach ($totals as $payerId => $t) {
+            $this->notifier->send((int) $payerId, $meta['building_id'], 'charge_published', 'صورت‌حساب شارژ '.$month.' صادر شد',
+                \App\Support\Fa::num($t['count']).' صورت‌حساب شارژ به مبلغ کل '.\App\Support\Fa::num($t['sum']).' تومان برای شما صادر شد؛ مهلت پرداخت '.\App\Support\Fa::date($meta['due'], 'j F Y').'.',
+                route('my.invoices'),
+                ['category' => 'invoice', 'key' => 'charge:'.$meta['period_id'], 'label' => 'مشاهده صورت‌حساب‌ها']);
+        }
     }
     /** مسئول پرداخت شارژ (بند ۴.۱۵.۱): ساکن فعلی؛ در واحد اجاره‌ای طبق «شارژ بر عهده» قرارداد؛ در غیر این صورت مالک. */
     private function payerFor(Unit $unit, ?Contract $contract, Collection $parties): ?int

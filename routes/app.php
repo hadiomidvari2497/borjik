@@ -151,6 +151,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
 
     Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::post('/read-all', 'readAll')->name('read-all');
         Route::post('/{notification}/read', 'read')->name('read');
     });
 

@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/** اعلان‌های درون‌سامانه‌ای کاربر در ساختمانِ فعال (بند ۴.۱۸): مشاهده، علامت‌گذاری به‌عنوان خوانده‌شده و تاریخچه. */
 class NotificationController extends Controller
 {
     public function index(Request $request, CurrentBuilding $current): View
@@ -14,16 +15,19 @@ class NotificationController extends Controller
         $buildingId = $current->id();
         abort_unless($buildingId, 403);
 
-        $notifications = $request->user()->notifications()
-            ->where('data->building_id', $buildingId)
-            ->latest()
-            ->paginate(20);
+        $filter = $request->query('filter') === 'unread' ? 'unread' : 'all';
+
+        $query = $request->user()->notifications()->where('data->building_id', $buildingId);
+        if ($filter === 'unread') {
+            $query->whereNull('read_at');
+        }
+        $notifications = $query->latest()->paginate(20)->withQueryString();
 
         $unreadCount = $request->user()->unreadNotifications()
             ->where('data->building_id', $buildingId)
             ->count();
 
-        return view('notifications.index', compact('notifications', 'unreadCount'));
+        return view('notifications.index', compact('notifications', 'unreadCount', 'filter'));
     }
 
     public function read(Request $request, string $notification, CurrentBuilding $current): RedirectResponse
@@ -45,5 +49,17 @@ class NotificationController extends Controller
         return $url && str_starts_with($url, url('/'))
             ? redirect()->to($url)
             : redirect()->route('notifications.index');
+    }
+
+    /** همه‌ی اعلان‌های خوانده‌نشده‌ی همین ساختمان را خوانده‌شده می‌کند (ساختمان‌های دیگر دست‌نخورده می‌مانند). */
+    public function readAll(Request $request, CurrentBuilding $current): RedirectResponse
+    {
+        $buildingId = $current->id();
+        abort_unless($buildingId, 403);
+
+        $request->user()->unreadNotifications()->where('data->building_id', $buildingId)->update(['read_at' => now()]);
+
+        return redirect()->route('notifications.index', array_filter(['filter' => $request->input('filter')]))
+            ->with('status', 'همه‌ی اعلان‌ها خوانده‌شده علامت خورد.');
     }
 }

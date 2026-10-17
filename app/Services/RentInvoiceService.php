@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
  */
 class RentInvoiceService
 {
-    public function __construct(private readonly PaymentService $payments, private readonly SmsSender $sms)
+    public function __construct(private readonly PaymentService $payments, private readonly SmsSender $sms, private readonly Notifier $notifier)
     {
     }
 
@@ -97,19 +97,29 @@ class RentInvoiceService
         try {
             $tenant = $contract->user;
             $unit = $contract->unit()->with('block')->first();
-            if (! $tenant?->mobile || ! $unit) {
+            if (! $tenant || ! $unit) {
                 return;
             }
+            $unitLabel = $unit->block->name.' / '.Fa::digits($unit->number);
+            $month = Fa::MONTHS[$slot['jm'] - 1];
 
+            $this->notifier->send($tenant, (int) $invoice->building_id, 'rent_invoice_issued', 'صورت‌حساب اجاره صادر شد',
+                "صورت‌حساب اجاره‌ی {$month} واحد {$unitLabel} به مبلغ ".Fa::num($invoice->amount).' تومان صادر شد؛ مهلت پرداخت '.Fa::date($invoice->due_date, 'j F Y').'.',
+                route('my.invoices'),
+                ['category' => 'invoice', 'key' => 'invoice:'.$invoice->id, 'label' => 'مشاهده صورت‌حساب‌ها']);
+
+            if (! $tenant->mobile) {
+                return;
+            }
             $this->sms->sendTemplate('rent_invoice_issued', $tenant->mobile, [
-                'month' => Fa::MONTHS[$slot['jm'] - 1],
+                'month' => $month,
                 'amount' => Fa::num($invoice->amount),
-                'unit' => $unit->block->name.' / '.Fa::digits($unit->number),
+                'unit' => $unitLabel,
                 'building' => Building::find($invoice->building_id)?->name,
                 'date' => Fa::date($invoice->due_date, 'j F Y'),
             ], $tenant->id, $invoice->building_id);
         } catch (\Throwable $e) {
-            report($e); // خطای پیامک نباید صدور صورت‌حساب را خراب کند
+            report($e); // خطای پیامک/اعلان نباید صدور صورت‌حساب را خراب کند
         }
     }
 }

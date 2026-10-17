@@ -12,6 +12,7 @@ use App\Models\FileLink;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use App\Models\User;
+use App\Support\Fa;
 use App\Support\CurrentBuilding;
 use Carbon\CarbonInterface;
 use DomainException;
@@ -30,6 +31,10 @@ use Illuminate\Support\Facades\Storage;
 class ContractService
 {
     public const FILE_TYPE = 'contract';
+
+    public function __construct(private readonly Notifier $notifier)
+    {
+    }
 
     /** اعضای ساختمان با نقش مالک واحد یا مستأجر (فعال یا دعوت‌شده). @return Collection<int, object{id:int,name:string,mobile:?string,status:string}> */
     public function candidates(string $roleKey): Collection
@@ -54,7 +59,7 @@ class ContractService
             throw new DomainException('تاریخ پایان قرارداد باید بعد از تاریخ عقد باشد.');
         }
 
-        return $this->withStoredFile($file, function (?array $meta) use ($by, $unit, $tenant, $deposit, $monthlyRent, $signedAt, $endDate, $payer) {
+        $contract = $this->withStoredFile($file, function (?array $meta) use ($by, $unit, $tenant, $deposit, $monthlyRent, $signedAt, $endDate, $payer) {
             return DB::transaction(function () use ($by, $unit, $tenant, $deposit, $monthlyRent, $signedAt, $endDate, $payer, $meta) {
                 $locked = Unit::lockForUpdate()->findOrFail($unit->id);
 
@@ -85,6 +90,10 @@ class ContractService
                 return $contract;
             });
         });
+
+        $this->announceRent($contract);
+
+        return $contract;
     }
 
     public function registerSale(User $by, Unit $unit, User $buyer, int $price, CarbonInterface $soldAt, ?UploadedFile $file = null): Contract
@@ -93,14 +102,18 @@ class ContractService
             throw new DomainException('خریدار باید ابتدا با نقش «مالک واحد» به‌عنوان عضو ساختمان ثبت شده باشد.');
         }
 
-        return $this->withStoredFile($file, function (?array $meta) use ($by, $unit, $buyer, $price, $soldAt) {
-            return DB::transaction(function () use ($by, $unit, $buyer, $price, $soldAt, $meta) {
+        $previousOwner = null;
+
+        $contract = $this->withStoredFile($file, function (?array $meta) use ($by, $unit, $buyer, $price, $soldAt, &$previousOwner) {
+            return DB::transaction(function () use ($by, $unit, $buyer, $price, $soldAt, $meta, &$previousOwner) {
                 $locked = Unit::lockForUpdate()->findOrFail($unit->id);
                 $current = UnitParty::where('unit_id', $locked->id)->where('relation', 'owner')->whereNull('to_date')->first();
 
                 if ($current && (int) $current->user_id === (int) $buyer->id) {
                     throw new DomainException('این شخص هم‌اکنون مالک این واحد است.');
                 }
+
+                $previousOwner = $current ? (int) $current->user_id : null;
 
                 if ($current) {
                     $current->update(['to_date' => $soldAt->lt($current->from_date) ? $current->from_date : $soldAt]);
@@ -123,6 +136,10 @@ class ContractService
                 return $contract;
             });
         });
+
+        $this->announceSale($contract, $previousOwner);
+
+        return $contract;
     }
 
     /** پایان قرارداد اجاره (تخلیه): مستأجر از ساکنین واحد حذف و وضعیت واحد دوباره محاسبه می‌شود. */
@@ -139,6 +156,8 @@ class ContractService
             UnitParty::where('contract_id', $locked->id)->whereNull('to_date')->get()->each(fn (UnitParty $p) => $p->update(['to_date' => $today]));
             $this->syncUnitStatus(Unit::lockForUpdate()->findOrFail($locked->unit_id));
         });
+
+        $this->announceEnd($contract);
     }
 
     /** تغییر «شارژ بر عهده»؛ از دوره‌ی محاسبه‌ی بعدی اعمال می‌شود (بند ۴.۱۵.۱). */
@@ -173,6 +192,55 @@ class ContractService
 
             return null;
         });
+    }
+
+    private function unitLabel(Unit $unit): string
+    {
+        $unit->loadMissing('block');
+
+        return $unit->block->name.' / '.Fa::digits($unit->number);
+    }
+
+    private function announceRent(Contract $contract): void
+    {
+        $unit = Unit::with('block')->find($contract->unit_id);
+        if (! $unit) {
+            return;
+        }
+        $this->notifier->send((int) $contract->user_id, (int) $contract->building_id, 'contract_registered', 'قرارداد اجاره‌ی شما ثبت شد',
+            'قرارداد اجاره‌ی واحد '.$this->unitLabel($unit).' با اجاره‌ی ماهانه '.Fa::num($contract->monthly_rent).' تومان تا تاریخ '.Fa::date($contract->end_date, 'Y/m/d').' ثبت شد.',
+            route('my.contracts'), ['level' => 'success', 'category' => 'contract', 'key' => 'contract:'.$contract->id.':registered', 'label' => 'مشاهده قرارداد']);
+    }
+
+    private function announceSale(Contract $contract, ?int $previousOwner): void
+    {
+        $unit = Unit::with('block')->find($contract->unit_id);
+        if (! $unit) {
+            return;
+        }
+        $label = $this->unitLabel($unit);
+        $buildingId = (int) $contract->building_id;
+
+        $this->notifier->send((int) $contract->user_id, $buildingId, 'contract_registered', 'قرارداد خرید شما ثبت شد',
+            'مالکیت واحد '.$label.' با مبلغ '.Fa::num($contract->sale_price).' تومان به نام شما ثبت شد.',
+            route('my.contracts'), ['level' => 'success', 'category' => 'contract', 'key' => 'contract:'.$contract->id.':registered', 'label' => 'مشاهده قرارداد']);
+
+        if ($previousOwner && $previousOwner !== (int) $contract->user_id) {
+            $this->notifier->send($previousOwner, $buildingId, 'ownership_transferred', 'مالکیت واحد منتقل شد',
+                'مالکیت واحد '.$label.' در تاریخ '.Fa::date($contract->signed_at, 'Y/m/d').' به مالک جدید منتقل شد.',
+                null, ['category' => 'contract', 'key' => 'contract:'.$contract->id.':transferred']);
+        }
+    }
+
+    private function announceEnd(Contract $contract): void
+    {
+        $unit = Unit::with('block')->find($contract->unit_id);
+        if (! $unit) {
+            return;
+        }
+        $this->notifier->send((int) $contract->user_id, (int) $contract->building_id, 'contract_ended', 'قرارداد اجاره‌ی شما پایان یافت',
+            'قرارداد اجاره‌ی واحد '.$this->unitLabel($unit).' پایان یافت.',
+            route('my.contracts'), ['level' => 'warning', 'category' => 'contract', 'key' => 'contract:'.$contract->id.':ended', 'label' => 'مشاهده قرارداد']);
     }
 
     /** وضعیت واحد را از روی قراردادها و ساکنین فعلی محاسبه می‌کند («در حال تعمیر» دستی است و دست نمی‌خورد). */
