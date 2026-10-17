@@ -55,6 +55,48 @@ class RequestController extends Controller
             ? (int) round(($stats['resolved'] / $stats['total']) * 100)
             : 0;
 
+        $reportFilters = $request->validate([
+            'report_from' => ['nullable', 'date', 'before_or_equal:report_to'],
+            'report_to' => ['nullable', 'date', 'after_or_equal:report_from'],
+        ]);
+        $reportFrom = ! empty($reportFilters['report_from'])
+            ? now()->parse($reportFilters['report_from'])->startOfMonth()
+            : now()->subMonths(5)->startOfMonth();
+        $reportTo = ! empty($reportFilters['report_to'])
+            ? now()->parse($reportFilters['report_to'])->endOfMonth()
+            : now()->endOfMonth();
+
+        $visibleTicketIds = (clone $baseQuery)->reorder()->pluck('tickets.id');
+        $ticketCreatedAt = Ticket::whereIn('id', $visibleTicketIds)->pluck('created_at', 'id');
+        $completionLogs = TicketStatusLog::query()
+            ->whereIn('ticket_id', $visibleTicketIds)
+            ->whereIn('to_status', ['done', 'closed'])
+            ->whereBetween('created_at', [$reportFrom, $reportTo])
+            ->orderBy('created_at')
+            ->get(['ticket_id', 'created_at', 'to_status'])
+            ->groupBy('ticket_id')
+            ->map(fn ($logs) => $logs->first());
+
+        $reportRows = collect();
+        $cursor = $reportFrom->copy()->startOfMonth();
+        while ($cursor->lte($reportTo)) {
+            $monthStart = $cursor->copy()->startOfMonth();
+            $monthEnd = $cursor->copy()->endOfMonth();
+            $createdCount = (clone $baseQuery)->whereBetween('created_at', [$monthStart, $monthEnd])->count();
+            $resolvedLogs = $completionLogs->filter(fn ($log) => $log->created_at >= $monthStart && $log->created_at <= $monthEnd);
+            $durations = $resolvedLogs->map(function ($log) use ($ticketCreatedAt) {
+                $createdAt = $ticketCreatedAt->get($log->ticket_id);
+                return $createdAt ? max(0, \Illuminate\Support\Carbon::parse($createdAt)->diffInMinutes($log->created_at, false)) : null;
+            })->filter(fn ($minutes) => $minutes !== null);
+            $reportRows->push([
+                'month' => $monthStart->format('Y/m'),
+                'created' => $createdCount,
+                'resolved' => $resolvedLogs->count(),
+                'average_minutes' => $durations->isNotEmpty() ? (int) round($durations->avg()) : null,
+            ]);
+            $cursor->addMonth();
+        }
+
         $query = clone $baseQuery;
         if (! empty($filters['q'])) {
             $term = trim($filters['q']);
@@ -83,6 +125,10 @@ class RequestController extends Controller
             'categories' => self::CATEGORIES,
             'stats' => $stats,
             'filters' => $filters,
+            'reportRows' => $reportRows,
+            'reportFrom' => $reportFrom,
+            'reportTo' => $reportTo,
+            'reportFilters' => $reportFilters,
         ]);
     }
 
