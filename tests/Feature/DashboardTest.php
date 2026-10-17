@@ -128,7 +128,10 @@ class DashboardTest extends TestCase
             ->assertSee('۳۰ روز')
             ->assertSee('۹۰ روز')
             ->assertSee('بدهی سررسیدشده در بازه')
-            ->assertSee('وصولی‌های تأییدشده');
+            ->assertSee('وصولی‌های تأییدشده')
+            ->assertSee('مقایسه با بازه قبل')
+            ->assertSee('بازه قبل:')
+            ->assertSee('بدون تغییر');
 
         $this->actingAs($owner)->withSession(['current_building_id' => $this->building->id])
             ->get('/?trend_days=90')->assertOk()

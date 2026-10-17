@@ -171,16 +171,46 @@ class DashboardData
             $cursor->addDay();
         }
 
+        $previousFrom = $from->copy()->subDays($days);
+        $previousTo = $from->copy()->subSecond();
+
+        $previousTotals = [
+            'requests' => (int) Ticket::where('kind', 'request')
+                ->whereBetween('created_at', [$previousFrom, $previousTo])
+                ->count(),
+            'debt' => (int) Invoice::whereIn('status', ['unpaid', 'partial'])
+                ->whereBetween('due_date', [$previousFrom->toDateString(), $previousTo->toDateString()])
+                ->selectRaw('COALESCE(SUM(amount - paid_amount), 0) as total')
+                ->value('total'),
+            'collections' => (int) PaymentReceipt::where('status', 'approved')
+                ->whereBetween('paid_at', [$previousFrom->toDateString(), $previousTo->toDateString()])
+                ->sum('amount'),
+        ];
+
+        $totals = [
+            'requests' => array_sum(array_column($rows, 'requests')),
+            'debt' => array_sum(array_column($rows, 'debt')),
+            'collections' => array_sum(array_column($rows, 'collections')),
+        ];
+        $comparison = [];
+        foreach ($totals as $metric => $current) {
+            $previous = $previousTotals[$metric];
+            $comparison[$metric] = [
+                'previous' => $previous,
+                'change_percent' => $previous > 0 ? round((($current - $previous) / $previous) * 100, 1) : null,
+                'direction' => $current > $previous ? ($previous > 0 ? 'up' : 'new') : ($current < $previous ? 'down' : 'flat'),
+            ];
+        }
+
         return [
             'days' => $days,
             'from' => Jalalian::fromCarbon($from)->format('Y/m/d'),
             'to' => Jalalian::fromCarbon(today())->format('Y/m/d'),
             'rows' => $rows,
-            'totals' => [
-                'requests' => array_sum(array_column($rows, 'requests')),
-                'debt' => array_sum(array_column($rows, 'debt')),
-                'collections' => array_sum(array_column($rows, 'collections')),
-            ],
+            'totals' => $totals,
+            'previous_from' => Jalalian::fromCarbon($previousFrom)->format('Y/m/d'),
+            'previous_to' => Jalalian::fromCarbon($previousTo)->format('Y/m/d'),
+            'comparison' => $comparison,
             'maxima' => [
                 'requests' => max(1, max(array_column($rows, 'requests'))),
                 'debt' => max(1, max(array_column($rows, 'debt'))),
