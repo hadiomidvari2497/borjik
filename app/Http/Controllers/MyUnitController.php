@@ -1,14 +1,12 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Contract;
-use App\\Models\\Invoice;
-use App\\Models\\ParkingAssignment;
-use App\\Models\\StorageAssignment;
-use App\\Models\\Unit;
-use App\\Models\\UnitParty;
-use Illuminate\\Http\\Request;
+use App\Models\Contract;
+use App\Models\Invoice;
+use App\Models\Unit;
+use App\Models\UnitParty;
+use Illuminate\Http\Request;
 
 /**
  * نمای یک‌جای واحدهای مرتبط با کاربر؛ تمام داده‌ها در محدوده‌ی ساختمان فعال می‌مانند.
@@ -18,14 +16,20 @@ class MyUnitController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+
         $partyUnitIds = UnitParty::query()
             ->where('user_id', $user->id)
             ->whereNull('to_date')
             ->pluck('unit_id');
 
-        // در صورت وجود صورت‌حساب به نام کاربر، واحد حتی اگر عضویت فعالش پایان یافته باشد
-        // فقط از مسیر صورت‌حساب خودش قابل مشاهده می‌ماند.
-        $ownedUnitIds = UnitParty::query()\n            ->where('user_id', $user->id)\n            ->where('relation', 'owner')\n            ->whereNull('to_date')\n            ->pluck('unit_id');\n\n        $invoiceUnitIds = Invoice::query()
+        $ownedUnitIds = UnitParty::query()
+            ->where('user_id', $user->id)
+            ->where('relation', 'owner')
+            ->whereNull('to_date')
+            ->pluck('unit_id');
+
+        // صورت‌حساب‌های متعلق به خود کاربر، حتی در صورت پایان عضویت، تاریخچه را حفظ می‌کنند.
+        $invoiceUnitIds = Invoice::query()
             ->where('payer_user_id', $user->id)
             ->pluck('unit_id');
 
@@ -52,11 +56,11 @@ class MyUnitController extends Controller
 
         $contracts = Contract::query()
             ->with('unit.block')
-            ->where(function ($query) use ($user, $partyUnitIds) {
+            ->where(function ($query) use ($user, $ownedUnitIds) {
                 $query->where('user_id', $user->id)
                     ->orWhere(fn ($owned) => $owned
                         ->where('type', 'rent')
-                        ->whereIn('unit_id', $partyUnitIds));
+                        ->whereIn('unit_id', $ownedUnitIds));
             })
             ->orderByDesc('id')
             ->get()
