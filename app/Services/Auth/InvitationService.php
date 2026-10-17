@@ -146,8 +146,8 @@ class InvitationService
 
                 $scopedInvitation->forceFill(['accepted_at' => now()])->save();
 
-                BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $user->id, 'status' => 'invited'])
-                    ->update(['status' => 'active', 'joined_at' => now()]);
+                BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $user->id, 'status' => 'invited'])->get()
+                    ->each(fn (BuildingUserRole $r) => $r->update(['status' => 'active', 'joined_at' => now()]));
 
                 if ($user->status === 'invited') {
                     $user->update(['status' => 'active']);

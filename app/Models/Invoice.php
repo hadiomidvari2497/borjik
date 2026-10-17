@@ -6,10 +6,11 @@ use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Auditable;
 
 class Invoice extends Model
 {
-    use BelongsToBuilding;
+    use BelongsToBuilding, Auditable;
 
     protected $table = 'invoices';
     protected $guarded = ['id'];

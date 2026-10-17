@@ -10,10 +10,11 @@ use App\Services\ContractService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\Auditable;
 
 class Contract extends Model
 {
-    use BelongsToBuilding, SoftDeletes;
+    use BelongsToBuilding, SoftDeletes, Auditable;
 
     protected $table = 'contracts';
     protected $guarded = ['id'];

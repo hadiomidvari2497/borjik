@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\Enums\MembershipStatus;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Auditable;
 
 class BuildingUserRole extends Model
 {
+    use Auditable;
+
     protected $table = 'building_user_roles';
     protected $guarded = ['id'];
 

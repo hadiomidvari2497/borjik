@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Enums\ChargeMethod;
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Auditable;
 
 class ChargeSetting extends Model
 {
-    use BelongsToBuilding;
+    use BelongsToBuilding, Auditable;
 
     protected $table = 'charge_settings';
     protected $guarded = ['id'];

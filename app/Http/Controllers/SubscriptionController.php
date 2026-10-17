@@ -62,8 +62,8 @@ class SubscriptionController extends Controller
                 ->pluck('id');
 
             if ($previousSubscriptionIds->isNotEmpty()) {
-                \App\Models\Building::whereIn('subscription_id', $previousSubscriptionIds)
-                    ->update(['subscription_id' => $subscription->id]);
+                \App\Models\Building::whereIn('subscription_id', $previousSubscriptionIds)->get()
+                    ->each(fn ($b) => $b->update(['subscription_id' => $subscription->id]));
             }
         });
 

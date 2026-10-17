@@ -5,10 +5,14 @@ namespace App\Models;
 use App\Enums\PeriodStatus;
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Auditable;
 
 class ChargePeriod extends Model
 {
-    use BelongsToBuilding;
+    use BelongsToBuilding, Auditable;
+
+    /** تصویر کاملِ تنظیمات دوره حجیم است و در تاریخچه نمی‌آید. */
+    protected array $auditExclude = ['settings_snapshot'];
 
     protected $table = 'charge_periods';
     protected $guarded = ['id'];

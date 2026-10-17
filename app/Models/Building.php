@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Enums\BuildingType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Concerns\Auditable;
 
 class Building extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Auditable;
 
     protected $table = 'buildings';
     protected $guarded = ['id'];

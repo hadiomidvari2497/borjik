@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Auditable;
 
 class TicketAssignee extends Model
 {
-    use BelongsToBuilding;
+    use BelongsToBuilding, Auditable;
 
     protected $table = 'ticket_assignees';
     protected $guarded = ['id'];

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\BuildingSwitchController;
@@ -99,6 +100,8 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/{id}/calculate', 'calculate')->whereNumber('id')->name('calculate');
         Route::post('/{id}/publish', 'publish')->whereNumber('id')->name('publish');
     });
+
+    Route::get('/audit', [AuditController::class, 'index'])->middleware('can:audit.view')->name('audit.index');
 
     Route::middleware('can:contract.manage')->prefix('contracts')->name('contracts.')->controller(ContractController::class)->group(function () {
         Route::get('/', 'index')->name('index');

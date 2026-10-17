@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Enums\ReceiptStatus;
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Auditable;
 
 class PaymentReceipt extends Model
 {
-    use BelongsToBuilding;
+    use BelongsToBuilding, Auditable;
 
     protected $table = 'payment_receipts';
     protected $guarded = ['id'];

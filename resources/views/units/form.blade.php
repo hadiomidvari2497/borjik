@@ -38,4 +38,7 @@
   </form>
   @endif
 </div>
+@if($unit)
+  @include('partials.history', ['subject' => $unit])
+@endif
 @endsection

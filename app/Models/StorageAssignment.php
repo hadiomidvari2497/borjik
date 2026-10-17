@@ -4,10 +4,11 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToBuilding;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\Auditable;
 
 class StorageAssignment extends Model
 {
-    use BelongsToBuilding;
+    use BelongsToBuilding, Auditable;
 
     protected $table = 'storage_assignments';
     protected $guarded = ['id'];
