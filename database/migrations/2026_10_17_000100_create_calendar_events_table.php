@@ -18,6 +18,8 @@ return new class extends Migration
             $table->dateTime('ends_at')->nullable();
             $table->boolean('is_all_day')->default(false);
             $table->string('color', 20)->default('teal');
+            $table->unsignedInteger('reminder_minutes')->nullable();
+            $table->dateTime('reminder_sent_at')->nullable();
             $table->timestamps();
             $table->index(['building_id', 'starts_at']);
         });
