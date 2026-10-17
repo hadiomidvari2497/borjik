@@ -25,7 +25,7 @@ class SendCalendarReminders extends Command
             ->orderBy('starts_at')
             ->chunkById(100, function ($events) use (&$sent) {
                 foreach ($events as $event) {
-                    if (! $event->creator || $event->starts_at->subMinutes((int) $event->reminder_minutes)->isFuture()) {
+                    if (! $event->creator || $event->starts_at->copy()->subMinutes((int) $event->reminder_minutes)->isFuture()) {
                         continue;
                     }
 
