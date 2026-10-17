@@ -12,10 +12,16 @@ class DashboardController extends Controller
 {
     public function __invoke()
     {
+        $since = now()->subDays(30);
+        $activeSubs = Subscription::where('status', 'active')->where('expires_at', '>', now());
+
         return view('admin.dashboard', [
             'usersCount' => User::count(),
+            'newUsers' => User::where('created_at', '>=', $since)->count(),
             'buildingsCount' => Building::count(),
-            'activeSubs' => Subscription::where('status', 'active')->where('expires_at', '>', now())->count(),
+            'newBuildings' => Building::where('created_at', '>=', $since)->count(),
+            'activeSubs' => (clone $activeSubs)->count(),
+            'expiringSoon' => (clone $activeSubs)->where('expires_at', '<=', now()->addDays(7))->count(),
             'plansCount' => SubscriptionPlan::count(),
             'activePlans' => SubscriptionPlan::where('is_active', true)->count(),
         ]);

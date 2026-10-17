@@ -177,4 +177,31 @@ class AdminAccessTest extends TestCase
             ->assertSee('class="field"', false)
             ->assertDontSee('برای مدیران و ساکنین');
     }
+
+    public function test_sidebar_and_quick_links_only_show_permitted_sections(): void
+    {
+        $limited = $this->admin([], ['plans.manage']);
+        $html = $this->actingAs($limited, 'admin')->get('/admin')->assertOk()->getContent();
+
+        $this->assertStringContainsString(route('admin.plans.index'), $html);
+        $this->assertStringContainsString(route('admin.account'), $html);
+        $this->assertStringNotContainsString(route('admin.users.index'), $html);
+        $this->assertStringNotContainsString(route('admin.roles.index'), $html);
+        $this->assertStringNotContainsString(route('admin.settings.edit'), $html);
+        $this->assertStringContainsString('پنل مدیریت سیستم', $html);
+
+        $super = $this->admin(['is_super' => true]);
+        $all = $this->actingAs($super, 'admin')->get('/admin')->assertOk()->getContent();
+        foreach (['admin.plans.index', 'admin.users.index', 'admin.roles.index', 'admin.settings.edit'] as $r) {
+            $this->assertStringContainsString(route($r), $all);
+        }
+    }
+
+    public function test_admin_pages_use_persian_last_login(): void
+    {
+        $s = $this->admin(['is_super' => true]);
+        $s->forceFill(['last_login_at' => now()])->save();
+
+        $this->actingAs($s, 'admin')->get('/admin/users')->assertOk()->assertDontSee('ago');
+    }
 }
