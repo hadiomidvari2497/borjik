@@ -1,5 +1,9 @@
 @php
     $F = \App\Support\Fa::class;
+    $startDate = old('starts_date', \\App\\Support\\JalaliDate::format(now()));
+    $startTime = old('starts_time', now()->format('H:i'));
+    $endDate = old('ends_date', \\App\\Support\\JalaliDate::format(now()->addDays(7)));
+    $endTime = old('ends_time', now()->addDays(7)->format('H:i'));
 @endphp
 @extends('layouts.app')
 @section('title', 'نظرسنجی و رأی‌گیری')
