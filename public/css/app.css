@@ -206,3 +206,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 .btn.membership-action .i{width:15px;height:15px}
 @media(max-width:860px){.membership-change{min-width:0;width:100%;justify-content:space-between}.membership-current{flex:1}.btn.membership-action{flex:0 0 auto}}
 @media(prefers-reduced-motion:reduce){.btn.membership-action{transition:none}}
+
+
+/* Keep membership switch clear of the adjacent activate/deactivate actions */
+.tbl .act{flex-wrap:wrap;align-items:center;gap:8px}
+.tbl .act>.membership-change{flex:1 1 100%;width:100%;min-width:0;justify-content:space-between;margin-top:2px}
+.tbl .act>.membership-change .membership-current{flex:1 1 auto;min-width:0}
+.tbl .act>.membership-change .membership-action{flex:0 0 auto}
+@media(max-width:860px){.tbl .act>.membership-change{flex:1 1 100%;width:100%}}
