@@ -10,7 +10,8 @@
 @if(file_exists(public_path('vendor/sweetalert2/sweetalert2.min.css')))
 <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 @endif
-<link rel="stylesheet" href="{{ asset('css/toast.css') }}">
+<link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap-toast.rtl.min.css') }}">
+<link rel="stylesheet" href="{{ asset('css/notify.css') }}">
 <style>
   .admin-shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
   .admin-side{background:var(--card,#fff);border-inline-end:1px solid var(--line,#dbe6e3);padding:20px 16px}
@@ -33,7 +34,10 @@
     <div class="brand"><div class="logo">ب</div><div><b>برجیک</b><div style="font-size:12px;color:var(--muted)">پنل مدیریت سیستم</div></div></div>
     <nav>
       <a href="{{ route('admin.dashboard') }}" @class(['on' => request()->routeIs('admin.dashboard')])>داشبورد</a>
-      <a href="{{ route('admin.plans.index') }}" @class(['on' => request()->routeIs('admin.plans.*')])>پلن‌های اشتراک</a>
+      @php $adm = auth('admin')->user(); @endphp
+      @if($adm->hasPermission('plans.manage'))<a href="{{ route('admin.plans.index') }}" @class(['on' => request()->routeIs('admin.plans.*')])>پلن‌های اشتراک</a>@endif
+      @if($adm->hasPermission('admin.users.manage'))<a href="{{ route('admin.users.index') }}" @class(['on' => request()->routeIs('admin.users.*')])>کاربران ادمین</a>@endif
+      @if($adm->hasPermission('admin.roles.manage'))<a href="{{ route('admin.roles.index') }}" @class(['on' => request()->routeIs('admin.roles.*')])>نقش‌ها و دسترسی‌ها</a>@endif
     </nav>
     <form method="POST" action="{{ route('admin.logout') }}" style="margin-top:24px">@csrf
       <button class="btn sec sm" type="submit" style="width:100%;justify-content:center">خروج</button>

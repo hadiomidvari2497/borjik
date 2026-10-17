@@ -34,6 +34,7 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        Auth::guard('admin')->user()->forceFill(['last_login_at' => now()])->save();
 
         return redirect()->intended(route('admin.dashboard'));
     }
