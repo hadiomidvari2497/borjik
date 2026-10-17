@@ -3,7 +3,6 @@
   $quota = $s['limit'] ? min(100, round($s['used'] / max(1, $s['limit']) * 100)) : 0;
   $max = max(1, max($collections['values']));
   $sum = array_sum($collections['values']);
-  $trend = $trend;
   $trendDays = $trend['days'];
   $statusMeta = [['sold', 'فروخته‌شده', '#2a9b8f'], ['rented', 'اجاره‌داده‌شده', '#3b82c4'], ['vacant', 'خالی', '#e8a33d'], ['repair', 'در حال تعمیر', '#e0453a']];
   $ticketMeta = ['new' => 'جدید', 'review' => 'در حال بررسی', 'doing' => 'در حال انجام', 'waiting' => 'در انتظار', 'done' => 'انجام‌شده', 'closed' => 'بسته‌شده'];
@@ -102,7 +101,7 @@
 </style>
 <div class="card" style="margin-bottom:16px">
   <div class="hd" style="align-items:flex-start;gap:12px;flex-wrap:wrap">
-    <div><h2 style="margin:0">روند درخواست‌ها، بدهی و وصولی</h2><small>{{ \\App\\Support\\Fa::digits($trend['from']) }} تا {{ \\App\\Support\\Fa::digits($trend['to']) }}</small></div>
+    <div><h2 style="margin:0">روند درخواست‌ها، بدهی و وصولی</h2><small>{{ \App\Support\Fa::digits($trend['from']) }} تا {{ \App\Support\Fa::digits($trend['to']) }}</small></div>
     <nav class="trend-filter" aria-label="بازه زمانی گزارش">
       @foreach([7 => '۷ روز', 30 => '۳۰ روز', 90 => '۹۰ روز'] as $days => $label)
         <a href="{{ route('dashboard', ['trend_days' => $days]) }}" class="{{ $trendDays === $days ? 'active' : '' }}" @if($trendDays === $days) aria-current="true" @endif>{{ $label }}</a>
@@ -110,19 +109,19 @@
     </nav>
   </div>
   <div class="trend-summary">
-    <div class="trend-stat"><span>درخواست‌های ثبت‌شده</span><b>{{ \\App\\Support\\Fa::num($trend['totals']['requests']) }}</b></div>
-    <div class="trend-stat"><span>بدهی سررسیدشده در بازه</span><b>{{ \\App\\Support\\Fa::money($trend['totals']['debt']) }}</b></div>
-    <div class="trend-stat"><span>وصولی‌های تأییدشده</span><b>{{ \\App\\Support\\Fa::money($trend['totals']['collections']) }}</b></div>
+    <div class="trend-stat"><span>درخواست‌های ثبت‌شده</span><b>{{ \App\Support\Fa::num($trend['totals']['requests']) }}</b></div>
+    <div class="trend-stat"><span>بدهی سررسیدشده در بازه</span><b>{{ \App\Support\Fa::money($trend['totals']['debt']) }}</b></div>
+    <div class="trend-stat"><span>وصولی‌های تأییدشده</span><b>{{ \App\Support\Fa::money($trend['totals']['collections']) }}</b></div>
   </div>
   <div class="trend-legend"><span><i class="req"></i>درخواست</span><span><i class="debt"></i>بدهی سررسیدشده</span><span><i class="col"></i>وصولی تأییدشده</span><small>نوار هر شاخص نسبت به بیشترین مقدار همان شاخص در بازه نمایش داده می‌شود.</small></div>
   <div class="trend-scroll">
     @forelse(array_reverse($trend['rows']) as $day)
       <div class="trend-row">
-        <span class="trend-date">{{ \\App\\Support\\Fa::digits($day['label']) }}</span>
+        <span class="trend-date">{{ \App\Support\Fa::digits($day['label']) }}</span>
         <div class="trend-lines">
-          <div class="trend-line"><span>درخواست</span><div class="bar"><i style="width:{{ $day['requests'] ? max(2, $day['requests'] / $trend['maxima']['requests'] * 100) : 0 }}%"></i></div><strong>{{ \\App\\Support\\Fa::num($day['requests']) }}</strong></div>
-          <div class="trend-line debt"><span>بدهی</span><div class="bar"><i style="width:{{ $day['debt'] ? max(2, $day['debt'] / $trend['maxima']['debt'] * 100) : 0 }}%"></i></div><strong>{{ \\App\\Support\\Fa::money($day['debt']) }}</strong></div>
-          <div class="trend-line collections"><span>وصولی</span><div class="bar"><i style="width:{{ $day['collections'] ? max(2, $day['collections'] / $trend['maxima']['collections'] * 100) : 0 }}%"></i></div><strong>{{ \\App\\Support\\Fa::money($day['collections']) }}</strong></div>
+          <div class="trend-line"><span>درخواست</span><div class="bar"><i style="width:{{ $day['requests'] ? max(2, $day['requests'] / $trend['maxima']['requests'] * 100) : 0 }}%"></i></div><strong>{{ \App\Support\Fa::num($day['requests']) }}</strong></div>
+          <div class="trend-line debt"><span>بدهی</span><div class="bar"><i style="width:{{ $day['debt'] ? max(2, $day['debt'] / $trend['maxima']['debt'] * 100) : 0 }}%"></i></div><strong>{{ \App\Support\Fa::money($day['debt']) }}</strong></div>
+          <div class="trend-line collections"><span>وصولی</span><div class="bar"><i style="width:{{ $day['collections'] ? max(2, $day['collections'] / $trend['maxima']['collections'] * 100) : 0 }}%"></i></div><strong>{{ \App\Support\Fa::money($day['collections']) }}</strong></div>
         </div>
       </div>
     @empty
