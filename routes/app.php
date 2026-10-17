@@ -134,6 +134,11 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::delete('/invitation', 'cancelInvitation')->name('invitation.cancel');
     });
 
+    Route::prefix('notifications')->name('notifications.')->controller(\\App\\Http\\Controllers\\NotificationController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/{notification}/read', 'read')->name('read');
+    });
+
     // درخواست‌های ساکنان: مدیر همه را می‌بیند و مسئول فقط درخواست‌های ارجاع‌شده به خودش را.
     Route::middleware('can:request.view.domain')->prefix('requests')->name('requests.')->controller(RequestController::class)->group(function () {
         Route::get('/', 'index')->name('index');
