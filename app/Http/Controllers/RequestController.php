@@ -376,16 +376,23 @@ class RequestController extends Controller
         $data = $request->validate(['user_id' => ['nullable', 'integer', Rule::exists('building_user_roles', 'user_id')->where('building_id', $buildingId)->where('status', 'active')]]);
         DB::transaction(function () use ($ticket, $data, $user, $buildingId) {
             $item = Ticket::where('kind', 'request')->lockForUpdate()->findOrFail($ticket); $previous = $item->acceptedBy; $staffUser = null;
-            $roleKey = match ($item->category) { 'maintenance', 'facilities' => 'maintenance', 'cleaning' => 'cleaning', 'security' => 'security', default => null };
+            $roleId = $item->target_role_id;
             if (! empty($data['user_id'])) {
-                abort_unless($roleKey, 422, 'برای درخواست عمومی مسئول تخصصی تعریف نشده است.');
-                $staffUser = User::whereKey($data['user_id'])->whereExists(function ($query) use ($buildingId, $roleKey) { $query->selectRaw('1')->from('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')->whereColumn('bur.user_id', 'users.id')->where('bur.building_id', $buildingId)->where('bur.status', 'active')->where('r.key', $roleKey); })->firstOrFail();
+                abort_unless($roleId, 422, 'برای این درخواست ابتدا نقش مسئول را انتخاب کنید.');
+                $staffUser = User::whereKey($data['user_id'])->whereExists(function ($query) use ($buildingId, $roleId) {
+                    $query->selectRaw('1')->from('building_user_roles as bur')
+                        ->whereColumn('bur.user_id', 'users.id')->where('bur.building_id', $buildingId)
+                        ->where('bur.status', 'active')->where('bur.role_id', $roleId);
+                })->firstOrFail();
             }
             $item->assignees()->delete();
             if ($staffUser) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $staffUser->id, 'assigned_by' => $user->id, 'assigned_at' => now(), 'accepted_at' => now()]);
-            elseif ($roleKey) { $ids = DB::table('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')->where('bur.building_id', $buildingId)->where('bur.status', 'active')->where('r.key', $roleKey)->pluck('bur.user_id')->unique(); foreach ($ids as $id) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $id, 'assigned_by' => $user->id, 'assigned_at' => now()]); }
+            elseif ($roleId) {
+                $ids = DB::table('building_user_roles')->where('building_id', $buildingId)->where('status', 'active')->where('role_id', $roleId)->pluck('user_id')->unique();
+                foreach ($ids as $id) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $id, 'assigned_by' => $user->id, 'assigned_at' => now()]);
+            }
             $item->accepted_by = $staffUser?->id; $item->save();
-            $from = $previous ? ($previous->display_name ?: $previous->mobile) : 'بدون مسئول'; $to = $staffUser ? ($staffUser->display_name ?: $staffUser->mobile) : 'صف عمومی پرسنل مرتبط';
+            $from = $previous ? ($previous->display_name ?: $previous->mobile) : 'بدون مسئول'; $to = $staffUser ? ($staffUser->display_name ?: $staffUser->mobile) : ($roleId ? (Role::find($roleId)?->name_fa ?? 'صف نقش انتخاب‌شده') : 'صف عمومی مدیر ساختمان');
             $this->recordEvent($item, $user, 'assignment_changed', "مدیر مسئول درخواست را از «{$from}» به «{$to}» تغییر داد.");
             if ($item->status === TicketStatus::New && $staffUser) $this->changeStatus($item, TicketStatus::Review, $user, 'درخواست توسط مدیر به مسئول مشخص ارجاع شد.');
         });
