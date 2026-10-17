@@ -1,17 +1,17 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\Building;
-use App\\Models\\BuildingUserRole;
-use App\\Models\\Poll;
-use App\\Models\\PollOption;
-use App\\Models\\Role;
-use App\\Models\\User;
-use App\\Support\\CurrentBuilding;
-use Database\\Seeders\\RolePermissionSeeder;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Models\Building;
+use App\Models\BuildingUserRole;
+use App\Models\Poll;
+use App\Models\PollOption;
+use App\Models\Role;
+use App\Models\User;
+use App\Support\CurrentBuilding;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PollFlowTest extends TestCase
 {
