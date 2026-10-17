@@ -68,6 +68,11 @@ class MenuBuilder
         foreach (config('menu') as $group) {
             $items = [];
             foreach ($group['items'] as $item) {
+                // «واحد من» فقط در زمینه‌ی عضویت ساکن نمایش داده می‌شود، نه زمینه‌ی مالک/مدیر.
+                if ($item['route'] === 'my.units' && app(CurrentBuilding::class)->hasRole('owner', 'manager')) {
+                    continue;
+                }
+
                 if (! $this->allowed($user, $item['perm'])) {
                     continue;
                 }
