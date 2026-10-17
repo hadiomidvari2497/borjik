@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Services\Sms\LogSmsGateway;
 use App\Services\Sms\SmsGateway;
+use App\Services\Sms\SmsGatewayFactory;
 use App\Support\MobileNumber;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -14,12 +14,8 @@ class AuthFlowServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(SmsGateway::class, function () {
-            return match (config('sms.driver')) {
-                'log' => new LogSmsGateway(),
-                default => throw new \RuntimeException('درایور پیامک «'.config('sms.driver').'» پیاده‌سازی نشده است.'),
-            };
-        });
+        // اتصال پیش‌فرض از «پنل مدیریت ← اتصال پیامک»؛ بدون آن درایور config/sms.php (log).
+        $this->app->bind(SmsGateway::class, fn () => $this->app->make(SmsGatewayFactory::class)->make());
     }
 
     public function boot(): void

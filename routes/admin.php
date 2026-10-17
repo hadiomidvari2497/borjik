@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SiteSettingController;
+use App\Http\Controllers\Admin\SmsLogController;
+use App\Http\Controllers\Admin\SmsProviderController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +41,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{id}/edit', 'edit')->whereNumber('id')->name('edit');
             Route::put('/{id}', 'update')->whereNumber('id')->name('update');
             Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
+        });
+
+        Route::prefix('sms')->name('sms.')->group(function () {
+            Route::prefix('providers')->name('providers.')->middleware('admin.can:sms.settings')->controller(SmsProviderController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{id}/edit', 'edit')->whereNumber('id')->name('edit');
+                Route::put('/{id}', 'update')->whereNumber('id')->name('update');
+                Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
+                Route::post('/{id}/default', 'makeDefault')->whereNumber('id')->name('default');
+                Route::post('/{id}/toggle', 'toggle')->whereNumber('id')->name('toggle');
+                Route::post('/{id}/test', 'test')->whereNumber('id')->middleware('throttle:10,1')->name('test');
+            });
+
+            Route::prefix('logs')->name('logs.')->middleware('admin.can:sms.logs')->controller(SmsLogController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/export', 'export')->name('export');
+            });
         });
 
         Route::prefix('users')->name('users.')->middleware('admin.can:admin.users.manage')->controller(AdminUserController::class)->group(function () {
