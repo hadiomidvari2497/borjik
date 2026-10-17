@@ -100,7 +100,7 @@
                             @php $count = (int) $option->votes_count; $percent = $total > 0 ? (int) round($count * 100 / $total) : 0; @endphp
                             <div>
                                 <div class="poll-detail-result-head"><span class="poll-detail-result-name">{{ $option->text }}</span><span class="poll-detail-result-count">{{ $F::digits($count) }} رأی</span></div>
-                                <div class="poll-detail-track"><div class="poll-detail-fill" style="width:{{ $percent }}%"></div></div>
+                                <div class="poll-detail-track" role="progressbar" aria-label="درصد آرای {{ $option->text }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $percent }}"><div class="poll-detail-fill" style="width:{{ $percent }}%"></div></div>
                                 <div class="poll-detail-result-foot"><span>سهم از کل آرا</span><strong>{{ $F::digits($percent) }}٪</strong></div>
                             </div>
                         @endforeach
