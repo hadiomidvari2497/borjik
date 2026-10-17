@@ -25,7 +25,7 @@ class MyUnitController extends Controller
 
         // در صورت وجود صورت‌حساب به نام کاربر، واحد حتی اگر عضویت فعالش پایان یافته باشد
         // فقط از مسیر صورت‌حساب خودش قابل مشاهده می‌ماند.
-        $invoiceUnitIds = Invoice::query()
+        $ownedUnitIds = UnitParty::query()\n            ->where('user_id', $user->id)\n            ->where('relation', 'owner')\n            ->whereNull('to_date')\n            ->pluck('unit_id');\n\n        $invoiceUnitIds = Invoice::query()
             ->where('payer_user_id', $user->id)
             ->pluck('unit_id');
 
