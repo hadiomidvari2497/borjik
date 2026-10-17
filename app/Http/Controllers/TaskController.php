@@ -278,7 +278,7 @@ class TaskController extends Controller
             'deadline' => ['nullable', 'date'],
             'location' => ['nullable', 'string', 'max:150'],
             'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')->where('building_id', $buildingId)->whereNull('deleted_at')],
-            'target_role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('is_staff', true)],
+            'target_role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)],
             'user_ids' => ['nullable', 'array', 'max:50'],
             'user_ids.*' => ['integer', 'distinct'],
             'attachments' => ['nullable', 'array', 'max:5'],
