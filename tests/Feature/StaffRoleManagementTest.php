@@ -75,6 +75,39 @@ class StaffRoleManagementTest extends TestCase
         $this->assertDatabaseMissing('roles', ['id' => $role->id]);
     }
 
+    public function test_resident_requests_are_assigned_to_the_selected_custom_role(): void
+    {
+        $staff = User::create(['mobile' => '09120000003', 'first_name' => 'پرسنل', 'last_name' => 'تست', 'status' => 'active', 'profile_completed_at' => now()]);
+        $resident = User::create(['mobile' => '09120000004', 'first_name' => 'ساکن', 'last_name' => 'تست', 'status' => 'active', 'profile_completed_at' => now()]);
+        $role = Role::create([
+            'building_id' => $this->building->id,
+            'key' => 'custom_request_route',
+            'name_fa' => 'تأسیسات ویژه',
+            'is_staff' => true,
+            'is_default' => false,
+            'is_active' => true,
+        ]);
+        $role->permissions()->sync(Role::whereNull('building_id')->where('key', 'maintenance')->firstOrFail()->permissions()->pluck('permissions.id')->all());
+        BuildingUserRole::create(['building_id' => $this->building->id, 'user_id' => $staff->id, 'role_id' => $role->id, 'status' => 'active']);
+        $this->join($resident, $this->building, 'tenant');
+
+        $this->as($resident, $this->building)->post(route('my.requests.store'), [
+            'title' => 'خرابی تأسیسات ویژه',
+            'description' => 'درخواست آزمایشی برای نقش اختصاصی ساختمان',
+            'category' => 'general',
+            'target_role_id' => $role->id,
+            'priority' => 'medium',
+        ])->assertRedirect();
+
+        $ticket = \App\Models\Ticket::where('kind', 'request')->where('created_by', $resident->id)->firstOrFail();
+        $this->assertSame($role->id, (int) $ticket->target_role_id);
+        $this->assertDatabaseHas('ticket_assignees', [
+            'building_id' => $this->building->id,
+            'ticket_id' => $ticket->id,
+            'user_id' => $staff->id,
+        ]);
+    }
+
     public function test_roles_cannot_be_managed_across_buildings_or_by_staff(): void
     {
         $role = Role::create([
