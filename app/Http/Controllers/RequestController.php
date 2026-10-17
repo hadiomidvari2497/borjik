@@ -70,7 +70,7 @@ class RequestController extends Controller
                 if (preg_match('#^(\\d{4})-(\\d{1,2})$#', $value)) {
                     return Carbon::createFromFormat('!Y-m', $value)?->startOfMonth();
                 }
-            } catch (\\Throwable) {
+            } catch (\Throwable) {
                 return null;
             }
             return null;
