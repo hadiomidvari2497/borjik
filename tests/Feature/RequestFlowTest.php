@@ -115,7 +115,16 @@ class RequestFlowTest extends TestCase
         $ticket = Ticket::withoutGlobalScopes()->where('kind', 'request')->firstOrFail();
 
         $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
-            ->post(route('requests.status', $ticket->id), ['status' => 'closed', 'note' => 'درخواست بسته شد.'])
+            ->post(route('requests.status', $ticket->id), ['status' => 'review', 'note' => 'بررسی آغاز شد.'])
+            ->assertRedirect();
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->post(route('requests.status', $ticket->id), ['status' => 'doing', 'note' => 'کار آغاز شد.'])
+            ->assertRedirect();
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->post(route('requests.status', $ticket->id), ['status' => 'done', 'note' => 'کار انجام شد.'])
+            ->assertRedirect();
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->post(route('requests.status', $ticket->id), ['status' => 'closed', 'note' => 'پایان کار تأیید شد.'])
             ->assertRedirect();
 
         $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
