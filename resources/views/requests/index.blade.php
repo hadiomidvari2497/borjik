@@ -22,10 +22,10 @@
     </div>
   </section>
   <section class="req-stats" aria-label="خلاصه وضعیت درخواست‌ها">
-    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">▤</div><div><b>{{ \\App\\Support\\Fa::num($stats['total']) }}</b><span>کل درخواست‌ها</span></div></div>
-    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">✦</div><div><b>{{ \\App\\Support\\Fa::num($stats['new']) }}</b><span>تازه ثبت‌شده</span></div></div>
-    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">◷</div><div><b>{{ \\App\\Support\\Fa::num($stats['doing'] + $stats['review']) }}</b><span>در حال پیگیری</span></div></div>
-    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">✓</div><div><b>{{ \\App\\Support\\Fa::num($stats['done'] + $stats['closed']) }}</b><span>به پایان رسیده</span></div></div>
+    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">▤</div><div><b>{{ \App\Support\Fa::num($stats['total']) }}</b><span>کل درخواست‌ها</span></div></div>
+    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">✦</div><div><b>{{ \App\Support\Fa::num($stats['new']) }}</b><span>تازه ثبت‌شده</span></div></div>
+    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">◷</div><div><b>{{ \App\Support\Fa::num($stats['doing'] + $stats['review']) }}</b><span>در حال پیگیری</span></div></div>
+    <div class="req-stat"><div class="req-stat-icon" aria-hidden="true">✓</div><div><b>{{ \App\Support\Fa::num($stats['done'] + $stats['closed']) }}</b><span>به پایان رسیده</span></div></div>
   </section>
   <section class="card req-list-card">
     <div class="req-list-head">
