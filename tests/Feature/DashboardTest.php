@@ -59,7 +59,8 @@ class DashboardTest extends TestCase
         $this->open($owner)->assertOk()
             ->assertSee('برج آسمان')
             ->assertSee('وضعیت واحدها')
-            ->assertSee('تنظیمات شارژ');
+            ->assertSee('تنظیمات شارژ')
+            ->assertDontSee('واحد من');
     }
 
     public function test_tenant_gets_resident_dashboard_and_a_filtered_menu(): void
@@ -70,7 +71,8 @@ class DashboardTest extends TestCase
         $this->open($tenant)->assertOk()
             ->assertSee('مانده‌ی بدهی')
             ->assertDontSee('تنظیمات شارژ')
-            ->assertDontSee('وضعیت واحدها');
+            ->assertDontSee('وضعیت واحدها')
+            ->assertSee('واحد من');
     }
 
     public function test_security_guard_sees_task_dashboard(): void
