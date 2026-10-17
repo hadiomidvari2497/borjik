@@ -29,7 +29,7 @@ class TeamService
     {
         if ($scope !== 'staff') return self::MEMBERS;
         if (! $buildingId) return self::STAFF;
-        return Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->pluck('key')->all();
+        return array_values(array_unique(array_merge(['owner', 'manager'], Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->pluck('key')->all())));
     }
 
     /** فهرست افراد یک گروه (پرسنل یا اعضا) با نقش‌ها و وضعیت کلی. @return Collection<int, array<string,mixed>> */
