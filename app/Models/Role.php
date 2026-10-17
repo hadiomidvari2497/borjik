@@ -17,7 +17,7 @@ class Role extends Model
     public function scopeForBuilding($query, int $buildingId)
     {
         return $query->where(function ($q) use ($buildingId) {
-            $q->whereNull('building_id')->whereIn('key', ['owner', 'manager', 'unit_owner', 'tenant'])
+            $q->where(function ($global) { $global->whereNull('building_id')->whereIn('key', ['owner', 'manager', 'unit_owner', 'tenant']); })
               ->orWhere('building_id', $buildingId);
         });
     }
