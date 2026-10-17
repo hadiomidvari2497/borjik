@@ -14,6 +14,7 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Support\CurrentBuilding;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -82,6 +83,88 @@ class RequestController extends Controller
             'categories' => self::CATEGORIES,
             'stats' => $stats,
             'filters' => $filters,
+        ]);
+    }
+
+    public function reports(Request $request)
+    {
+        $user = $request->user();
+        abort_unless($user->hasPermission('request.view.all'), 403);
+
+        $filters = $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+        ]);
+
+        $from = isset($filters['from']) ? Carbon::parse($filters['from'])->startOfDay() : now()->startOfMonth()->startOfDay();
+        $to = isset($filters['to']) ? Carbon::parse($filters['to'])->endOfDay() : now()->endOfDay();
+        if ($from->diffInDays($to) > 365) {
+            return back()->withErrors(['to' => 'بازه گزارش نمی‌تواند بیشتر از یک سال باشد.'])->withInput();
+        }
+
+        $buildingId = app(CurrentBuilding::class)->id();
+        abort_unless($buildingId, 403);
+
+        $createdQuery = Ticket::query()->where('building_id', $buildingId)
+            ->where('kind', 'request')->whereBetween('created_at', [$from, $to]);
+        $created = (clone $createdQuery)->count();
+
+        $resolvedLogs = DB::table('ticket_status_logs as tsl')
+            ->join('tickets as t', 't.id', '=', 'tsl.ticket_id')
+            ->where('tsl.building_id', $buildingId)->where('t.building_id', $buildingId)
+            ->where('t.kind', 'request')->whereNull('t.deleted_at')
+            ->whereIn('tsl.to_status', ['done', 'closed'])
+            ->whereBetween('tsl.created_at', [$from, $to])
+            ->select('tsl.ticket_id', DB::raw('MIN(tsl.created_at) as resolved_at'))
+            ->groupBy('tsl.ticket_id')->get();
+
+        $resolved = $resolvedLogs->count();
+        $durations = collect();
+        if ($resolvedLogs->isNotEmpty()) {
+            $ticketCreatedAt = Ticket::query()->where('building_id', $buildingId)
+                ->where('kind', 'request')->whereIn('id', $resolvedLogs->pluck('ticket_id'))
+                ->pluck('created_at', 'id');
+            foreach ($resolvedLogs as $log) {
+                if (isset($ticketCreatedAt[$log->ticket_id]) && $ticketCreatedAt[$log->ticket_id] !== null) {
+                    $seconds = Carbon::parse($ticketCreatedAt[$log->ticket_id])->diffInSeconds(Carbon::parse($log->resolved_at), false);
+                    if ($seconds >= 0) $durations->push($seconds);
+                }
+            }
+        }
+        $averageSeconds = $durations->isNotEmpty() ? (int) round($durations->avg()) : null;
+
+        $days = [];
+        $cursor = $from->copy()->startOfDay();
+        $lastDay = $to->copy()->startOfDay();
+        while ($cursor->lte($lastDay)) {
+            $key = $cursor->toDateString();
+            $days[$key] = ['date' => $key, 'created' => 0, 'resolved' => 0];
+            $cursor->addDay();
+        }
+
+        $createdByDay = (clone $createdQuery)->selectRaw('DATE(created_at) as day, COUNT(*) as total')
+            ->groupByRaw('DATE(created_at)')->pluck('total', 'day');
+        foreach ($createdByDay as $day => $count) {
+            if (isset($days[$day])) $days[$day]['created'] = (int) $count;
+        }
+
+        $resolvedByDay = DB::table('ticket_status_logs as tsl')
+            ->join('tickets as t', 't.id', '=', 'tsl.ticket_id')
+            ->where('tsl.building_id', $buildingId)->where('t.building_id', $buildingId)
+            ->where('t.kind', 'request')->whereNull('t.deleted_at')
+            ->whereIn('tsl.to_status', ['done', 'closed'])
+            ->whereBetween('tsl.created_at', [$from, $to])
+            ->selectRaw('DATE(tsl.created_at) as day, COUNT(DISTINCT tsl.ticket_id) as total')
+            ->groupByRaw('DATE(tsl.created_at)')->pluck('total', 'day');
+        foreach ($resolvedByDay as $day => $count) {
+            if (isset($days[$day])) $days[$day]['resolved'] = (int) $count;
+        }
+
+        return view('requests.reports', [
+            'from' => $from->toDateString(),
+            'to' => $to->toDateString(),
+            'stats' => ['created' => $created, 'resolved' => $resolved, 'average_seconds' => $averageSeconds],
+            'chart' => array_values($days),
         ]);
     }
 
