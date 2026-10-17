@@ -302,7 +302,13 @@ class TaskController extends Controller
         $oldAssigneeIds = [];
         DB::transaction(function () use ($item, $data, $user, $buildingId, $roleId, $validIds, $request, &$oldAssigneeIds) {
             $locked = Ticket::query()->where('kind', TicketKind::Task->value)->lockForUpdate()->findOrFail($item->id);
-            $currentAssignees = $locked->assignees()->get()->keyBy(fn (TicketAssignee $assignee) => (int) $assignee->user_id);
+            $currentAssignees = TicketAssignee::query()
+                ->withoutGlobalScopes()
+                ->where('building_id', $buildingId)
+                ->where('ticket_id', $locked->id)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy(fn (TicketAssignee $assignee) => (int) $assignee->user_id);
             $oldAssigneeIds = $currentAssignees->keys()->map(fn ($id) => (int) $id)->all();
 
             $locked->fill([
