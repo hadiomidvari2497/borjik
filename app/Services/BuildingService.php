@@ -73,6 +73,7 @@ class BuildingService
             ]);
 
             $this->seedStaffRoles($building->id);
+            $building->forceFill(['staff_roles_initialized' => true])->save();
 
             BuildingUserRole::create([
                 'building_id' => $building->id,
