@@ -27,7 +27,7 @@
 @if($canManage)
 <div class="card">
     <div class="page-h"><h2>ایجاد نظرسنجی جدید</h2></div>
-    <form method="POST" action="{{ route('polls.store') }}" style="margin-top:12px">
+    <form id="poll-create-form" method="POST" action="{{ route('polls.store') }}" style="margin-top:12px">
         @csrf
         <div class="poll-form-grid">
             <div class="fld">
@@ -45,7 +45,7 @@
             <div class="fld">
                 <label for="poll-start">شروع رأی‌گیری *</label>
                 <div class="poll-datetime-grid">
-                    <input id="poll-start-date" class="jdate" type="text" name="starts_at_date" value="{{ old('starts_at_date', \\App\\Support\\JalaliDate::format(now())) }}" placeholder="تاریخ شمسی" autocomplete="off" required>
+                    <input id="poll-start-date" class="jdate" type="text" name="starts_at_date" value="{{ old('starts_at_date', \App\Support\JalaliDate::format(now())) }}" placeholder="تاریخ شمسی" autocomplete="off" required>
                     <input id="poll-start-time" type="time" name="starts_at_time" value="{{ old('starts_at_time', now()->format('H:i')) }}" aria-label="ساعت شروع" required>
                 </div>
                 <input id="poll-start" type="hidden" name="starts_at" value="{{ old('starts_at') }}">
@@ -54,7 +54,7 @@
             <div class="fld">
                 <label for="poll-end">پایان رأی‌گیری *</label>
                 <div class="poll-datetime-grid">
-                    <input id="poll-end-date" class="jdate" type="text" name="ends_at_date" value="{{ old('ends_at_date', \\App\\Support\\JalaliDate::format(now()->addDays(7))) }}" placeholder="تاریخ شمسی" autocomplete="off" required>
+                    <input id="poll-end-date" class="jdate" type="text" name="ends_at_date" value="{{ old('ends_at_date', \App\Support\JalaliDate::format(now()->addDays(7))) }}" placeholder="تاریخ شمسی" autocomplete="off" required>
                     <input id="poll-end-time" type="time" name="ends_at_time" value="{{ old('ends_at_time', now()->addDays(7)->format('H:i')) }}" aria-label="ساعت پایان" required>
                 </div>
                 <input id="poll-end" type="hidden" name="ends_at" value="{{ old('ends_at') }}">
@@ -203,7 +203,7 @@
                         @elseif($hasVoted)
                             <p class="poll-description">رأی شما ثبت شده است.</p>
                         @elseif(!$started)
-                            <p class="poll-description">رأی‌گیری از {{ \\App\\Support\\Fa::date($poll->starts_at, 'Y/m/d H:i') }} شروع می‌شود.</p>
+                            <p class="poll-description">رأی‌گیری از {{ \App\Support\Fa::date($poll->starts_at, 'Y/m/d H:i') }} شروع می‌شود.</p>
                         @elseif($residentOnly && !$eligibleRole)
                             <p class="poll-description">این نظرسنجی فقط برای مالک واحد و مستأجر است.</p>
                         @else

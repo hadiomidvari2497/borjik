@@ -23,8 +23,8 @@
         <div class="poll-detail-stat"><span>مجموع {{ $poll->response_type === 'text' ? 'پاسخ‌ها' : 'آرا' }}</span><strong>{{ $F::digits($poll->votes_count) }}</strong></div>
         <div class="poll-detail-stat"><span>مخاطبان</span><strong>{{ $poll->audience === 'residents' ? 'مالک و مستأجر' : 'تمام اعضای مجاز' }}</strong></div>
         <div class="poll-detail-stat"><span>وضعیت</span><strong>{{ $ended ? 'پایان‌یافته' : (now()->lt($poll->starts_at) ? 'شروع‌نشده' : 'در حال رأی‌گیری') }}</strong></div>
-        <div class="poll-detail-stat"><span>شروع</span><strong>{{ \\App\\Support\\Fa::date($poll->starts_at, 'Y/m/d H:i') }}</strong></div>
-        <div class="poll-detail-stat"><span>پایان</span><strong>{{ \\App\\Support\\Fa::date($poll->ends_at, 'Y/m/d H:i') }}</strong></div>
+        <div class="poll-detail-stat"><span>شروع</span><strong>{{ \App\Support\Fa::date($poll->starts_at, 'Y/m/d H:i') }}</strong></div>
+        <div class="poll-detail-stat"><span>پایان</span><strong>{{ \App\Support\Fa::date($poll->ends_at, 'Y/m/d H:i') }}</strong></div>
         <div class="poll-detail-stat"><span>حریم خصوصی</span><strong>{{ $poll->is_anonymous ? 'مخفی' : 'غیرمخفی' }}</strong></div>
         <div class="poll-detail-stat"><span>ایجادکننده</span><strong>{{ $poll->createdBy?->display_name ?: '—' }}</strong></div>
     </div>
@@ -49,7 +49,7 @@
             <thead><tr><th>شرکت‌کننده</th><th>{{ $poll->response_type === 'text' ? 'پاسخ تشریحی' : 'گزینه انتخاب‌شده' }}</th><th>زمان ثبت</th></tr></thead>
             <tbody>
             @foreach($poll->votes->sortBy('created_at') as $vote)
-                <tr><td>{{ $vote->user?->display_name ?: 'کاربر حذف‌شده' }}<div class="poll-description">{{ $vote->user?->mobile }}</div></td><td class="poll-detail-answer">{{ $poll->response_type === 'text' ? $vote->answer : ($vote->option?->text ?: '—') }}</td><td>{{ $vote->created_at ? \\App\\Support\\Fa::date($vote->created_at, 'Y/m/d H:i') : '—' }}</td></tr>
+                <tr><td>{{ $vote->user?->display_name ?: 'کاربر حذف‌شده' }}<div class="poll-description">{{ $vote->user?->mobile }}</div></td><td class="poll-detail-answer">{{ $poll->response_type === 'text' ? $vote->answer : ($vote->option?->text ?: '—') }}</td><td>{{ $vote->created_at ? \App\Support\Fa::date($vote->created_at, 'Y/m/d H:i') : '—' }}</td></tr>
             @endforeach
             </tbody>
         </table></div>
