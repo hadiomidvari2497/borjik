@@ -125,6 +125,56 @@ class TaskFlowTest extends TestCase
         ]);
     }
 
+    public function test_assigned_staff_can_claim_and_comment_on_a_task(): void
+    {
+        $ticket = app(CurrentBuilding::class)->actingAs($this->building->id, function () {
+            $ticket = Ticket::create([
+                'building_id' => $this->building->id,
+                'number' => 'TSK-TEST-002',
+                'kind' => 'task',
+                'title' => 'تسک قابل قبول',
+                'description' => 'شرح تسک',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'status' => 'new',
+                'created_by' => $this->manager->id,
+            ]);
+            \App\Models\TicketAssignee::create([
+                'building_id' => $this->building->id,
+                'ticket_id' => $ticket->id,
+                'user_id' => $this->maintenance->id,
+                'assigned_by' => $this->manager->id,
+                'assigned_at' => now(),
+            ]);
+
+            return $ticket;
+        });
+
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
+            ->post(route('tickets.claim', $ticket->id))
+            ->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('tickets', [
+            'id' => $ticket->id,
+            'accepted_by' => $this->maintenance->id,
+            'status' => 'review',
+        ]);
+        $this->assertDatabaseHas('ticket_events', [
+            'ticket_id' => $ticket->id,
+            'type' => 'claimed',
+        ]);
+
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
+            ->post(route('tickets.comments.store', $ticket->id), ['body' => 'قطعه موردنیاز بررسی شد'])
+            ->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('ticket_comments', [
+            'ticket_id' => $ticket->id,
+            'user_id' => $this->maintenance->id,
+            'body' => 'قطعه موردنیاز بررسی شد',
+        ]);
+    }
+
     public function test_task_routes_require_building_scoped_permissions(): void
     {
         $this->actingAs($this->cleaning)->withSession($this->sessionFor($this->cleaningMembership))
