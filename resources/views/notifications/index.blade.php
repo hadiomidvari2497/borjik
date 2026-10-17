@@ -23,7 +23,7 @@
             <a class="notice-link" href="{{ route('notifications.read', $notification->id) }}">مشاهده درخواست ←</a>
           @endif
         </div>
-        @if(!$notification->read_at)<span class="req-count">جدید</span>@endif
+        @if(!$notification->read_at)<span style="font-size:10px;font-weight:800;color:var(--brand-d);background:var(--brand-soft);padding:5px 8px;border-radius:8px">جدید</span>@endif
       </article>
     @empty
       <div class="notice-empty">اعلانی برای این ساختمان ندارید.</div>
