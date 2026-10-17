@@ -188,6 +188,18 @@ class RequestFlowTest extends TestCase
         $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
             ->get(route('requests.show', $otherTicket->id))
             ->assertNotFound();
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->post(route('requests.comments.store', $otherTicket->id), [
+                'body' => 'این پیام نباید ثبت شود.',
+                'reply_to_id' => null,
+            ])
+            ->assertNotFound();
+
+        $this->assertDatabaseMissing('ticket_comments', [
+            'ticket_id' => $otherTicket->id,
+            'body' => 'این پیام نباید ثبت شود.',
+        ]);
     }
 
     private function makeUser(string $mobile, string $name): User
