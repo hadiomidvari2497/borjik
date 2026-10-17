@@ -76,15 +76,15 @@ class TeamController extends Controller
         ]);
 
         $invitable = $scope === 'staff'
-            ? ($isOwner ? TeamService::STAFF : ['security', 'cleaning', 'maintenance'])
+            ? ($isOwner ? TeamService::rolesOf('staff', $buildingId) : array_values(array_diff(TeamService::rolesOf('staff', $buildingId), ['owner', 'manager'])))
             : TeamService::MEMBERS;
 
         return view('team.index', [
             'scope' => $scope,
             'people' => $people,
-            'roleNames' => Role::whereIn('key', TeamService::rolesOf($scope))->pluck('name_fa', 'key'),
+            'roleNames' => Role::whereIn('key', TeamService::rolesOf($scope, $buildingId))->pluck('name_fa', 'key'),
             'invitable' => $invitable,
-            'editable' => $scope === 'staff' ? ($isOwner ? TeamService::STAFF : ['security', 'cleaning', 'maintenance']) : [],
+            'editable' => $scope === 'staff' ? ($isOwner ? TeamService::rolesOf('staff', $buildingId) : array_values(array_diff(TeamService::rolesOf('staff', $buildingId), ['owner', 'manager']))) : [],
             'units' => $scope === 'members' ? $team->unitLabels($buildingId, $people->pluck('user_id')->all()) : [],
         ]);
     }
