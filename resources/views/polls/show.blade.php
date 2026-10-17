@@ -108,7 +108,7 @@
                 @endif
             @endif
             @if($poll->is_anonymous)
-                <div class="poll-detail-privacy" style="margin-top:18px"><span class="poll-detail-privacy-icon">▣</span><span><strong>حریم خصوصی حفظ می‌شود.</strong><br>این نظرسنجی محرمانه است؛ هویت و پاسخ منتسب به هر فرد نمایش داده نمی‌شود. آمار تجمیعی بالا همچنان قابل مشاهده است.</span></div>
+                <div class="poll-detail-privacy" style="margin-top:18px"><span class="poll-detail-privacy-icon">▣</span><span><strong>حریم خصوصی حفظ می‌شود.</strong><br>این نظرسنجی مخفی است؛ هویت و پاسخ منتسب به هر فرد نمایش داده نمی‌شود. آمار تجمیعی بالا همچنان قابل مشاهده است.</span></div>
             @elseif($poll->votes->isEmpty())
                 <div class="poll-detail-empty" style="margin-top:16px"><div style="font-size:24px">◉</div><strong>هنوز پاسخی ثبت نشده است</strong><p>به‌محض مشارکت اعضا، پاسخ‌ها و جزئیات آن‌ها در این بخش نمایش داده می‌شود.</p></div>
             @else
