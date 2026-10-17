@@ -154,6 +154,38 @@ class TeamTest extends TestCase
         $this->as($this->owner)->put(route('staff.roles.update', $this->guard->id), ['roles' => ['bogus']])->assertSessionHasErrors('general');
     }
 
+    public function test_member_role_can_be_changed_without_touching_other_buildings_or_staff_roles(): void
+    {
+        $other = Building::create(['name' => 'ساختمان دوم', 'code' => '33333', 'created_by' => $this->owner->id]);
+        $this->join($this->tenant, 'tenant', 'active', $other);
+
+        $this->as($this->manager)->post(route('members.membership-role.update', $this->tenant->id), [
+            'role' => 'unit_owner',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull($this->roleStatus($this->tenant, 'tenant'));
+        $this->assertSame('active', $this->roleStatus($this->tenant, 'unit_owner'));
+        $otherOwnerRole = DB::table('building_user_roles as b')
+            ->join('roles as r', 'r.id', '=', 'b.role_id')
+            ->where('b.building_id', $other->id)->where('b.user_id', $this->tenant->id)
+            ->where('r.key', 'tenant')->value('b.status');
+        $this->assertSame('active', $otherOwnerRole);
+    }
+
+    public function test_member_role_change_rejects_self_and_non_member_roles(): void
+    {
+        $this->as($this->tenant)->post(route('members.membership-role.update', $this->tenant->id), [
+            'role' => 'unit_owner',
+        ])->assertForbidden();
+
+        $this->as($this->manager)->post(route('members.membership-role.update', $this->tenant->id), [
+            'role' => 'manager',
+        ])->assertSessionHasErrors('role');
+
+        $this->assertSame('active', $this->roleStatus($this->tenant, 'tenant'));
+        $this->assertNull($this->roleStatus($this->tenant, 'unit_owner'));
+    }
+
     public function test_only_pending_invitations_can_be_cancelled_and_they_are_really_removed(): void
     {
         $this->invite('09121111111', 'cleaning');

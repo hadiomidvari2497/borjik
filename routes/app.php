@@ -130,6 +130,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::get('/staff', [TeamController::class, 'staff'])->middleware('can:staff.manage')->name('staff.index');
     Route::put('/staff/{userId}/roles', [TeamController::class, 'updateRoles'])->whereNumber('userId')->middleware('can:staff.manage')->name('staff.roles.update');
     Route::get('/members', [TeamController::class, 'members'])->middleware('can:member.manage')->name('members.index');
+    Route::post('/members/{userId}/membership-role', [TeamController::class, 'changeMemberRole'])->whereNumber('userId')->middleware('can:member.manage')->name('members.membership-role.update');
     Route::prefix('team/{userId}')->where(['userId' => '[0-9]+'])->name('team.')->controller(TeamController::class)->group(function () {
         Route::post('/deactivate', 'deactivate')->name('deactivate');
         Route::post('/activate', 'activate')->name('activate');

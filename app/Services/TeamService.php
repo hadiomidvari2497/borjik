@@ -119,6 +119,65 @@ class TeamService
         });
     }
 
+    /**
+     * تغییر نوع عضویت یک عضو فعال از مالک واحد به مستأجر یا برعکس.
+     * نقش‌های پرسنلی و عضویت‌های ساختمان‌های دیگر دست‌نخورده می‌مانند.
+     */
+    public function changeMemberRole(User $actor, int $userId, string $newRole): void
+    {
+        $buildingId = $this->building();
+        if ($userId === $actor->id) {
+            throw new TeamException('نوع عضویت خودتان را نمی‌توانید از این بخش تغییر دهید.');
+        }
+        if (! in_array($newRole, self::MEMBERS, true)) {
+            throw new TeamException('نوع عضویت انتخاب‌شده معتبر نیست.');
+        }
+
+        $rows = $this->rows($buildingId, $userId, 'members');
+        if ($rows->isEmpty()) {
+            throw new TeamException('عضویت این شخص در ساختمان پیدا نشد.');
+        }
+        if ($rows->count() !== 1) {
+            throw new TeamException('این شخص بیش از یک نوع عضویت دارد؛ برای جلوگیری از حذف نقش دیگر، تغییر خودکار ممکن نیست.');
+        }
+
+        $current = $rows->first();
+        if ($current->status !== 'active') {
+            throw new TeamException('فقط اعضای فعال قابل تغییر هستند؛ برای عضویت ردشده یا در انتظار، دعوت جدید ارسال کنید.');
+        }
+        if ($current->key === $newRole) {
+            throw new TeamException('این شخص همین حالا همین نوع عضویت را دارد.');
+        }
+
+        $targetRoleId = Role::where('key', $newRole)->value('id');
+        $existingTarget = BuildingUserRole::where([
+            'building_id' => $buildingId,
+            'user_id' => $userId,
+            'role_id' => $targetRoleId,
+        ])->first();
+
+        if ($existingTarget) {
+            throw new TeamException('برای این نوع عضویت سابقه‌ای وجود دارد؛ برای جلوگیری از فعال‌سازی ناخواسته، ابتدا وضعیت آن را بررسی و دعوت جدید ارسال کنید.');
+        }
+
+        DB::transaction(function () use ($buildingId, $userId, $actor, $current, $targetRoleId) {
+            BuildingUserRole::create([
+                'building_id' => $buildingId,
+                'user_id' => $userId,
+                'role_id' => $targetRoleId,
+                'status' => 'active',
+                'invited_by' => $actor->id,
+                'invited_at' => now(),
+                'joined_at' => now(),
+            ]);
+
+            BuildingUserRole::where('id', $current->id)
+                ->where('building_id', $buildingId)
+                ->where('user_id', $userId)
+                ->delete();
+        });
+    }
+
     /** مجموعه‌ی نقش‌های پرسنلی یک نفر را برابر $roleKeys می‌کند (افزودن و حذف). */
     public function updateRoles(User $actor, int $userId, array $roleKeys): void
     {

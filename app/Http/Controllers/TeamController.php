@@ -35,6 +35,20 @@ class TeamController extends Controller
         return $this->run($request, fn ($scope) => $team->cancelInvitation($request->user(), $userId, $scope), 'دعوت لغو شد.');
     }
 
+    public function changeMemberRole(Request $request, int $userId, TeamService $team)
+    {
+        abort_unless($request->user()->can('member.manage'), 403);
+        $data = $request->validate(['role' => ['required', 'in:unit_owner,tenant']]);
+
+        try {
+            $team->changeMemberRole($request->user(), $userId, $data['role']);
+        } catch (TeamException $e) {
+            return back()->withErrors(['general' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'نوع عضویت عضو تغییر کرد.');
+    }
+
     public function updateRoles(Request $request, int $userId, TeamService $team)
     {
         $roles = $request->validate(['roles' => ['nullable', 'array'], 'roles.*' => ['string']])['roles'] ?? [];
