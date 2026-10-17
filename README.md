@@ -436,6 +436,11 @@ GitHub Actions (`.github/workflows/ci.yml`):
   - گرفتن متن (مثل دلیل رد): `<form data-prompt="توضیح" data-prompt-name="reason">`
   - پیام‌ها: `->with('status'|'success'|'warning'|'error', ...)` یا `withErrors(['general' => ...])` خودکار تاست می‌شوند؛ از جاوااسکریپت: `Borjik.toastSuccess('...')`
   - `confirm()` / `alert()` / `prompt()` بومی مرورگر ممنوع است (تست `NoNativeDialogsTest` بررسی می‌کند)
+- زمان‌بندی (Scheduler): `rent:issue-invoices` (صدور خودکار اجاره‌ی ماهانه، ۰۶:۰۰ UTC) و `charges:remind-expenses` هر روز اجرا می‌شوند؛ به شرط اینکه هر دقیقه `php artisan schedule:run` اجرا شود:
+  - لینوکس (cron): `* * * * * cd /مسیر/برجیک && php artisan schedule:run >> /dev/null 2>&1`
+  - ویندوز/XAMPP (Task Scheduler، تکرار هر ۱ دقیقه): `C:\xampp\php\php.exe C:\xampp\htdocs\borjik\artisan schedule:run`
+  - اجرای دستی و تکرارناپذیر: `php artisan rent:issue-invoices` — لیست زمان‌بندی‌ها: `php artisan schedule:list`
+  - اجاره‌ی ماهانه هر ماه شمسی در همان روز ماهِ تاریخ عقد صادر می‌شود (نخستین بار هنگام ثبت قرارداد)، تا قبل از تاریخ پایان؛ مهلت پرداخت = «مهلت پرداخت» تنظیمات شارژ؛ قرارداد با تاریخ عقد گذشته صورت‌حساب عقب‌افتاده نمی‌سازد
 - پروداکشن: `APP_DEBUG=false`، SMS واقعی، queue worker، بکاپ دیتابیس
 
 ---
