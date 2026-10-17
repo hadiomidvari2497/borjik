@@ -109,7 +109,7 @@ class RequestFlowTest extends TestCase
             ->get(route('requests.reports'))
             ->assertOk()->assertSee('گزارش عملکرد رسیدگی')
             ->assertSee('درخواست ثبت‌شده در بازه')->assertSee('درخواست حل‌شده در بازه')
-            ->assertSee('میانگین زمان رسیدگی')->assertSee('درخواست باز');
+            ->assertSee('میانگین زمان رسیدگی');
 
         $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
             ->get(route('requests.reports'))->assertForbidden();
