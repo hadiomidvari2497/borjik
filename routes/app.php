@@ -142,7 +142,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     });
 
     // مدیریت تسک‌های پرسنل (جدا از درخواست‌های ثبت‌شده توسط ساکنین).
-    Route::prefix('tickets')->name('tickets.')->controller(\\App\\Http\\Controllers\\TaskController::class)->group(function () {
+    Route::prefix('tickets')->name('tickets.')->controller(TaskController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
