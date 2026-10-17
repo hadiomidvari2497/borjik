@@ -1,17 +1,17 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Poll;
-use App\\Models\\PollOption;
-use App\\Models\\PollVote;
-use App\\Support\\CurrentBuilding;
-use Illuminate\\Database\\QueryException;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Validation\\ValidationException;
-use Illuminate\\View\\View;
+use App\Models\Poll;
+use App\Models\PollOption;
+use App\Models\PollVote;
+use App\Support\CurrentBuilding;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class PollController extends Controller
 {
