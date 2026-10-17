@@ -80,3 +80,18 @@ details.more[open]{padding-bottom:12px}
   .fp-inner{padding:26px 20px;border-radius:22px}
   .grid2{grid-template-columns:1fr}
 }
+
+/* صفحه‌ی دعوت مهمان: هماهنگ با کارت‌های ورود و واکنش‌گرا */
+.invite-page{width:100%;text-align:right}
+.invite-mark{display:grid;place-items:center;width:48px;height:48px;margin-bottom:18px;border-radius:16px;background:linear-gradient(135deg,#e1f5f1,#f1faf8);border:1px solid #d3ebe6;color:var(--brand-d);font-size:22px;font-weight:900}
+.invite-eyebrow{display:inline-block;margin-bottom:8px;color:var(--brand-d);font-size:12px;font-weight:800}
+.invite-page .h1{line-height:1.8;overflow-wrap:anywhere}
+.invite-page .lead{line-height:2}
+.invite-page .invite-card{gap:5px;padding:17px 18px;border:1px solid #e3efec}
+.invite-detail-label{color:var(--muted);font-size:11.5px}
+.invite-card b{color:var(--brand-d);font-size:15px}
+.invite-mobile{direction:ltr;text-align:right;font-size:14px;letter-spacing:.4px}
+.invite-form{margin-top:4px}
+.invite-page .fine{line-height:1.9}
+.invite-page .btn{min-height:50px;text-align:center;text-decoration:none}
+@media(max-width:480px){.invite-mark{width:42px;height:42px;border-radius:13px;margin-bottom:14px}.invite-page .h1{font-size:20px}.invite-page .invite-card{padding:14px}}
