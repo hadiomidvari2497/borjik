@@ -1,5 +1,9 @@
 @php
     $F = \App\Support\Fa::class;
+    $startDate = old('starts_date', \App\Support\JalaliDate::format(now()));
+    $startTime = old('starts_time', now()->format('H:i'));
+    $endDate = old('ends_date', \App\Support\JalaliDate::format(now()->addDays(7)));
+    $endTime = old('ends_time', now()->addDays(7)->format('H:i'));
 @endphp
 @extends('layouts.app')
 @section('title', 'نظرسنجی و رأی‌گیری')
@@ -106,13 +110,17 @@
                         <p class="poll-field-help">مخاطبان مجاز بر اساس نقش‌های ساختمان تعیین می‌شوند.</p>
                     </div>
                     <div class="fld">
-                        <label for="poll-start">زمان شروع <span aria-hidden="true">*</span></label>
-                        <input id="poll-start" type="datetime-local" name="starts_at" value="{{ old('starts_at', now()->format('Y-m-d\\TH:i')) }}" required>
+                        <label for="poll-start-date">زمان شروع <span aria-hidden="true">*</span></label>
+                        <input id="poll-start-date" class="jdate" data-min="1300/01/01" name="starts_date" value="{{ $startDate }}" placeholder="انتخاب تاریخ شمسی" autocomplete="off" required>
+                        <label for="poll-start-time" style="margin-top:9px">ساعت شروع</label>
+                        <input id="poll-start-time" type="time" name="starts_time" value="{{ $startTime }}" required>
                         @error('starts_at')<div class="e">{{ $message }}</div>@enderror
                     </div>
                     <div class="fld">
-                        <label for="poll-end">مهلت پایان <span aria-hidden="true">*</span></label>
-                        <input id="poll-end" type="datetime-local" name="ends_at" value="{{ old('ends_at', now()->addDays(7)->format('Y-m-d\\TH:i')) }}" required>
+                        <label for="poll-end-date">مهلت پایان <span aria-hidden="true">*</span></label>
+                        <input id="poll-end-date" class="jdate" data-min="1300/01/01" name="ends_date" value="{{ $endDate }}" placeholder="انتخاب تاریخ شمسی" autocomplete="off" required>
+                        <label for="poll-end-time" style="margin-top:9px">ساعت پایان</label>
+                        <input id="poll-end-time" type="time" name="ends_time" value="{{ $endTime }}" required>
                         @error('ends_at')<div class="e">{{ $message }}</div>@enderror
                     </div>
                 </div>
@@ -243,7 +251,7 @@
                                 @elseif($hasVoted)
                                     <div class="poll-state-note"><span class="dot">✓</span>پاسخ شما با موفقیت ثبت شده است.</div>
                                 @elseif(!$started)
-                                    <div class="poll-state-note"><span class="dot">◷</span>رأی‌گیری از {{ $poll->starts_at->format('Y/m/d H:i') }} آغاز می‌شود.</div>
+                                    <div class="poll-state-note"><span class="dot">◷</span>رأی‌گیری از {{ $F::digits(\App\Support\JalaliDate::format($poll->starts_at)) }} ساعت {{ $F::digits($poll->starts_at->format('H:i')) }} آغاز می‌شود.</div>
                                 @elseif($residentOnly && !$eligibleRole)
                                     <div class="poll-state-note"><span class="dot">i</span>شرکت در این نظرسنجی فقط برای مالک واحد و مستأجر مجاز است.</div>
                                 @else
