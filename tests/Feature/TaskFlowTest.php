@@ -208,6 +208,15 @@ class TaskFlowTest extends TestCase
             ->get(route('tickets.edit', $ticket->id))
             ->assertOk()->assertSee('ویرایش تسک');
 
+        $this->assertSame(
+            $acceptedAt->toDateTimeString(),
+            \\App\\Models\\TicketAssignee::withoutGlobalScopes()
+                ->where('building_id', $this->building->id)
+                ->where('ticket_id', $ticket->id)
+                ->where('user_id', $this->maintenance->id)
+                ->value('accepted_at')
+        );
+
         $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
             ->put(route('tickets.update', $ticket->id), [
                 'title' => 'عنوان به‌روزشده',
