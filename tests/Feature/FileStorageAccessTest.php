@@ -48,11 +48,15 @@ class FileStorageAccessTest extends TestCase
             ->get(route('files.show', $file->id))
             ->assertForbidden();
 
-        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+        $response = $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
             ->get(route('files.show', $file->id))
             ->assertOk()
-            ->assertHeader('X-Content-Type-Options', 'nosniff')
-            ->assertHeader('Cache-Control', 'private, max-age=0, no-store');
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+
+        // Cache-Control directives are unordered; middleware may append "private" at the end.
+        $cacheDirectives = array_map('trim', explode(',', $response->headers->get('Cache-Control', '')));
+        sort($cacheDirectives);
+        $this->assertSame(['max-age=0', 'no-store', 'private'], $cacheDirectives);
     }
 
     public function test_private_file_from_another_building_returns_not_found(): void
