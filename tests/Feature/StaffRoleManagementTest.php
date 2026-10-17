@@ -99,7 +99,8 @@ class StaffRoleManagementTest extends TestCase
             'priority' => 'medium',
         ])->assertRedirect()->assertSessionHasNoErrors();
 
-        $ticket = \App\Models\Ticket::where('kind', 'request')->where('created_by', $resident->id)->firstOrFail();
+        $ticket = \Illuminate\Support\Facades\DB::table('tickets')->where('building_id', $this->building->id)->where('kind', 'request')->where('created_by', $resident->id)->first();
+        $this->assertNotNull($ticket);
         $this->assertSame($role->id, (int) $ticket->target_role_id);
         $this->assertDatabaseHas('ticket_assignees', [
             'building_id' => $this->building->id,
