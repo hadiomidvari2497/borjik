@@ -30,9 +30,9 @@
   <section class="req-performance" aria-label="شاخص‌های عملکرد رسیدگی">
     <div class="req-performance-head"><h3>نمای کلی عملکرد رسیدگی</h3><p>بر اساس تمام درخواست‌های قابل مشاهده در ساختمان و بدون تأثیر فیلترهای فهرست</p></div>
     <div class="req-performance-grid">
-      <article class="req-performance-card"><span>درخواست‌های باز</span><b>{{ \\App\\Support\\Fa::num($stats['open']) }}</b><small>هنوز به وضعیت انجام‌شده یا بسته‌شده نرسیده‌اند</small></article>
-      <article class="req-performance-card"><span>درخواست‌های عقب‌افتاده</span><b>{{ \\App\\Support\\Fa::num($stats['overdue']) }}</b><small>مهلت پاسخ گذشته و درخواست هنوز باز است</small></article>
-      <article class="req-performance-card"><span>نرخ خاتمه درخواست‌ها</span><b>{{ \\App\\Support\\Fa::num($stats['resolution_rate']) }}٪</b><small>{{ \\App\\Support\\Fa::num($stats['resolved']) }} مورد از {{ \\App\\Support\\Fa::num($stats['total']) }} درخواست به پایان رسیده</small></article>
+      <article class="req-performance-card"><span>درخواست‌های باز</span><b>{{ \App\Support\Fa::num($stats['open']) }}</b><small>هنوز به وضعیت انجام‌شده یا بسته‌شده نرسیده‌اند</small></article>
+      <article class="req-performance-card"><span>درخواست‌های عقب‌افتاده</span><b>{{ \App\Support\Fa::num($stats['overdue']) }}</b><small>مهلت پاسخ گذشته و درخواست هنوز باز است</small></article>
+      <article class="req-performance-card"><span>نرخ خاتمه درخواست‌ها</span><b>{{ \App\Support\Fa::num($stats['resolution_rate']) }}٪</b><small>{{ \App\Support\Fa::num($stats['resolved']) }} مورد از {{ \App\Support\Fa::num($stats['total']) }} درخواست به پایان رسیده</small></article>
     </div>
   </section>
   <section class="card req-list-card">
