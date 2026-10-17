@@ -66,7 +66,9 @@
 
           @if($showResults)
             @foreach($poll->options as $option)
-              @php($percent = $poll->votes_count > 0 ? (int) round($option->votes_count * 100 / $poll->votes_count) : 0)
+              @php
+                $percent = $poll->votes_count > 0 ? (int) round($option->votes_count * 100 / $poll->votes_count) : 0;
+              @endphp
               <div class="poll-result">
                 <div class="poll-result-top"><span>{{ $option->text }}</span><b>{{ $F::digits($percent) }}٪ <small>({{ $F::digits($option->votes_count) }})</small></b></div>
                 <div class="poll-track"><div class="poll-fill" style="width:{{ $percent }}%"></div></div>
