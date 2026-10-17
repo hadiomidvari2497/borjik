@@ -243,7 +243,7 @@
                                 @elseif($hasVoted)
                                     <div class="poll-state-note"><span class="dot">✓</span>پاسخ شما با موفقیت ثبت شده است.</div>
                                 @elseif(!$started)
-                                    <div class="poll-state-note"><span class="dot">◷</span>رأی‌گیری از {{ $poll->starts_at->format('Y/m/d H:i') }} آغاز می‌شود.</div>
+                                    <div class="poll-state-note"><span class="dot">◷</span>رأی‌گیری از {{ $F::digits(\\App\\Support\\JalaliDate::format($poll->starts_at)) }} ساعت {{ $F::digits($poll->starts_at->format('H:i')) }} آغاز می‌شود.</div>
                                 @elseif($residentOnly && !$eligibleRole)
                                     <div class="poll-state-note"><span class="dot">i</span>شرکت در این نظرسنجی فقط برای مالک واحد و مستأجر مجاز است.</div>
                                 @else
