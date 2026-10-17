@@ -17,6 +17,7 @@ class AdminUserSeeder extends Seeder
                 'name' => 'مدیر سیستم',
                 'password' => Hash::make('admin123'),
                 'status' => 'active',
+                'is_super' => true,
                 'two_factor_enabled' => false,
             ]
         );
