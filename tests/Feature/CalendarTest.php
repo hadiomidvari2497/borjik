@@ -122,4 +122,46 @@ class CalendarTest extends TestCase
 
         $this->assertDatabaseMissing('calendar_events', ['id' => $event->id]);
     }
+
+    public function test_manager_can_update_a_calendar_event(): void
+    {
+        $event = app(\\App\\Support\\CurrentBuilding::class)->actingAs(
+            $this->building->id,
+            fn () => CalendarEvent::create([
+                'created_by' => $this->owner->id,
+                'title' => 'عنوان قبلی',
+                'starts_at' => now()->addDay(),
+                'ends_at' => now()->addDay()->addHour(),
+                'is_all_day' => false,
+                'color' => 'teal',
+            ]),
+            ['owner'],
+        );
+
+        $this->open($this->owner, 'put', route('events.update', $event->id), [
+            'title' => 'عنوان ویرایش‌شده',
+            'description' => 'توضیحات جدید',
+            'start_date' => JalaliDate::format(now()->addDays(2)),
+            'start_time' => '12:00',
+            'end_time' => '13:00',
+            'color' => 'violet',
+            'reminder_minutes' => '60',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('calendar_events', [
+            'id' => $event->id,
+            'title' => 'عنوان ویرایش‌شده',
+            'color' => 'violet',
+            'reminder_minutes' => 60,
+        ]);
+    }
+
+    public function test_calendar_supports_category_filters(): void
+    {
+        $this->open($this->tenant, 'get', route('events.index', ['filter' => 'tasks']))
+            ->assertOk()
+            ->assertSee('مهلت تسک‌ها')
+            ->assertSee('cal-filter active', false);
+    }
+
 }
