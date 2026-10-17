@@ -7,6 +7,7 @@ use App\Models\BuildingUserRole;
 use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketComment;
+use App\Models\TicketStatusLog;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -79,6 +80,39 @@ class RequestFlowTest extends TestCase
         $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))->post(route('requests.comments.store', $ticket->id), ['body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id])->assertRedirect();
         $this->assertDatabaseHas('ticket_comments', ['ticket_id' => $ticket->id, 'body' => 'پاسخ مشخص', 'reply_to_id' => $parent->id]);
 
+    }
+
+    public function test_manager_can_view_building_scoped_request_performance_report(): void
+    {
+        $createdAt = now()->subDays(2);
+        $resolvedAt = now()->subDay();
+
+        $resolvedTicket = Ticket::create([
+            'building_id' => $this->building->id, 'number' => 'REQ-REPORT-001',
+            'kind' => 'request', 'title' => 'درخواست حل‌شده', 'description' => 'تست گزارش',
+            'category' => 'maintenance', 'priority' => 'medium', 'status' => 'done',
+            'created_by' => $this->resident->id, 'created_at' => $createdAt, 'updated_at' => $resolvedAt,
+        ]);
+        TicketStatusLog::create([
+            'building_id' => $this->building->id, 'ticket_id' => $resolvedTicket->id,
+            'from_status' => 'doing', 'to_status' => 'done', 'user_id' => $this->manager->id,
+            'note' => 'حل شد', 'created_at' => $resolvedAt,
+        ]);
+        Ticket::create([
+            'building_id' => $this->building->id, 'number' => 'REQ-REPORT-002',
+            'kind' => 'request', 'title' => 'درخواست باز', 'description' => 'تست گزارش',
+            'category' => 'general', 'priority' => 'low', 'status' => 'new',
+            'created_by' => $this->resident->id,
+        ]);
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->get(route('requests.reports'))
+            ->assertOk()->assertSee('گزارش عملکرد رسیدگی')
+            ->assertSee('درخواست ثبت‌شده در بازه')->assertSee('درخواست حل‌شده در بازه')
+            ->assertSee('میانگین زمان رسیدگی')->assertSee('درخواست باز');
+
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
+            ->get(route('requests.reports'))->assertForbidden();
     }
 
     private function makeUser(string $mobile, string $name): User
