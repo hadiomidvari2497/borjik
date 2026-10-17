@@ -257,7 +257,7 @@ class RequestController extends Controller
             'canManage' => $request->user()->hasPermission('request.view.all'),
             'canUpdateStatus' => $this->canUpdateStatus($request->user(), $item),
             'canClaim' => $this->canClaim($request->user(), $item),
-            'staff' => $request->user()->hasPermission('request.view.all') ? $this->staffOptions($item->category) : collect(),
+            'staff' => $request->user()->hasPermission('request.view.all') ? $this->staffOptions($item->target_role_id) : collect(),
             'statuses' => $this->statusLabels(),
         ]);
     }
@@ -292,6 +292,7 @@ class RequestController extends Controller
             'tickets' => $query->paginate(10)->withQueryString(),
             'categories' => self::CATEGORIES,
             'statuses' => $this->statusLabels(),
+            'staffRoles' => Role::where('building_id', app(CurrentBuilding::class)->id())->where('is_staff', true)->where('is_active', true)->orderBy('name_fa')->get(),
             'units' => Unit::query()
                 ->when(! $user->hasPermission('request.view.all'), fn ($q) => $q->whereHas('parties', fn ($p) => $p->where('user_id', $user->id)->whereNull('to_date')))
                 ->with('block')->orderBy('number')->get(),
@@ -310,6 +311,7 @@ class RequestController extends Controller
             'title' => ['required', 'string', 'max:200'],
             'description' => ['required', 'string', 'max:10000'],
             'category' => ['required', Rule::in(array_keys(self::CATEGORIES))],
+            'target_role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)],
             'priority' => ['required', Rule::in(['low', 'medium', 'high', 'urgent'])],
             'location' => ['nullable', 'string', 'max:150'],
             'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')->where('building_id', $buildingId)->whereNull('deleted_at')],
@@ -321,17 +323,25 @@ class RequestController extends Controller
         }
 
         $ticket = DB::transaction(function () use ($data, $user, $buildingId) {
-            $roleKey = match ($data['category']) {
-                'maintenance', 'facilities' => 'maintenance',
-                'cleaning' => 'cleaning',
-                'security' => 'security',
-                default => null,
-            };
-            $roleId = $roleKey ? Role::where('key', $roleKey)->value('id') : null;
-            $assigneeIds = $roleKey
-                ? DB::table('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')
+            $roleId = $data['target_role_id'] ?? null;
+            if (! $roleId) {
+                $defaultRoleKey = match ($data['category']) {
+                    'maintenance', 'facilities' => 'maintenance',
+                    'cleaning' => 'cleaning',
+                    'security' => 'security',
+                    default => null,
+                };
+                if ($defaultRoleKey) {
+                    $roleQuery = Role::where('key', $defaultRoleKey)->where('is_staff', true)->where('is_active', true);
+                    $buildingRole = (clone $roleQuery)->where('building_id', $buildingId)->value('id');
+                    $rolesInitialized = (bool) DB::table('buildings')->where('id', $buildingId)->value('staff_roles_initialized');
+                    $roleId = $buildingRole ?? (! $rolesInitialized ? (clone $roleQuery)->whereNull('building_id')->value('id') : null);
+                }
+            }
+            $assigneeIds = $roleId
+                ? DB::table('building_user_roles as bur')
                     ->where('bur.building_id', $buildingId)->where('bur.status', 'active')
-                    ->where('r.key', $roleKey)->pluck('bur.user_id')->unique()->values()
+                    ->where('bur.role_id', $roleId)->pluck('bur.user_id')->unique()->values()
                 : collect();
             $initialStatus = TicketStatus::New;
 
@@ -380,16 +390,23 @@ class RequestController extends Controller
         $data = $request->validate(['user_id' => ['nullable', 'integer', Rule::exists('building_user_roles', 'user_id')->where('building_id', $buildingId)->where('status', 'active')]]);
         DB::transaction(function () use ($ticket, $data, $user, $buildingId) {
             $item = Ticket::where('kind', 'request')->lockForUpdate()->findOrFail($ticket); $previous = $item->acceptedBy; $staffUser = null;
-            $roleKey = match ($item->category) { 'maintenance', 'facilities' => 'maintenance', 'cleaning' => 'cleaning', 'security' => 'security', default => null };
+            $roleId = $item->target_role_id;
             if (! empty($data['user_id'])) {
-                abort_unless($roleKey, 422, 'برای درخواست عمومی مسئول تخصصی تعریف نشده است.');
-                $staffUser = User::whereKey($data['user_id'])->whereExists(function ($query) use ($buildingId, $roleKey) { $query->selectRaw('1')->from('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')->whereColumn('bur.user_id', 'users.id')->where('bur.building_id', $buildingId)->where('bur.status', 'active')->where('r.key', $roleKey); })->firstOrFail();
+                abort_unless($roleId, 422, 'برای این درخواست ابتدا نقش مسئول را انتخاب کنید.');
+                $staffUser = User::whereKey($data['user_id'])->whereExists(function ($query) use ($buildingId, $roleId) {
+                    $query->selectRaw('1')->from('building_user_roles as bur')
+                        ->whereColumn('bur.user_id', 'users.id')->where('bur.building_id', $buildingId)
+                        ->where('bur.status', 'active')->where('bur.role_id', $roleId);
+                })->firstOrFail();
             }
             $item->assignees()->delete();
             if ($staffUser) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $staffUser->id, 'assigned_by' => $user->id, 'assigned_at' => now(), 'accepted_at' => now()]);
-            elseif ($roleKey) { $ids = DB::table('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')->where('bur.building_id', $buildingId)->where('bur.status', 'active')->where('r.key', $roleKey)->pluck('bur.user_id')->unique(); foreach ($ids as $id) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $id, 'assigned_by' => $user->id, 'assigned_at' => now()]); }
+            elseif ($roleId) {
+                $ids = DB::table('building_user_roles')->where('building_id', $buildingId)->where('status', 'active')->where('role_id', $roleId)->pluck('user_id')->unique();
+                foreach ($ids as $id) TicketAssignee::create(['building_id' => $buildingId, 'ticket_id' => $item->id, 'user_id' => $id, 'assigned_by' => $user->id, 'assigned_at' => now()]);
+            }
             $item->accepted_by = $staffUser?->id; $item->save();
-            $from = $previous ? ($previous->display_name ?: $previous->mobile) : 'بدون مسئول'; $to = $staffUser ? ($staffUser->display_name ?: $staffUser->mobile) : 'صف عمومی پرسنل مرتبط';
+            $from = $previous ? ($previous->display_name ?: $previous->mobile) : 'بدون مسئول'; $to = $staffUser ? ($staffUser->display_name ?: $staffUser->mobile) : ($roleId ? (Role::find($roleId)?->name_fa ?? 'صف نقش انتخاب‌شده') : 'صف عمومی مدیر ساختمان');
             $this->recordEvent($item, $user, 'assignment_changed', "مدیر مسئول درخواست را از «{$from}» به «{$to}» تغییر داد.");
             if ($item->status === TicketStatus::New && $staffUser) $this->changeStatus($item, TicketStatus::Review, $user, 'درخواست توسط مدیر به مسئول مشخص ارجاع شد.');
         });
@@ -584,11 +601,13 @@ class RequestController extends Controller
         }
     }
 
-    private function staffOptions(string $category)
+    private function staffOptions(?int $roleId)
     {
-        $roleKey = match ($category) { 'maintenance', 'facilities' => 'maintenance', 'cleaning' => 'cleaning', 'security' => 'security', default => null };
-        if (! $roleKey) return collect();
-        return User::select('users.id', 'users.first_name', 'users.last_name', 'users.mobile')->join('building_user_roles as bur', 'bur.user_id', '=', 'users.id')->join('roles as r', 'r.id', '=', 'bur.role_id')->where('bur.building_id', app(CurrentBuilding::class)->id())->where('bur.status', 'active')->where('r.key', $roleKey)->whereNull('users.deleted_at')->distinct()->orderBy('users.first_name')->get();
+        if (! $roleId) return collect();
+        return User::select('users.id', 'users.first_name', 'users.last_name', 'users.mobile')
+            ->join('building_user_roles as bur', 'bur.user_id', '=', 'users.id')
+            ->where('bur.building_id', app(CurrentBuilding::class)->id())->where('bur.status', 'active')
+            ->where('bur.role_id', $roleId)->whereNull('users.deleted_at')->distinct()->orderBy('users.first_name')->get();
     }
 
     private function recordEvent(Ticket $ticket, ?User $user, string $type, string $description, array $metadata = []): void

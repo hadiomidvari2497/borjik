@@ -21,7 +21,7 @@ class RolePermissionSeeder extends Seeder
             ['unit_owner', 'مالک واحد', false],
             ['tenant', 'مستأجر', false],
         ] as [$key, $name, $isStaff]) {
-            DB::table('roles')->updateOrInsert(['key' => $key], ['name_fa' => $name, 'is_staff' => $isStaff, 'updated_at' => $now, 'created_at' => $now]);
+            DB::table('roles')->updateOrInsert(['key' => $key, 'building_id' => null], ['name_fa' => $name, 'is_staff' => $isStaff, 'updated_at' => $now, 'created_at' => $now]);
         }
 
         foreach ([
@@ -94,7 +94,7 @@ class RolePermissionSeeder extends Seeder
             }
         }
 
-        $roleIds = DB::table('roles')->pluck('id', 'key');
+        $roleIds = DB::table('roles')->whereNull('building_id')->pluck('id', 'key');
         $permIds = DB::table('permissions')->pluck('id', 'key');
 
         foreach ([

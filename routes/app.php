@@ -19,6 +19,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\StorageController;
+use App\Http\Controllers\StaffRoleController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
@@ -133,6 +134,12 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     });
 
     Route::get('/staff', [TeamController::class, 'staff'])->middleware('can:staff.manage')->name('staff.index');
+    Route::middleware('can:staff.manage')->prefix('staff-roles')->name('staff-roles.')->controller(StaffRoleController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{role}', 'update')->whereNumber('role')->name('update');
+        Route::delete('/{role}', 'destroy')->whereNumber('role')->name('destroy');
+    });
     Route::put('/staff/{userId}/roles', [TeamController::class, 'updateRoles'])->whereNumber('userId')->middleware('can:staff.manage')->name('staff.roles.update');
     Route::get('/members', [TeamController::class, 'members'])->middleware('can:member.manage')->name('members.index');
     Route::post('/members/{userId}/membership-role', [TeamController::class, 'changeMemberRole'])->whereNumber('userId')->middleware('can:member.manage')->name('members.membership-role.update');

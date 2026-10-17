@@ -25,9 +25,13 @@ class TeamService
     public const MEMBERS = ['unit_owner', 'tenant'];
     private const PROTECTED = ['owner', 'manager'];
 
-    public static function rolesOf(string $scope): array
+    public static function rolesOf(string $scope, ?int $buildingId = null): array
     {
-        return $scope === 'staff' ? self::STAFF : self::MEMBERS;
+        if ($scope !== 'staff') return self::MEMBERS;
+        if (! $buildingId) return self::STAFF;
+        $buildingKeys = Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->pluck('key')->all();
+        $initialized = (bool) DB::table('buildings')->where('id', $buildingId)->value('staff_roles_initialized');
+        return array_values(array_unique(array_merge(['owner', 'manager'], $buildingKeys ?: ($initialized ? [] : ['security', 'cleaning', 'maintenance']))));
     }
 
     /** فهرست افراد یک گروه (پرسنل یا اعضا) با نقش‌ها و وضعیت کلی. @return Collection<int, array<string,mixed>> */
@@ -36,7 +40,7 @@ class TeamService
         $rows = DB::table('building_user_roles as bur')
             ->join('roles as r', 'r.id', '=', 'bur.role_id')
             ->join('users as u', 'u.id', '=', 'bur.user_id')
-            ->where('bur.building_id', $buildingId)->whereIn('r.key', self::rolesOf($scope))->whereNull('u.deleted_at')
+            ->where('bur.building_id', $buildingId)->whereIn('r.key', self::rolesOf($scope, $buildingId))->whereNull('u.deleted_at')
             ->orderBy('u.last_name')->orderBy('u.first_name')
             ->get(['bur.user_id', 'bur.status', 'bur.joined_at', 'bur.invited_at', 'r.key', 'r.name_fa', 'u.first_name', 'u.last_name', 'u.company_name', 'u.person_type', 'u.mobile']);
 
@@ -86,7 +90,7 @@ class TeamService
         $this->assertNotLastOwner($buildingId, $userId, $rows->where('status', 'active')->pluck('key')->all());
 
         BuildingUserRole::where(['building_id' => $buildingId, 'user_id' => $userId, 'status' => 'active'])
-            ->whereIn('role_id', $this->roleIds(self::rolesOf($scope)))->update(['status' => 'inactive']);
+            ->whereIn('role_id', $this->roleIds(self::rolesOf($scope, $buildingId)))->update(['status' => 'inactive']);
     }
 
     public function activate(User $actor, int $userId, string $scope): void
@@ -186,7 +190,8 @@ class TeamService
             throw new TeamException('نقش‌های خودتان را نمی‌توانید تغییر دهید.');
         }
         $roleKeys = array_values(array_unique($roleKeys));
-        if (array_diff($roleKeys, self::STAFF)) {
+        $availableStaffKeys = self::rolesOf('staff', $buildingId);
+        if (array_diff($roleKeys, $availableStaffKeys)) {
             throw new TeamException('نقش نامعتبر است.');
         }
 
@@ -215,7 +220,7 @@ class TeamService
             } else {
                 foreach ($toAdd as $key) {
                     BuildingUserRole::updateOrCreate(
-                        ['building_id' => $buildingId, 'user_id' => $userId, 'role_id' => Role::where('key', $key)->value('id')],
+                        ['building_id' => $buildingId, 'user_id' => $userId, 'role_id' => (in_array($key, self::PROTECTED, true) ? Role::whereNull('building_id')->where('key', $key)->value('id') : (Role::where('building_id', $buildingId)->where('key', $key)->value('id') ?? (! Role::where('building_id', $buildingId)->where('is_staff', true)->exists() ? Role::whereNull('building_id')->where('key', $key)->value('id') : null)))],
                         ['status' => 'active', 'invited_by' => $actor->id, 'invited_at' => now(), 'joined_at' => now()],
                     );
                 }
@@ -250,13 +255,20 @@ class TeamService
     private function rows(int $buildingId, int $userId, string $scope): Collection
     {
         return DB::table('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')
-            ->where('bur.building_id', $buildingId)->where('bur.user_id', $userId)->whereIn('r.key', self::rolesOf($scope))
+            ->where('bur.building_id', $buildingId)->where('bur.user_id', $userId)->whereIn('r.key', self::rolesOf($scope, $buildingId))
             ->get(['bur.id', 'r.key', 'bur.status']);
     }
 
     private function roleIds(array $keys): array
     {
-        return Role::whereIn('key', $keys)->pluck('id')->all();
+        $buildingId = app(CurrentBuilding::class)->id();
+        return Role::whereIn('key', $keys)->where(function ($query) use ($buildingId, $keys) {
+            $query->whereNull('building_id')->whereIn('key', array_values(array_intersect($keys, self::PROTECTED)));
+            if ($buildingId) $query->orWhere('building_id', $buildingId);
+            if ($buildingId && ! DB::table('buildings')->where('id', $buildingId)->value('staff_roles_initialized')) {
+                $query->orWhereNull('building_id'); // compatibility for tests/legacy buildings created outside BuildingService
+            }
+        })->pluck('id')->all();
     }
 
     /** فقط مالک ساختمان به نقش‌های «مالک» و «مدیر» دست می‌زند. */
