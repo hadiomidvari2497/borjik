@@ -77,8 +77,8 @@
         </div>
         <div class="poll-detail-panel-body">
             <div class="poll-detail-stats" style="margin:0;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))">
-                <div class="poll-detail-stat"><div class="poll-detail-stat-top"><span>شروع رأی‌گیری</span></div><strong style="font-size:16px">{{ $F::digits(\\App\\Support\\JalaliDate::format($poll->starts_at)) }}</strong><small>{{ $F::digits($poll->starts_at->format('H:i')) }}</small></div>
-                <div class="poll-detail-stat"><div class="poll-detail-stat-top"><span>پایان رأی‌گیری</span></div><strong style="font-size:16px">{{ $F::digits(\\App\\Support\\JalaliDate::format($poll->ends_at)) }}</strong><small>{{ $F::digits($poll->ends_at->format('H:i')) }}</small></div>
+                <div class="poll-detail-stat"><div class="poll-detail-stat-top"><span>شروع رأی‌گیری</span></div><strong style="font-size:16px">{{ $F::digits(\App\Support\JalaliDate::format($poll->starts_at)) }}</strong><small>{{ $F::digits($poll->starts_at->format('H:i')) }}</small></div>
+                <div class="poll-detail-stat"><div class="poll-detail-stat-top"><span>پایان رأی‌گیری</span></div><strong style="font-size:16px">{{ $F::digits(\App\Support\JalaliDate::format($poll->ends_at)) }}</strong><small>{{ $F::digits($poll->ends_at->format('H:i')) }}</small></div>
                 <div class="poll-detail-stat"><div class="poll-detail-stat-top"><span>ایجادکننده</span></div><strong style="font-size:16px">{{ $poll->createdBy?->display_name ?: '—' }}</strong><small>مدیر ثبت‌کننده</small></div>
                 <div class="poll-detail-stat"><div class="poll-detail-stat-top"><span>مخاطبان</span></div><strong style="font-size:15px">{{ $poll->audience === 'residents' ? 'مالک و مستأجر' : 'اعضای مجاز' }}</strong><small>دامنه مشارکت</small></div>
             </div>
@@ -118,7 +118,7 @@
                         <thead><tr><th>شرکت‌کننده</th><th>{{ $poll->response_type === 'text' ? 'پاسخ تشریحی' : 'گزینه انتخاب‌شده' }}</th><th>زمان ثبت</th></tr></thead>
                         <tbody>
                         @foreach($poll->votes->sortBy('created_at') as $vote)
-                            <tr><td><div class="poll-detail-participant">{{ $vote->user?->display_name ?: 'کاربر حذف‌شده' }}</div><div class="poll-detail-secondary">{{ $vote->user?->mobile }}</div></td><td class="poll-detail-answer">{{ $poll->response_type === 'text' ? $vote->answer : ($vote->option?->text ?: '—') }}</td><td style="white-space:nowrap">{{ $F::digits(\\App\\Support\\JalaliDate::format($vote->created_at)) }}<div class="poll-detail-secondary">{{ $F::digits($vote->created_at?->format('H:i') ?? '') }}</div></td></tr>
+                            <tr><td><div class="poll-detail-participant">{{ $vote->user?->display_name ?: 'کاربر حذف‌شده' }}</div><div class="poll-detail-secondary">{{ $vote->user?->mobile }}</div></td><td class="poll-detail-answer">{{ $poll->response_type === 'text' ? $vote->answer : ($vote->option?->text ?: '—') }}</td><td style="white-space:nowrap">{{ $F::digits(\App\Support\JalaliDate::format($vote->created_at)) }}<div class="poll-detail-secondary">{{ $F::digits($vote->created_at?->format('H:i') ?? '') }}</div></td></tr>
                         @endforeach
                         </tbody>
                     </table>
