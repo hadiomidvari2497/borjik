@@ -20,7 +20,7 @@
           <p>{{ $data['message'] ?? '' }}</p>
           <small>{{ $notification->created_at?->format('Y/m/d H:i') }}</small>
           @if(!empty($data['url']))
-            <a class="notice-link" href="{{ route('notifications.read', $notification->id) }}">مشاهده درخواست ←</a>
+            <form method="POST" action="{{ route('notifications.read', $notification->id) }}">@csrf<button class="notice-link" type="submit" style="border:0;background:transparent;padding:0;cursor:pointer;font:inherit">مشاهده درخواست ←</button></form>
           @endif
         </div>
         @if(!$notification->read_at)<span style="font-size:10px;font-weight:800;color:var(--brand-d);background:var(--brand-soft);padding:5px 8px;border-radius:8px">جدید</span>@endif
