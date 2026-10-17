@@ -249,9 +249,16 @@ class TaskController extends Controller
         $user = $request->user();
         $isManager = $user->hasPermission('ticket.view.all');
         $isAssigned = $item->assignees->contains(fn ($a) => (int) $a->user_id === (int) $user->id);
+        $unratedAssignee = $item->assignees->contains(fn ($assignee) =>
+            (int) $assignee->user_id !== (int) $user->id
+            && ! $item->ratings->contains(fn ($rating) =>
+                (int) $rating->rated_by === (int) $user->id
+                && (int) $rating->rated_user_id === (int) $assignee->user_id
+            )
+        );
         $canRate = (int) $item->created_by === (int) $user->id
             && in_array($item->status->value, ['done', 'closed'], true)
-            && ! $item->ratings->where('rated_by', $user->id)->count();
+            && $unratedAssignee;
 
         return view('tickets.show', [
             'ticket' => $item,
@@ -265,6 +272,76 @@ class TaskController extends Controller
             'canRate' => $canRate,
             'existingRatings' => $item->ratings->where('rated_by', $user->id)->keyBy('rated_user_id'),
         ]);
+    }
+
+    public function claim(Request $request, int $ticket)
+    {
+        $item = $this->visibleTask($request, $ticket);
+        $user = $request->user();
+        abort_unless($user->hasPermission('ticket.respond'), 403);
+        $assignee = $item->assignees()->where('user_id', $user->id)->lockForUpdate()->firstOrFail();
+        abort_if($item->accepted_by !== null && (int) $item->accepted_by !== (int) $user->id, 409, 'این تسک قبلاً توسط همکار دیگری پذیرفته شده است.');
+
+        DB::transaction(function () use ($item, $user, $assignee) {
+            $assignee->accepted_at = now();
+            $assignee->save();
+            if ($item->accepted_by === null) {
+                $item->accepted_by = $user->id;
+                if ($item->status->value === 'new') {
+                    $item->status = TicketStatus::Review;
+                    TicketStatusLog::create([
+                        'building_id' => $item->building_id, 'ticket_id' => $item->id,
+                        'from_status' => 'new', 'to_status' => 'review',
+                        'user_id' => $user->id, 'note' => 'پرسنل مسئولیت تسک را پذیرفت.', 'created_at' => now(),
+                    ]);
+                }
+                $item->save();
+            }
+            TicketEvent::create([
+                'building_id' => $item->building_id, 'ticket_id' => $item->id,
+                'user_id' => $user->id, 'type' => 'claimed',
+                'description' => 'مسئولیت تسک توسط '.($user->display_name ?: $user->mobile).' پذیرفته شد.',
+                'metadata' => null, 'created_at' => now(),
+            ]);
+        });
+
+        return back()->with('status', 'مسئولیت تسک به شما واگذار شد.');
+    }
+
+    public function comment(Request $request, int $ticket)
+    {
+        $item = $this->visibleTask($request, $ticket);
+        $data = $request->validate(['body' => ['required', 'string', 'max:5000']]);
+        $user = $request->user();
+
+        $comment = TicketComment::create([
+            'building_id' => $item->building_id,
+            'ticket_id' => $item->id,
+            'user_id' => $user->id,
+            'body' => trim($data['body']),
+        ]);
+        TicketEvent::create([
+            'building_id' => $item->building_id, 'ticket_id' => $item->id,
+            'user_id' => $user->id, 'type' => 'commented',
+            'description' => 'پیام جدیدی در گفت‌وگوی تسک ثبت شد.',
+            'metadata' => ['comment_id' => $comment->id], 'created_at' => now(),
+        ]);
+
+        $recipients = collect([$item->createdBy])
+            ->merge($item->assignees->pluck('user'))
+            ->filter()->unique('id')->reject(fn ($recipient) => (int) $recipient->id === (int) $user->id);
+        foreach ($recipients as $recipient) {
+            $recipient->notify(new RequestAlertNotification(
+                buildingId: (int) $item->building_id,
+                ticketId: (int) $item->id,
+                event: 'task_commented',
+                title: 'پیام جدید در تسک',
+                message: ($user->display_name ?: $user->mobile).' در تسک «'.$item->title.'» پیام گذاشت.',
+                url: route('tickets.show', $item->id),
+            ));
+        }
+
+        return back()->with('status', 'پیام شما در تاریخچه تسک ثبت شد.');
     }
 
     public function updateStatus(Request $request, int $ticket, SmsSender $sms)
