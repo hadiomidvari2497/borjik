@@ -49,7 +49,7 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
 .cal-create{padding:18px}.cal-create summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;font-size:13px;font-weight:900}.cal-create summary::-webkit-details-marker{display:none}.cal-create summary:after{content:"＋";display:grid;place-items:center;width:29px;height:29px;border-radius:10px;background:#e7f6ef;color:#176b63;font-size:18px}
 .cal-create[open] summary{padding-bottom:15px;border-bottom:1px solid var(--cal-line);margin-bottom:15px}
 .cal-form{display:grid;gap:11px}.cal-field label{display:block;font-size:10px;font-weight:800;color:#4c6170;margin-bottom:6px}.cal-field input,.cal-field select,.cal-field textarea{width:100%;min-width:0;border:1px solid #dce6e9;border-radius:10px;background:var(--card,#fff);color:var(--cal-ink);padding:10px 11px;font:inherit;font-size:11px;outline:none}.cal-field input:focus,.cal-field select:focus,.cal-field textarea:focus{border-color:#68b5a2;box-shadow:0 0 0 3px #329b8116}.cal-two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.cal-check{display:flex;align-items:center;gap:8px;font-size:10px;color:#526977}.cal-check input{accent-color:#176b63}.cal-submit{border:0;border-radius:11px;background:linear-gradient(120deg,#176b63,#2b9280);color:#fff;padding:12px;font:inherit;font-size:11px;font-weight:850;cursor:pointer}.cal-status{padding:11px 13px;border-radius:12px;background:#eaf8f1;color:#176b63;font-size:11px;margin-bottom:15px}.cal-errors{padding:11px 13px;border-radius:12px;background:#fff1f0;color:#a43e3e;font-size:11px;line-height:1.9;margin-bottom:15px}
-.cal-delete{display:inline-flex;margin-top:5px;border:0;background:transparent;color:#b14a4a;padding:0;font-size:9px;cursor:pointer}
+.cal-filters{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--cal-line)}.cal-filter{display:inline-flex;padding:7px 11px;border:1px solid var(--cal-line);border-radius:9px;text-decoration:none;color:var(--cal-muted);font-size:10px;font-weight:800}.cal-filter.active{background:#e6f6f0;border-color:#b8e4d5;color:#176b63}.cal-edit{margin-top:9px;border-top:1px dashed var(--cal-line);padding-top:8px}.cal-edit summary{font-size:10px;font-weight:800;color:#176b63;cursor:pointer}.cal-delete{display:inline-flex;margin-top:5px;border:0;background:transparent;color:#b14a4a;padding:0;font-size:9px;cursor:pointer}
 @media(max-width:1050px){.cal-layout{grid-template-columns:minmax(0,1fr) 255px}.cal-day{min-height:105px;padding:6px 5px}.cal-empty{min-height:105px}}
 @media(max-width:760px){.cal-layout{grid-template-columns:1fr}.cal-side{grid-template-columns:1fr}.cal-day{min-height:87px;padding:5px 3px}.cal-empty{min-height:87px}.cal-event{font-size:8px;padding:4px 3px}.cal-day-number{width:25px;height:25px;font-size:11px}.cal-weekdays div{font-size:9px;padding:10px 1px}.cal-toolbar{padding:15px}.cal-month h3{font-size:16px}.cal-stats{gap:7px}.cal-stat{padding:11px 8px;gap:7px}.cal-stat-icon{width:32px;height:32px;font-size:15px}.cal-stat strong{font-size:17px}.cal-stat span{font-size:9px}.cal-date-card{min-width:110px}.cal-hero{border-radius:19px}}
 @media(max-width:420px){.cal-day{min-height:72px}.cal-empty{min-height:72px}.cal-event{font-size:7px}.cal-more{font-size:8px;padding:2px}.cal-nav a,.cal-today{min-width:30px;height:31px;padding:0 7px}.cal-month{gap:8px}}
@@ -85,6 +85,11 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
                     <a href="{{ route('events.index', ['month' => $nextKey]) }}" aria-label="ماه بعد" title="ماه بعد">‹</a>
                 </div>
             </div>
+            <nav class="cal-filters" aria-label="فیلتر تقویم">
+                @foreach(['all' => 'همه برنامه‌ها', 'events' => 'رویدادها', 'tasks' => 'مهلت تسک‌ها', 'polls' => 'نظرسنجی‌ها'] as $filterKey => $filterLabel)
+                    <a class="cal-filter {{ $filter === $filterKey ? 'active' : '' }}" href="{{ route('events.index', ['month' => $monthKey, 'filter' => $filterKey]) }}">{{ $filterLabel }}</a>
+                @endforeach
+            </nav>
             <div class="cal-weekdays">@foreach($weekdays as $weekday)<div>{{ $weekday }}</div>@endforeach</div>
             <div class="cal-days">
                 @for($i=0;$i<$leading;$i++)<div class="cal-empty" aria-hidden="true"></div>@endfor
@@ -128,6 +133,7 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
                             <div class="cal-field"><label for="cal-end-time">ساعت پایان</label><input id="cal-end-time" name="end_time" type="time" value="{{ old('end_time', '10:00') }}"></div>
                         </div>
                         <div class="cal-field"><label for="cal-end-date">تاریخ پایان (اختیاری)</label><input class="jdate" id="cal-end-date" name="end_date" autocomplete="off" placeholder="همان روز"></div>
+                        <div class="cal-field"><label for="cal-reminder">یادآوری</label><select id="cal-reminder" name="reminder_minutes"><option value="0">بدون یادآوری</option><option value="15">۱۵ دقیقه قبل</option><option value="60">۱ ساعت قبل</option><option value="1440">۱ روز قبل</option><option value="10080">۱ هفته قبل</option></select></div>
                         <div class="cal-field"><label for="cal-color">رنگ رویداد</label><select id="cal-color" name="color"><option value="teal">سبز فیروزه‌ای</option><option value="blue">آبی</option><option value="amber">کهربایی</option><option value="rose">صورتی</option><option value="violet">بنفش</option></select></div>
                         <label class="cal-check"><input type="checkbox" name="is_all_day" value="1" @checked(old('is_all_day'))> رویداد تمام‌روزه است</label>
                         <button class="cal-submit" type="submit">＋ افزودن به تقویم</button>
@@ -151,6 +157,25 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
                                     <small>{{ $F::digits($itemJalali) }} · {{ $item['time'] }}</small>
                                     <span class="cal-type">{{ $item['type'] }}</span>
                                     @if($item['event_id'] && $item['managed'])
+                                        
+                                    <details class="cal-edit">
+                                        <summary>ویرایش رویداد</summary>
+                                        <form class="cal-form" method="POST" action="{{ route('events.update', $item['event_id']) }}">
+                                            @csrf @method('PUT')
+                                            <div class="cal-field"><label>عنوان</label><input name="title" maxlength="180" required value="{{ $item['title'] }}"></div>
+                                            <div class="cal-field"><label>توضیحات</label><textarea name="description" rows="2" maxlength="3000">{{ $item['description'] }}</textarea></div>
+                                            <div class="cal-field"><label>تاریخ شروع شمسی</label><input class="jdate" name="start_date" required autocomplete="off" value="{{ AppSupportJalaliDate::format($item['starts_at']) }}"></div>
+                                            <div class="cal-two">
+                                                <div class="cal-field"><label>ساعت شروع</label><input name="start_time" type="time" value="{{ $item['starts_at']->format('H:i') }}"></div>
+                                                <div class="cal-field"><label>ساعت پایان</label><input name="end_time" type="time" value="{{ $item['event_model']->ends_at?->format('H:i') ?? $item['starts_at']->copy()->addHour()->format('H:i') }}"></div>
+                                            </div>
+                                            <div class="cal-field"><label>تاریخ پایان (اختیاری)</label><input class="jdate" name="end_date" autocomplete="off" value="{{ $item['event_model']->ends_at ? AppSupportJalaliDate::format($item['event_model']->ends_at) : '' }}"></div>
+                                            <div class="cal-field"><label>رنگ رویداد</label><select name="color">@foreach(['teal'=>'سبز فیروزه‌ای','blue'=>'آبی','amber'=>'کهربایی','rose'=>'صورتی','violet'=>'بنفش'] as $colorKey=>$colorLabel)<option value="{{ $colorKey }}" @selected($item['color']===$colorKey)>{{ $colorLabel }}</option>@endforeach</select></div>
+                                            <div class="cal-field"><label>یادآوری</label><select name="reminder_minutes">@foreach([0=>'بدون یادآوری',15=>'۱۵ دقیقه قبل',60=>'۱ ساعت قبل',1440=>'۱ روز قبل',10080=>'۱ هفته قبل'] as $minutes=>$label)<option value="{{ $minutes }}" @selected((int) $item['reminder_minutes']===$minutes)>{{ $label }}</option>@endforeach</select></div>
+                                            <label class="cal-check"><input type="checkbox" name="is_all_day" value="1" @checked($item['event_model']->is_all_day)> رویداد تمام‌روزه است</label>
+                                            <button class="cal-submit" type="submit">ذخیره تغییرات</button>
+                                        </form>
+                                    </details>
                                         <form method="POST" action="{{ route('events.destroy', $item['event_id']) }}" data-confirm="این رویداد از تقویم حذف شود؟" data-confirm-title="حذف رویداد" data-confirm-icon="warning">
                                             @csrf @method('DELETE')<button class="cal-delete" type="submit">حذف رویداد</button>
                                         </form>
