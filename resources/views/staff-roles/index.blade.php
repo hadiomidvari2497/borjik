@@ -1,6 +1,3 @@
-@extends('layouts.app')
-@section('title', 'مدیریت نقش‌های پرسنلی')
-@section('content')
 @php
   $permissionLabels = [
     'ticket.view.assigned' => 'مشاهده تیکت‌های ارجاع‌شده',
