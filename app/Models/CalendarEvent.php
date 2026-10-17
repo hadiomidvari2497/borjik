@@ -19,6 +19,8 @@ class CalendarEvent extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'is_all_day' => 'boolean',
+            'reminder_minutes' => 'integer',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 
