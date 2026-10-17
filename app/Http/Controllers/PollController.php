@@ -46,7 +46,7 @@ class PollController extends Controller
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
             'is_anonymous' => ['nullable', 'boolean'],
-            'options' => ['required', 'array', 'min:2', 'max:8'],
+            'options' => ['nullable', 'array', 'min:2', 'max:8'],
             'options.*' => ['nullable', 'string', 'max:200'],
         ]);
 
