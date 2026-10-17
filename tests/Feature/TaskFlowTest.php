@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\Ticket;
 use App\Models\TicketStatusLog;
 use App\Models\User;
+use App\Support\CurrentBuilding;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -81,24 +82,28 @@ class TaskFlowTest extends TestCase
     public function test_assigned_staff_can_view_and_update_task_but_unassigned_staff_cannot_view_it(): void
     {
         Queue::fake();
-        $ticket = Ticket::create([
-            'building_id' => $this->building->id,
-            'number' => 'TSK-TEST-001',
-            'kind' => 'task',
-            'title' => 'تست تسک',
-            'description' => 'شرح تست',
-            'category' => 'maintenance',
-            'priority' => 'medium',
-            'status' => 'new',
-            'created_by' => $this->manager->id,
-        ]);
-        \App\Models\TicketAssignee::create([
-            'building_id' => $this->building->id,
-            'ticket_id' => $ticket->id,
-            'user_id' => $this->maintenance->id,
-            'assigned_by' => $this->manager->id,
-            'assigned_at' => now(),
-        ]);
+        $ticket = app(CurrentBuilding::class)->actingAs($this->building->id, function () {
+            $ticket = Ticket::create([
+                'building_id' => $this->building->id,
+                'number' => 'TSK-TEST-001',
+                'kind' => 'task',
+                'title' => 'تست تسک',
+                'description' => 'شرح تست',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'status' => 'new',
+                'created_by' => $this->manager->id,
+            ]);
+            \App\Models\TicketAssignee::create([
+                'building_id' => $this->building->id,
+                'ticket_id' => $ticket->id,
+                'user_id' => $this->maintenance->id,
+                'assigned_by' => $this->manager->id,
+                'assigned_at' => now(),
+            ]);
+
+            return $ticket;
+        });
 
         $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
             ->get(route('tickets.show', $ticket->id))
