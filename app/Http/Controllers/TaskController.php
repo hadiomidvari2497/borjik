@@ -411,7 +411,7 @@ class TaskController extends Controller
             )
         );
         $canRate = (int) $item->created_by === (int) $user->id
-            && in_array($item->status->value, ['done', 'closed'], true)
+            && $item->status->value === 'closed'
             && $unratedAssignee;
 
         return view('tickets.show', [
@@ -421,6 +421,7 @@ class TaskController extends Controller
             'priorities' => self::PRIORITIES,
             'staff' => $this->staffOptions(),
             'canManage' => $isManager && $user->hasPermission('ticket.create'),
+            'isManager' => $isManager,
             'canUpdateStatus' => $isManager || ($user->hasPermission('ticket.respond') && $isAssigned),
             'canAddHelper' => $user->hasPermission('ticket.respond') && $isAssigned && ! in_array($item->status->value, ['closed'], true),
             'canRate' => $canRate,
@@ -653,7 +654,7 @@ class TaskController extends Controller
         $item = $this->visibleTask($request, $ticket);
         $user = $request->user();
         abort_unless((int) $item->created_by === (int) $user->id, 403);
-        abort_unless(in_array($item->status->value, ['done', 'closed'], true), 422, 'امتیازدهی پس از انجام کار ممکن است.');
+        abort_unless($item->status->value === 'closed', 422, 'امتیازدهی پس از تأیید نهایی مدیر امکان‌پذیر است.');
 
         $data = $request->validate([
             'ratings' => ['required', 'array', 'min:1'],
