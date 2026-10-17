@@ -114,6 +114,8 @@ class TaskFlowTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
+            ->post(route('tickets.claim', $ticket->id))->assertRedirect();
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
             ->post(route('tickets.status', $ticket->id), ['status' => 'doing', 'note' => 'کار شروع شد'])
             ->assertRedirect()->assertSessionHasNoErrors();
 
@@ -322,6 +324,40 @@ class TaskFlowTest extends TestCase
                 ->where('user_id', $this->maintenance->id)
                 ->count()
         );
+    }
+
+    public function test_staff_cannot_claim_a_completed_task_and_manager_must_approve_completion(): void
+    {
+        $ticket = app(CurrentBuilding::class)->actingAs($this->building->id, function () {
+            $ticket = Ticket::create([
+                'building_id' => $this->building->id,
+                'number' => 'TSK-TEST-APPROVAL',
+                'kind' => 'task',
+                'title' => 'تسک نیازمند تأیید',
+                'description' => 'شرح تست',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'status' => 'done',
+                'created_by' => $this->manager->id,
+            ]);
+            \\App\\Models\\TicketAssignee::create([
+                'building_id' => $this->building->id,
+                'ticket_id' => $ticket->id,
+                'user_id' => $this->maintenance->id,
+                'assigned_by' => $this->manager->id,
+                'assigned_at' => now(),
+            ]);
+            return $ticket;
+        });
+
+        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
+            ->post(route('tickets.claim', $ticket->id))->assertConflict();
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->post(route('tickets.status', $ticket->id), ['status' => 'closed'])
+            ->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'status' => 'closed']);
     }
 
     private function makeUser(string $mobile, string $name): User
