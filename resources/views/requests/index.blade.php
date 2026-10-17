@@ -53,7 +53,7 @@
         <tbody>
           @forelse($reportRows as $row)
             <tr>
-              <td>{{ \\App\\Support\\Fa::digits($row['month']) }}</td>
+              <td>{{ \App\Support\Fa::digits($row['month']) }}</td>
               <td>{{ \App\Support\Fa::num($row['created']) }}</td>
               <td>{{ \App\Support\Fa::num($row['resolved']) }}</td>
               <td>@if($row['average_minutes'] === null) — @else {{ \App\Support\Fa::num(intdiv($row['average_minutes'], 1440)) }} روز و {{ \App\Support\Fa::num(intdiv($row['average_minutes'] % 1440, 60)) }} ساعت @endif</td>
