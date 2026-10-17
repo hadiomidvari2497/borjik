@@ -71,7 +71,7 @@
 .role-card .role-delete-form{padding:0 18px 18px}
 .role-empty{margin:20px;padding:35px 20px;border:1px dashed #d8deeb;border-radius:17px;text-align:center;color:var(--role-muted);background:#fafbfe}
 .role-empty strong{display:block;color:#34415c;margin:10px 0 5px;font-size:14px}.role-empty p{font-size:12px;line-height:1.9;margin:0}
-@media(min-width:1120px){.role-layout{grid-template-columns:minmax(340px,.8fr) minmax(0,1.5fr)}.role-create{align-self:start;position:sticky;top:18px}.role-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1120px){.role-layout{grid-template-columns:minmax(0,1fr)}.role-create{align-self:stretch;position:static}.role-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.role-list{grid-template-columns:1fr;padding:12px}.role-panel-head,.role-panel-body{padding:18px}.role-permissions{grid-template-columns:1fr}.role-hero{border-radius:19px}.role-stat{min-width:100px;padding:12px 16px}.role-stat strong{font-size:26px}.role-card-content{padding:15px}}
 </style>
 <div class="role-page">
