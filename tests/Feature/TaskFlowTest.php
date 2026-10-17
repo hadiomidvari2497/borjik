@@ -270,7 +270,7 @@ class TaskFlowTest extends TestCase
                 'accepted_by' => $this->maintenance->id,
                 'created_by' => $this->manager->id,
             ]);
-            \\App\\Models\\TicketAssignee::create([
+            \App\Models\TicketAssignee::create([
                 'building_id' => $this->building->id,
                 'ticket_id' => $ticket->id,
                 'user_id' => $this->maintenance->id,
