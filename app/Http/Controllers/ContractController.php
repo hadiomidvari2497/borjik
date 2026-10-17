@@ -11,6 +11,7 @@ use App\Models\Unit;
 use App\Models\UnitParty;
 use App\Models\User;
 use App\Services\ContractService;
+use App\Services\RentInvoiceService;
 use App\Support\JalaliDate;
 use DomainException;
 use Illuminate\Http\Request;
@@ -65,7 +66,7 @@ class ContractController extends Controller
         ]);
     }
 
-    public function store(Request $request, ContractService $service)
+    public function store(Request $request, ContractService $service, RentInvoiceService $rentInvoices)
     {
         $isRent = $request->input('type') === 'rent';
         abort_unless($isRent || $request->input('type') === 'sale', 422);
@@ -112,7 +113,20 @@ class ContractController extends Controller
             return back()->withErrors(['general' => $e->getMessage()])->withInput();
         }
 
-        return redirect()->route('contracts.show', $contract->id)->with('status', $isRent ? 'قرارداد اجاره ثبت شد و واحد در وضعیت «اجاره‌داده‌شده» قرار گرفت.' : 'قرارداد فروش ثبت شد و مالکیت واحد منتقل شد.');
+        $message = 'قرارداد فروش ثبت شد و مالکیت واحد منتقل شد.';
+        if ($isRent) {
+            $message = 'قرارداد اجاره ثبت شد و واحد در وضعیت «اجاره‌داده‌شده» قرار گرفت.';
+            try {
+                // اگر امروز سررسید اجاره است همین حالا صادر می‌شود؛ در غیر این صورت scheduler روزانه صادر می‌کند
+                if ($rentInvoices->issueFor($contract) > 0) {
+                    $message .= ' صورت‌حساب اجاره‌ی این ماه صادر شد.';
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        return redirect()->route('contracts.show', $contract->id)->with('status', $message);
     }
 
     public function show(int $id)

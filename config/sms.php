@@ -13,6 +13,7 @@ return [
         'expense_reminder' => 'برجیک: هزینه‌های {month} ساختمان «{building}» هنوز ثبت نشده است. تاریخ محاسبه‌ی شارژ: {date}',
         'receipt_approved' => 'برجیک: فیش پرداخت شما به مبلغ {amount} تومان برای واحد {unit} ساختمان «{building}» تأیید شد.',
         'receipt_rejected' => 'برجیک: فیش پرداخت شما برای واحد {unit} ساختمان «{building}» رد شد. دلیل: {reason}',
+        'rent_invoice_issued' => 'برجیک: صورت‌حساب اجاره‌ی {month} واحد {unit} ساختمان «{building}» به مبلغ {amount} تومان صادر شد. مهلت پرداخت: {date}',
         'invitation' => 'شما از طرف {inviter} به ساختمان «{building}» با نقش {role} دعوت شده‌اید. ورود: {link}',
     ],
 ];
