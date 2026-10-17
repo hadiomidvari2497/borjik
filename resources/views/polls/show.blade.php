@@ -1,5 +1,5 @@
 @php
-    $F = \\App\\Support\\Fa::class;
+    $F = \App\Support\Fa::class;
     $ended = $poll->status !== 'open' || now()->gte($poll->ends_at);
     $started = now()->gte($poll->starts_at);
     $total = (int) $poll->votes_count;
