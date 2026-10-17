@@ -7,6 +7,7 @@ use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Role;
 use App\Models\Unit;
+use App\Models\Ticket;
 use App\Models\User;
 use App\Support\CurrentBuilding;
 use Database\Seeders\RolePermissionSeeder;
