@@ -11,6 +11,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Database\Seeders\RolePermissionSeeder;
 use App\Support\JalaliDate;
+use App\Notifications\CalendarEventReminderNotification;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Notification;
 
 class CalendarTest extends TestCase
 {
@@ -162,6 +165,34 @@ class CalendarTest extends TestCase
             ->assertOk()
             ->assertSee('مهلت تسک‌ها')
             ->assertSee('cal-filter active', false);
+    }
+
+
+    public function test_calendar_reminder_notifies_creator_once_when_due(): void
+    {
+        Notification::fake();
+
+        $event = app(\\App\\Support\\CurrentBuilding::class)->actingAs(
+            $this->building->id,
+            fn () => CalendarEvent::create([
+                'created_by' => $this->owner->id,
+                'title' => 'جلسه یادآوری',
+                'starts_at' => now()->addMinutes(10),
+                'ends_at' => now()->addMinutes(70),
+                'is_all_day' => false,
+                'color' => 'teal',
+                'reminder_minutes' => 15,
+            ]),
+            ['owner'],
+        );
+
+        Artisan::call('calendar:send-reminders');
+
+        Notification::assertSentTo($this->owner, CalendarEventReminderNotification::class);
+        $this->assertNotNull($event->fresh()->reminder_sent_at);
+
+        Artisan::call('calendar:send-reminders');
+        Notification::assertSentToTimes($this->owner, CalendarEventReminderNotification::class, 1);
     }
 
 }
