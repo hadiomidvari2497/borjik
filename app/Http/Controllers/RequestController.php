@@ -112,7 +112,7 @@ class RequestController extends Controller
                 return $createdAt ? max(0, \Illuminate\Support\Carbon::parse($createdAt)->diffInMinutes($log->created_at, false)) : null;
             })->filter(fn ($minutes) => $minutes !== null);
             $reportRows->push([
-                'month' => \\Morilog\\Jalali\\Jalalian::fromCarbon($monthStart)->format('Y/m'),
+                'month' => \Morilog\Jalali\Jalalian::fromCarbon($monthStart)->format('Y/m'),
                 'created' => $createdCount,
                 'resolved' => $resolvedLogs->count(),
                 'average_minutes' => $durations->isNotEmpty() ? (int) round($durations->avg()) : null,
