@@ -32,7 +32,7 @@
       <div class="report-bars">
         @foreach($chart as $day)
           <div class="report-row">
-            <span class="report-date">{{ \App\Support\Fa::num($day['date']) }}</span>
+            <span class="report-date">{{ \App\Support\Fa::digits($day['date']) }}</span>
             <div class="report-bar-group">
               <div style="display:flex;align-items:center"><div class="report-bar" style="width:{{ max($day['created'] > 0 ? 2 : 0, ($day['created'] / $maxCount) * 100) }}%"></div><span class="report-value">{{ \App\Support\Fa::num($day['created']) }}</span></div>
               <div style="display:flex;align-items:center"><div class="report-bar resolved" style="width:{{ max($day['resolved'] > 0 ? 2 : 0, ($day['resolved'] / $maxCount) * 100) }}%"></div><span class="report-value">{{ \App\Support\Fa::num($day['resolved']) }}</span></div>
