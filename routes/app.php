@@ -18,6 +18,7 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
@@ -138,6 +139,22 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/{notification}/read', 'read')->name('read');
+    });
+
+    // مدیریت تسک‌های پرسنل (جدا از درخواست‌های ثبت‌شده توسط ساکنین).
+    Route::prefix('tickets')->name('tickets.')->controller(TaskController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{ticket}/edit', 'edit')->whereNumber('ticket')->name('edit');
+        Route::put('/{ticket}', 'update')->whereNumber('ticket')->name('update');
+        Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
+        Route::post('/{ticket}/status', 'updateStatus')->whereNumber('ticket')->name('status');
+        Route::post('/{ticket}/claim', 'claim')->whereNumber('ticket')->name('claim');
+        Route::post('/{ticket}/assign', 'assign')->whereNumber('ticket')->name('assign');
+        Route::post('/{ticket}/comments', 'comment')->whereNumber('ticket')->name('comments.store');
+        Route::post('/{ticket}/ratings', 'rate')->whereNumber('ticket')->name('rate');
+        Route::get('/{ticket}/attachments/{attachment}', 'attachment')->whereNumber('ticket')->whereNumber('attachment')->name('attachments.show');
     });
 
     // درخواست‌های ساکنان: مدیر همه را می‌بیند و مسئول فقط درخواست‌های ارجاع‌شده به خودش را.

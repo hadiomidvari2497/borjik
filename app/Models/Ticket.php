@@ -38,4 +38,5 @@ class Ticket extends Model
     public function statusLogs() { return $this->hasMany(TicketStatusLog::class); }
     public function events() { return $this->hasMany(TicketEvent::class); }
     public function ratings() { return $this->hasMany(TicketRating::class); }
+    public function attachments() { return $this->hasMany(TicketAttachment::class); }
 }
