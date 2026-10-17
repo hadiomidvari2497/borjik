@@ -11,11 +11,16 @@ class Role extends Model
 
     protected function casts(): array
     {
-        return [
-            'is_staff' => 'boolean',
-        ];
+        return ['is_staff' => 'boolean', 'is_default' => 'boolean', 'is_active' => 'boolean'];
     }
 
+    public function scopeForBuilding($query, int $buildingId)
+    {
+        return $query->where(function ($q) use ($buildingId) {
+            $q->whereNull('building_id')->whereIn('key', ['owner', 'manager', 'unit_owner', 'tenant'])
+              ->orWhere('building_id', $buildingId);
+        });
+    }
 
 
     public function permissions() { return $this->belongsToMany(Permission::class, 'role_permission'); }
