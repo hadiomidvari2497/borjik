@@ -28,12 +28,9 @@ class MyUnitController extends Controller
             ->whereNull('to_date')
             ->pluck('unit_id');
 
-        // صورت‌حساب‌های متعلق به خود کاربر، حتی در صورت پایان عضویت، تاریخچه را حفظ می‌کنند.
-        $invoiceUnitIds = Invoice::query()
-            ->where('payer_user_id', $user->id)
-            ->pluck('unit_id');
-
-        $unitIds = $partyUnitIds->merge($invoiceUnitIds)->unique()->values();
+        // کارت جزئیات فقط برای واحدهایی نمایش داده می‌شود که ارتباط کاربر با آن‌ها هنوز فعال است.
+        // صورت‌حساب‌های تاریخی جداگانه پایین صفحه باقی می‌مانند، بدون افشای اطلاعات فعلی واحد قبلی.
+        $unitIds = $partyUnitIds->unique()->values();
 
         $units = Unit::query()
             ->whereIn('id', $unitIds)
