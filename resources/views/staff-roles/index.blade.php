@@ -33,7 +33,7 @@
             @if($role->is_default)<span class="muted" style="font-size:12px">نقش پیش‌فرض</span>@endif
           </div>
         </form>
-        <form method="POST" action="{{ route('staff-roles.destroy', $role->id) }}" style="margin-top:10px">@csrf @method('DELETE')<button class="btn danger" type="submit">حذف نقش</button></form>
+        <form method="POST" action="{{ route('staff-roles.destroy', $role->id) }}" data-confirm="از حذف این نقش مطمئن هستید؟" style="margin-top:10px">@csrf @method('DELETE')<button class="btn danger" type="submit">حذف نقش</button></form>
       </div>
     @empty
       <p class="muted">هنوز نقش پرسنلی برای این ساختمان تعریف نشده است.</p>
