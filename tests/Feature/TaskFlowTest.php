@@ -175,6 +175,68 @@ class TaskFlowTest extends TestCase
         ]);
     }
 
+    public function test_manager_can_edit_task_details_and_reassign_staff(): void
+    {
+        Notification::fake();
+        Queue::fake();
+        $ticket = app(CurrentBuilding::class)->actingAs($this->building->id, function () {
+            $ticket = Ticket::create([
+                'building_id' => $this->building->id,
+                'number' => 'TSK-TEST-003',
+                'kind' => 'task',
+                'title' => 'عنوان اولیه',
+                'description' => 'شرح اولیه',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'status' => 'new',
+                'created_by' => $this->manager->id,
+            ]);
+            \App\Models\TicketAssignee::create([
+                'building_id' => $this->building->id,
+                'ticket_id' => $ticket->id,
+                'user_id' => $this->maintenance->id,
+                'assigned_by' => $this->manager->id,
+                'assigned_at' => now(),
+            ]);
+
+            return $ticket;
+        });
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->get(route('tickets.edit', $ticket->id))
+            ->assertOk()->assertSee('ویرایش تسک');
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->put(route('tickets.update', $ticket->id), [
+                'title' => 'عنوان به‌روزشده',
+                'description' => 'شرح به‌روزشده',
+                'category' => 'cleaning',
+                'priority' => 'high',
+                'user_ids' => [$this->cleaning->id],
+            ])
+            ->assertRedirect(route('tickets.show', $ticket->id))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('tickets', [
+            'id' => $ticket->id,
+            'title' => 'عنوان به‌روزشده',
+            'category' => 'cleaning',
+            'priority' => 'high',
+        ]);
+        $this->assertDatabaseHas('ticket_assignees', [
+            'ticket_id' => $ticket->id,
+            'user_id' => $this->cleaning->id,
+        ]);
+        $this->assertDatabaseMissing('ticket_assignees', [
+            'ticket_id' => $ticket->id,
+            'user_id' => $this->maintenance->id,
+        ]);
+        $this->assertDatabaseHas('ticket_events', [
+            'ticket_id' => $ticket->id,
+            'type' => 'updated',
+        ]);
+    }
+
     public function test_task_routes_require_building_scoped_permissions(): void
     {
         $this->actingAs($this->cleaning)->withSession($this->sessionFor($this->cleaningMembership))
