@@ -21,6 +21,15 @@ return [
         ],
     ],
     [
+        'title' => 'پیامک',
+        'items' => [
+            ['label' => 'اتصال پیامک', 'icon' => 'msg', 'route' => 'admin.sms.providers.index', 'active' => 'admin.sms.providers.*', 'perm' => 'sms.settings',
+                'desc' => 'اتصال به هر اپراتور پیامکی و تست ارسال'],
+            ['label' => 'آرشیو پیامک', 'icon' => 'inbox', 'route' => 'admin.sms.logs.index', 'active' => 'admin.sms.logs.*', 'perm' => 'sms.logs',
+                'desc' => 'پیامک‌های ارسال‌شده به تفکیک تاریخ'],
+        ],
+    ],
+    [
         'title' => 'ادمین‌ها و دسترسی‌ها',
         'items' => [
             ['label' => 'کاربران ادمین', 'icon' => 'shield', 'route' => 'admin.users.index', 'active' => 'admin.users.*', 'perm' => 'admin.users.manage',
