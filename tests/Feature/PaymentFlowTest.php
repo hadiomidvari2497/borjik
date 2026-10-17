@@ -228,6 +228,21 @@ class PaymentFlowTest extends TestCase
         $this->assertSame(1, DB::table('payment_receipts')->count());
     }
 
+    public function test_a_rejected_receipt_image_can_be_resubmitted(): void
+    {
+        $bytes = $this->png(34);
+
+        $this->submit(1000, UploadedFile::fake()->createWithContent('a.png', $bytes))->assertSessionHasNoErrors();
+        $this->as($this->manager)->post(route('payments.reject', $this->receiptId()), ['reason' => 'تصویر ناخوانا است'])
+            ->assertSessionHasNoErrors();
+
+        $this->submit(1000, UploadedFile::fake()->createWithContent('b.png', $bytes))->assertSessionHasNoErrors();
+
+        $this->assertSame(2, DB::table('payment_receipts')->count());
+        $this->assertSame(1, DB::table('payment_receipts')->where('status', 'pending')->count());
+        $this->assertSame(1, DB::table('payment_receipts')->where('status', 'rejected')->count());
+    }
+
     public function test_receipt_images_are_only_visible_to_the_uploader_and_reviewers(): void
     {
         $this->submit(1000);
