@@ -61,7 +61,8 @@ class DashboardTest extends TestCase
             ->assertSee('وضعیت واحدها')
             ->assertSee('تنظیمات شارژ')
             ->assertDontSee('واحد من')
-            ->assertDontSee('درخواست‌های من');
+            ->assertDontSee('درخواست‌های من')
+            ->assertDontSee('قرارداد من');
     }
 
     public function test_tenant_gets_resident_dashboard_and_a_filtered_menu(): void
@@ -74,7 +75,8 @@ class DashboardTest extends TestCase
             ->assertDontSee('تنظیمات شارژ')
             ->assertDontSee('وضعیت واحدها')
             ->assertSee('واحد من')
-            ->assertSee('درخواست‌های من');
+            ->assertSee('درخواست‌های من')
+            ->assertSee('قرارداد من');
     }
 
     public function test_security_guard_sees_task_dashboard(): void
@@ -85,7 +87,8 @@ class DashboardTest extends TestCase
         $this->open($guard)->assertOk()
             ->assertSee('تسک‌های ارجاع‌شده به من')
             ->assertDontSee('پرداخت‌ها')
-            ->assertDontSee('درخواست‌های من');
+            ->assertDontSee('درخواست‌های من')
+            ->assertDontSee('قرارداد من');
     }
 
     public function test_user_without_profile_is_sent_to_profile_page(): void
