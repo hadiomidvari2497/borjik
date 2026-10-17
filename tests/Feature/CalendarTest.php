@@ -1,0 +1,125 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Building;
+use App\Models\BuildingUserRole;
+use App\Models\CalendarEvent;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+use Database\Seeders\RolePermissionSeeder;
+use App\Support\JalaliDate;
+
+class CalendarTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private Building $building;
+    private User $owner;
+    private User $tenant;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RolePermissionSeeder::class);
+
+        $this->owner = $this->makeUser('09120000021', 'owner');
+        $this->building = Building::create([
+            'name' => 'ساختمان تقویم',
+            'code' => '66221',
+            'created_by' => $this->owner->id,
+        ]);
+        $this->join($this->owner, 'owner');
+
+        $this->tenant = $this->makeUser('09120000022', 'tenant');
+        $this->join($this->tenant, 'tenant');
+    }
+
+    private function makeUser(string $mobile, string $role): User
+    {
+        return User::create([
+            'mobile' => $mobile,
+            'first_name' => 'کاربر',
+            'last_name' => $role,
+            'status' => 'active',
+            'profile_completed_at' => now(),
+        ]);
+    }
+
+    private function join(User $user, string $role): void
+    {
+        BuildingUserRole::create([
+            'building_id' => $this->building->id,
+            'user_id' => $user->id,
+            'role_id' => Role::where('key', $role)->value('id'),
+            'status' => 'active',
+        ]);
+    }
+
+    private function open(User $user, string $method, string $uri, array $data = [])
+    {
+        return $this->actingAs($user)
+            ->withSession(['current_building_id' => $this->building->id])
+            ->{$method}($uri, $data);
+    }
+
+    public function test_calendar_renders_for_members_with_view_permission(): void
+    {
+        $this->open($this->tenant, 'get', route('events.index'))
+            ->assertOk()
+            ->assertSee('تقویم ساختمان')
+            ->assertSee('همه‌چیز سرِ وقت');
+    }
+
+    public function test_manager_can_create_a_jalali_calendar_event(): void
+    {
+        $this->open($this->owner, 'post', route('events.store'), [
+            'title' => 'جلسه ماهانه ساختمان',
+            'description' => 'بررسی برنامه‌های ماه',
+            'start_date' => JalaliDate::format(now()),
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'color' => 'teal',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('calendar_events', [
+            'building_id' => $this->building->id,
+            'created_by' => $this->owner->id,
+            'title' => 'جلسه ماهانه ساختمان',
+        ]);
+    }
+
+    public function test_tenant_cannot_create_calendar_events(): void
+    {
+        $this->open($this->tenant, 'post', route('events.store'), [
+            'title' => 'رویداد غیرمجاز',
+            'start_date' => JalaliDate::format(now()),
+            'color' => 'teal',
+        ])->assertForbidden();
+
+        $this->assertDatabaseCount('calendar_events', 0);
+    }
+
+    public function test_manager_can_delete_an_event_from_their_building(): void
+    {
+        $event = app(\App\Support\CurrentBuilding::class)->actingAs(
+            $this->building->id,
+            fn () => CalendarEvent::create([
+                'created_by' => $this->owner->id,
+                'title' => 'رویداد آزمایشی',
+                'starts_at' => now()->addDay(),
+                'ends_at' => now()->addDay()->addHour(),
+                'is_all_day' => false,
+                'color' => 'teal',
+            ]),
+            ['owner'],
+        );
+
+        $this->open($this->owner, 'delete', route('events.destroy', $event->id))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('calendar_events', ['id' => $event->id]);
+    }
+}
