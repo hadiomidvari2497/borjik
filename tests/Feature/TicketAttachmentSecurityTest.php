@@ -55,7 +55,7 @@ class TicketAttachmentSecurityTest extends TestCase
             ->get(route('tickets.attachments.show', [$ticket->id, $attachment->id]))
             ->assertForbidden();
 
-        $this->actingAs($this->maintenance)->withSession($this->sessionFor($this->maintenanceMembership))
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
             ->get(route('tickets.attachments.show', [$ticket->id, $attachment->id]))
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff');
