@@ -1,4 +1,4 @@
-@php($F = \\App\\Support\\Fa::class)
+@php($F = \App\Support\Fa::class)
 @extends('layouts.app')
 @section('title', 'نظرسنجی و رأی‌گیری')
 @section('content')
@@ -27,8 +27,8 @@
     <div class="poll-form-grid">
       <div class="fld"><label for="poll-title">عنوان نظرسنجی *</label><input id="poll-title" name="title" value="{{ old('title') }}" maxlength="200" required placeholder="مثلاً انتخاب زمان تعمیر آسانسور">@error('title')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld"><label for="poll-audience">مخاطبان</label><select id="poll-audience" name="audience"><option value="all" @selected(old('audience','all')==='all')>تمام اعضای مجاز</option><option value="residents" @selected(old('audience')==='residents')>فقط مالک واحد و مستأجر</option></select></div>
-      <div class="fld"><label for="poll-start">شروع رأی‌گیری *</label><input id="poll-start" type="datetime-local" name="starts_at" value="{{ old('starts_at', now()->format('Y-m-d\\TH:i')) }}" required>@error('starts_at')<div class="e">{{ $message }}</div>@enderror</div>
-      <div class="fld"><label for="poll-end">پایان رأی‌گیری *</label><input id="poll-end" type="datetime-local" name="ends_at" value="{{ old('ends_at', now()->addDays(7)->format('Y-m-d\\TH:i')) }}" required>@error('ends_at')<div class="e">{{ $message }}</div>@enderror</div>
+      <div class="fld"><label for="poll-start">شروع رأی‌گیری *</label><input id="poll-start" type="datetime-local" name="starts_at" value="{{ old('starts_at', now()->format('Y-m-d\TH:i')) }}" required>@error('starts_at')<div class="e">{{ $message }}</div>@enderror</div>
+      <div class="fld"><label for="poll-end">پایان رأی‌گیری *</label><input id="poll-end" type="datetime-local" name="ends_at" value="{{ old('ends_at', now()->addDays(7)->format('Y-m-d\TH:i')) }}" required>@error('ends_at')<div class="e">{{ $message }}</div>@enderror</div>
     </div>
     <div class="fld" style="margin-top:12px"><label for="poll-description">توضیحات (اختیاری)</label><textarea id="poll-description" name="description" rows="3" maxlength="2000" placeholder="جزئیات لازم برای تصمیم‌گیری اعضا">{{ old('description') }}</textarea>@error('description')<div class="e">{{ $message }}</div>@enderror</div>
     <div class="poll-form-grid" style="margin-top:12px">
