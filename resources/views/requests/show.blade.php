@@ -19,7 +19,7 @@
 <script>
 (function () {
   function highlightReplyTarget() {
-    if (!window.location.hash || !/^#comment-\\d+$/.test(window.location.hash)) return;
+    if (!window.location.hash || !/^#comment-\d+$/.test(window.location.hash)) return;
     var target = document.getElementById(window.location.hash.slice(1));
     if (!target || !target.classList.contains('ticket-comment')) return;
     target.classList.remove('is-target-highlight');
