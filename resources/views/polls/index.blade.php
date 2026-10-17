@@ -1,8 +1,8 @@
 @php
     $F = \App\Support\Fa::class;
-    $startDate = old('starts_date', \\App\\Support\\JalaliDate::format(now()));
+    $startDate = old('starts_date', \App\Support\JalaliDate::format(now()));
     $startTime = old('starts_time', now()->format('H:i'));
-    $endDate = old('ends_date', \\App\\Support\\JalaliDate::format(now()->addDays(7)));
+    $endDate = old('ends_date', \App\Support\JalaliDate::format(now()->addDays(7)));
     $endTime = old('ends_time', now()->addDays(7)->format('H:i'));
 @endphp
 @extends('layouts.app')
@@ -249,7 +249,7 @@
                                 @elseif($hasVoted)
                                     <div class="poll-state-note"><span class="dot">✓</span>پاسخ شما با موفقیت ثبت شده است.</div>
                                 @elseif(!$started)
-                                    <div class="poll-state-note"><span class="dot">◷</span>رأی‌گیری از {{ $F::digits(\\App\\Support\\JalaliDate::format($poll->starts_at)) }} ساعت {{ $F::digits($poll->starts_at->format('H:i')) }} آغاز می‌شود.</div>
+                                    <div class="poll-state-note"><span class="dot">◷</span>رأی‌گیری از {{ $F::digits(\App\Support\JalaliDate::format($poll->starts_at)) }} ساعت {{ $F::digits($poll->starts_at->format('H:i')) }} آغاز می‌شود.</div>
                                 @elseif($residentOnly && !$eligibleRole)
                                     <div class="poll-state-note"><span class="dot">i</span>شرکت در این نظرسنجی فقط برای مالک واحد و مستأجر مجاز است.</div>
                                 @else
