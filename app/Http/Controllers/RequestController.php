@@ -172,12 +172,12 @@ class RequestController extends Controller
                 'category' => $data['category'], 'priority' => $data['priority'],
                 'location' => $data['location'] ?? null, 'unit_id' => $data['unit_id'] ?? null,
                 'target_role_id' => $roleId, 'created_by' => $user->id, 'status' => $initialStatus->value,
-                'deadline' => now()->add(match ($data['priority']) {
-                    'urgent' => now()->diffInSeconds(now()->addHours(4)) > 0 ? hours(4) : hours(4),
-                    'high' => hours(24),
-                    'medium' => hours(72),
-                    default => hours(168),
-                }),
+                'deadline' => match ($data['priority']) {
+                    'urgent' => now()->addHours(4),
+                    'high' => now()->addHours(24),
+                    'medium' => now()->addHours(72),
+                    default => now()->addHours(168),
+                },
             ]);
 
             foreach ($assigneeIds as $assigneeId) {
