@@ -292,6 +292,7 @@ class RequestController extends Controller
             'tickets' => $query->paginate(10)->withQueryString(),
             'categories' => self::CATEGORIES,
             'statuses' => $this->statusLabels(),
+            'staffRoles' => Role::where('building_id', app(CurrentBuilding::class)->id())->where('is_staff', true)->where('is_active', true)->orderBy('name_fa')->get(),
             'units' => Unit::query()
                 ->when(! $user->hasPermission('request.view.all'), fn ($q) => $q->whereHas('parties', fn ($p) => $p->where('user_id', $user->id)->whereNull('to_date')))
                 ->with('block')->orderBy('number')->get(),
@@ -310,6 +311,7 @@ class RequestController extends Controller
             'title' => ['required', 'string', 'max:200'],
             'description' => ['required', 'string', 'max:10000'],
             'category' => ['required', Rule::in(array_keys(self::CATEGORIES))],
+            'target_role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)],
             'priority' => ['required', Rule::in(['low', 'medium', 'high', 'urgent'])],
             'location' => ['nullable', 'string', 'max:150'],
             'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')->where('building_id', $buildingId)->whereNull('deleted_at')],
@@ -321,17 +323,11 @@ class RequestController extends Controller
         }
 
         $ticket = DB::transaction(function () use ($data, $user, $buildingId) {
-            $roleKey = match ($data['category']) {
-                'maintenance', 'facilities' => 'maintenance',
-                'cleaning' => 'cleaning',
-                'security' => 'security',
-                default => null,
-            };
-            $roleId = $roleKey ? Role::where('key', $roleKey)->value('id') : null;
-            $assigneeIds = $roleKey
-                ? DB::table('building_user_roles as bur')->join('roles as r', 'r.id', '=', 'bur.role_id')
+            $roleId = $data['target_role_id'] ?? null;
+            $assigneeIds = $roleId
+                ? DB::table('building_user_roles as bur')
                     ->where('bur.building_id', $buildingId)->where('bur.status', 'active')
-                    ->where('r.key', $roleKey)->pluck('bur.user_id')->unique()->values()
+                    ->where('bur.role_id', $roleId)->pluck('bur.user_id')->unique()->values()
                 : collect();
             $initialStatus = TicketStatus::New;
 
