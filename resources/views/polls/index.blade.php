@@ -106,19 +106,15 @@
                         <p class="poll-field-help">مخاطبان مجاز بر اساس نقش‌های ساختمان تعیین می‌شوند.</p>
                     </div>
                     <div class="fld">
-                        <label for="poll-start">زمان شروع <span aria-hidden="true">*</span></label>
+                        <label for="poll-start-date">زمان شروع <span aria-hidden="true">*</span></label>
                         <input id="poll-start-date" class="jdate" data-min="1300/01/01" name="starts_date" value="{{ $startDate }}" placeholder="انتخاب تاریخ شمسی" autocomplete="off" required>
-                        <label for="poll-start-time" style="margin-top:9px">ساعت شروع</label>
                         <input id="poll-start-time" type="time" name="starts_time" value="{{ $startTime }}" required>
-                        <label for="poll-start-time" style="margin-top:9px">ساعت شروع</label>
                         @error('starts_at')<div class="e">{{ $message }}</div>@enderror
                     </div>
                     <div class="fld">
-                        <label for="poll-end">مهلت پایان <span aria-hidden="true">*</span></label>
+                        <label for="poll-end-date">مهلت پایان <span aria-hidden="true">*</span></label>
                         <input id="poll-end-date" class="jdate" data-min="1300/01/01" name="ends_date" value="{{ $endDate }}" placeholder="انتخاب تاریخ شمسی" autocomplete="off" required>
-                        <label for="poll-end-time" style="margin-top:9px">ساعت پایان</label>
                         <input id="poll-end-time" type="time" name="ends_time" value="{{ $endTime }}" required>
-                        <label for="poll-end-time" style="margin-top:9px">ساعت پایان</label>
                         @error('ends_at')<div class="e">{{ $message }}</div>@enderror
                     </div>
                 </div>
