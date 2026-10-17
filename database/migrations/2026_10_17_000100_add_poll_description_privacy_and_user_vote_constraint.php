@@ -8,26 +8,57 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('polls', function (Blueprint $table) {
-            $table->text('description')->nullable()->after('title');
-            $table->boolean('is_anonymous')->default(false)->after('audience');
-        });
+        if (! Schema::hasColumn('polls', 'description')) {
+            Schema::table('polls', function (Blueprint $table) {
+                $table->text('description')->nullable()->after('title');
+            });
+        }
 
-        Schema::table('poll_votes', function (Blueprint $table) {
-            $table->dropUnique('poll_votes_poll_id_unit_id_unique');
-            $table->unique(['poll_id', 'user_id']);
-        });
+        if (! Schema::hasColumn('polls', 'is_anonymous')) {
+            Schema::table('polls', function (Blueprint $table) {
+                $table->boolean('is_anonymous')->default(false)->after('audience');
+            });
+        }
+
+        // Add the replacement index first: MySQL may need the old poll_id-leading
+        // index to support the poll_id foreign key until the new index exists.
+        if (! Schema::hasIndex('poll_votes', 'poll_votes_poll_id_user_id_unique')) {
+            Schema::table('poll_votes', function (Blueprint $table) {
+                $table->unique(['poll_id', 'user_id'], 'poll_votes_poll_id_user_id_unique');
+            });
+        }
+
+        if (Schema::hasIndex('poll_votes', 'poll_votes_poll_id_unit_id_unique')) {
+            Schema::table('poll_votes', function (Blueprint $table) {
+                $table->dropUnique('poll_votes_poll_id_unit_id_unique');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('poll_votes', function (Blueprint $table) {
-            $table->dropUnique('poll_votes_poll_id_user_id_unique');
-            $table->unique(['poll_id', 'unit_id']);
-        });
+        if (Schema::hasIndex('poll_votes', 'poll_votes_poll_id_user_id_unique')) {
+            Schema::table('poll_votes', function (Blueprint $table) {
+                $table->dropUnique('poll_votes_poll_id_user_id_unique');
+            });
+        }
 
-        Schema::table('polls', function (Blueprint $table) {
-            $table->dropColumn(['description', 'is_anonymous']);
-        });
+        if (! Schema::hasIndex('poll_votes', 'poll_votes_poll_id_unit_id_unique')) {
+            Schema::table('poll_votes', function (Blueprint $table) {
+                $table->unique(['poll_id', 'unit_id'], 'poll_votes_poll_id_unit_id_unique');
+            });
+        }
+
+        if (Schema::hasColumn('polls', 'is_anonymous')) {
+            Schema::table('polls', function (Blueprint $table) {
+                $table->dropColumn('is_anonymous');
+            });
+        }
+
+        if (Schema::hasColumn('polls', 'description')) {
+            Schema::table('polls', function (Blueprint $table) {
+                $table->dropColumn('description');
+            });
+        }
     }
 };
