@@ -125,6 +125,27 @@ class TaskController extends Controller
             'staff' => $this->staffOptions(),
             'roles' => Role::query()->where('is_staff', true)->orderBy('name_fa')->get(),
             'units' => Unit::query()->with('block')->orderBy('number')->get(),
+            'selectedUserIds' => [],
+            'targetRoleId' => null,
+        ]);
+    }
+
+    public function edit(Request $request, int $ticket)
+    {
+        abort_unless($request->user()->hasPermission('ticket.view.all') && $request->user()->hasPermission('ticket.create'), 403);
+        $item = Ticket::query()->where('kind', TicketKind::Task->value)
+            ->with('assignees')->findOrFail($ticket);
+
+        return view('tickets.form', [
+            'ticket' => $item,
+            'statuses' => self::STATUSES,
+            'categories' => self::CATEGORIES,
+            'priorities' => self::PRIORITIES,
+            'staff' => $this->staffOptions(),
+            'roles' => Role::query()->where('is_staff', true)->orderBy('name_fa')->get(),
+            'units' => Unit::query()->with('block')->orderBy('number')->get(),
+            'selectedUserIds' => $item->assignees->pluck('user_id')->map(fn ($id) => (int) $id)->all(),
+            'targetRoleId' => $item->target_role_id,
         ]);
     }
 
@@ -240,6 +261,120 @@ class TaskController extends Controller
         }
 
         return redirect()->route('tickets.show', $ticket->id)->with('status', 'تسک با موفقیت ثبت شد.');
+    }
+
+    public function update(Request $request, int $ticket, SmsSender $sms)
+    {
+        $item = $this->visibleTask($request, $ticket);
+        $user = $request->user();
+        abort_unless($user->hasPermission('ticket.view.all') && $user->hasPermission('ticket.create'), 403);
+        $buildingId = (int) $item->building_id;
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:200'],
+            'description' => ['required', 'string', 'max:10000'],
+            'category' => ['required', Rule::in(array_keys(self::CATEGORIES))],
+            'priority' => ['required', Rule::in(array_keys(self::PRIORITIES))],
+            'deadline' => ['nullable', 'date'],
+            'location' => ['nullable', 'string', 'max:150'],
+            'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')->where('building_id', $buildingId)->whereNull('deleted_at')],
+            'target_role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('is_staff', true)],
+            'user_ids' => ['nullable', 'array', 'max:50'],
+            'user_ids.*' => ['integer', 'distinct'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,webp,pdf'],
+        ]);
+
+        $roleId = $data['target_role_id'] ?? null;
+        $userIds = collect($data['user_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
+        if ($roleId) {
+            $userIds = $userIds->merge(DB::table('building_user_roles')
+                ->where('building_id', $buildingId)->where('role_id', $roleId)->where('status', 'active')
+                ->pluck('user_id')->map(fn ($id) => (int) $id))->unique()->values();
+        }
+        $validIds = DB::table('building_user_roles as bur')
+            ->join('roles as r', 'r.id', '=', 'bur.role_id')
+            ->where('bur.building_id', $buildingId)->where('bur.status', 'active')
+            ->where('r.is_staff', true)->whereIn('bur.user_id', $userIds)
+            ->pluck('bur.user_id')->unique()->map(fn ($id) => (int) $id)->values();
+        abort_if($validIds->count() !== $userIds->count(), 422, 'فقط پرسنل فعال همین ساختمان قابل ارجاع هستند.');
+
+        $oldAssigneeIds = [];
+        DB::transaction(function () use ($item, $data, $user, $buildingId, $roleId, $validIds, $request, &$oldAssigneeIds) {
+            $locked = Ticket::query()->where('kind', TicketKind::Task->value)->lockForUpdate()->findOrFail($item->id);
+            $oldAssigneeIds = $locked->assignees()->pluck('user_id')->map(fn ($id) => (int) $id)->all();
+
+            $locked->fill([
+                'title' => $data['title'],
+                'description' => $data['description'],
+                'category' => $data['category'],
+                'priority' => $data['priority'],
+                'deadline' => $data['deadline'] ?? null,
+                'location' => $data['location'] ?? null,
+                'unit_id' => $data['unit_id'] ?? null,
+                'target_role_id' => $roleId,
+            ]);
+            $locked->save();
+
+            $locked->assignees()->delete();
+            foreach ($validIds as $staffId) {
+                TicketAssignee::create([
+                    'building_id' => $buildingId,
+                    'ticket_id' => $locked->id,
+                    'user_id' => $staffId,
+                    'assigned_by' => $user->id,
+                    'assigned_at' => now(),
+                ]);
+            }
+
+            foreach ($request->file('attachments', []) as $file) {
+                $path = $file->store("ticket-attachments/{$buildingId}/{$locked->id}", 'local');
+                TicketAttachment::create([
+                    'building_id' => $buildingId,
+                    'ticket_id' => $locked->id,
+                    'uploaded_by' => $user->id,
+                    'path' => $path,
+                    'original_name' => Str::limit(basename($file->getClientOriginalName()), 255, ''),
+                    'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+                    'size_bytes' => $file->getSize(),
+                ]);
+            }
+
+            TicketEvent::create([
+                'building_id' => $buildingId,
+                'ticket_id' => $locked->id,
+                'user_id' => $user->id,
+                'type' => 'updated',
+                'description' => 'جزئیات تسک و فهرست مسئولان توسط مدیر به‌روزرسانی شد.',
+                'metadata' => [
+                    'previous_assignee_ids' => $oldAssigneeIds,
+                    'current_assignee_ids' => $validIds->all(),
+                    'target_role_id' => $roleId,
+                ],
+                'created_at' => now(),
+            ]);
+        });
+
+        $newAssigneeIds = $validIds->diff($oldAssigneeIds);
+        foreach (User::whereIn('id', $newAssigneeIds)->get() as $recipient) {
+            $recipient->notify(new RequestAlertNotification(
+                buildingId: $buildingId,
+                ticketId: (int) $item->id,
+                event: 'task_assigned',
+                title: 'تسک به‌روزرسانی و به شما ارجاع شد',
+                message: 'شما به تسک «'.$item->title.'» ارجاع شده‌اید.',
+                url: route('tickets.show', $item->id),
+            ));
+            try {
+                $sms->sendTemplate('task_assigned', $recipient->mobile, [
+                    'title' => $item->title, 'number' => $item->number,
+                ], $recipient->id, $buildingId);
+            } catch (\InvalidArgumentException) {
+                // Task updates should still succeed if the SMS template was disabled or removed.
+            }
+        }
+
+        return redirect()->route('tickets.show', $item->id)->with('status', 'تسک و مسئولان آن به‌روزرسانی شدند.');
     }
 
     public function show(Request $request, int $ticket)
