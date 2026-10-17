@@ -40,8 +40,8 @@ class TaskController extends Controller
         'review' => 'در حال بررسی',
         'doing' => 'در حال انجام',
         'waiting' => 'در انتظار',
-        'done' => 'انجام‌شده',
-        'closed' => 'بسته‌شده',
+        'done' => 'پایان کار؛ در انتظار تأیید مدیر',
+        'closed' => 'تأیید مدیر و بسته‌شده',
     ];
 
     private const PRIORITIES = [
@@ -436,7 +436,8 @@ class TaskController extends Controller
         DB::transaction(function () use ($item, $user) {
             $locked = Ticket::query()->where('kind', TicketKind::Task->value)->lockForUpdate()->findOrFail($item->id);
             $assignee = $locked->assignees()->where('user_id', $user->id)->lockForUpdate()->firstOrFail();
-            abort_if($locked->accepted_by !== null && (int) $locked->accepted_by !== (int) $user->id, 409, 'این تسک قبلاً توسط همکار دیگری پذیرفته شده است.');
+            abort_if(in_array($locked->status->value, ['done', 'closed'], true), 409, 'تسک پایان‌یافته یا بسته‌شده قابل پذیرش نیست.');
+            abort_if($locked->accepted_by !== null, 409, 'این تسک قبلاً پذیرفته شده است.');
 
             $assignee->accepted_at = now();
             $assignee->save();
@@ -503,36 +504,33 @@ class TaskController extends Controller
     {
         $item = $this->visibleTask($request, $ticket);
         $user = $request->user();
+        $isManager = $user->hasPermission('ticket.view.all');
         $assigned = $item->assignees->contains(fn ($a) => (int) $a->user_id === (int) $user->id);
-        abort_unless($user->hasPermission('ticket.view.all') || ($user->hasPermission('ticket.respond') && $assigned), 403);
+        abort_unless($isManager || ($user->hasPermission('ticket.respond') && $assigned), 403);
 
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(self::STATUSES))],
             'note' => ['nullable', 'string', 'max:1000'],
         ]);
-        $oldStatus = $item->status->value;
         $newStatus = $data['status'];
-        if ($oldStatus === $newStatus) {
-            return back()->with('status', 'وضعیت تغییری نکرد.');
-        }
-        if ($newStatus === 'closed' && ! $user->hasPermission('ticket.view.all')) {
-            abort(403, 'بستن نهایی تسک فقط برای مدیر مجاز است.');
-        }
-        if ($oldStatus === 'closed' && ! $user->hasPermission('ticket.view.all')) {
-            abort(403, 'تسک بسته‌شده فقط توسط مدیر قابل بازگشایی است.');
-        }
+        $changed = DB::transaction(function () use ($item, $user, $data, $newStatus, $isManager) {
+            $locked = Ticket::query()->where('kind', TicketKind::Task->value)->lockForUpdate()->findOrFail($item->id);
+            $oldStatus = $locked->status->value;
+            if ($oldStatus === $newStatus) {
+                return false;
+            }
+            abort_unless($this->allowsStatusTransition($oldStatus, $newStatus, $isManager), 422, 'این تغییر وضعیت مجاز نیست.');
 
-        DB::transaction(function () use ($item, $user, $data, $oldStatus, $newStatus) {
-            $item->status = $newStatus;
-            $item->closed_at = $newStatus === 'closed' ? now() : null;
-            $item->save();
+            $locked->status = $newStatus;
+            $locked->closed_at = $newStatus === 'closed' ? now() : null;
+            $locked->save();
             TicketStatusLog::create([
-                'building_id' => $item->building_id, 'ticket_id' => $item->id,
+                'building_id' => $locked->building_id, 'ticket_id' => $locked->id,
                 'from_status' => $oldStatus, 'to_status' => $newStatus,
                 'user_id' => $user->id, 'note' => $data['note'] ?? null, 'created_at' => now(),
             ]);
             TicketEvent::create([
-                'building_id' => $item->building_id, 'ticket_id' => $item->id,
+                'building_id' => $locked->building_id, 'ticket_id' => $locked->id,
                 'user_id' => $user->id, 'type' => 'status_changed',
                 'description' => 'وضعیت تسک از «'.(self::STATUSES[$oldStatus] ?? $oldStatus).'» به «'.self::STATUSES[$newStatus].'» تغییر کرد.'.(! empty($data['note']) ? ' '.$data['note'] : ''),
                 'metadata' => ['from' => $oldStatus, 'to' => $newStatus],
@@ -540,12 +538,16 @@ class TaskController extends Controller
             ]);
             if (! empty($data['note'])) {
                 TicketComment::create([
-                    'building_id' => $item->building_id, 'ticket_id' => $item->id,
-                    'user_id' => $user->id, 'body' => $data['note'],
+                    'building_id' => $locked->building_id, 'ticket_id' => $locked->id,
+                    'user_id' => $user->id, 'body' => trim($data['note']),
                 ]);
             }
+            return true;
         });
 
+        if (! $changed) {
+            return back()->with('status', 'وضعیت تغییری نکرد.');
+        }
         $item->refresh();
         $recipients = collect([$item->createdBy])
             ->merge($item->assignees->pluck('user'))
@@ -554,8 +556,8 @@ class TaskController extends Controller
             $recipient->notify(new RequestAlertNotification(
                 buildingId: (int) $item->building_id,
                 ticketId: (int) $item->id,
-                event: 'task_status_changed',
-                title: 'وضعیت تسک تغییر کرد',
+                event: $newStatus === 'done' ? 'task_awaiting_manager_approval' : ($newStatus === 'closed' ? 'task_approved' : 'task_status_changed'),
+                title: $newStatus === 'done' ? 'تسک آماده تأیید نهایی است' : ($newStatus === 'closed' ? 'پایان کار تأیید شد' : 'وضعیت تسک تغییر کرد'),
                 message: 'وضعیت تسک «'.$item->title.'» به «'.self::STATUSES[$newStatus].'» تغییر کرد.',
                 url: route('tickets.show', $item->id),
             ));
@@ -564,11 +566,33 @@ class TaskController extends Controller
                     'title' => $item->title, 'status' => self::STATUSES[$newStatus],
                 ], $recipient->id, (int) $item->building_id);
             } catch (\InvalidArgumentException) {
-                // Keep status updates resilient if the SMS template has been removed by an administrator.
+                // SMS is optional; missing template must not break the workflow.
             }
         }
 
         return back()->with('status', 'وضعیت تسک به‌روزرسانی شد.');
+    }
+
+    private function allowsStatusTransition(string $from, string $to, bool $isManager): bool
+    {
+        // "done" means the assignee reported completion; only a manager can approve and close it.
+        if ($to === 'closed') {
+            return $isManager && $from === 'done';
+        }
+        if ($from === 'closed') {
+            return $isManager && $to === 'doing';
+        }
+        if ($from === 'done') {
+            return $isManager && $to === 'doing';
+        }
+
+        return match ($from) {
+            'new' => $to === 'review',
+            'review' => in_array($to, ['doing', 'waiting', 'done'], true),
+            'doing' => in_array($to, ['waiting', 'done'], true),
+            'waiting' => in_array($to, ['doing', 'done'], true),
+            default => false,
+        };
     }
 
     public function assign(Request $request, int $ticket)
