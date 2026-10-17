@@ -288,7 +288,7 @@ class TaskFlowTest extends TestCase
                 ->where('building_id', $this->building->id)
                 ->where('ticket_id', $ticket->id)
                 ->where('user_id', $this->maintenance->id)
-                ->value('accepted_at')
+                ->value('accepted_at')?->toDateTimeString()
         );
 
         $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
@@ -312,7 +312,7 @@ class TaskFlowTest extends TestCase
                 ->where('building_id', $this->building->id)
                 ->where('ticket_id', $ticket->id)
                 ->where('user_id', $this->maintenance->id)
-                ->value('accepted_at')
+                ->value('accepted_at')?->toDateTimeString()
         );
         $this->assertSame(
             1,
