@@ -485,15 +485,6 @@ class TaskController extends Controller
         ]);
 
         $recipients = collect([$item->createdBy])->merge($item->assignees->pluck('user'));
-        if ($newStatus === 'done') {
-            $managerIds = DB::table('building_user_roles as bur')
-                ->join('roles as r', 'r.id', '=', 'bur.role_id')
-                ->where('bur.building_id', $item->building_id)
-                ->where('bur.status', 'active')
-                ->where('r.key', 'manager')
-                ->pluck('bur.user_id');
-            $recipients = $recipients->merge(User::query()->whereIn('id', $managerIds)->get());
-        }
         $recipients = $recipients->filter()->unique('id')
             ->reject(fn ($recipient) => (int) $recipient->id === (int) $user->id);
         foreach ($recipients as $recipient) {
