@@ -73,8 +73,9 @@ class MenuBuilder
                     continue;
                 }
 
-                // «درخواست‌های من» مخصوص ساکنان است؛ پرسنل و نقش‌های مدیریتی از درخواست‌های ساختمان استفاده می‌کنند.
-                if ($item['route'] === 'my.requests' && app(CurrentBuilding::class)->hasRole('owner', 'manager', 'security', 'cleaning', 'maintenance')) {
+                // «درخواست‌های من» و «قرارداد من» مخصوص ساکنان هستند؛ پرسنل و نقش‌های مدیریتی از بخش‌های ساختمان استفاده می‌کنند.
+                if (in_array($item['route'], ['my.requests', 'my.contracts'], true)
+                    && app(CurrentBuilding::class)->hasRole('owner', 'manager', 'security', 'cleaning', 'maintenance')) {
                     continue;
                 }
 
