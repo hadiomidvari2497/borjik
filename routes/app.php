@@ -193,6 +193,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     // نظرسنجی و رأی‌گیری ساختمان فعال.
     Route::middleware('can:poll.manage')->prefix('polls')->name('polls.')->controller(\App\Http\Controllers\PollController::class)->group(function () {
         Route::post('/', 'store')->name('store');
+        Route::get('/{poll}', 'show')->whereNumber('poll')->name('show');
         Route::post('/{poll}/close', 'close')->whereNumber('poll')->name('close');
     });
     Route::middleware('can:poll.vote')->prefix('polls')->name('polls.')->controller(\App\Http\Controllers\PollController::class)->group(function () {
