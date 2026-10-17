@@ -46,13 +46,18 @@
             @endif
             @if(!$isStaff && $p['status'] === 'active' && count(array_intersect(array_keys($p['roles']), ['unit_owner', 'tenant'])) === 1)
               @php($currentMemberRole = array_key_first(array_intersect_key($p['roles'], array_flip(['unit_owner', 'tenant']))))
-              <form method="POST" action="{{ route('members.membership-role.update', $p['user_id']) }}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              @php($nextMemberRole = $currentMemberRole === 'unit_owner' ? 'tenant' : 'unit_owner')
+              <form method="POST" action="{{ route('members.membership-role.update', $p['user_id']) }}" class="membership-change">
                 @csrf
-                <select name="role" aria-label="نوع عضویت جدید" style="max-width:135px">
-                  <option value="unit_owner" @selected($currentMemberRole === 'unit_owner')>مالک واحد</option>
-                  <option value="tenant" @selected($currentMemberRole === 'tenant')>مستأجر</option>
-                </select>
-                <button class="btn sec sm" type="submit" data-confirm="نوع عضویت این عضو تغییر کند؟" data-confirm-title="تغییر عضویت">تغییر عضویت</button>
+                <span class="membership-current">
+                  <span class="membership-current-dot"></span>
+                  <span><small>نوع عضویت فعلی</small><b>{{ $currentMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }}</b></span>
+                </span>
+                <input type="hidden" name="role" value="{{ $nextMemberRole }}">
+                <button class="btn membership-action" type="submit" data-confirm="نوع عضویت این عضو از {{ $currentMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }} به {{ $nextMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }} تغییر کند؟" data-confirm-title="تغییر نوع عضویت">
+                  <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h13l-3-3M20 7l-3 3M17 17H4l3 3M4 17l3-3"/></svg>
+                  تبدیل به {{ $nextMemberRole === 'unit_owner' ? 'مالک واحد' : 'مستأجر' }}
+                </button>
               </form>
             @endif
             @if($isStaff)

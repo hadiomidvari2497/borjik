@@ -193,3 +193,16 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 .feat b{font-size:14px}.feat p{font-size:12.5px;color:var(--muted);line-height:1.8;margin:0}
 .hero{background:linear-gradient(135deg,var(--brand),var(--brand-d));color:#fff;border:0}.hero h2{font-size:20px}.hero p{opacity:.92;font-size:13.5px;line-height:1.9}
 .hero .btn{background:#fff;color:var(--brand-d)}.hero .btn.sec{background:rgba(255,255,255,.18);color:#fff}
+
+
+/* Member role switch — compact, clear and touch-friendly */
+.membership-change{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:7px;margin-top:5px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,var(--brand-soft),transparent);min-width:225px}
+.membership-current{display:flex;align-items:center;gap:8px;padding:2px 7px;min-width:88px}
+.membership-current-dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px var(--brand-soft);flex:none}
+.membership-current small{display:block;font-size:10px;color:var(--muted);line-height:1.5;white-space:nowrap}
+.membership-current b{display:block;font-size:12px;line-height:1.6;color:var(--text);white-space:nowrap}
+.btn.membership-action{padding:9px 12px;border-radius:12px;font-size:11.5px;gap:6px;white-space:nowrap;box-shadow:0 3px 9px rgba(31,106,99,.16);transition:transform .16s ease,box-shadow .16s ease}
+.btn.membership-action:hover{transform:translateY(-1px);box-shadow:0 5px 13px rgba(31,106,99,.22)}
+.btn.membership-action .i{width:15px;height:15px}
+@media(max-width:860px){.membership-change{min-width:0;width:100%;justify-content:space-between}.membership-current{flex:1}.btn.membership-action{flex:0 0 auto}}
+@media(prefers-reduced-motion:reduce){.btn.membership-action{transition:none}}
