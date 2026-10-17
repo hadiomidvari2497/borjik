@@ -123,7 +123,7 @@ class TaskController extends Controller
             'categories' => self::CATEGORIES,
             'priorities' => self::PRIORITIES,
             'staff' => $this->staffOptions(),
-            'roles' => Role::query()->where('building_id', app(CurrentBuilding::class)->id())->where('is_staff', true)->where('is_active', true)->orderBy('name_fa')->get(),
+            'roles' => $this->roleOptions(),
             'units' => Unit::query()->with('block')->orderBy('number')->get(),
             'selectedUserIds' => [],
             'targetRoleId' => null,
@@ -164,7 +164,7 @@ class TaskController extends Controller
             'deadline' => ['nullable', 'date', 'after_or_equal:today'],
             'location' => ['nullable', 'string', 'max:150'],
             'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')->where('building_id', $buildingId)->whereNull('deleted_at')],
-            'target_role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)],
+            'target_role_id' => ['nullable', 'integer', Rule::exists('roles', 'id')->where('is_staff', true)->where('is_active', true)],
             'user_ids' => ['nullable', 'array', 'max:50'],
             'user_ids.*' => ['integer', 'distinct'],
             'attachments' => ['nullable', 'array', 'max:5'],
@@ -172,6 +172,9 @@ class TaskController extends Controller
         ]);
 
         $roleId = $data['target_role_id'] ?? null;
+        if ($roleId && Role::where('building_id', $buildingId)->where('is_staff', true)->exists()) {
+            abort_unless(Role::where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->whereKey($roleId)->exists(), 422, 'نقش انتخاب‌شده متعلق به این ساختمان نیست.');
+        }
         $userIds = collect($data['user_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values();
         if ($roleId) {
             $userIds = $userIds->merge(DB::table('building_user_roles')
@@ -711,6 +714,13 @@ class TaskController extends Controller
         );
 
         return $item;
+    }
+
+    private function roleOptions()
+    {
+        $buildingId = app(CurrentBuilding::class)->id();
+        $roles = Role::query()->where('building_id', $buildingId)->where('is_staff', true)->where('is_active', true)->orderBy('name_fa')->get();
+        return $roles->isNotEmpty() ? $roles : Role::query()->whereNull('building_id')->where('is_staff', true)->whereIn('key', ['security', 'cleaning', 'maintenance'])->orderBy('name_fa')->get();
     }
 
     private function staffOptions()
