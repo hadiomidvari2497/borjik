@@ -1,0 +1,40 @@
+/* پنل مدیریت سیستم: همان ساختار پنل مدیریت ساختمان (app.css) با سایدبار سبز تیره‌ی صفحه‌ی ورود ادمین */
+body.adm{--adm-1:#1c4f4a;--adm-2:#122f3a;--adm-hi:#6fd6c9}
+
+body.adm .side{background:linear-gradient(165deg,var(--adm-1) 0%,var(--adm-2) 100%);border-color:rgba(255,255,255,.12);color:#fff;box-shadow:0 18px 40px rgba(18,47,58,.32)}
+body.adm .side:before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.05);inset-inline-start:-110px;bottom:-90px;pointer-events:none}
+body.adm .side>*{position:relative}
+body.adm .brand b{color:#fff}
+body.adm .brand span{color:rgba(255,255,255,.62)}
+body.adm .side .logo{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);box-shadow:none}
+body.adm .grp{color:rgba(255,255,255,.55)}
+body.adm .nav a{color:rgba(255,255,255,.9)}
+body.adm .nav a:hover{background:rgba(255,255,255,.1)}
+body.adm .nav a.on{background:rgba(255,255,255,.15);color:#fff;border-inline-start:3px solid var(--adm-hi)}
+body.adm .nav a.on svg.i{color:var(--adm-hi)}
+body.adm .me{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+body.adm .me b{color:#fff}
+body.adm .me span{color:rgba(255,255,255,.66)}
+body.adm .side .av{background:var(--brand);color:#fff}
+body.adm .out{background:rgba(255,255,255,.12);color:#ffd5d1}
+body.adm .out:hover{background:rgba(255,255,255,.2)}
+body.adm .tag-adm{display:inline-block;font-size:10.5px;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;margin-top:3px}
+
+/* هدر بالا */
+body.adm .top .tag-adm{background:var(--brand-soft);border-color:transparent;color:var(--brand-d);margin:0}
+:root[data-theme="dark"] body.adm .top .tag-adm{color:var(--brand)}
+
+/* کارت‌های دسترسی سریع و امنیت */
+.qa{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.qa a.card{display:flex;gap:12px;align-items:flex-start;text-decoration:none;color:inherit;transition:.15s}
+.qa a.card:hover{transform:translateY(-2px);border-color:var(--brand)}
+.qa .ic{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--adm-1),var(--adm-2));color:#fff;display:grid;place-items:center;flex:none}
+.qa b{display:block;font-size:14px;margin-bottom:2px}
+.qa span{font-size:12.5px;color:var(--muted);line-height:1.8}
+.sec-card{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.sec-card .t{display:flex;gap:12px;align-items:center}
+.sec-card .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;color:#fff}
+.sec-card b{display:block;font-size:14px}.sec-card small{color:var(--muted);font-size:12.5px;line-height:1.8}
+.hdr-sub{color:var(--muted);font-size:13px;margin:0 0 4px;line-height:1.8}
+
+body.adm .top a.av{text-decoration:none}

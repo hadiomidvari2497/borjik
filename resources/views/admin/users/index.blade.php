@@ -28,11 +28,11 @@
         <td>{{ $u->name ?: '—' }}</td>
         <td>
           @if($u->is_super)<span class="pill">سوپرادمین</span>@endif
-          @foreach($u->roles as $r)<span class="pill u">{{ $r->name }}</span> @endforeach
+          @foreach($u->roles as $r)<span class="pill">{{ $r->name }}</span> @endforeach
           @if(! $u->is_super && $u->roles->isEmpty())<span style="color:var(--muted)">بدون نقش</span>@endif
         </td>
         <td>@if($u->status === 'active')<span class="pill">فعال</span>@else<span class="pill u">غیرفعال</span>@endif</td>
-        <td>{{ $u->last_login_at ? $F::digits($u->last_login_at->diffForHumans()) : '—' }}</td>
+        <td>{{ $u->last_login_at ? $F::date($u->last_login_at, 'j F Y - H:i') : '—' }}</td>
         <td class="act">
           @if(! $u->is_super || $me->is_super)
             <a class="btn sec sm" href="{{ route('admin.users.edit', $u->id) }}">ویرایش</a>
