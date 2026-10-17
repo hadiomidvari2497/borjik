@@ -117,7 +117,6 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     });
     Route::get('/my/contracts', [MyContractController::class, 'index'])->middleware('can:contract.view.own')->name('my.contracts');
     Route::get('/my/unit', [MyUnitController::class, 'index'])->middleware('can:unit.view.own')->name('my.units');
-    Route::get('/my/unit', [MyUnitController::class, 'index'])->middleware('can:unit.view.own')->name('my.units');
 
     Route::get('/files/{id}', [FileController::class, 'show'])->whereNumber('id')->name('files.show');
 
