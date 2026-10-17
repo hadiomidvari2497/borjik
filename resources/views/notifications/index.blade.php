@@ -18,7 +18,7 @@
         <div class="notice-copy">
           <b>{{ $data['title'] ?? 'اعلان جدید' }}</b>
           <p>{{ $data['message'] ?? '' }}</p>
-          <small>{{ $notification->created_at?->format('Y/m/d H:i') }}</small>
+          <small>{{ $notification->created_at ? \\App\\Support\\Fa::date($notification->created_at, 'Y/m/d H:i') : '—' }}</small>
           @if(!empty($data['url']))
             <form method="POST" action="{{ route('notifications.read', $notification->id) }}">@csrf<button class="notice-link" type="submit" style="border:0;background:transparent;padding:0;cursor:pointer;font:inherit">مشاهده درخواست ←</button></form>
           @endif

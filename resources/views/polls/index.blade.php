@@ -18,7 +18,7 @@
 .poll-result-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:5px}
 .poll-track{height:8px;background:var(--soft,#edf2f7);border-radius:99px;overflow:hidden}
 .poll-fill{height:100%;background:var(--primary,#1f6a63);border-radius:99px}
-.poll-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.poll-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}.poll-form-grid[hidden]{display:none!important}.poll-datetime-grid{display:grid;grid-template-columns:minmax(0,1fr) 115px;gap:8px}.poll-datetime-grid input{min-width:0}
 .poll-description{white-space:pre-line;color:var(--muted,#667085);margin:8px 0}
 .poll-footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .poll-type-help{font-size:12px;color:var(--muted,#667085);margin-top:6px}
@@ -44,12 +44,20 @@
             </div>
             <div class="fld">
                 <label for="poll-start">شروع رأی‌گیری *</label>
-                <input id="poll-start" type="datetime-local" name="starts_at" value="{{ old('starts_at', now()->format('Y-m-d\\TH:i')) }}" required>
+                <div class="poll-datetime-grid">
+                    <input id="poll-start-date" class="jdate" type="text" name="starts_at_date" value="{{ old('starts_at_date', \\App\\Support\\JalaliDate::format(now())) }}" placeholder="تاریخ شمسی" autocomplete="off" required>
+                    <input id="poll-start-time" type="time" name="starts_at_time" value="{{ old('starts_at_time', now()->format('H:i')) }}" aria-label="ساعت شروع" required>
+                </div>
+                <input id="poll-start" type="hidden" name="starts_at" value="{{ old('starts_at') }}">
                 @error('starts_at')<div class="e">{{ $message }}</div>@enderror
             </div>
             <div class="fld">
                 <label for="poll-end">پایان رأی‌گیری *</label>
-                <input id="poll-end" type="datetime-local" name="ends_at" value="{{ old('ends_at', now()->addDays(7)->format('Y-m-d\\TH:i')) }}" required>
+                <div class="poll-datetime-grid">
+                    <input id="poll-end-date" class="jdate" type="text" name="ends_at_date" value="{{ old('ends_at_date', \\App\\Support\\JalaliDate::format(now()->addDays(7))) }}" placeholder="تاریخ شمسی" autocomplete="off" required>
+                    <input id="poll-end-time" type="time" name="ends_at_time" value="{{ old('ends_at_time', now()->addDays(7)->format('H:i')) }}" aria-label="ساعت پایان" required>
+                </div>
+                <input id="poll-end" type="hidden" name="ends_at" value="{{ old('ends_at') }}">
                 @error('ends_at')<div class="e">{{ $message }}</div>@enderror
             </div>
         </div>
@@ -77,6 +85,7 @@
         @error('options')<div class="e" style="margin-top:8px">{{ $message }}</div>@enderror
         <script>
             (() => {
+                const form = document.getElementById('poll-create-form');
                 const type = document.getElementById('poll-response-type');
                 const options = document.getElementById('poll-choice-options');
                 const sync = () => {
@@ -89,6 +98,20 @@
                 };
                 type.addEventListener('change', sync);
                 sync();
+
+                const pad = value => String(value).padStart(2, '0');
+                const toGregorianDateTime = (dateId, timeId, outputId) => {
+                    const date = window.JDate.parse(document.getElementById(dateId).value);
+                    const time = document.getElementById(timeId).value;
+                    const output = document.getElementById(outputId);
+                    if (!date || !time) { output.value = ''; return; }
+                    const gregorian = window.JDate.toGregorian(date.y, date.m, date.d);
+                    output.value = gregorian.gy + '-' + pad(gregorian.gm) + '-' + pad(gregorian.gd) + 'T' + time;
+                };
+                form.addEventListener('submit', () => {
+                    toGregorianDateTime('poll-start-date', 'poll-start-time', 'poll-start');
+                    toGregorianDateTime('poll-end-date', 'poll-end-time', 'poll-end');
+                });
             })();
         </script>
         <label class="poll-option" style="margin-top:12px">
@@ -180,7 +203,7 @@
                         @elseif($hasVoted)
                             <p class="poll-description">رأی شما ثبت شده است.</p>
                         @elseif(!$started)
-                            <p class="poll-description">رأی‌گیری از {{ $poll->starts_at->format('Y/m/d H:i') }} شروع می‌شود.</p>
+                            <p class="poll-description">رأی‌گیری از {{ \\App\\Support\\Fa::date($poll->starts_at, 'Y/m/d H:i') }} شروع می‌شود.</p>
                         @elseif($residentOnly && !$eligibleRole)
                             <p class="poll-description">این نظرسنجی فقط برای مالک واحد و مستأجر است.</p>
                         @else

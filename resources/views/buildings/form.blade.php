@@ -23,7 +23,7 @@
         <select id="type" name="type">@foreach($types as $t)<option value="{{ $t->value }}" @selected($v('type', 'residential') === $t->value || $v('type') === $t)>{{ ['residential' => 'مسکونی', 'commercial' => 'تجاری', 'office' => 'اداری', 'educational' => 'آموزشی', 'mixed' => 'ترکیبی', 'other' => 'سایر'][$t->value] }}</option>@endforeach</select>
         @error('type')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld"><label for="postal_code">کد پستی</label><input id="postal_code" name="postal_code" inputmode="numeric" maxlength="10" value="{{ $v('postal_code') }}">@error('postal_code')<div class="e">{{ $message }}</div>@enderror</div>
-      <div class="fld"><label for="built_at">تاریخ ساخت (شمسی)</label><input id="built_at" name="built_at" placeholder="۱۳۹۵/۰۶/۱۵" value="{{ old('built_at', \App\Support\JalaliDate::format($building?->built_at)) }}">@error('built_at')<div class="e">{{ $message }}</div>@enderror</div>
+      <div class="fld"><label for="built_at">تاریخ ساخت (شمسی)</label><input id="built_at" name="built_at" class="jdate" autocomplete="off" placeholder="۱۳۹۵/۰۶/۱۵" value="{{ old('built_at', \App\Support\JalaliDate::format($building?->built_at)) }}">@error('built_at')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld"><label for="parking_count_info">تعداد پارکینگ</label><input id="parking_count_info" type="number" min="0" name="parking_count_info" value="{{ $v('parking_count_info', 0) }}"></div>
       <div class="fld"><label for="storage_count_info">تعداد انبار</label><input id="storage_count_info" type="number" min="0" name="storage_count_info" value="{{ $v('storage_count_info', 0) }}"></div>
       <div class="fld"><label for="province_id">استان</label>

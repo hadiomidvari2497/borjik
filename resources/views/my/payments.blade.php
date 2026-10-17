@@ -16,7 +16,7 @@
         <select id="unit_id" name="unit_id">@foreach($units as $u)<option value="{{ $u->id }}" @selected((int) old('unit_id') === $u->id)>{{ $u->block->name }} / {{ $F::digits($u->number) }}@if(($debts[$u->id] ?? 0) > 0) — بدهی {{ $F::num($debts[$u->id]) }} تومان @endif</option>@endforeach</select>
         @error('unit_id')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld"><label for="amount">مبلغ پرداختی (تومان) *</label><input id="amount" name="amount" inputmode="numeric" value="{{ old('amount') }}" required>@error('amount')<div class="e">{{ $message }}</div>@enderror</div>
-      <div class="fld"><label for="paid_at">تاریخ پرداخت (شمسی) *</label><input id="paid_at" name="paid_at" value="{{ old('paid_at', \App\Support\JalaliDate::format(today())) }}" required>@error('paid_at')<div class="e">{{ $message }}</div>@enderror</div>
+      <div class="fld"><label for="paid_at">تاریخ پرداخت (شمسی) *</label><input id="paid_at" name="paid_at" class="jdate" autocomplete="off" placeholder="انتخاب از تقویم" value="{{ old('paid_at', \App\Support\JalaliDate::format(today())) }}" required>@error('paid_at')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld"><label for="receipt">تصویر فیش *</label><input id="receipt" type="file" name="receipt" accept="image/*,application/pdf" required><div class="h">jpg، png، webp یا pdf — حداکثر ۵ مگابایت</div>@error('receipt')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld full"><label for="note">توضیحات</label><input id="note" name="note" value="{{ old('note') }}" maxlength="500"></div>
     </div>

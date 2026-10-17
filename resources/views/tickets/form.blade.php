@@ -12,7 +12,23 @@
         <div class="fld"><label for="title">عنوان تسک *</label><input id="title" name="title" maxlength="200" value="{{ old('title', $ticket?->title) }}" required placeholder="مثلاً تعمیر چراغ راهروی طبقه دوم">@error('title')<div class="e">{{ $message }}</div>@enderror</div>
         <div class="fld"><label for="category">دسته‌بندی *</label><select id="category" name="category" required>@foreach($categories as $key=>$label)<option value="{{ $key }}" @selected(old('category', $ticket?->category ?? 'maintenance')===$key)>{{ $label }}</option>@endforeach</select>@error('category')<div class="e">{{ $message }}</div>@enderror</div>
         <div class="fld"><label for="priority">اولویت *</label><select id="priority" name="priority" required>@foreach($priorities as $key=>$label)<option value="{{ $key }}" @selected(old('priority', $ticket?->priority?->value ?? 'medium')===$key)>{{ $label }}</option>@endforeach</select>@error('priority')<div class="e">{{ $message }}</div>@enderror</div>
-        <div class="fld"><label for="deadline">مهلت انجام</label><input id="deadline" type="datetime-local" name="deadline" value="{{ old('deadline', $ticket?->deadline?->format('Y-m-d\\TH:i')) }}">@error('deadline')<div class="e">{{ $message }}</div>@enderror</div>
+        <div class="fld"><label for="deadline-date">مهلت انجام</label><div style="display:grid;grid-template-columns:minmax(0,1fr) 115px;gap:8px"><input id="deadline-date" class="jdate" type="text" name="deadline_date" value="{{ old('deadline_date', \\App\\Support\\JalaliDate::format($ticket?->deadline)) }}" placeholder="تاریخ شمسی" autocomplete="off"><input id="deadline-time" type="time" name="deadline_time" value="{{ old('deadline_time', $ticket?->deadline?->format('H:i')) }}" aria-label="ساعت مهلت"></div><input id="deadline" type="hidden" name="deadline" value="{{ old('deadline') }}">@error('deadline')<div class="e">{{ $message }}</div>@enderror</div>
+<script>
+    (() => {
+        const form = document.querySelector('form[method="POST"]');
+        const date = document.getElementById('deadline-date');
+        const time = document.getElementById('deadline-time');
+        const output = document.getElementById('deadline');
+        if (!form || !date || !time || !output) return;
+        form.addEventListener('submit', () => {
+            const parsed = window.JDate.parse(date.value);
+            if (!parsed) { output.value = ''; return; }
+            const gregorian = window.JDate.toGregorian(parsed.y, parsed.m, parsed.d);
+            const pad = value => String(value).padStart(2, '0');
+            output.value = gregorian.gy + '-' + pad(gregorian.gm) + '-' + pad(gregorian.gd) + 'T' + (time.value || '23:59');
+        });
+    })();
+</script>
         <div class="fld"><label for="target_role_id">ارجاع به یک نقش</label><select id="target_role_id" name="target_role_id"><option value="">انتخاب نشده</option>@foreach($roles as $role)<option value="{{ $role->id }}" @selected((string)old('target_role_id', $targetRoleId ?? '')===(string)$role->id)>{{ $role->name_fa }}</option>@endforeach</select><p class="task-form-help">در صورت انتخاب نقش، تسک برای تمام پرسنل فعال آن نقش ارسال می‌شود.</p>@error('target_role_id')<div class="e">{{ $message }}</div>@enderror</div>
         <div class="fld"><label for="user_ids">ارجاع به افراد مشخص</label><select id="user_ids" name="user_ids[]" multiple size="4">@foreach($staff as $person)<option value="{{ $person->id }}" @selected(collect(old('user_ids', $selectedUserIds ?? []))->contains((string)$person->id)||collect(old('user_ids', $selectedUserIds ?? []))->contains($person->id))>{{ $person->display_name ?: $person->mobile }} — {{ $person->mobile }}</option>@endforeach</select><p class="task-form-help">برای انتخاب چند نفر، در رایانه کلید Ctrl یا Command را نگه دارید.</p>@error('user_ids.*')<div class="e">{{ $message }}</div>@enderror</div>
         <div class="fld"><label for="unit_id">واحد مرتبط (اختیاری)</label><select id="unit_id" name="unit_id"><option value="">بدون واحد مشخص</option>@foreach($units as $unit)<option value="{{ $unit->id }}" @selected((string)old('unit_id', $ticket?->unit_id)===(string)$unit->id)>{{ $unit->block?->name ? $unit->block->name.' - ' : '' }}واحد {{ $unit->number }}</option>@endforeach</select>@error('unit_id')<div class="e">{{ $message }}</div>@enderror</div>
