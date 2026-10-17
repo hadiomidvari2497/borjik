@@ -76,12 +76,13 @@ return new class extends Migration
             DB::table('role_permission')->where('role_id', $role->id)->delete();
         }
 
+        DB::table('roles')->whereNotNull('building_id')->delete();
+
         Schema::table('roles', function (Blueprint $table) {
             $table->dropUnique('roles_building_id_key_unique');
             $table->dropConstrainedForeignId('building_id');
             $table->dropColumn(['is_default', 'is_active']);
             $table->unique('key');
         });
-        DB::table('roles')->whereNotNull('building_id')->delete();
     }
 };
