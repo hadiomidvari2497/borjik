@@ -2,7 +2,7 @@
 @section('title', 'تقویم ساختمان')
 @section('content')
 @php
-    $F = \\App\\Support\\Fa::class;
+    $F = \App\Support\Fa::class;
     $weekdays = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه'];
     $trailing = (7 - (($leading + $days->count()) % 7)) % 7;
 @endphp
@@ -143,9 +143,9 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
                 @else
                     <div class="cal-upcoming">
                         @foreach($upcoming as $item)
-                            @php $itemJalali = \\App\\Support\\JalaliDate::format($item['starts_at']); @endphp
+                            @php $itemJalali = \App\Support\JalaliDate::format($item['starts_at']); @endphp
                             <div class="cal-upcoming-item">
-                                <div class="cal-mini-date"><strong>{{ $F::digits((string) \\Morilog\\Jalali\\Jalalian::fromCarbon($item['starts_at'])->getDay()) }}</strong><small>{{ $monthNames[\\Morilog\\Jalali\\Jalalian::fromCarbon($item['starts_at'])->getMonth()] }}</small></div>
+                                <div class="cal-mini-date"><strong>{{ $F::digits((string) \Morilog\Jalali\Jalalian::fromCarbon($item['starts_at'])->getDay()) }}</strong><small>{{ $monthNames[\Morilog\Jalali\Jalalian::fromCarbon($item['starts_at'])->getMonth()] }}</small></div>
                                 <div class="cal-upcoming-copy">
                                     @if($item['url'])<a href="{{ $item['url'] }}" style="color:inherit;text-decoration:none"><strong>{{ $item['title'] }}</strong></a>@else<strong>{{ $item['title'] }}</strong>@endif
                                     <small>{{ $F::digits($itemJalali) }} · {{ $item['time'] }}</small>
