@@ -44,7 +44,7 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::get('/subscription/plans', [SubscriptionController::class, 'show'])->name('subscription.plans');
     Route::post('/subscription/plans/{id}', [SubscriptionController::class, 'subscribe'])->whereNumber('id')->name('subscription.subscribe');
 
-    Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/buildings/{building}/switch', BuildingSwitchController::class)->name('building.switch');
 
     Route::get('/buildings', [BuildingController::class, 'index'])->middleware('can:building.view')->name('buildings.index');
