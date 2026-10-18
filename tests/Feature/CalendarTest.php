@@ -213,7 +213,7 @@ class CalendarTest extends TestCase
 
     public function test_manager_can_move_calendar_event_to_another_jalali_date(): void
     {
-        $event = app(\App\\Support\\CurrentBuilding::class)->actingAs(
+        $event = app(\App\Support\CurrentBuilding::class)->actingAs(
             $this->building->id,
             fn () => CalendarEvent::create([
                 'created_by' => $this->owner->id,
