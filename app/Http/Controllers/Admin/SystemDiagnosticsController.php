@@ -22,7 +22,7 @@ class SystemDiagnosticsController extends Controller
     {
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:160'],
-            'status' => ['nullable', Rule::in(['500', '503', '404', '403', 'other'])],
+            'status' => ['nullable', Rule::in(['500', '503', '404', '403', '422', 'other'])],
             'from' => ['nullable', 'date_format:Y-m-d'],
             'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
@@ -42,7 +42,7 @@ class SystemDiagnosticsController extends Controller
             }))
             ->when(! empty($filters['status']), function ($query) use ($filters) {
                 if ($filters['status'] === 'other') {
-                    $query->whereNotIn('status_code', [403, 404, 500, 503]);
+                    $query->whereNotIn('status_code', [403, 404, 422, 500, 503]);
                 } else {
                     $query->where('status_code', (int) $filters['status']);
                 }
