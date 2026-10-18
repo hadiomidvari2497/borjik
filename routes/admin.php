@@ -33,7 +33,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->middleware('admin.can:logs.view')->name('activity-logs.index');
-        Route::get('/system-diagnostics', [SystemDiagnosticsController::class, 'index'])->middleware('admin.can:logs.view')->name('system-diagnostics.index');
+        Route::get('/system-diagnostics', [SystemDiagnosticsController::class, 'index'])->middleware('admin.can:logs.view')->name('system-diagnostics.index');\n        Route::get('/analytics', [AnalyticsController::class, 'index'])->middleware('admin.can:logs.view')->name('analytics.index');\n        Route::get('/analytics/export', [AnalyticsController::class, 'export'])->middleware('admin.can:logs.view')->name('analytics.export');
         Route::get('/monitoring/host', [HostMonitoringController::class, 'host'])->middleware('admin.can:logs.view')->name('monitoring.host');
         Route::get('/monitoring/cron', [HostMonitoringController::class, 'cron'])->middleware('admin.can:logs.view')->name('monitoring.cron');
 
