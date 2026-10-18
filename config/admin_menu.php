@@ -50,6 +50,8 @@ return [
     [
         'title' => 'نظارت و امنیت',
         'items' => [
+            ['label' => 'تحلیل رفتار کاربران', 'icon' => 'activity', 'route' => 'admin.analytics.index', 'active' => 'admin.analytics.*', 'perm' => 'logs.view',
+                'desc' => 'کاربران آنلاین، بازدید صفحات، منابع ورودی و مشخصات دستگاه‌ها'],
             ['label' => 'مرکز خطا و عیب‌یابی', 'icon' => 'activity', 'route' => 'admin.system-diagnostics.index', 'active' => 'admin.system-diagnostics.*', 'perm' => 'logs.view',
                 'desc' => 'تاریخچه خطاها، شناسایی کاربر و بررسی سلامت اجزای اصلی سامانه'],
             ['label' => 'سلامت هاست', 'icon' => 'activity', 'route' => 'admin.monitoring.host', 'active' => 'admin.monitoring.host', 'perm' => 'logs.view',
