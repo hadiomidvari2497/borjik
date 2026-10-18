@@ -22,6 +22,7 @@ class SiteAnalyticsTrackingTest extends TestCase
 
         $request = Request::create('/analytics-probe?private=not-stored', 'GET');
         $request->setLaravelSession($session);
+        $request->setUserResolver(fn () => null);
         $request->headers->set('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0.0.0 Safari/537.36');
 
         $response = new Response('<html><body>Probe</body></html>', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
@@ -49,6 +50,7 @@ class SiteAnalyticsTrackingTest extends TestCase
         $session->setId('analytics-admin-session');
         $session->start();
         $request->setLaravelSession($session);
+        $request->setUserResolver(fn () => null);
         $response = new Response('<html><body>Admin</body></html>', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
 
         $result = (new TrackSiteAnalytics())->handle($request, fn () => $response);
