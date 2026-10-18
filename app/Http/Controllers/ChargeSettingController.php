@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ChargeMethod;
+use App\Models\ChargePeriod;
 use App\Http\Controllers\Concerns\NormalizesNumbers;
 use App\Models\ChargeFixedRule;
 use App\Models\ChargeSetting;
@@ -67,7 +68,9 @@ class ChargeSettingController extends Controller
             'late_fee_start_day' => (int) ($v['late_fee_start_day'] ?? 1),
         ]);
 
-        return redirect()->route('charge-settings.edit')->with('status', 'تنظیمات شارژ ذخیره شد.');
+        $this->invalidateCalculatedPeriods();
+
+        return redirect()->route('charge-settings.edit')->with('status', 'تنظیمات شارژ ذخیره شد. دوره‌های محاسبه‌شده نیازمند محاسبهٔ مجدد هستند.');
     }
 
     /** قاعده‌ی شارژ ثابت (روش ۱). هر سه معیار اختیاری است؛ «مهم نیست» یعنی ستون خالی. */
@@ -88,14 +91,22 @@ class ChargeSettingController extends Controller
             'has_parking' => $tri($v['has_parking']), 'has_storage' => $tri($v['has_storage']), 'amount' => (int) $v['amount'],
         ]);
 
-        return redirect()->route('charge-settings.edit')->with('status', 'قاعده اضافه شد.');
+        $this->invalidateCalculatedPeriods();
+
+        return redirect()->route('charge-settings.edit')->with('status', 'قاعده اضافه شد؛ دوره‌های محاسبه‌شده نیازمند محاسبهٔ مجدد هستند.');
     }
 
     public function destroyRule(int $id)
     {
         ChargeFixedRule::findOrFail($id)->delete();
+        $this->invalidateCalculatedPeriods();
 
-        return redirect()->route('charge-settings.edit')->with('status', 'قاعده حذف شد.');
+        return redirect()->route('charge-settings.edit')->with('status', 'قاعده حذف شد؛ دوره‌های محاسبه‌شده نیازمند محاسبهٔ مجدد هستند.');
+    }
+
+    private function invalidateCalculatedPeriods(): void
+    {
+        ChargePeriod::query()->where('status', 'calculated')->update(['status' => 'draft']);
     }
 
     public function storeCategory(Request $request)

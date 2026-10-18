@@ -83,11 +83,44 @@ class ChargePeriodService
         $result = $this->preview($period);
         $settings = ChargeSetting::firstOrFail();
 
+        $parking = ParkingAssignment::whereNull('released_at')->pluck('unit_id')->flip();
+        $storage = StorageAssignment::whereNull('released_at')->pluck('unit_id')->flip();
         $period->update([
             'status' => PeriodStatus::Calculated,
             'total_expenses' => $result->expensesTotal,
             'settings_snapshot' => [
-                'settings' => $settings->only(['method', 'mode', 'fixed_amount', 'area_rate', 'person_rate', 'person_ratio_pct', 'area_ratio_pct', 'due_days']),
+                'schema_version' => 1,
+                'algorithm' => 'charge-calculator-v1',
+                'calculated_at' => now()->toIso8601String(),
+                'settings' => $settings->only([
+                    'method', 'mode', 'fixed_amount', 'area_rate', 'person_rate',
+                    'person_ratio_pct', 'area_ratio_pct', 'calc_day', 'warn_days_before',
+                    'due_days', 'late_fee_enabled', 'late_fee_type', 'late_fee_value',
+                    'late_fee_cap', 'late_fee_start_day',
+                ]),
+                'rules' => ChargeFixedRule::all()->map(fn (ChargeFixedRule $rule) => $rule->only([
+                    'name', 'bedrooms', 'has_parking', 'has_storage', 'amount',
+                ]))->values()->all(),
+                'expenses' => Expense::where('period_id', $period->id)->with('category')->get()
+                    ->map(fn (Expense $expense) => [
+                        'id' => $expense->id,
+                        'category_id' => $expense->category_id,
+                        'category_name' => $expense->category?->name,
+                        'split_basis' => $expense->category?->split_basis ?? 'equal',
+                        'title' => $expense->title,
+                        'amount' => (int) $expense->amount,
+                    ])->values()->all(),
+                'units' => Unit::all()->map(fn (Unit $unit) => [
+                    'id' => $unit->id,
+                    'block_id' => $unit->block_id,
+                    'number' => $unit->number,
+                    'area_m2' => (string) $unit->area_m2,
+                    'residents_count' => (int) $unit->residents_count,
+                    'status' => $unit->status->value,
+                    'bedrooms' => $unit->bedrooms,
+                    'has_parking' => $parking->has($unit->id),
+                    'has_storage' => $storage->has($unit->id),
+                ])->values()->all(),
                 'amounts' => $result->amounts,
                 'skipped' => $result->skipped,
                 'warnings' => $result->warnings,
@@ -121,7 +154,8 @@ class ChargePeriodService
             $parties = UnitParty::whereNull('to_date')->get()->groupBy('unit_id');
             $rents = Contract::where('type', 'rent')->where('status', 'active')->get()->keyBy('unit_id');
             $issued = today();
-            $due = today()->addDays((int) $settings->due_days);
+            $dueDays = (int) ($period->settings_snapshot['settings']['due_days'] ?? $settings->due_days);
+            $due = today()->addDays($dueDays);
             $meta = ['period_id' => $period->id, 'building_id' => (int) $period->building_id, 'year' => $period->jalali_year, 'month' => $period->jalali_month, 'due' => $due];
 
             $count = 0;

@@ -175,6 +175,29 @@ class ChargeFlowTest extends TestCase
         $this->assertSame(0, DB::table('invoices')->count());
     }
 
+    public function test_changing_settings_invalidates_a_calculated_period(): void
+    {
+        $this->unit('1');
+        $this->addExpense(100000);
+        $periodId = (int) DB::table('charge_periods')->value('id');
+        $this->as()->post(route('charges.calculate', $periodId));
+        $this->assertSame('calculated', DB::table('charge_periods')->value('status'));
+
+        $this->as()->put(route('charge-settings.update'), $this->settingsPayload(['due_days' => 20]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('draft', DB::table('charge_periods')->value('status'));
+        $this->as()->post(route('charges.publish', $periodId))->assertSessionHasErrors('general');
+        $snapshot = json_decode((string) DB::table('charge_periods')->where('id', $periodId)->value('settings_snapshot'), true);
+        $this->assertSame(1, $snapshot['schema_version']);
+        $this->assertSame('charge-calculator-v1', $snapshot['algorithm']);
+        $this->assertSame(10, (int) $snapshot['settings']['due_days']);
+        $this->assertNotEmpty($snapshot['units']);
+        $this->assertNotEmpty($snapshot['expenses']);
+        $this->assertArrayHasKey('rules', $snapshot);
+        $this->assertArrayHasKey('calculated_at', $snapshot);
+    }
+
     public function test_changing_expenses_invalidates_a_calculated_period(): void
     {
         $this->unit('1');

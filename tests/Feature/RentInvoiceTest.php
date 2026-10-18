@@ -181,5 +181,10 @@ class RentInvoiceTest extends TestCase
 
         $this->assertCount(1, $events);
         $this->assertSame('0 6 * * *', $events->first()->expression);
+
+        $lateFees = collect($this->app->make(\Illuminate\Console\Scheduling\Schedule::class)->events())
+            ->filter(fn ($e) => str_contains($e->command, 'charges:issue-late-fees'));
+        $this->assertCount(1, $lateFees);
+        $this->assertSame('30 7 * * *', $lateFees->first()->expression);
     }
 }
