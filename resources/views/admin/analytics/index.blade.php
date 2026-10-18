@@ -38,7 +38,7 @@
   </div>
 
   <div class="an-grid">
-    <div class="an-stat"><small>کاربران آنلاین در ۲ دقیقه اخیر</small><div class="an-live"><span class="an-dot"></span><strong>{{ $F::num($stats['online']) }}</strong></div><span class="an-sub">بر اساس آخرین heartbeat؛ مهمان و عضو واردشده</span></div>
+    <div class="an-stat"><small>نشست‌های آنلاین در ۲ دقیقه اخیر</small><div class="an-live"><span class="an-dot"></span><strong>{{ $F::num($stats['online']) }}</strong></div><span class="an-sub">بر اساس آخرین heartbeat؛ مهمان و عضو واردشده</span></div>
     <div class="an-stat"><small>بازدیدکنندگان یکتا</small><strong>{{ $F::num($stats['visitors']) }}</strong><span class="an-sub">شناسهٔ مرورگر اول‌شخص یا نشست</span></div>
     <div class="an-stat"><small>نشست‌ها</small><strong>{{ $F::num($stats['sessions']) }}</strong><span class="an-sub">شروع نشست در بازهٔ انتخاب‌شده</span></div>
     <div class="an-stat"><small>کل بازدید صفحات</small><strong>{{ $F::num($stats['pageviews']) }}</strong><span class="an-sub">Page views</span></div>
