@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PaymentGatewayController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SmsLogController;
 use App\Http\Controllers\Admin\SmsProviderController;
@@ -31,6 +32,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/two-factor', 'twoFactorConfirm')->name('.two-factor.confirm');
             Route::delete('/two-factor', 'twoFactorDisable')->name('.two-factor.disable');
         });
+
+        Route::get('/payment-gateway', [PaymentGatewayController::class, 'edit'])->middleware('admin.can:gateway.manage')->name('payment-gateway.edit');
+        Route::put('/payment-gateway', [PaymentGatewayController::class, 'update'])->middleware('admin.can:gateway.manage')->name('payment-gateway.update');
+        Route::post('/payment-gateway/validate', [PaymentGatewayController::class, 'validateConfiguration'])->middleware('admin.can:gateway.manage')->name('payment-gateway.validate');
 
         Route::get('/settings', [SiteSettingController::class, 'edit'])->middleware('admin.can:site.settings')->name('settings.edit');
         Route::put('/settings', [SiteSettingController::class, 'update'])->middleware('admin.can:site.settings')->name('settings.update');
