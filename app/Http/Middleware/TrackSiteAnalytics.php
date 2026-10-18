@@ -74,7 +74,7 @@ class TrackSiteAnalytics
         if ($source === '' || $source === 'direct') {
             if ($referrerHost !== '') {
                 $source = $referrerHost;
-                $medium = in_array(strtolower($referrerHost), ['google.com', 'www.google.com', 'bing.com', 'www.bing.com', 'duckduckgo.com', 'search.yahoo.com'], true) ? 'organic' : 'referral';
+                $medium = preg_match('/(^|\\.)(google|bing|duckduckgo|yahoo|yandex|baidu|ecosia)\\./i', $referrerHost) ? 'organic' : 'referral';
             } else {
                 $source = 'direct';
                 $medium = 'none';
@@ -166,7 +166,9 @@ class TrackSiteAnalytics
             $os = 'Linux';
         }
 
-        $deviceType = preg_match('/iPad|Tablet|PlayBook|Silk/i', $ua) ? 'tablet' : (preg_match('/Mobile|Android|iPhone|iPod/i', $ua) ? 'mobile' : 'desktop');
+        $deviceType = preg_match('/iPad|Tablet|PlayBook|Silk/i', $ua) || (stripos($ua, 'Android') !== false && stripos($ua, 'Mobile') === false)
+            ? 'tablet'
+            : (preg_match('/Mobile|Android|iPhone|iPod/i', $ua) ? 'mobile' : 'desktop');
         $brand = 'unknown';
         foreach (['Samsung' => '/Samsung|SM-[A-Z0-9]+/i', 'Apple' => '/iPhone|iPad|iPod|Macintosh/i', 'Google' => '/Pixel|Google\s?Phone/i', 'Huawei' => '/Huawei|Honor/i', 'Xiaomi' => '/Xiaomi|Redmi|POCO/i', 'OnePlus' => '/OnePlus/i', 'Motorola' => '/Moto\s|Motorola/i'] as $name => $pattern) {
             if (preg_match($pattern, $ua)) {
@@ -226,6 +228,11 @@ class TrackSiteAnalytics
     var now=Date.now(), delta=Math.max(0,Math.min(15,Math.round((now-lastBeat)/1000)));
     send('/analytics/heartbeat', {path:location.pathname,title:document.title,active_seconds:visible()?delta:0,screen_width:screen.width,screen_height:screen.height,viewport_width:innerWidth,viewport_height:innerHeight,pixel_ratio:devicePixelRatio||1}, true);
   });
+  document.addEventListener('submit', function(event){
+    var form = event.target;
+    if (!form || form.tagName !== 'FORM') return;
+    send('/analytics/event', {event_name:'form_submit',category:'form',label:(form.getAttribute('aria-label') || form.getAttribute('data-analytics-label') || '').slice(0,120),path:location.pathname});
+  }, true);
   document.addEventListener('click', function(event){
     var el = event.target && event.target.closest ? event.target.closest('a,button,[data-analytics-event]') : null;
     if (!el) return;
