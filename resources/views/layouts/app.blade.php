@@ -106,7 +106,7 @@
     <header class="top">
       <div style="display:flex;align-items:center;gap:10px">
         <button class="ib burger" id="burger" type="button" aria-label="باز کردن منو"><svg class="i"><use href="#menu"/></svg></button>
-        @if(!request()->routeIs('events.index', 'sms-templates.*'))<h1>@yield('title', 'داشبورد')</h1>@endif
+        {{-- Page titles live in the content panel so they never compete with the page header. --}}
       </div>
       <div class="acts">
         <a class="ib" href="{{ route('invitations.index') }}" aria-label="دعوت‌نامه‌ها" title="دعوت‌نامه‌ها"><svg class="i"><use href="#inbox"/></svg></a>
