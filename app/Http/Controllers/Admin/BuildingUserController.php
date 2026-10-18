@@ -25,7 +25,7 @@ class BuildingUserController extends Controller
         $like = '%'.addcslashes($q, '%_\\').'%';
 
         $usersQuery = User::query()
-            ->with(['buildingRoles.building:id,name', 'buildingRoles.role:id,name,key'])
+            ->with(['buildingRoles.building:id,name', 'buildingRoles.role:id,name_fa,key'])
             ->when($q !== '', fn ($query) => $query->where(function ($search) use ($like) {
                 $search->where('mobile', 'like', $like)->orWhere('first_name', 'like', $like)
                     ->orWhere('last_name', 'like', $like)->orWhere('company_name', 'like', $like)
