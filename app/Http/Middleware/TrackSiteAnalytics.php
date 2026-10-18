@@ -215,6 +215,7 @@ class TrackSiteAnalytics
     var now = Date.now();
     var delta = Math.max(0, Math.min(30, Math.round((now-lastBeat)/1000)));
     lastBeat = now;
+    if (!visible()) return;
     send('/analytics/heartbeat', {
       path: location.pathname, title: document.title,
       active_seconds: visible() ? delta : 0,
