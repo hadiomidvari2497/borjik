@@ -62,7 +62,7 @@
           @php
             $actor = $error->actor_type === 'admin'
               ? ($error->admin?->name ?: ($error->admin?->username ?: 'مدیر حذف‌شده'))
-              : ($error->actor_type === 'user' ? ($error->user?->name ?: 'کاربر حذف‌شده') : 'مهمان / بدون ورود');
+              : ($error->actor_type === 'user' ? ($error->user?->display_name ?: 'کاربر حذف‌شده') : 'مهمان / بدون ورود');
             $details = "شناسه لاگ: {$error->id}\\nشدت: ".($error->severity ?? 'error')."\\nدسته: ".($error->category ?? 'عمومی')."\\nنوع: {$error->exception_class}\\nپیام: {$error->message}\\nجزئیات فنی:\\n".($error->details ?: 'جزئیات فنی اضافی ثبت نشده است.')."\\nزمینه: ".json_encode($error->context ?? [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)."\\nکد پاسخ: {$error->status_code}\\nکاربر: {$actor}\\nشناسه کاربر: ".($error->user_id ?: '—')."\\nشناسه مدیر: ".($error->admin_user_id ?: '—')."\\nروش: ".($error->method ?: '—')."\\nمسیر: ".($error->path ?: '—')."\\nنام مسیر: ".($error->route_name ?: '—')."\\nفایل: ".($error->file ?: '—')."\\nخط: ".($error->line ?: '—')."\\nزمان: ".($error->created_at ? $F::date($error->created_at, 'Y/m/d H:i:s') : '—');
           @endphp
           <tr>
