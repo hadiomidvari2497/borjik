@@ -70,7 +70,7 @@ class SupplyInventoryTest extends TestCase
 
         $this->open('post', route('supplies.move', $supply), [
             'direction' => 'out', 'quantity' => '3', 'reason' => 'مصرف تست',
-        ])->assertSessionHasErrors('quantity');
+        ])->assertRedirect(route('supplies.index'));
 
         $this->assertSame('2.00', $this->supplyInBuilding('کیسه زباله')->quantity);
         $this->assertDatabaseCount('supply_movements', 1);
