@@ -41,10 +41,7 @@ class BuildingDirectoryController extends Controller
             ->when(! empty($filters['type']), fn ($query) => $query->where('type', $filters['type']))
             ->when(($filters['subscription'] ?? '') === 'none', fn ($query) => $query->whereNull('subscription_id'))
             ->when(($filters['subscription'] ?? '') === 'active', fn ($query) => $query->whereHas('subscription', fn ($s) => $s->where('status', 'active')->where('expires_at', '>', now())))
-            ->when(($filters['subscription'] ?? '') === 'expired', fn ($query) => $query->where(function ($sub) {
-                $sub->whereNull('subscription_id')
-                    ->orWhereHas('subscription', fn ($s) => $s->where('status', '!=', 'active')->orWhereNull('expires_at')->orWhere('expires_at', '<=', now()));
-            }))
+            ->when(($filters['subscription'] ?? '') === 'expired', fn ($query) => $query->whereNotNull('subscription_id')->whereHas('subscription', fn ($s) => $s->where('status', '!=', 'active')->orWhereNull('expires_at')->orWhere('expires_at', '<=', now())))
             ->orderByDesc('created_at');
 
         return view('admin.buildings.index', [
@@ -53,7 +50,7 @@ class BuildingDirectoryController extends Controller
             'stats' => [
                 'total' => Building::query()->count(),
                 'active' => Building::query()->where('status', 'active')->count(),
-                'units' => Building::query()->withCount('units')->get()->sum('units_count'),
+                'units' => Unit::query()->count(),
                 'subscribed' => Building::query()->whereHas('subscription', fn ($s) => $s->where('status', 'active')->where('expires_at', '>', now()))->count(),
             ],
             'typeLabels' => [
