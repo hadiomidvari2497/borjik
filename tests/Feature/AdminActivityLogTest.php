@@ -16,19 +16,19 @@ class AdminActivityLogTest extends TestCase
     {
         $admin = AdminUser::create(['username' => 'activity-log-admin', 'password' => 'secret-pass-1', 'status' => 'active', 'is_super' => true]);
 
-        $this->actingAs($admin, 'admin')->post(route('admin.account.password'), [
-            'current_password' => 'wrong-password',
-            'password' => 'secret-pass-2',
-            'password_confirmation' => 'secret-pass-2',
-        ]);
+        $this->actingAs($admin, 'admin')->post(route('admin.logout'));
 
-        // Failed validation/business actions are intentionally not recorded as successful operations.
-        $this->assertDatabaseMissing('admin_activity_logs', ['admin_user_id' => $admin->id, 'method' => 'POST']);
+        $this->assertDatabaseHas('admin_activity_logs', [
+            'admin_user_id' => $admin->id,
+            'method' => 'POST',
+            'route_name' => 'admin.logout',
+        ]);
 
         $this->actingAs($admin, 'admin')->get(route('admin.activity-logs.index'))
             ->assertOk()
             ->assertSee('تاریخچه فعالیت مدیران')
-            ->assertSee('عملیات امروز');
+            ->assertSee('عملیات امروز')
+            ->assertSee('admin.logout');
     }
 
     public function test_activity_log_page_requires_logs_view_permission(): void
