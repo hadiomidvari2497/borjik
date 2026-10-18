@@ -1,0 +1,46 @@
+@extends('admin.layout')
+@section('title', 'محتوای صفحهٔ اصلی')
+@section('content')
+<style>
+.cms-intro{padding:22px;border-radius:20px;background:linear-gradient(125deg,#0b2635,#10564f);color:#effff9;margin-bottom:20px}.cms-intro h2{margin:0 0 6px;font-size:1.35rem}.cms-intro p{margin:0;color:#c2dfd8;font-size:.9rem}.cms-section{border:1px solid var(--line);border-radius:17px;padding:20px;margin-bottom:18px}.cms-section h3{margin:0 0 5px;font-size:1.02rem}.cms-help{color:var(--muted);font-size:12px;margin:0 0 16px}.cms-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.cms-field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.cms-field input,.cms-field textarea,.cms-field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card);color:var(--text);font:inherit}.cms-field textarea{min-height:90px;resize:vertical}.cms-wide{grid-column:1/-1}.cms-feature{border:1px solid var(--line);border-radius:13px;padding:14px;margin-top:12px}.cms-feature-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-weight:800}.cms-delete{border:0;background:#fff0ef;color:#b42318;border-radius:8px;padding:5px 9px;cursor:pointer}.cms-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.cms-add{border:1px dashed #169b86;background:#eaf8f3;color:#087f78;border-radius:10px;padding:9px 13px;font:inherit;font-weight:800;cursor:pointer}@media(max-width:700px){.cms-grid{grid-template-columns:1fr}.cms-section{padding:15px}.cms-intro{padding:18px}}
+</style>
+<div class="cms-intro"><h2>ویترین عمومی برجیک</h2><p>متن‌ها و معرفی‌هایی که بازدیدکنندگان در صفحهٔ اول می‌بینند را از اینجا مدیریت کن. مدیریت متن مقاله‌ها در بخش «مقالات» انجام می‌شود.</p></div>
+@if($errors->any())<div class="e" style="margin-bottom:16px">لطفاً خطاهای فرم را بررسی کن؛ اطلاعات ذخیره نشده است.</div>@endif
+<form method="POST" action="{{ route('admin.marketing-content.update') }}">
+@csrf @method('PUT')
+<section class="cms-section"><h3>بخش اصلی صفحه</h3><p class="cms-help">عنوان و دکمه‌هایی که بازدیدکننده در اولین نگاه می‌بیند.</p><div class="cms-grid">
+@foreach(['badge'=>'برچسب بالای عنوان','title'=>'عنوان اصلی','highlight'=>'عبارت برجسته','primary_cta'=>'متن دکمهٔ اصلی','secondary_cta'=>'متن دکمهٔ دوم'] as $key=>$label)
+<div class="cms-field"><label>{{ $label }}</label><input name="hero[{{ $key }}]" value="{{ old('hero.'.$key, data_get($content,'hero.'.$key)) }}" required>@error('hero.'.$key)<small class="e">{{ $message }}</small>@enderror</div>
+@endforeach
+<div class="cms-field cms-wide"><label>توضیح معرفی</label><textarea name="hero[description]" required>{{ old('hero.description', data_get($content,'hero.description')) }}</textarea>@error('hero.description')<small class="e">{{ $message }}</small>@enderror</div>
+</div></section>
+<section class="cms-section"><h3>امکانات برجیک</h3><p class="cms-help">عنوان و توضیح هر کارت قابل ویرایش است؛ برای اضافه یا حذف کارت از دکمه‌های زیر استفاده کن.</p>
+<div class="cms-grid"><div class="cms-field"><label>عنوان بخش</label><input name="features_title" value="{{ old('features_title',$content['features_title']) }}" required></div><div class="cms-field"><label>توضیح بخش</label><textarea name="features_description" required>{{ old('features_description',$content['features_description']) }}</textarea></div></div>
+<div id="features-list">
+@foreach(old('features',$content['features']) as $i=>$feature)
+<div class="cms-feature"><div class="cms-feature-head"><span>کارت امکان</span><button type="button" class="cms-delete" onclick="this.closest('.cms-feature').remove();renumberFeatures()">حذف کارت</button></div><div class="cms-grid"><div class="cms-field"><label>نماد کوتاه</label><input data-name="icon" name="features[{{ $i }}][icon]" value="{{ $feature['icon'] ?? '' }}" maxlength="12"></div><div class="cms-field"><label>عنوان کارت</label><input data-name="title" name="features[{{ $i }}][title]" value="{{ $feature['title'] ?? '' }}" required></div><div class="cms-field cms-wide"><label>توضیح کارت</label><textarea data-name="description" name="features[{{ $i }}][description]" required>{{ $feature['description'] ?? '' }}</textarea></div></div></div>
+@endforeach
+</div><button type="button" class="cms-add" onclick="addFeature()">+ افزودن کارت امکان</button>
+</section>
+<section class="cms-section"><h3>دربارهٔ ما</h3><div class="cms-grid">
+<div class="cms-field"><label>برچسب بخش</label><input name="about[eyebrow]" value="{{ old('about.eyebrow',data_get($content,'about.eyebrow')) }}" required></div><div class="cms-field"><label>عنوان</label><input name="about[title]" value="{{ old('about.title',data_get($content,'about.title')) }}" required></div>
+<div class="cms-field cms-wide"><label>متن اول</label><textarea name="about[paragraph1]" required>{{ old('about.paragraph1',data_get($content,'about.paragraph1')) }}</textarea></div><div class="cms-field cms-wide"><label>متن دوم</label><textarea name="about[paragraph2]">{{ old('about.paragraph2',data_get($content,'about.paragraph2')) }}</textarea></div>
+@foreach(old('about.points',data_get($content,'about.points',[])) as $i=>$point)<div class="cms-field"><label>نکتهٔ کلیدی {{ $i+1 }}</label><input name="about[points][{{ $i }}]" value="{{ $point }}"></div>@endforeach
+</div></section>
+<section class="cms-section"><h3>بخش مقالات</h3><div class="cms-grid"><div class="cms-field"><label>عنوان بخش</label><input name="articles_title" value="{{ old('articles_title',$content['articles_title']) }}" required></div><div class="cms-field"><label>توضیح بخش</label><textarea name="articles_description" required>{{ old('articles_description',$content['articles_description']) }}</textarea></div></div><p class="cms-help">خود مقاله‌ها، تصویر و وضعیت انتشار را از منوی «مقالات» مدیریت کن.</p></section>
+<section class="cms-section"><h3>تبلیغات و معرفی خدمات</h3><div class="cms-grid">
+@foreach(['eyebrow'=>'برچسب','title'=>'عنوان','button'=>'متن دکمه'] as $key=>$label)<div class="cms-field"><label>{{ $label }}</label><input name="ads[{{ $key }}]" value="{{ old('ads.'.$key,data_get($content,'ads.'.$key)) }}" required></div>@endforeach
+<div class="cms-field cms-wide"><label>توضیحات</label><textarea name="ads[description]" required>{{ old('ads.description',data_get($content,'ads.description')) }}</textarea></div></div></section>
+<section class="cms-section"><h3>همکاران ما</h3><div class="cms-grid">
+@foreach(['eyebrow'=>'برچسب','title'=>'عنوان','button'=>'متن دکمه'] as $key=>$label)<div class="cms-field"><label>{{ $label }}</label><input name="partners[{{ $key }}]" value="{{ old('partners.'.$key,data_get($content,'partners.'.$key)) }}" required></div>@endforeach
+<div class="cms-field cms-wide"><label>توضیحات</label><textarea name="partners[description]" required>{{ old('partners.description',data_get($content,'partners.description')) }}</textarea></div></div></section>
+<section class="cms-section"><h3>تماس با ما</h3><div class="cms-grid">
+@foreach(['eyebrow'=>'برچسب','title'=>'عنوان','email'=>'ایمیل عمومی','phone'=>'شماره تماس','support_title'=>'عنوان پشتیبانی'] as $key=>$label)<div class="cms-field"><label>{{ $label }}</label><input name="contact[{{ $key }}]" value="{{ old('contact.'.$key,data_get($content,'contact.'.$key)) }}" @if($key==='email') type="email" dir="ltr" @endif></div>@endforeach
+<div class="cms-field cms-wide"><label>توضیح تماس</label><textarea name="contact[description]" required>{{ old('contact.description',data_get($content,'contact.description')) }}</textarea></div><div class="cms-field cms-wide"><label>توضیح پشتیبانی</label><textarea name="contact[support_description]" required>{{ old('contact.support_description',data_get($content,'contact.support_description')) }}</textarea></div></div></section>
+<div class="cms-actions"><button type="submit" class="btn">ذخیره همهٔ تغییرات صفحهٔ اصلی</button><a class="btn secondary" href="{{ route('home') }}" target="_blank" rel="noopener">مشاهده صفحهٔ اصلی ↗</a></div>
+</form>
+<script>
+function renumberFeatures(){document.querySelectorAll('#features-list .cms-feature').forEach((card,i)=>card.querySelectorAll('[data-name]').forEach(el=>el.name='features['+i+']['+el.dataset.name+']'))}
+function addFeature(){const list=document.getElementById('features-list'),i=list.querySelectorAll('.cms-feature').length,card=document.createElement('div');card.className='cms-feature';card.innerHTML='<div class="cms-feature-head"><span>کارت امکان جدید</span><button type="button" class="cms-delete" onclick="this.closest(\'.cms-feature\').remove();renumberFeatures()">حذف کارت</button></div><div class="cms-grid"><div class="cms-field"><label>نماد کوتاه</label><input data-name="icon" name="features['+i+'][icon]" maxlength="12"></div><div class="cms-field"><label>عنوان کارت</label><input data-name="title" name="features['+i+'][title]" required></div><div class="cms-field cms-wide"><label>توضیح کارت</label><textarea data-name="description" name="features['+i+'][description]" required></textarea></div></div>';list.appendChild(card)}
+</script>
+@endsection
