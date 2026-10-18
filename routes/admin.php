@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\MarketingContentController;
 use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminActivityLogController;
+use App\Http\Controllers\Admin\SystemDiagnosticsController;
 use App\Http\Middleware\RecordAdminActivity;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -31,6 +32,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->middleware('admin.can:logs.view')->name('activity-logs.index');
+        Route::get('/system-diagnostics', [SystemDiagnosticsController::class, 'index'])->middleware('admin.can:logs.view')->name('system-diagnostics.index');
 
         Route::prefix('account')->name('account')->controller(AccountController::class)->group(function () {
             Route::get('/', 'show');
