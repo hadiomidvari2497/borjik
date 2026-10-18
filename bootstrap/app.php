@@ -6,7 +6,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -33,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->report(function (Throwable $exception): void {
+        $exceptions->report(function (\Throwable $exception): void {
             try {
                 if (app()->runningInConsole() || ! app()->bound('request')) {
                     return;
@@ -64,7 +63,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'admin_user_id' => $admin?->getAuthIdentifier(),
                     'created_at' => now(),
                 ]);
-            } catch (Throwable $loggingException) {
+            } catch (\Throwable $loggingException) {
                 // اگر دیتابیس یا جدول لاگ در دسترس نباشد، از ایجاد حلقهٔ گزارش خطا جلوگیری کن.
                 error_log('System error log persistence failed: '.$loggingException::class);
             }
