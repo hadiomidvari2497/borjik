@@ -85,7 +85,7 @@ class SupplyController extends Controller
             'reason' => ['required', 'string', 'max:150'],
         ]);
 
-        DB::transaction(function () use ($data, $request, $supply) {
+        $updated = DB::transaction(function () use ($data, $request, $supply) {
             $locked = Supply::query()->whereKey($supply->id)->lockForUpdate()->firstOrFail();
             $amount = $this->toMinorUnits($data['quantity']);
             $current = $this->toMinorUnits($locked->quantity);
@@ -93,9 +93,7 @@ class SupplyController extends Controller
             $next = $current + $delta;
 
             if ($next < 0) {
-                throw ValidationException::withMessages([
-                    'quantity' => 'موجودی کافی نیست؛ مقدار مصرف از موجودی فعلی بیشتر است.',
-                ]);
+                return false;
             }
 
             $locked->quantity = $next / 100;
@@ -107,7 +105,15 @@ class SupplyController extends Controller
                 'reason' => trim($data['reason']),
                 'user_id' => $request->user()->id,
             ]);
+
+            return true;
         });
+
+        if (! $updated) {
+            return redirect()->route('supplies.index')->withErrors([
+                'quantity' => 'موجودی کافی نیست؛ مقدار مصرف از موجودی فعلی بیشتر است.',
+            ]);
+        }
 
         return redirect()->route('supplies.index')->with('status', $data['direction'] === 'in' ? 'ورود ملزومات ثبت شد.' : 'مصرف ملزومات ثبت شد.');
     }
