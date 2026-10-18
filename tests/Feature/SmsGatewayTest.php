@@ -201,7 +201,7 @@ class SmsGatewayTest extends TestCase
     public function test_sms_sender_delivers_immediately_and_records_final_status_without_a_queue_worker(): void
     {
         config(['sms.queue' => false]);
-        $this->provider(['success' => ['json_path' => 'ok', 'expected' => '1']], ['is_default' => true, 'name' => 'اپراتور فوری']);
+        $this->provider(['success' => ['json_path' => 'ok', 'expected' => '1'], 'ref_path' => 'id'], ['is_default' => true, 'name' => 'اپراتور فوری']);
         Http::fake(['*' => Http::response(['ok' => 1, 'id' => 'ref-123'])]);
 
         $log = app(SmsSender::class)->sendTemplate('otp', '09123456789', ['code' => '123456']);
