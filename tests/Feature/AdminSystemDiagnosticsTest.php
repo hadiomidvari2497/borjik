@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\AdminUser;
 use App\Models\SystemErrorLog;
+use App\Support\SystemErrorReporter;
+use Illuminate\Http\Request;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -37,6 +39,29 @@ class AdminSystemDiagnosticsTest extends TestCase
             ->assertSee('سلامت اجزای سامانه')
             ->assertSee('example.test')
             ->assertSee('diagnostics-admin');
+    }
+
+    public function test_handled_application_warning_is_recorded_with_details_and_copyable_data(): void
+    {
+        $request = Request::create('/subscription/plan/1', 'POST');
+        $request->setLaravelSession(app('session')->driver());
+
+        SystemErrorReporter::warning(
+            $request,
+            'payment.gateway',
+            'Payment gateway is not configured.',
+            'Purchase was stopped before creating a transaction.',
+            ['plan_id' => 1, 'gateway_active' => false],
+            422,
+        );
+
+        $log = SystemErrorLog::query()->latest('id')->firstOrFail();
+
+        $this->assertSame('warning', $log->severity);
+        $this->assertSame('payment.gateway', $log->category);
+        $this->assertSame(422, $log->status_code);
+        $this->assertStringContainsString('Purchase was stopped', $log->details);
+        $this->assertSame(['plan_id' => 1, 'gateway_active' => false], $log->context);
     }
 
     public function test_diagnostics_page_requires_logs_view_permission(): void
