@@ -48,6 +48,13 @@ return [
         ],
     ],
     [
+        'title' => 'نظارت و امنیت',
+        'items' => [
+            ['label' => 'تاریخچه فعالیت مدیران', 'icon' => 'history', 'route' => 'admin.activity-logs.index', 'active' => 'admin.activity-logs.*', 'perm' => 'logs.view',
+                'desc' => 'ردیابی عملیات موفق مدیران همراه با زمان، مسیر و IP'],
+        ],
+    ],
+    [
         'title' => 'ادمین‌ها و دسترسی‌ها',
         'items' => [
             ['label' => 'کاربران ادمین', 'icon' => 'shield', 'route' => 'admin.users.index', 'active' => 'admin.users.*', 'perm' => 'admin.users.manage',
