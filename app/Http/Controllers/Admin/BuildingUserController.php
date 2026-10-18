@@ -31,9 +31,9 @@ class BuildingUserController extends Controller
                     ->orWhere('last_name', 'like', $like)->orWhere('company_name', 'like', $like)
                     ->orWhere('national_code', 'like', $like);
             }))
-            ->when(! empty($filters['building_id']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('building_id', $filters['building_id']))
-            ->when(! empty($filters['role_id']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('role_id', $filters['role_id']))
-            ->when(! empty($filters['membership_status']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('status', $filters['membership_status']))
+            ->when(! empty($filters['building_id']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('building_id', $filters['building_id'])))
+            ->when(! empty($filters['role_id']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('role_id', $filters['role_id'])))
+            ->when(! empty($filters['membership_status']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('status', $filters['membership_status'])))
             ->when(! empty($filters['status']), fn ($query) => $query->where('status', $filters['status']))
             ->orderByDesc('created_at');
 
