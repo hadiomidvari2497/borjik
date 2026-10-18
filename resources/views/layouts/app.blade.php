@@ -114,7 +114,9 @@
     </header>
 
     <div class="scroll">
-      @if(!request()->routeIs('dashboard', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index'))
+      @php
+        $workspaceHeroVisible = !request()->routeIs('dashboard', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index');
+      @endphp
       @php
         $workspaceHeroCopy = match (true) {
           request()->routeIs('buildings.*', 'building.*') => ['ساختمان و تنظیمات', 'اطلاعات ساختمان، دسترسی‌ها و تنظیمات اصلی را از این بخش مدیریت کنید.', 'bld'],
@@ -130,6 +132,7 @@
           default => ['فضای کاری برجیک', 'همه‌ی اطلاعات موردنیاز ساختمان، با تجربه‌ای ساده‌تر و منظم‌تر در دسترس شماست.', 'bld'],
         };
       @endphp
+      @if($workspaceHeroVisible)
         <section class="workspace-hero" aria-label="معرفی بخش">
           <div class="workspace-hero-copy">
             <div class="workspace-hero-kicker">برجیک <span aria-hidden="true">·</span> مدیریت هوشمند ساختمان</div>
