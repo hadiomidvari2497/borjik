@@ -50,6 +50,8 @@ return [
     [
         'title' => 'نظارت و امنیت',
         'items' => [
+            ['label' => 'مرکز خطا و عیب‌یابی', 'icon' => 'activity', 'route' => 'admin.system-diagnostics.index', 'active' => 'admin.system-diagnostics.*', 'perm' => 'logs.view',
+                'desc' => 'تاریخچه خطاها، شناسایی کاربر و بررسی سلامت اجزای اصلی سامانه'],
             ['label' => 'تاریخچه فعالیت مدیران', 'icon' => 'history', 'route' => 'admin.activity-logs.index', 'active' => 'admin.activity-logs.*', 'perm' => 'logs.view',
                 'desc' => 'ردیابی عملیات موفق مدیران همراه با زمان، مسیر و IP'],
         ],
