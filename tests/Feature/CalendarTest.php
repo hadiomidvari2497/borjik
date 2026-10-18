@@ -226,7 +226,7 @@ class CalendarTest extends TestCase
             ['owner'],
         );
         $targetDate = JalaliDate::format(now()->addDays(4));
-        $target = JalaliDate::parse($targetDate)->setTimeFromTimeString('14:00');
+        $target = (JalaliDate::parse($targetDate) ?? now())->setTimeFromTimeString('14:00');
 
         $this->open($this->owner, 'patch', route('events.move', $event->id), [
             'start_date' => $targetDate,
