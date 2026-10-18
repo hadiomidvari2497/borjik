@@ -174,7 +174,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     </section>
 
     <div class="trust-strip"><div class="wrap trust-items">
-        <div class="trust-item"><span>◈</span> شفافیت مالی</div><div class="trust-item"><span>✓</span> پیگیری درخواست‌ها</div><div class="trust-item"><span>⌂</span> مناسب انواع ساختمان</div><div class="trust-item"><span>↗</span> دسترسی ساده و آنلاین</div>
+        @foreach(data_get($content ?? [], 'trust_items', [['icon'=>'◈','text'=>'شفافیت مالی'],['icon'=>'✓','text'=>'پیگیری درخواست‌ها'],['icon'=>'⌂','text'=>'مناسب انواع ساختمان'],['icon'=>'↗','text'=>'دسترسی ساده و آنلاین']]) as $item)<div class="trust-item"><span>{{ $item['icon'] ?? '✓' }}</span> {{ $item['text'] ?? '' }}</div>@endforeach
     </div></div>
 
     <section class="content-section" id="features">
@@ -192,9 +192,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <div class="wrap">
             <div class="section-head"><span class="section-kicker">شروعی ساده</span><h2>از آشفتگی روزمره تا مدیریت منظم</h2><p>برجیک برای آن طراحی شده که مسیر مدیریت ساختمان روشن و قابل پیگیری باشد.</p></div>
             <div class="steps">
-                <article class="step"><div class="step-number">۱</div><h3>حساب خود را بسازید</h3><p>با شماره موبایل وارد شوید و اطلاعات اولیه‌ی حساب خود را تکمیل کنید.</p></article>
-                <article class="step"><div class="step-number">۲</div><h3>ساختمان را راه‌اندازی کنید</h3><p>ساختمان، بلوک‌ها و واحدها را تعریف کنید و اعضا و مسئولیت‌ها را مشخص کنید.</p></article>
-                <article class="step"><div class="step-number">۳</div><h3>همه‌چیز را یکپارچه پیگیری کنید</h3><p>شارژ، پرداخت‌ها، درخواست‌ها و برنامه‌های ساختمان را از یک سامانه مدیریت کنید.</p></article>
+                @foreach(data_get($content ?? [], 'steps', [['title'=>'حساب خود را بسازید','description'=>'با شماره موبایل وارد شوید و اطلاعات اولیه‌ی حساب خود را تکمیل کنید.'],['title'=>'ساختمان را راه‌اندازی کنید','description'=>'ساختمان، بلوک‌ها و واحدها را تعریف کنید و اعضا و مسئولیت‌ها را مشخص کنید.'],['title'=>'همه‌چیز را یکپارچه پیگیری کنید','description'=>'شارژ، پرداخت‌ها، درخواست‌ها و برنامه‌های ساختمان را از یک سامانه مدیریت کنید.']]) as $i=>$step)<article class="step"><div class="step-number">{{ $i+1 }}</div><h3>{{ $step['title'] ?? '' }}</h3><p>{{ $step['description'] ?? '' }}</p></article>@endforeach
             </div>
         </div>
     </section>
@@ -244,7 +242,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
 <footer>
     <div class="wrap"><div class="footer-main">
-        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark">ب</span><span>برجیک</span></a><p>سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.</p></div>
+        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark">ب</span><span>برجیک</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p></div>
         <nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav>
     </div><div class="footer-bottom"><span>© {{ date('Y') }} برجیک — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>
