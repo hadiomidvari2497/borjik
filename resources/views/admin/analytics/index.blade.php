@@ -51,7 +51,7 @@
   </div>
 
   <section class="an-section">
-    <div class="an-section-title"><h3>نمای زنده کاربران</h3><span class="an-pill">آخرین ۲ دقیقه · {{ $F::num($liveSessions->count()) }} نشست فعال</span></div>
+    <div class="an-section-title"><h3>نمای زنده کاربران</h3><span class="an-pill">آخرین ۲ دقیقه · {{ $F::num($stats['online']) }} نشست فعال</span></div>
     @if($liveSessions->isEmpty())
       <div class="an-empty">هنوز نشست فعالی ثبت نشده. با بازدید از صفحات سایت و اجرای heartbeat، کاربران اینجا نمایش داده می‌شوند.</div>
     @else
@@ -74,6 +74,19 @@
       </table></div>
     @endif
     <p class="an-muted">این بخش تعداد نشست‌های فعال را نشان می‌دهد، نه تضمین حضور فیزیکی فرد؛ heartbeat متوقف‌شده پس از دو دقیقه نشست را از وضعیت آنلاین خارج می‌کند.</p>
+  </section>
+
+  <section class="an-section">
+    <div class="an-section-title"><h3>کاربران با بیشترین زمان فعال</h3><span class="an-muted">رتبه‌بندی بر اساس مجموع زمان فعال نشست‌های واردشده در بازه انتخابی</span></div>
+    @if($topUsers->isEmpty())
+      <div class="an-empty">هنوز زمان فعال قابل انتساب به کاربران واردشده ثبت نشده است.</div>
+    @else
+      <div class="an-table-wrap"><table class="an-table"><thead><tr><th>رتبه</th><th>کاربر</th><th>زمان فعال کل</th><th>نشست‌ها</th><th>بازدید صفحات</th></tr></thead><tbody>
+      @foreach($topUsers as $index => $topUser)
+        <tr><td>{{ $F::num($index + 1) }}</td><td class="wrap"><strong>{{ $topUser->user?->display_name ?: 'کاربر حذف‌شده' }}</strong><div class="an-muted">شناسه کاربر: {{ $F::num($topUser->user_id) }}</div></td><td><strong>{{ $duration((int) $topUser->total_active_seconds) }}</strong></td><td>{{ $F::num($topUser->total_sessions) }}</td><td>{{ $F::num($topUser->total_pageviews) }}</td></tr>
+      @endforeach
+      </tbody></table></div>
+    @endif
   </section>
 
   <div class="an-panels">
