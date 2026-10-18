@@ -51,7 +51,7 @@
           <td><span class="bu-status {{ $u->status === 'active' ? 'active' : 'disabled' }}">{{ $u->status === 'active' ? 'فعال' : 'غیرفعال' }}</span></td>
           <td>@if($u->buildingRoles->isEmpty())<span class="bu-muted">هنوز عضویتی ثبت نشده</span>@else<div class="bu-building">
             @foreach($u->buildingRoles as $m)
-              <span class="pill" title="{{ $m->role?->name_fa ?: 'بدون نقش' }} — {{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }}">{{ $m->building?->name ?: 'ساختمان حذف‌شده' }} · {{ $m->role?->name ?: 'بدون نقش' }} <span class="bu-muted">({{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }})</span></span>
+              <span class="pill" title="{{ $m->role?->name_fa ?: 'بدون نقش' }} — {{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }}">{{ $m->building?->name ?: 'ساختمان حذف‌شده' }} · {{ $m->role?->name_fa ?: 'بدون نقش' }} <span class="bu-muted">({{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }})</span></span>
             @endforeach
           </div>@endif</td>
           <td>@if($u->mobile_verified_at)<span class="bu-status active">تأییدشده</span>@else<span class="bu-muted">تأیید نشده</span>@endif</td>
