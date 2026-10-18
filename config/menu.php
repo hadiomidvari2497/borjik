@@ -43,6 +43,7 @@ return [
         'items' => [
             ['label' => 'تیکت و تسک', 'icon' => 'kan', 'route' => 'tickets.index', 'perm' => ['ticket.view.all', 'ticket.view.assigned'], 'badge' => 'tickets'],
             ['label' => 'درخواست‌های ساکنین', 'icon' => 'inbox', 'route' => 'requests.index', 'perm' => ['request.view.all', 'request.view.domain'], 'badge' => 'requests'],
+            ['label' => 'گزارش عملکرد درخواست‌ها', 'icon' => 'poll', 'route' => 'requests.reports', 'perm' => 'request.view.all', 'badge' => null],
             ['label' => 'درخواست‌های من', 'icon' => 'inbox', 'route' => 'my.requests', 'perm' => ['request.create', 'request.view.own'], 'badge' => null],
             ['label' => 'شیفت حراست', 'icon' => 'clk', 'route' => 'shifts.index', 'perm' => ['shift.manage', 'shift.view'], 'badge' => null],
             ['label' => 'موجودی ملزومات', 'icon' => 'box', 'route' => 'supplies.index', 'perm' => 'supply.manage', 'badge' => null],
@@ -61,7 +62,6 @@ return [
         'title' => 'بایگانی و گزارش',
         'items' => [
             ['label' => 'اسناد', 'icon' => 'folder', 'route' => 'documents.index', 'perm' => ['document.manage', 'document.view'], 'badge' => null],
-            ['label' => 'گزارش‌ها', 'icon' => 'poll', 'route' => 'reports.index', 'perm' => ['report.view.all', 'report.view.own'], 'badge' => null],
             ['label' => 'دفترچه تلفن', 'icon' => 'book', 'route' => 'phonebook.index', 'perm' => ['phonebook.building', 'phonebook.personal'], 'badge' => null],
             ['label' => 'خروجی داده‌ها', 'icon' => 'dl', 'route' => 'export.index', 'perm' => 'export.data', 'badge' => null],
             ['label' => 'تاریخچه تغییرات', 'icon' => 'hist', 'route' => 'audit.index', 'perm' => 'audit.view', 'badge' => null],
