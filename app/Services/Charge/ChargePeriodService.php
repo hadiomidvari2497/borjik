@@ -89,6 +89,9 @@ class ChargePeriodService
             'status' => PeriodStatus::Calculated,
             'total_expenses' => $result->expensesTotal,
             'settings_snapshot' => [
+                'schema_version' => 1,
+                'algorithm' => 'charge-calculator-v1',
+                'calculated_at' => now()->toIso8601String(),
                 'settings' => $settings->only([
                     'method', 'mode', 'fixed_amount', 'area_rate', 'person_rate',
                     'person_ratio_pct', 'area_ratio_pct', 'calc_day', 'warn_days_before',
