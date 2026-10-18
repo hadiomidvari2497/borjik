@@ -39,7 +39,7 @@ class CalendarController extends Controller
         $parsedMonth = preg_match('#^(\\d{4})/(\\d{1,2})$#', $monthLatin, $match)
             ? JalaliDate::parse(sprintf('%04d/%02d/01', (int) $match[1], (int) $match[2]))
             : null;
-        $parsedDate = JalaliDate::parse($dateInput);
+        $parsedDate = $request->query->has('date') ? JalaliDate::parse($dateInput) : null;
         $anchor = ($parsedDate ?? $parsedMonth ?? now())->startOfDay();
         $jalali = Jalalian::fromCarbon($anchor);
         $year = $jalali->getYear();
@@ -72,8 +72,8 @@ class CalendarController extends Controller
 
         $items = collect();
         $customEvents = CalendarEvent::query()
+            ->where('starts_at', '>=', $start)
             ->where('starts_at', '<', $end)
-            ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', $start))
             ->with('creator')
             ->orderBy('starts_at')
             ->get();
@@ -98,7 +98,7 @@ class CalendarController extends Controller
 
         $tasks = Ticket::query()->where('kind', TicketKind::Task->value)
             ->whereNotIn('status', ['done', 'closed'])
-            ->whereNotNull('deadline')->whereBetween('deadline', [$start, $end])
+            ->whereNotNull('deadline')->where('deadline', '>=', $start)->where('deadline', '<', $end)
             ->when(! $user->hasPermission('ticket.view.all'), fn ($query) => $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id)->orWhereHas('assignees', fn ($a) => $a->where('user_id', $user->id));
             }))
@@ -113,7 +113,7 @@ class CalendarController extends Controller
         }
 
         $polls = Poll::query()->where(function ($query) use ($start, $end) {
-            $query->whereBetween('starts_at', [$start, $end])->orWhereBetween('ends_at', [$start, $end]);
+            $query->where(function ($q) use ($start, $end) { $q->where('starts_at', '>=', $start)->where('starts_at', '<', $end); })->orWhere(function ($q) use ($start, $end) { $q->where('ends_at', '>=', $start)->where('ends_at', '<', $end); });
         })->get(['id', 'title', 'starts_at', 'ends_at']);
         foreach ($polls as $poll) {
             foreach ([['date' => $poll->starts_at, 'type' => 'شروع نظرسنجی', 'color' => 'blue'], ['date' => $poll->ends_at, 'type' => 'پایان نظرسنجی', 'color' => 'rose']] as $index => $entry) {
