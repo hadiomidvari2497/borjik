@@ -122,7 +122,7 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
                                     <a class="cal-event {{ $item['color'] }}" href="{{ $item['url'] }}" title="{{ $item['title'] }} · {{ $item['type'] }}">{{ $item['title'] }}</a>
                                 @else
                                     <div class="cal-event {{ $item['color'] }}" title="{{ $item['title'] }} · {{ $item['type'] }}" @if($draggable) draggable="true" data-event-id="{{ $item['event_id'] }}" data-move-url="{{ route('events.move', $item['event_id']) }}" data-start-time="{{ $item['starts_at']->format('H:i') }}" @endif>
-                                        @if($viewMode !== 'month' && !$item['event_model']?->is_all_day)<strong>{{ $item['time'] }}</strong> · @endif{{ $item['title'] }}
+                                        @if($viewMode !== 'month' && !(($item['event_model']?->is_all_day) ?? false))<strong>{{ $item['time'] }}</strong> · @endif{{ $item['title'] }}
                                     </div>
                                 @endif
                             @endforeach
