@@ -21,6 +21,21 @@
 <link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap-toast.rtl.min.css') }}">
 <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('css/notify.css') }}">
+<style>
+.workspace-hero{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden;margin:0 0 20px;padding:clamp(21px,3.5vw,32px);border:1px solid rgba(255,255,255,.12);border-radius:24px;background:radial-gradient(circle at 9% 12%,rgba(153,235,211,.22),transparent 31%),linear-gradient(122deg,#102f3b 0%,#155c5b 57%,#278b79 100%);box-shadow:0 16px 38px rgba(19,76,72,.16);color:#fff}
+.workspace-hero:before,.workspace-hero:after{content:"";position:absolute;z-index:-1;pointer-events:none;border:1px solid rgba(255,255,255,.15);border-radius:50%}
+.workspace-hero:before{width:270px;height:270px;inset-inline-end:-95px;top:-155px;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.03)}
+.workspace-hero:after{width:170px;height:170px;inset-inline-start:22%;bottom:-135px;box-shadow:0 0 0 22px rgba(255,255,255,.03)}
+.workspace-hero-copy{position:relative;z-index:1;min-width:0}
+.workspace-hero-kicker{display:inline-flex;align-items:center;gap:8px;margin-bottom:11px;color:#d5f5e9;font-size:10px;font-weight:800;letter-spacing:.04em}
+.workspace-hero-kicker:before{content:"";width:7px;height:7px;border-radius:50%;background:#8be1b8;box-shadow:0 0 0 4px rgba(139,225,184,.14)}
+.workspace-hero h2{margin:0 0 7px;color:#fff;font-size:clamp(21px,2.7vw,29px);font-weight:900;line-height:1.55;letter-spacing:-.35px}
+.workspace-hero p{max-width:690px;margin:0;color:#d6eae6;font-size:12px;line-height:2}
+.workspace-hero-mark{display:grid;place-items:center;flex:0 0 76px;width:76px;height:76px;border:1px solid rgba(255,255,255,.25);border-radius:23px;background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.06));box-shadow:inset 0 1px rgba(255,255,255,.2);transform:rotate(-4deg)}
+.workspace-hero-mark .i{width:36px;height:36px;color:#e4fff4;stroke-width:1.45}
+@media(max-width:600px){.workspace-hero{align-items:flex-start;padding:21px;border-radius:20px;gap:13px}.workspace-hero-mark{flex-basis:53px;width:53px;height:53px;border-radius:16px}.workspace-hero-mark .i{width:27px;height:27px}.workspace-hero h2{font-size:21px}.workspace-hero p{font-size:11px}}
+@media(prefers-reduced-motion:no-preference){.workspace-hero{animation:workspaceHeroIn .42s ease-out both}@keyframes workspaceHeroIn{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}}
+</style>
 </head>
 <body>
 @include('partials.icons')
@@ -99,6 +114,42 @@
     </header>
 
     <div class="scroll">
+      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index'))
+        <section class="workspace-hero" aria-label="معرفی بخش">
+          <div class="workspace-hero-copy">
+            <div class="workspace-hero-kicker">برجیک <span aria-hidden="true">·</span> مدیریت هوشمند ساختمان</div>
+            <h2>@yield('title', 'فضای کاری')</h2>
+            <p>
+              @if(request()->routeIs('buildings.*', 'building.*'))
+                اطلاعات ساختمان، دسترسی‌ها و تنظیمات اصلی را از این بخش مدیریت کنید.
+              @elseif(request()->routeIs('units.*', 'blocks.*', 'parkings.*', 'storages.*'))
+                اطلاعات واحدها و فضاهای مشترک را مرتب، دقیق و یکجا مدیریت کنید.
+              @elseif(request()->routeIs('charges.*', 'charge-settings.*', 'expenses.*', 'payments.*', 'my.invoices', 'my.payments*'))
+                صورت‌حساب‌ها، پرداخت‌ها و هزینه‌ها را شفاف و منظم پیگیری کنید.
+              @elseif(request()->routeIs('contracts.*', 'my.contracts'))
+                جزئیات قراردادها و وضعیت آن‌ها را در یک نمای منظم دنبال کنید.
+              @elseif(request()->routeIs('team.*', 'members.*', 'staff.*', 'staff-roles.*', 'invitations.*'))
+                اعضای ساختمان، نقش‌ها و دعوت‌نامه‌ها را از همین بخش مدیریت کنید.
+              @elseif(request()->routeIs('tickets.*', 'requests.*', 'my.requests*'))
+                درخواست‌ها و کارهای جاری را مرحله‌به‌مرحله پیگیری کنید.
+              @elseif(request()->routeIs('notifications.*'))
+                پیام‌ها و رویدادهای مهم ساختمان را یکجا ببینید و پیگیری کنید.
+              @elseif(request()->routeIs('subscription.*'))
+                وضعیت اشتراک و امکانات در دسترس ساختمان را بررسی کنید.
+              @elseif(request()->routeIs('profile.*', 'account.*'))
+                اطلاعات حساب و تنظیمات شخصی خود را مدیریت کنید.
+              @elseif(request()->routeIs('audit.*'))
+                رویدادها و تغییرات ثبت‌شده را برای پیگیری و شفافیت بررسی کنید.
+              @else
+                همه‌ی اطلاعات موردنیاز ساختمان، با تجربه‌ای ساده‌تر و منظم‌تر در دسترس شماست.
+              @endif
+            </p>
+          </div>
+          <div class="workspace-hero-mark" aria-hidden="true">
+            <svg class="i"><use href="#bld"/></svg>
+          </div>
+        </section>
+      @endif
       <section class="panel">
         @yield('content')
       </section>
