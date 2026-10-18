@@ -195,4 +195,50 @@ class CalendarTest extends TestCase
         Notification::assertSentToTimes($this->owner, CalendarEventReminderNotification::class, 1);
     }
 
+
+    public function test_calendar_renders_week_and_day_views(): void
+    {
+        $date = JalaliDate::format(now());
+
+        $this->open($this->tenant, 'get', route('events.index', ['view' => 'week', 'date' => $date]))
+            ->assertOk()
+            ->assertSee('mode-week', false)
+            ->assertSee('نمای هفتگی');
+
+        $this->open($this->tenant, 'get', route('events.index', ['view' => 'day', 'date' => $date]))
+            ->assertOk()
+            ->assertSee('mode-day', false)
+            ->assertSee('برنامه روزانه');
+    }
+
+    public function test_manager_can_move_calendar_event_to_another_jalali_date(): void
+    {
+        $event = app(\App\Support\CurrentBuilding::class)->actingAs(
+            $this->building->id,
+            fn () => CalendarEvent::create([
+                'created_by' => $this->owner->id,
+                'title' => 'جلسه قابل جابه‌جایی',
+                'starts_at' => now()->addDay()->setTime(9, 0),
+                'ends_at' => now()->addDay()->setTime(10, 0),
+                'is_all_day' => false,
+                'color' => 'teal',
+            ]),
+            ['owner'],
+        );
+        $targetDate = JalaliDate::format(now()->addDays(4));
+        $target = (JalaliDate::parse($targetDate) ?? now())->setTimeFromTimeString('14:00');
+
+        $this->open($this->owner, 'patch', route('events.move', $event->id), [
+            'start_date' => $targetDate,
+            'start_time' => '14:00',
+            'view' => 'week',
+            'filter' => 'all',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('calendar_events', [
+            'id' => $event->id,
+            'starts_at' => $target->format('Y-m-d H:i:s'),
+        ]);
+    }
+
 }
