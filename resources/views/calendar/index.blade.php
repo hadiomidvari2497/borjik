@@ -79,7 +79,7 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
         <section class="cal-card">
             <div class="cal-toolbar">
                 <div class="cal-month"><div>
-                    <h3>{{ $monthName }} {{ $F::digits((string) $year) }}</h3>
+                    <h3>@if($viewMode === 'day'){{ $F::digits(\App\Support\JalaliDate::format($start)) }}@elseif($viewMode === 'week'){{ $F::digits(\App\Support\JalaliDate::format($start)) }} تا {{ $F::digits(\App\Support\JalaliDate::format($end->copy()->subDay())) }}@else{{ $monthName }} {{ $F::digits((string) $year) }}@endif</h3>
                     <small>{{ ['month' => 'نمای ماهانه', 'week' => 'نمای هفتگی · شروع هفته از شنبه', 'day' => 'برنامه روزانه'][$viewMode] }}</small>
                 </div></div>
                 <div class="cal-nav">
