@@ -41,6 +41,13 @@ return [
         ],
     ],
     [
+        'title' => 'مدیریت ساختمان‌ها',
+        'items' => [
+            ['label' => 'ساختمان‌های سامانه', 'icon' => 'building-2', 'route' => 'admin.buildings.index', 'active' => 'admin.buildings.*', 'perm' => 'buildings.view',
+                'desc' => 'مشاهده ساختمان‌های ثبت‌شده، سازنده، واحدها و اشتراک'],
+        ],
+    ],
+    [
         'title' => 'ادمین‌ها و دسترسی‌ها',
         'items' => [
             ['label' => 'کاربران ادمین', 'icon' => 'shield', 'route' => 'admin.users.index', 'active' => 'admin.users.*', 'perm' => 'admin.users.manage',
