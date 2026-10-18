@@ -17,7 +17,7 @@ use Morilog\Jalali\Jalalian;
 
 /**
  * یادآوری پیامکی به مالک و مدیر: اگر تا N روز (warn_days_before) مانده به تاریخ محاسبه‌ی شارژ هزینه‌های ماه ثبت نشده باشد.
- * هر نفر در هر ماه شمسی حداکثر یک پیامک می‌گیرد. در Scheduler روزانه اجرا شود.
+ * پیامک موفق یا در صف انتظار تکرار نمی‌شود؛ پیامک ناموفق در اجرای بعدی دوباره امتحان می‌شود.
  */
 class RemindExpenses extends Command
 {
@@ -31,9 +31,11 @@ class RemindExpenses extends Command
         $j = Jalalian::fromCarbon($today);
         $monthStart = (new Jalalian($j->getYear(), $j->getMonth(), 1))->toCarbon()->startOfDay();
         $sent = 0;
+        $queued = 0;
+        $failed = 0;
 
-        Building::where('status', 'active')->get()->each(function (Building $building) use (&$sent, $sms, $notifier, $current, $today, $j, $monthStart) {
-            $current->actingAs($building->id, function () use (&$sent, $sms, $notifier, $building, $today, $j, $monthStart) {
+        Building::where('status', 'active')->get()->each(function (Building $building) use (&$sent, &$queued, &$failed, $sms, $notifier, $current, $today, $j, $monthStart) {
+            $current->actingAs($building->id, function () use (&$sent, &$queued, &$failed, $sms, $notifier, $building, $today, $j, $monthStart) {
                 $setting = ChargeSetting::first();
                 if (! $setting) {
                     return;
@@ -52,27 +54,41 @@ class RemindExpenses extends Command
                 $recipients = DB::table('building_user_roles as bur')
                     ->join('roles as r', 'r.id', '=', 'bur.role_id')->join('users as u', 'u.id', '=', 'bur.user_id')
                     ->where('bur.building_id', $building->id)->where('bur.status', 'active')->whereIn('r.key', ['owner', 'manager'])
-                    ->whereNull('u.deleted_at')->distinct()->get(['u.id', 'u.mobile']);
+                    ->whereNull('u.deleted_at')->whereNotNull('u.mobile')->where('u.mobile', '!=', '')
+                    ->distinct()->get(['u.id', 'u.mobile']);
 
                 foreach ($recipients as $user) {
                     $already = SmsLog::where('building_id', $building->id)->where('user_id', $user->id)
-                        ->where('template_key', 'expense_reminder')->where('created_at', '>=', $monthStart)->exists();
+                        ->where('template_key', 'expense_reminder')
+                        ->whereIn('status', ['sent', 'queued'])
+                        ->where('created_at', '>=', $monthStart)->exists();
                     if ($already) {
                         continue;
                     }
-                    $sms->sendTemplate('expense_reminder', $user->mobile, [
+
+                    $log = $sms->sendTemplate('expense_reminder', $user->mobile, [
                         'month' => Fa::MONTHS[$j->getMonth() - 1], 'building' => $building->name, 'date' => Fa::date($calc),
                     ], $user->id, $building->id);
+
+                    if ($log->status === 'failed') {
+                        $failed++;
+                        $this->warn("ارسال یادآوری هزینه برای کاربر {$user->id} ناموفق بود؛ اجرای بعدی دوباره تلاش می‌کند.");
+                    } elseif ($log->status === 'queued') {
+                        $queued++;
+                    } elseif ($log->status === 'sent') {
+                        $sent++;
+                    }
+
+                    // شکست پیامک نباید اعلان درون‌سامانه‌ای را متوقف کند.
                     $notifier->send((int) $user->id, (int) $building->id, 'expense_reminder', 'یادآوری ثبت هزینه‌ها',
                         'هزینه‌های '.Fa::MONTHS[$j->getMonth() - 1].' هنوز ثبت نشده است؛ شارژ در '.Fa::date($calc).' محاسبه می‌شود.',
                         route('expenses.index'), ['level' => 'warning', 'category' => 'expense', 'key' => 'expense-reminder:'.$j->getYear().$j->getMonth(), 'label' => 'ثبت هزینه‌ها']);
-                    $sent++;
                 }
             });
         });
 
-        $this->info("{$sent} پیامک یادآوری ارسال شد.");
+        $this->info("{$sent} پیامک ارسال شد؛ {$queued} پیامک در صف قرار گرفت؛ {$failed} پیامک ناموفق بود.");
 
-        return self::SUCCESS;
+        return $failed > 0 ? self::FAILURE : self::SUCCESS;
     }
 }
