@@ -119,7 +119,7 @@ class DashboardTest extends TestCase
         $this->join($outsider, 'tenant');
 
         // session به ساختمانی اشاره می‌کند که عضو آن نیست؛ Middleware باید به ساختمان خودش برگرداند.
-        $this->actingAs($outsider)->withSession(['current_building_id' => $other->id])->get('/')
+        $this->actingAs($outsider)->withSession(['current_building_id' => $other->id])->get(route('dashboard'))
             ->assertOk()->assertSee('برج آسمان')->assertDontSee('برج دیگر');
     }
 
@@ -127,7 +127,7 @@ class DashboardTest extends TestCase
     {
         $newcomer = $this->user('09120000006', 'tenant');
 
-        $this->actingAs($newcomer)->get('/')->assertOk()
+        $this->actingAs($newcomer)->get(route('dashboard'))->assertOk()
             ->assertSee('امکانات برجیک')
             ->assertSee('تهیه‌ی اشتراک')
             ->assertSee('محاسبه شارژ'); // آیتم قفل‌شده‌ی منوی پیش‌نمایش
