@@ -21,6 +21,7 @@ use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\StaffRoleController;
 use App\Http\Controllers\SecurityShiftController;
+use App\Http\Controllers\SupplyController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
@@ -132,6 +133,14 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/{id}/approve', 'approve')->whereNumber('id')->name('approve');
         Route::post('/{id}/reject', 'reject')->whereNumber('id')->name('reject');
+    });
+
+    Route::middleware('can:supply.manage')->prefix('supplies')->name('supplies.')->controller(SupplyController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{supply}', 'update')->whereNumber('supply')->name('update');
+        Route::post('/{supply}/movements', 'move')->whereNumber('supply')->name('move');
+        Route::delete('/{supply}', 'destroy')->whereNumber('supply')->name('destroy');
     });
 
     Route::middleware('can:shift.view')->prefix('shifts')->name('shifts.')->controller(SecurityShiftController::class)->group(function () {

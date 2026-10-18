@@ -22,4 +22,5 @@ class Supply extends Model
     }
 
     public function building() { return $this->belongsTo(Building::class); }
+    public function movements() { return $this->hasMany(SupplyMovement::class, 'supply_id'); }
 }
