@@ -52,7 +52,7 @@ class PaymentGatewayController extends Controller
         ]);
 
         $secret = function (string $field, string $clearField) use ($data, $old): ?string {
-            if (($data[$clearField] ?? false) === true) {
+            if ((bool) ($data[$clearField] ?? false)) {
                 return null;
             }
             $value = trim((string) ($data[$field] ?? ''));
