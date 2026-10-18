@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->appendToGroup('web', [\App\Http\Middleware\TrackSiteAnalytics::class]);
+
         $middleware->alias([
             'building' => \App\Http\Middleware\SetCurrentBuilding::class,
             'subscription.active' => \App\Http\Middleware\RequireActiveSubscription::class,
