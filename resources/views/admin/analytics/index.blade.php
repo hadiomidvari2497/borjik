@@ -5,7 +5,7 @@
   $F = \App\Support\Fa::class;
   $maxSessions = max(1, collect($trend)->max('sessions'));
   $maxViews = max(1, collect($trend)->max('pageviews'));
-  $duration = fn ($seconds) => floor((int) $seconds / 60).' دقیقه '.((int) $seconds % 60).' ثانیه';
+  $duration = fn ($seconds) => $F::num(floor((int) $seconds / 60)).' دقیقه '.$F::num((int) $seconds % 60).' ثانیه';
   $percent = fn ($part, $whole) => $whole > 0 ? round(($part / $whole) * 100, 1) : 0;
 @endphp
 <style>
@@ -165,6 +165,33 @@
 
   <div class="an-panels">
     <section class="an-panel">
+      <h3>صفحات ورودی (Landing pages)</h3>
+      @if($landingPages->isEmpty())<div class="an-empty">هنوز صفحه ورودی ثبت نشده است.</div>
+      @else
+        @php $landingMax = max(1, (int) $landingPages->max('sessions')); @endphp
+        <div class="an-meter-list">
+          @foreach($landingPages as $item)
+            <div class="an-meter-row"><div class="an-meter-name an-path">{{ $item->path }}</div><div class="an-meter-track"><div class="an-meter-fill" style="width:{{ ($item->sessions / $landingMax) * 100 }}%"></div></div><div class="an-meter-value">{{ $F::num($item->sessions) }}</div></div>
+          @endforeach
+        </div>
+      @endif
+    </section>
+    <section class="an-panel">
+      <h3>صفحات خروج (Exit pages)</h3>
+      @if($exitPages->isEmpty())<div class="an-empty">هنوز صفحه خروج ثبت نشده است.</div>
+      @else
+        @php $exitMax = max(1, (int) $exitPages->max('sessions')); @endphp
+        <div class="an-meter-list">
+          @foreach($exitPages as $item)
+            <div class="an-meter-row"><div class="an-meter-name an-path">{{ $item->path }}</div><div class="an-meter-track"><div class="an-meter-fill" style="width:{{ ($item->sessions / $exitMax) * 100 }}%"></div></div><div class="an-meter-value">{{ $F::num($item->sessions) }}</div></div>
+          @endforeach
+        </div>
+      @endif
+    </section>
+  </div>
+
+  <div class="an-panels">
+    <section class="an-panel">
       <h3>نسخه مرورگر و سیستم‌عامل</h3>
       <div class="an-table-wrap"><table class="an-table"><thead><tr><th>دسته</th><th>نام / نسخه</th><th>نشست</th></tr></thead><tbody>
       @foreach($browserVersions as $item)<tr><td>مرورگر</td><td>{{ $item->browser_version ?: 'نامشخص' }}</td><td>{{ $F::num($item->total) }}</td></tr>@endforeach
@@ -184,6 +211,10 @@
         </div>
       @endif
       <p class="an-muted">اندازه viewport و نسبت پیکسل (DPR) نیز برای نشست‌ها ذخیره می‌شود.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+        @foreach($viewports as $viewport => $total)<span class="an-pill">Viewport {{ $viewport }} · {{ $F::num($total) }}</span>@endforeach
+        @foreach($pixelRatios as $ratio => $total)<span class="an-pill">DPR {{ $ratio }} · {{ $F::num($total) }}</span>@endforeach
+      </div>
     </section>
   </div>
 
