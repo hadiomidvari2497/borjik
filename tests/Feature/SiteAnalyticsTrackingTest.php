@@ -19,6 +19,7 @@ class SiteAnalyticsTrackingTest extends TestCase
         $session = app('session')->driver();
         $session->setId('analytics-probe-session');
         $session->start();
+        $session->put('analytics_session_key', 'analytics-probe-session');
 
         $request = Request::create('/analytics-probe?private=not-stored', 'GET');
         $request->setLaravelSession($session);
