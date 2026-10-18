@@ -17,7 +17,7 @@ class SubscriptionManagementController extends Controller
     {
         $q = trim((string) $request->query('q', ''));
         $latinQ = MobileNumber::toLatinDigits($q);
-        $like = '%'.addcslashes($latinQ, '%_\').'%';
+        $like = '%'.addcslashes($latinQ, '%_\\').'%';
 
         $users = User::query()
             ->when($q !== '', fn ($query) => $query->where(function ($where) use ($like) {
