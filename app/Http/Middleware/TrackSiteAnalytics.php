@@ -7,6 +7,7 @@ use App\Models\AnalyticsSession;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -54,14 +55,16 @@ class TrackSiteAnalytics
 
     private function recordPageView(Request $request): void
     {
-        $sessionKey = (string) $request->session()->getId();
-        if ($sessionKey === '') {
-            return;
+        $sessionKey = (string) $request->session()->get('analytics_session_key', '');
+        $existing = $sessionKey !== '' ? AnalyticsSession::query()->where('session_key', $sessionKey)->first() : null;
+        if ($sessionKey === '' || ($existing && $existing->last_seen_at && $existing->last_seen_at->lt(now()->subMinutes(30)))) {
+            $sessionKey = (string) Str::uuid();
+            $request->session()->put('analytics_session_key', $sessionKey);
+            $existing = null;
         }
 
         $now = now();
         $user = $request->user();
-        $existing = AnalyticsSession::query()->where('session_key', $sessionKey)->first();
         [$browser, $browserVersion, $os, $osVersion, $deviceType, $brand] = $this->parseAgent((string) $request->userAgent());
         $referrer = (string) $request->headers->get('referer', '');
         $referrerHost = $referrer !== '' ? (string) parse_url($referrer, PHP_URL_HOST) : '';
