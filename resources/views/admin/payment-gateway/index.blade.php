@@ -26,6 +26,14 @@
     @csrf @method('PUT')
     <h3 style="margin:0 0 10px">مشخصات درگاه</h3>
     <div class="fgrid">
+      <div class="fld full">
+        <label for="gateway_template">قالب آماده درگاه</label>
+        <select id="gateway_template" onchange="applyGatewayTemplate(this.value)">
+          <option value="custom">تنظیم دستی / درگاه اختصاصی</option>
+          <option value="zarinpal" @selected(($gateway['driver'] ?? '') === 'zarinpal')>زرین‌پال (Zarinpal)</option>
+        </select>
+        <small>با انتخاب قالب زرین‌پال، شناسه فنی و نشانی API خودکار تنظیم می‌شود. شناسه پذیرنده را از پنل زرین‌پال وارد کنید.</small>
+      </div>
       <div class="fld">
         <label for="provider_name">نام نمایشی درگاه</label>
         <input id="provider_name" name="provider_name" value="{{ old('provider_name', $gateway['provider_name'] ?? '') }}" placeholder="مثلاً درگاه پرداخت شرکت موردنظر">
@@ -75,7 +83,7 @@
       <div class="fld full">
         <label>آدرس بازگشت از درگاه (Callback URL)</label>
         <input readonly dir="ltr" value="{{ $callbackUrl }}" onclick="this.select()">
-        <small>این آدرس رزرو شده است؛ پردازش callback واقعی پس از انتخاب و پیاده‌سازی درگاه اضافه می‌شود.</small>
+        <small>این نشانی را در تنظیمات درگاه تغییر ندهید؛ نتیجه پرداخت پس از بازگشت، از سمت سرور استعلام می‌شود.</small>
       </div>
       <div class="fld full">
         <label for="notes">یادداشت داخلی</label>
@@ -88,6 +96,23 @@
     </div>
     <div class="fbar"><button class="btn" type="submit">ذخیره تنظیمات درگاه</button></div>
   </form>
+
+  <script>
+    function applyGatewayTemplate(template) {
+      if (template === 'zarinpal') {
+        document.getElementById('provider_name').value = 'زرین‌پال';
+        document.getElementById('driver').value = 'zarinpal';
+        document.getElementById('api_base_url').value = document.getElementById('environment').value === 'sandbox'
+          ? 'https://sandbox.zarinpal.com/pg/v4' : 'https://payment.zarinpal.com/pg/v4';
+      }
+    }
+    document.getElementById('environment').addEventListener('change', function () {
+      if (document.getElementById('driver').value === 'zarinpal') {
+        document.getElementById('api_base_url').value = this.value === 'sandbox'
+          ? 'https://sandbox.zarinpal.com/pg/v4' : 'https://payment.zarinpal.com/pg/v4';
+      }
+    });
+  </script>
   <form method="POST" action="{{ route('admin.payment-gateway.validate') }}" style="margin-top:10px">
     @csrf
     <button class="btn sec" type="submit">بررسی کامل بودن تنظیمات</button>
