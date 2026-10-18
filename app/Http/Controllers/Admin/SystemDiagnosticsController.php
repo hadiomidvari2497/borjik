@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Throwable;
@@ -91,6 +92,31 @@ class SystemDiagnosticsController extends Controller
             ];
         } catch (Throwable $exception) {
             $checks[] = ['name' => 'پایگاه داده کاربران و ساختمان‌ها', 'detail' => 'قابل‌خواندن بودن جداول اصلی', 'status' => 'fail', 'message' => 'خواندن یکی از جداول اصلی ناموفق بود.'];
+        }
+
+        $modules = [
+            'ورود و کاربران' => ['users', 'login_otps', 'roles', 'permissions', 'role_permission'],
+            'ساختمان و عضویت' => ['buildings', 'building_user_roles', 'invitations', 'blocks', 'units', 'parkings', 'storages'],
+            'اشتراک و پرداخت' => ['subscription_plans', 'subscriptions', 'subscription_payments', 'invoices', 'payment_receipts', 'payment_allocations'],
+            'درخواست‌ها و تیکت‌ها' => ['tickets', 'ticket_assignees', 'ticket_comments', 'ticket_status_logs', 'ticket_ratings', 'ticket_attachments'],
+            'شیفت حراست و ملزومات' => ['security_shifts', 'supplies', 'supply_movements'],
+            'رویدادها و نظرسنجی‌ها' => ['events', 'calendar_events', 'polls', 'poll_options', 'poll_votes'],
+            'اسناد و فایل‌ها' => ['documents', 'document_roles', 'files', 'file_links', 'contracts'],
+            'پیامک و مخاطبان' => ['sms_templates', 'sms_logs', 'sms_providers', 'phonebook_entries'],
+            'مدیریت و نظارت' => ['admin_users', 'admin_roles', 'admin_role_permissions', 'admin_user_role', 'admin_activity_logs', 'system_error_logs'],
+            'تنظیمات و اعلان‌ها' => ['site_settings', 'notifications', 'sessions', 'cache', 'jobs'],
+        ];
+
+        foreach ($modules as $name => $tables) {
+            $checks[] = $this->check($name, 'بررسی وجود جداول موردنیاز این بخش', function () use ($tables) {
+                foreach ($tables as $table) {
+                    if (! Schema::hasTable($table)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
         }
 
         return $checks;
