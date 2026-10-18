@@ -33,11 +33,11 @@ class AdminBuildingUserDirectoryTest extends TestCase
         $admin = $this->admin(['users.view']);
         $user = User::create(['mobile' => '09120000111', 'first_name' => 'آزمایش', 'last_name' => 'کاربر']);
         $building = Building::create(['name' => 'ساختمان آزمایشی', 'code' => 'A1234', 'created_by' => $user->id]);
-        $role = Role::query()->where('key', 'manager')->firstOrFail();
+        $role = Role::create(['key' => 'manager', 'name_fa' => 'مدیر ساختمان']);
         BuildingUserRole::create(['building_id' => $building->id, 'user_id' => $user->id, 'role_id' => $role->id, 'status' => 'active']);
 
         $this->actingAs($admin, 'admin')->get(route('admin.building-users.index', ['q' => '09120000111', 'building_id' => $building->id]))
-            ->assertOk()->assertSee('مدیریت کاربران پنل ساختمان‌ها')->assertSee('ساختمان آزمایشی')->assertSee('مدیر ساختمان');
+            ->assertOk()->assertSee('مدیریت کاربران پنل ساختمان‌ها')->assertSee('ساختمان آزمایشی')->assertSee($role->name_fa);
     }
 
     public function test_admin_without_users_view_permission_cannot_access_building_user_directory(): void
