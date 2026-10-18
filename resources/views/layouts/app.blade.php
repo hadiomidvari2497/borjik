@@ -114,32 +114,40 @@
     </header>
 
     <div class="scroll">
-      @php
-        $workspaceHeroVisible = !request()->routeIs('dashboard', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index');
-      @endphp
-      @php
-        $workspaceHeroCopy = match (true) {
-          request()->routeIs('buildings.*', 'building.*') => ['ساختمان و تنظیمات', 'اطلاعات ساختمان، دسترسی‌ها و تنظیمات اصلی را از این بخش مدیریت کنید.', 'bld'],
-          request()->routeIs('units.*', 'blocks.*', 'parkings.*', 'storages.*') => ['فضاها و واحدهای ساختمان', 'اطلاعات واحدها و فضاهای مشترک را مرتب، دقیق و یکجا مدیریت کنید.', 'doc'],
-          request()->routeIs('charges.*', 'charge-settings.*', 'expenses.*', 'payments.*', 'my.invoices', 'my.payments*') => ['امور مالی ساختمان', 'صورت‌حساب‌ها، پرداخت‌ها و هزینه‌ها را شفاف و منظم پیگیری کنید.', 'coin'],
-          request()->routeIs('contracts.*', 'my.contracts') => ['قراردادها و تعهدات', 'جزئیات قراردادها و وضعیت آن‌ها را در یک نمای منظم دنبال کنید.', 'doc'],
-          request()->routeIs('team.*', 'members.*', 'staff.*', 'staff-roles.*', 'invitations.*') => ['اعضا و همکاری', 'اعضای ساختمان، نقش‌ها و دعوت‌نامه‌ها را از همین بخش مدیریت کنید.', 'inbox'],
-          request()->routeIs('tickets.*', 'requests.*', 'my.requests*') => ['پیگیری و رسیدگی', 'درخواست‌ها و کارهای جاری را مرحله‌به‌مرحله پیگیری کنید.', 'inbox'],
-          request()->routeIs('notifications.*') => ['مرکز اعلان‌ها', 'پیام‌ها و رویدادهای مهم ساختمان را یکجا ببینید و پیگیری کنید.', 'bell'],
-          request()->routeIs('subscription.*') => ['اشتراک برجیک', 'وضعیت اشتراک و امکانات در دسترس ساختمان را بررسی کنید.', 'star'],
-          request()->routeIs('profile.*', 'account.*') => ['حساب کاربری شما', 'اطلاعات حساب و تنظیمات شخصی خود را مدیریت کنید.', 'user'],
-          request()->routeIs('audit.*') => ['گزارش فعالیت‌ها', 'رویدادها و تغییرات ثبت‌شده را برای پیگیری و شفافیت بررسی کنید.', 'doc'],
-          default => ['فضای کاری برجیک', 'همه‌ی اطلاعات موردنیاز ساختمان، با تجربه‌ای ساده‌تر و منظم‌تر در دسترس شماست.', 'bld'],
-        };
-      @endphp
-      @if($workspaceHeroVisible)
+      @if(!request()->routeIs('dashboard', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index'))
         <section class="workspace-hero" aria-label="معرفی بخش">
           <div class="workspace-hero-copy">
             <div class="workspace-hero-kicker">برجیک <span aria-hidden="true">·</span> مدیریت هوشمند ساختمان</div>
             <h2>@yield('title', 'فضای کاری')</h2>
-            <p>{{ $workspaceHeroCopy[1] }}</p>
+            <p>
+              @if(request()->routeIs('buildings.*', 'building.*'))
+                اطلاعات ساختمان، دسترسی‌ها و تنظیمات اصلی را از این بخش مدیریت کنید.
+              @elseif(request()->routeIs('units.*', 'blocks.*', 'parkings.*', 'storages.*'))
+                اطلاعات واحدها و فضاهای مشترک را مرتب، دقیق و یکجا مدیریت کنید.
+              @elseif(request()->routeIs('charges.*', 'charge-settings.*', 'expenses.*', 'payments.*', 'my.invoices', 'my.payments*'))
+                صورت‌حساب‌ها، پرداخت‌ها و هزینه‌ها را شفاف و منظم پیگیری کنید.
+              @elseif(request()->routeIs('contracts.*', 'my.contracts'))
+                جزئیات قراردادها و وضعیت آن‌ها را در یک نمای منظم دنبال کنید.
+              @elseif(request()->routeIs('team.*', 'members.*', 'staff.*', 'staff-roles.*', 'invitations.*'))
+                اعضای ساختمان، نقش‌ها و دعوت‌نامه‌ها را از همین بخش مدیریت کنید.
+              @elseif(request()->routeIs('tickets.*', 'requests.*', 'my.requests*'))
+                درخواست‌ها و کارهای جاری را مرحله‌به‌مرحله پیگیری کنید.
+              @elseif(request()->routeIs('notifications.*'))
+                پیام‌ها و رویدادهای مهم ساختمان را یکجا ببینید و پیگیری کنید.
+              @elseif(request()->routeIs('subscription.*'))
+                وضعیت اشتراک و امکانات در دسترس ساختمان را بررسی کنید.
+              @elseif(request()->routeIs('profile.*', 'account.*'))
+                اطلاعات حساب و تنظیمات شخصی خود را مدیریت کنید.
+              @elseif(request()->routeIs('audit.*'))
+                رویدادها و تغییرات ثبت‌شده را برای پیگیری و شفافیت بررسی کنید.
+              @else
+                همه‌ی اطلاعات موردنیاز ساختمان، با تجربه‌ای ساده‌تر و منظم‌تر در دسترس شماست.
+              @endif
+            </p>
           </div>
-          <div class="workspace-hero-mark" aria-hidden="true"><svg class="i"><use href="#{{ $workspaceHeroCopy[2] }}"/></svg></div>
+          <div class="workspace-hero-mark" aria-hidden="true">
+            <svg class="i"><use href="#{{ request()->routeIs('buildings.*', 'building.*') ? 'bld' : (request()->routeIs('units.*', 'blocks.*', 'parkings.*', 'storages.*', 'contracts.*', 'my.contracts', 'audit.*') ? 'doc' : (request()->routeIs('charges.*', 'charge-settings.*', 'expenses.*', 'payments.*', 'my.invoices', 'my.payments*') ? 'coin' : (request()->routeIs('team.*', 'members.*', 'staff.*', 'staff-roles.*', 'invitations.*', 'tickets.*', 'requests.*', 'my.requests*') ? 'inbox' : (request()->routeIs('notifications.*') ? 'bell' : (request()->routeIs('subscription.*') ? 'star' : (request()->routeIs('profile.*', 'account.*') ? 'user' : 'bld'))))) }}"/></svg>
+          </div>
         </section>
       @endif
       <section class="panel">
