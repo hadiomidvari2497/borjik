@@ -49,7 +49,20 @@ class DashboardTest extends TestCase
 
     private function open(User $user)
     {
-        return $this->actingAs($user)->withSession(['current_building_id' => $this->building->id])->get('/');
+        return $this->actingAs($user)->withSession(['current_building_id' => $this->building->id])->get(route('dashboard'));
+    }
+
+    public function test_public_homepage_is_shown_to_guests_instead_of_login(): void
+    {
+        $this->get('/')->assertOk()
+            ->assertSee('مدیریت ساختمان، با آرامش بیشتر')
+            ->assertSee('امکانات برجیک')
+            ->assertSee('درباره برجیک')
+            ->assertSee('مقالات')
+            ->assertSee('تبلیغات')
+            ->assertSee('همکاران ما')
+            ->assertSee('تماس با ما')
+            ->assertSee('ورود به سامانه');
     }
 
     public function test_owner_sees_management_dashboard_with_full_menu(): void
@@ -132,7 +145,7 @@ class DashboardTest extends TestCase
         $owner = User::where('mobile', '09120000001')->firstOrFail();
 
         $this->actingAs($owner)->withSession(['current_building_id' => $this->building->id])
-            ->get('/?trend_days=7')->assertOk()
+            ->get(route('dashboard', ['trend_days' => 7]))->assertOk()
             ->assertSee('روند درخواست‌ها، بدهی و وصولی')
             ->assertSee('۷ روز')
             ->assertSee('۳۰ روز')
@@ -144,11 +157,11 @@ class DashboardTest extends TestCase
             ->assertSee('بدون تغییر');
 
         $this->actingAs($owner)->withSession(['current_building_id' => $this->building->id])
-            ->get('/?trend_days=90')->assertOk()
+            ->get(route('dashboard', ['trend_days' => 90]))->assertOk()
             ->assertSee('روند درخواست‌ها، بدهی و وصولی');
 
         $this->actingAs($owner)->withSession(['current_building_id' => $this->building->id])
-            ->get('/?trend_days=999')->assertOk()
+            ->get(route('dashboard', ['trend_days' => 999]))->assertOk()
             ->assertSee('۳۰ روز');
     }
 
