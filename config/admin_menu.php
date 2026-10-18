@@ -52,6 +52,10 @@ return [
     [
         'title' => 'تنظیمات',
         'items' => [
+            ['label' => 'مدیریت مقالات', 'icon' => 'book-open', 'route' => 'admin.articles.index', 'active' => 'admin.articles.*', 'perm' => 'articles.manage',
+                'desc' => 'نوشتن، ویرایش، انتشار و حذف مقالات سایت'],
+            ['label' => 'محتوای صفحهٔ اصلی', 'icon' => 'layout', 'route' => 'admin.marketing-content.edit', 'active' => 'admin.marketing-content.*', 'perm' => 'site.settings',
+                'desc' => 'ویرایش امکانات، درباره ما، تماس، تبلیغات و همکاران'],
             ['label' => 'تنظیمات سایت', 'icon' => 'set', 'route' => 'admin.settings.edit', 'active' => 'admin.settings.*', 'perm' => 'site.settings',
                 'desc' => 'روش‌های ورود، نام سایت و پشتیبانی'],
             ['label' => 'حساب من', 'icon' => 'users', 'route' => 'admin.account', 'active' => 'admin.account*', 'perm' => null,
