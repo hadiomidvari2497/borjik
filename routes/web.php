@@ -1,8 +1,8 @@
 <?php
 
-use App\\Http\\Controllers\\MarketingController;
-use App\\Http\\Controllers\\SubscriptionController;
-use Illuminate\\Support\\Facades\\Route;
+use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\SubscriptionController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MarketingController::class, 'home'])->name('home');
 Route::get('/enamad/image', [MarketingController::class, 'enamadImage'])->name('marketing.enamad.image');
