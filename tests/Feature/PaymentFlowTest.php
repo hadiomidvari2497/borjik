@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Block;
 use App\Models\Building;
 use App\Models\BuildingUserRole;
+use App\Models\ChargeSetting;
 use App\Models\Invoice;
 use App\Models\Role;
 use App\Models\Subscription;
@@ -253,6 +254,33 @@ class PaymentFlowTest extends TestCase
         $this->as($this->tenant)->get(route('files.show', $fileId))->assertOk();
         $this->as($this->manager)->get(route('files.show', $fileId))->assertOk();
         $this->as($stranger)->get(route('files.show', $fileId))->assertForbidden();
+    }
+
+    public function test_late_fee_command_issues_only_the_unissued_cumulative_amount(): void
+    {
+        $this->db(fn () => ChargeSetting::create([
+            'method' => 1,
+            'late_fee_enabled' => true,
+            'late_fee_type' => 'percent',
+            'late_fee_value' => 2,
+            'late_fee_start_day' => 5,
+            'due_days' => 10,
+        ]));
+
+        $this->artisan('charges:issue-late-fees')->assertSuccessful();
+        $penalties = DB::table('invoices')->where('type', 'penalty')->get();
+        $this->assertCount(1, $penalties);
+        $this->assertSame(1067, (int) $penalties[0]->amount);
+        $this->assertSame('T-1', DB::table('invoices')->where('id', $penalties[0]->parent_invoice_id)->value('number'));
+
+        $this->artisan('charges:issue-late-fees')->assertSuccessful();
+        $this->assertSame(1, DB::table('invoices')->where('type', 'penalty')->count());
+
+        $this->db(fn () => ChargeSetting::first()->update(['late_fee_enabled' => false]));
+        $this->travelTo(now()->addDays(5));
+        $this->artisan('charges:issue-late-fees')->assertSuccessful();
+        $this->assertSame(1, DB::table('invoices')->where('type', 'penalty')->count());
+        $this->travelBack();
     }
 
     public function test_pages_and_permissions(): void
