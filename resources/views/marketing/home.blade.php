@@ -80,6 +80,48 @@
         @media(max-width:700px){.hero{padding:47px 0 35px}.hero:after{background-size:32px 32px}.hero-grid{gap:8px}h1{font-size:clamp(2.15rem,8vw,3.1rem);letter-spacing:-1.2px}.hero-copy{font-size:.96rem}.dashboard-art{min-height:345px;margin-top:9px}.orb{width:270px;height:270px;right:8%;top:3%}.mock-window{padding:16px;width:min(430px,96%);transform:none;animation:none}.floating-note{left:0;bottom:4px;animation:none;padding:11px 13px}.hero-proof{font-size:.78rem}.partner-panel:after{font-size:170px;bottom:-62px;left:6px}}
         @media(prefers-reduced-motion:reduce){.mock-window,.floating-note{animation:none!important}.trust-item,.feature-card:after,.step,.article-card,.contact-row{transition:none!important}}
 
+        /* Signature polish: cinematic hero, richer dashboard depth, and crisp section rhythm. */
+        .hero{isolation:isolate}
+        .hero-grid>div:first-child{position:relative;z-index:2}
+        .hero-grid>div:first-child:before{content:"";position:absolute;z-index:-1;inset:-28px -30px -25px -18px;border-radius:32px;background:radial-gradient(ellipse at 68% 35%,rgba(69,216,181,.075),transparent 65%);pointer-events:none}
+        .hero .eyebrow{font-size:.84rem;letter-spacing:.1px}
+        .hero h1{max-width:650px;text-shadow:0 4px 28px rgba(0,0,0,.09)}
+        .hero h1 span{display:inline-block;position:relative}
+        .hero h1 span:after{content:"";position:absolute;right:0;left:0;bottom:-4px;height:3px;border-radius:10px;background:linear-gradient(90deg,transparent,#66e5c5 20%,#66e5c5 80%,transparent);opacity:.75}
+        .hero-actions .btn{min-height:51px;padding-inline:21px}
+        .hero .btn-primary{position:relative;overflow:hidden}
+        .hero .btn-primary:after{content:"";position:absolute;top:-80%;bottom:-80%;right:-55%;width:35%;transform:rotate(22deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);transition:right .65s ease}
+        .hero .btn-primary:hover:after{right:125%}
+        .dashboard-art:before{content:"✦  تجربه‌ای یکپارچه برای ساختمان";position:absolute;z-index:3;top:5px;left:2px;padding:9px 14px;border:1px solid rgba(176,245,225,.22);border-radius:13px;background:rgba(8,36,47,.72);color:#c8f9e9;font-size:.74rem;font-weight:800;letter-spacing:.1px;box-shadow:0 12px 32px rgba(0,0,0,.16);backdrop-filter:blur(14px)}
+        .dashboard-art .orb{animation:borjik-orb 12s ease-in-out infinite}
+        .mock-window{border-radius:27px;background:linear-gradient(145deg,rgba(255,255,255,.99),rgba(245,252,249,.97));outline:1px solid rgba(112,234,203,.14);outline-offset:5px}
+        .mock-top:before{content:"";width:8px;height:8px;border-radius:50%;background:#22b99b;box-shadow:0 0 0 4px rgba(34,185,155,.12);order:3;margin-inline-start:auto}
+        .mock-stats .stat{transition:transform .2s ease,box-shadow .2s ease}
+        .mock-stats .stat:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(11,112,92,.08)}
+        .mock-chart{position:relative;overflow:hidden}
+        .mock-chart:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 20%,rgba(31,188,155,.045),transparent 70%);pointer-events:none}
+        .floating-note{z-index:4}
+        .trust-strip{box-shadow:0 12px 35px rgba(12,51,51,.025)}
+        .section-head h2{position:relative}
+        .section-head h2:after{content:"";display:block;width:56px;height:4px;margin:13px auto 0;border-radius:99px;background:linear-gradient(90deg,#73ddc2,#0e9e87)}
+        .feature-card{border-radius:24px;padding:28px;background:linear-gradient(155deg,#fff 0%,#fff 65%,#f8fcfa 100%)}
+        .feature-card h3{font-size:1.08rem}
+        .feature-card p{line-height:2}
+        .how{background:radial-gradient(ellipse at 85% 15%,rgba(35,177,151,.14),transparent 34%),linear-gradient(130deg,#071e2b,#0c2c3b 55%,#104b49)}
+        .step{border-radius:24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.055)}
+        .step-number{background:linear-gradient(145deg,#42d5b4,#0c9b87);color:#07352f}
+        .about-visual{background:radial-gradient(circle at 78% 20%,#fff 0,transparent 27%),linear-gradient(145deg,#c9f0e5,#eaf9f4 65%,#d9f4eb)}
+        .article-art{height:165px}
+        .article-body{padding:23px}
+        .partner-panel{border-radius:30px;background:radial-gradient(circle at 8% 8%,rgba(65,199,165,.14),transparent 32%),linear-gradient(120deg,#e2f8f0,#f7fcfa)}
+        .contact-card{border-radius:26px;padding:28px;background:linear-gradient(145deg,#fff,#f8fcfa)}
+        .contact-symbol{box-shadow:0 6px 15px rgba(13,151,128,.06)}
+        footer{background:radial-gradient(ellipse at 90% 0%,rgba(24,142,124,.14),transparent 35%),#071c28}
+        @keyframes borjik-orb{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-9px) scale(1.025)}}
+        @media(max-width:900px){.dashboard-art:before{top:0;left:0}.hero-grid>div:first-child:before{inset:-15px}}
+        @media(max-width:700px){.dashboard-art:before{top:-2px;left:0;font-size:.67rem;padding:7px 10px}.hero h1 span:after{bottom:-2px}.hero-actions .btn{min-height:47px;padding-inline:15px}.article-art{height:145px}.feature-card{padding:23px}}
+        @media(prefers-reduced-motion:reduce){.dashboard-art .orb{animation:none!important}.hero .btn-primary:after{display:none}.mock-stats .stat{transition:none!important}}
+
     </style>
 </head>
 <body>
