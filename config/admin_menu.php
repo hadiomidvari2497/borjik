@@ -34,6 +34,13 @@ return [
         ],
     ],
     [
+        'title' => 'کاربران ساختمان‌ها',
+        'items' => [
+            ['label' => 'مدیریت کاربران ساختمان‌ها', 'icon' => 'users', 'route' => 'admin.building-users.index', 'active' => 'admin.building-users.*', 'perm' => 'users.view',
+                'desc' => 'جست‌وجوی کاربران و بررسی نقش و عضویت در ساختمان‌ها'],
+        ],
+    ],
+    [
         'title' => 'ادمین‌ها و دسترسی‌ها',
         'items' => [
             ['label' => 'کاربران ادمین', 'icon' => 'shield', 'route' => 'admin.users.index', 'active' => 'admin.users.*', 'perm' => 'admin.users.manage',
