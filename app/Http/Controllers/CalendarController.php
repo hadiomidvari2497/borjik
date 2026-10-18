@@ -136,12 +136,12 @@ class CalendarController extends Controller
             || ($filter === 'polls' && in_array($item['type'], ['شروع نظرسنجی', 'پایان نظرسنجی'], true)))->values();
 
         $byDate = $items->groupBy('date');
-        $days = collect(range(1, $rangeDays))->map(function (int $day) use ($start, $byDate) {
+        $days = collect(range(1, $rangeDays))->map(function (int $day) use ($start, $byDate, $viewMode) {
             $date = $start->copy()->addDays($day - 1);
             return [
                 'day' => $day,
                 'date' => $date->toDateString(),
-                'jalali' => Fa::digits((string) $day),
+                'jalali' => Fa::digits((string) ($viewMode === 'month' ? $day : Jalalian::fromCarbon($date)->getDay())),
                 'is_today' => $date->isToday(),
                 'items' => ($byDate->get($date->toDateString()) ?? collect())->sortBy('starts_at')->values(),
             ];
