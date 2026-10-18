@@ -36,6 +36,7 @@ class PhonebookController extends Controller
             $buildingEntries = PhonebookEntry::query()->whereNull('user_id')
                 ->when($query !== '', fn ($q) => $q->where(fn ($sub) => $sub->where('name', 'like', '%'.$query.'%')->orWhere('phone', 'like', '%'.$query.'%')->orWhere('category', 'like', '%'.$query.'%')))
                 ->orderBy('category')->orderBy('name')->get();
+            $buildingEntries->each(fn ($contact) => $contact->phone_href = self::phoneLink($contact->phone));
 
             $buildingPeople = DB::table('building_user_roles as bur')
                 ->join('roles as r', 'r.id', '=', 'bur.role_id')
@@ -51,6 +52,7 @@ class PhonebookController extends Controller
                         'id' => (int) $person->user_id,
                         'name' => $person->person_type === 'legal' ? (string) $person->company_name : trim($person->first_name.' '.$person->last_name),
                         'phone' => $person->mobile,
+                        'phone_href' => self::phoneLink($person->mobile),
                         'roles' => $rows->pluck('role_name')->unique()->values()->all(),
                     ];
                 })->values();
@@ -61,6 +63,8 @@ class PhonebookController extends Controller
                 ->when($query !== '', fn ($q) => $q->where(fn ($sub) => $sub->where('name', 'like', '%'.$query.'%')->orWhere('phone', 'like', '%'.$query.'%')->orWhere('category', 'like', '%'.$query.'%')))
                 ->orderBy('name')->paginate(12)->withQueryString()
             : PhonebookEntry::query()->whereRaw('1 = 0')->paginate(12);
+
+        $personalEntries->getCollection()->each(fn ($contact) => $contact->phone_href = self::phoneLink($contact->phone));
 
         return view('phonebook.index', [
             'canBuilding' => $canBuilding,
@@ -130,6 +134,18 @@ class PhonebookController extends Controller
         $this->authorizeEntry($request, $contact, $scope);
         $contact->delete();
         return redirect()->route('phonebook.index', ['tab' => $scope])->with('status', 'مخاطب حذف شد.');
+    }
+
+    private static function phoneLink(string $phone): string
+    {
+        $digits = preg_replace('/[^0-9۰-۹٠-٩+]/u', '', $phone) ?? '';
+
+        return strtr($digits, [
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
     }
 
     private function authorizeScope(Request $request, string $scope): void

@@ -14,8 +14,13 @@ class PhonebookEntry extends Model
 
     protected $guarded = ['id'];
 
+    public function building()
+    {
+        return $this->belongsTo(Building::class);
+    }
+
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -79,7 +79,7 @@
           @foreach($buildingEntries as $contact)
             <article class="phonebook-contact">
               <div class="phonebook-contact-top"><div class="phonebook-avatar">{{ mb_substr($contact->name, 0, 1) }}</div><div class="phonebook-contact-main"><h4>{{ $contact->name }}</h4><span class="phonebook-chip">{{ $categories[$contact->category] ?? 'سایر شماره‌ها' }}</span></div></div>
-              <a class="phonebook-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $contact->phone) }}">{{ $F::num($contact->phone) }}</a>
+              <a class="phonebook-phone" href="tel:{{ $contact->phone_href }}">{{ $F::digits($contact->phone) }}</a>
               <div class="phonebook-actions">
                 <details><summary class="btn sec sm">ویرایش</summary><form class="phonebook-edit" method="POST" action="{{ route('phonebook.update', $contact->id) }}">@csrf @method('PUT')
                   <div class="phonebook-form-grid" style="grid-template-columns:1fr">
@@ -94,7 +94,7 @@
           @endforeach
           @foreach($buildingPeople as $person)
             <article class="phonebook-contact"><div class="phonebook-contact-top"><div class="phonebook-avatar">{{ mb_substr($person['name'] ?: 'ک', 0, 1) }}</div><div class="phonebook-contact-main"><h4>{{ $person['name'] ?: 'بدون نام' }}</h4><span class="phonebook-chip">عضو ساختمان</span></div></div>
-              <a class="phonebook-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $person['phone']) }}">{{ $F::num($person['phone']) }}</a><div class="phonebook-roles">@foreach($person['roles'] as $role)<span class="phonebook-chip">{{ $role }}</span>@endforeach</div>
+              <a class="phonebook-phone" href="tel:{{ $person['phone_href'] }}">{{ $F::digits($person['phone']) }}</a><div class="phonebook-roles">@foreach($person['roles'] as $role)<span class="phonebook-chip">{{ $role }}</span>@endforeach</div>
             </article>
           @endforeach
         </div>
