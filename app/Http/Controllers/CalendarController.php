@@ -247,6 +247,37 @@ class CalendarController extends Controller
             ->with('status', 'رویداد با موفقیت ویرایش شد.');
     }
 
+
+    public function move(Request $request, CurrentBuilding $current, int $event): RedirectResponse
+    {
+        abort_unless($current->id() && $request->user()->hasPermission('event.manage'), 403);
+        $data = $request->validate([
+            'start_date' => ['required', 'string', 'max:10'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+        ]);
+        $start = JalaliDate::parse($data['start_date']);
+        if (! $start) {
+            return back()->withErrors(['start_date' => 'تاریخ شمسی واردشده معتبر نیست.'])->withInput();
+        }
+
+        $item = CalendarEvent::query()->findOrFail($event);
+        $oldStart = $item->starts_at->copy();
+        $duration = $item->ends_at ? max(0, $oldStart->diffInSeconds($item->ends_at, false)) : 0;
+        $start = $item->is_all_day
+            ? $start->startOfDay()
+            : $start->setTimeFromTimeString($data['start_time'] ?? $oldStart->format('H:i'));
+        $item->starts_at = $start;
+        $item->ends_at = $item->is_all_day ? $start->copy()->endOfDay() : $start->copy()->addSeconds($duration);
+        $item->reminder_sent_at = null;
+        $item->save();
+
+        return redirect()->route('events.index', [
+            'view' => $request->input('view', 'week'),
+            'date' => JalaliDate::format($start),
+            'filter' => $request->input('filter', 'all'),
+        ])->with('status', 'زمان رویداد با موفقیت جابه‌جا شد.');
+    }
+
     public function destroy(Request $request, int $event): RedirectResponse
     {
         abort_unless($request->user()->hasPermission('event.manage'), 403);
