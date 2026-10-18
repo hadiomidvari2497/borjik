@@ -87,7 +87,9 @@ class MenuBuilder
                     'label' => $item['label'],
                     'icon' => $item['icon'],
                     'url' => $exists ? route($item['route']) : '#',
-                    'active' => $exists && request()->routeIs(str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route']),
+                    'active' => $exists && ($item['route'] === 'requests.index'
+                        ? request()->routeIs('requests.*') && ! request()->routeIs('requests.reports')
+                        : request()->routeIs(str_ends_with($item['route'], '.index') ? substr($item['route'], 0, -6).'.*' : $item['route'])),
                     'badge' => $item['badge'] ? $this->badge($user, $item['badge']) : 0,
                     'locked' => false,
                 ];
