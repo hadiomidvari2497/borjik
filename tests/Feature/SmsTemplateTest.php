@@ -62,7 +62,7 @@ class SmsTemplateTest extends TestCase
     public function test_template_from_another_building_cannot_be_updated(): void
     {
         $other = Building::create(['name' => 'ساختمان دیگر', 'code' => '88142', 'created_by' => $this->owner->id]);
-        $otherTemplateId = app(\App\Support\CurrentBuilding::class)->actingAs($other->id, function () {
+        $otherTemplateId = app(\App\Support\CurrentBuilding::class)->actingAs($other->id, function () use ($other) {
             return SmsTemplate::create(['building_id' => $other->id, 'key' => 'invitation', 'body' => 'قالب دیگر', 'is_active' => true])->id;
         });
 
