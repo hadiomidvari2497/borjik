@@ -16,11 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'building' => \\App\\Http\\Middleware\\SetCurrentBuilding::class,
-            'subscription.active' => \\App\\Http\\Middleware\\RequireActiveSubscription::class,
-            'profile.complete' => \\App\\Http\\Middleware\\EnsureProfileComplete::class,
-            'admin' => \\App\\Http\\Middleware\\EnsureAdminAuth::class,
-            'admin.can' => \\App\\Http\\Middleware\\EnsureAdminPermission::class,
+            'building' => \App\Http\Middleware\\SetCurrentBuilding::class,
+            'subscription.active' => \App\Http\Middleware\\RequireActiveSubscription::class,
+            'profile.complete' => \App\Http\Middleware\\EnsureProfileComplete::class,
+            'admin' => \App\Http\Middleware\\EnsureAdminAuth::class,
+            'admin.can' => \App\Http\Middleware\\EnsureAdminPermission::class,
         ]);
 
         // برای ریدایرکت مهمان ادمین به صفحهٔ ورود ادمین
