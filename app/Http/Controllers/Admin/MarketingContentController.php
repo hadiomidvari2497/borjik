@@ -37,6 +37,11 @@ class MarketingContentController extends Controller
             'steps.*.title' => ['required', 'string', 'max:120'],
             'steps.*.description' => ['required', 'string', 'max:500'],
             'footer_description' => ['required', 'string', 'max:500'],
+            'enamad' => ['nullable', 'array'],
+            'enamad.enabled' => ['nullable', 'boolean'],
+            'enamad.image_url' => ['nullable', 'url', 'max:2048'],
+            'enamad.verification_url' => ['nullable', 'url', 'max:2048'],
+            'enamad.alt' => ['nullable', 'string', 'max:160'],
             'about.eyebrow' => ['required', 'string', 'max:100'],
             'about.title' => ['required', 'string', 'max:180'],
             'about.paragraph1' => ['required', 'string', 'max:1200'],
@@ -68,6 +73,13 @@ class MarketingContentController extends Controller
             'hero.highlight' => 'عبارت برجسته',
         ]);
 
+        $data['enamad'] = [
+            'enabled' => $request->boolean('enamad.enabled'),
+            'image_url' => data_get($data, 'enamad.image_url'),
+            'verification_url' => data_get($data, 'enamad.verification_url'),
+            'alt' => data_get($data, 'enamad.alt', 'نماد اعتماد الکترونیکی برجیک'),
+        ];
+
         SiteSetting::set('marketing.content', $data);
 
         return redirect()->route('admin.marketing-content.edit')->with('status', 'محتوای صفحهٔ اصلی ذخیره شد.');
@@ -82,6 +94,7 @@ class MarketingContentController extends Controller
             'trust_items' => [['icon'=>'◈','text'=>'شفافیت مالی'],['icon'=>'✓','text'=>'پیگیری درخواست‌ها'],['icon'=>'⌂','text'=>'مناسب انواع ساختمان'],['icon'=>'↗','text'=>'دسترسی ساده و آنلاین']],
             'steps' => [['title'=>'حساب خود را بسازید','description'=>'با شماره موبایل وارد شوید و اطلاعات اولیه‌ی حساب خود را تکمیل کنید.'],['title'=>'ساختمان را راه‌اندازی کنید','description'=>'ساختمان، بلوک‌ها و واحدها را تعریف کنید و اعضا و مسئولیت‌ها را مشخص کنید.'],['title'=>'همه‌چیز را یکپارچه پیگیری کنید','description'=>'شارژ، پرداخت‌ها، درخواست‌ها و برنامه‌های ساختمان را از یک سامانه مدیریت کنید.']],
             'footer_description' => 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.',
+            'enamad' => ['enabled' => false, 'image_url' => '', 'verification_url' => '', 'alt' => 'نماد اعتماد الکترونیکی برجیک'],
             'features' => [
                 ['icon' => '◉', 'title' => 'محاسبه و صدور شارژ', 'description' => 'قواعد شارژ و هزینه‌های ساختمان را مدیریت کنید و سهم هر واحد را با روشی روشن محاسبه کنید.'],
                 ['icon' => '⇄', 'title' => 'پرداخت و پیگیری مالی', 'description' => 'صورتحساب‌ها، ثبت پرداخت و وضعیت تأیید فیش‌ها را در یک مسیر مشخص دنبال کنید.'],
