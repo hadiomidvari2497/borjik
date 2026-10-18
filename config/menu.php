@@ -43,7 +43,6 @@ return [
         'items' => [
             ['label' => 'تیکت و تسک', 'icon' => 'kan', 'route' => 'tickets.index', 'perm' => ['ticket.view.all', 'ticket.view.assigned'], 'badge' => 'tickets'],
             ['label' => 'درخواست‌های ساکنین', 'icon' => 'inbox', 'route' => 'requests.index', 'perm' => ['request.view.all', 'request.view.domain'], 'badge' => 'requests'],
-            ['label' => 'گزارش عملکرد درخواست‌ها', 'icon' => 'poll', 'route' => 'requests.reports', 'perm' => 'request.view.all', 'badge' => null],
             ['label' => 'درخواست‌های من', 'icon' => 'inbox', 'route' => 'my.requests', 'perm' => ['request.create', 'request.view.own'], 'badge' => null],
             ['label' => 'شیفت حراست', 'icon' => 'clk', 'route' => 'shifts.index', 'perm' => ['shift.manage', 'shift.view'], 'badge' => null],
             ['label' => 'موجودی ملزومات', 'icon' => 'box', 'route' => 'supplies.index', 'perm' => 'supply.manage', 'badge' => null],
