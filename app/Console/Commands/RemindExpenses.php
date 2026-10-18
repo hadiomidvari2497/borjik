@@ -1,19 +1,19 @@
 <?php
 
-namespace App\\Console\\Commands;
+namespace App\Console\Commands;
 
-use App\\Models\\Building;
-use App\\Models\\ChargePeriod;
-use App\\Models\\ChargeSetting;
-use App\\Models\\Expense;
-use App\\Models\\SmsLog;
-use App\\Services\\Notifier;
-use App\\Services\\Sms\\SmsSender;
-use App\\Support\\CurrentBuilding;
-use App\\Support\\Fa;
-use Illuminate\\Console\\Command;
-use Illuminate\\Support\\Facades\\DB;
-use Morilog\\Jalali\\Jalalian;
+use App\Models\Building;
+use App\Models\ChargePeriod;
+use App\Models\ChargeSetting;
+use App\Models\Expense;
+use App\Models\SmsLog;
+use App\Services\Notifier;
+use App\Services\Sms\SmsSender;
+use App\Support\CurrentBuilding;
+use App\Support\Fa;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Morilog\Jalali\Jalalian;
 
 /**
  * یادآوری پیامکی به مالک و مدیر: اگر تا N روز (warn_days_before) مانده به تاریخ محاسبه‌ی شارژ هزینه‌های ماه ثبت نشده باشد.
