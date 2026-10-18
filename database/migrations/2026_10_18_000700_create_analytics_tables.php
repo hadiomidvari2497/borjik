@@ -13,9 +13,10 @@ return new class extends Migration
             $table->string('session_key', 128)->unique();
             $table->string('visitor_id', 64)->nullable()->index();
             $table->unsignedBigInteger('user_id')->nullable()->index();
-            $table->timestamp('started_at')->index();
-            $table->timestamp('last_seen_at')->index();
-            $table->timestamp('ended_at')->nullable();
+            // DATETIME avoids legacy MySQL TIMESTAMP default-value restrictions.
+            $table->dateTime('started_at')->index();
+            $table->dateTime('last_seen_at')->index();
+            $table->dateTime('ended_at')->nullable();
             $table->string('landing_page', 500)->nullable();
             $table->string('exit_page', 500)->nullable();
             $table->unsignedInteger('pageviews')->default(0);
@@ -51,7 +52,7 @@ return new class extends Migration
             $table->string('path', 500);
             $table->string('title', 255)->nullable();
             $table->string('referrer_host', 255)->nullable();
-            $table->timestamp('viewed_at')->index();
+            $table->dateTime('viewed_at')->index();
             $table->unsignedInteger('duration_seconds')->default(0);
             $table->unsignedInteger('active_seconds')->default(0);
             $table->boolean('is_engaged')->default(false);
@@ -68,7 +69,7 @@ return new class extends Migration
             $table->string('category', 100)->nullable();
             $table->string('label', 190)->nullable();
             $table->string('path', 500)->nullable();
-            $table->timestamp('created_at')->index();
+            $table->dateTime('created_at')->index();
             $table->index(['event_name', 'created_at']);
         });
     }
