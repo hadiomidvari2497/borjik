@@ -1,18 +1,17 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Building;
-use App\\Models\\SiteSetting;
-use App\\Models\\Subscription;
-use App\\Models\\SubscriptionPayment;
-use App\\Models\\SubscriptionPlan;
-use App\\Services\\BuildingService;
-use App\\Services\\Payments\\ZarinpalGateway;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Http;
-use Illuminate\\Support\\Facades\\Log;
+use App\Models\Building;
+use App\Models\SiteSetting;
+use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
+use App\Models\SubscriptionPlan;
+use App\Services\BuildingService;
+use App\Services\Payments\ZarinpalGateway;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SubscriptionController extends Controller
 {
@@ -95,7 +94,7 @@ class SubscriptionController extends Controller
             ]);
 
             return redirect()->away($result['payment_url']);
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             if (isset($payment)) {
                 DB::transaction(function () use ($payment, $e) {
                     $payment->update([
@@ -144,7 +143,7 @@ class SubscriptionController extends Controller
         try {
             $amountRial = (int) data_get($payment->raw_response, 'amount_rial', 0);
             if ($amountRial <= 0) {
-                throw new \\RuntimeException('Invalid stored payment amount.');
+                throw new \RuntimeException('Invalid stored payment amount.');
             }
 
             $verification = $gateway->verify($authority, $amountRial);
@@ -167,12 +166,12 @@ class SubscriptionController extends Controller
                     return;
                 }
                 if ($locked->status !== 'pending') {
-                    throw new \\RuntimeException('Payment is no longer pending.');
+                    throw new \RuntimeException('Payment is no longer pending.');
                 }
 
                 $subscription = Subscription::whereKey($locked->subscription_id)->lockForUpdate()->firstOrFail();
                 if ($subscription->status !== 'pending') {
-                    throw new \\RuntimeException('Pending subscription not found.');
+                    throw new \RuntimeException('Pending subscription not found.');
                 }
 
                 Subscription::where('user_id', $locked->user_id)
@@ -197,7 +196,7 @@ class SubscriptionController extends Controller
             });
 
             return redirect()->route('subscription.show')->with('status', 'پرداخت با موفقیت تأیید شد و اشتراک شما فعال شد.');
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             Log::warning('Subscription payment verification failed', ['payment_id' => $payment->id, 'exception' => $e::class]);
 
             return redirect()->route('subscription.show')->with('error', 'تأیید پرداخت از سمت درگاه ممکن نشد؛ اشتراک تا زمان تأیید معتبر فعال نمی‌شود.');
