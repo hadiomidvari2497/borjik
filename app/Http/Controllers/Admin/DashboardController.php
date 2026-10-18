@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Building;
-use App\\Models\\SmsLog;
-use App\\Models\\Subscription;
-use App\\Models\\SubscriptionPlan;
-use App\\Models\\User;
+use App\Http\Controllers\Controller;
+use App\Models\Building;
+use App\Models\SmsLog;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -17,7 +17,10 @@ class DashboardController extends Controller
         $since = $now->copy()->subDays(30);
         $activeSubs = Subscription::query()->where('status', 'active')->where('expires_at', '>', $now);
 
+        // فقط آخرین اشتراک هر کاربر را بررسی کن تا اشتراک‌های تاریخی هشدار تکراری نسازند.
+        $latestSubscriptionIds = Subscription::query()->selectRaw('MAX(id)')->groupBy('user_id');
         $expiredSubscriptions = Subscription::query()
+            ->whereIn('id', $latestSubscriptionIds)
             ->where(function ($query) use ($now) {
                 $query->where('status', '!=', 'active')
                     ->orWhereNull('expires_at')
