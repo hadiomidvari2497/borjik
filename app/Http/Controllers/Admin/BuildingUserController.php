@@ -17,7 +17,7 @@ class BuildingUserController extends Controller
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:120'],
             'building_id' => ['nullable', 'integer', 'exists:buildings,id'],
-            'role_id' => ['nullable', 'integer', 'exists:roles,id'],
+            'role_key' => ['nullable', 'string', 'max:30'],
             'status' => ['nullable', Rule::in(['active', 'disabled'])],
             'membership_status' => ['nullable', Rule::in(['active', 'invited', 'inactive', 'rejected'])],
         ]);
@@ -32,16 +32,16 @@ class BuildingUserController extends Controller
                     ->orWhere('national_code', 'like', $like);
             }))
             ->when(! empty($filters['building_id']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('building_id', $filters['building_id'])))
-            ->when(! empty($filters['role_id']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('role_id', $filters['role_id'])))
+            ->when(! empty($filters['role_key']), fn ($query) => $query->whereHas('buildingRoles.role', fn ($role) => $role->where('key', $filters['role_key'])))
             ->when(! empty($filters['membership_status']), fn ($query) => $query->whereHas('buildingRoles', fn ($m) => $m->where('status', $filters['membership_status'])))
             ->when(! empty($filters['status']), fn ($query) => $query->where('status', $filters['status']))
             ->orderByDesc('created_at');
 
         return view('admin.building-users.index', [
             'users' => $usersQuery->paginate(20)->withQueryString(),
-            'filters' => array_merge(['q' => '', 'building_id' => '', 'role_id' => '', 'status' => '', 'membership_status' => ''], $filters),
+            'filters' => array_merge(['q' => '', 'building_id' => '', 'role_key' => '', 'status' => '', 'membership_status' => ''], $filters),
             'buildings' => Building::query()->orderBy('name')->get(['id', 'name']),
-            'roles' => Role::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'roles' => Role::query()->where('is_active', true)->orderBy('name_fa')->get(['key', 'name_fa'])->unique('key')->values(),
             'stats' => [
                 'total' => User::query()->count(),
                 'active' => User::query()->where('status', 'active')->count(),
