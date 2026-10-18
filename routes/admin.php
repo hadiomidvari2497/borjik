@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\ArticleController;
+use App\Http\Controllers\Admin\MarketingContentController;
 use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuthController;
@@ -37,6 +39,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/payment-gateway', [PaymentGatewayController::class, 'edit'])->middleware('admin.can:gateway.manage')->name('payment-gateway.edit');
         Route::put('/payment-gateway', [PaymentGatewayController::class, 'update'])->middleware('admin.can:gateway.manage')->name('payment-gateway.update');
         Route::post('/payment-gateway/validate', [PaymentGatewayController::class, 'validateConfiguration'])->middleware('admin.can:gateway.manage')->name('payment-gateway.validate');
+
+        Route::get('/marketing-content', [MarketingContentController::class, 'edit'])->middleware('admin.can:site.settings')->name('marketing-content.edit');
+        Route::put('/marketing-content', [MarketingContentController::class, 'update'])->middleware('admin.can:site.settings')->name('marketing-content.update');
+
+        Route::prefix('articles')->name('articles.')->middleware('admin.can:articles.manage')->controller(ArticleController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->whereNumber('id')->name('edit');
+            Route::put('/{id}', 'update')->whereNumber('id')->name('update');
+            Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
+        });
 
         Route::get('/settings', [SiteSettingController::class, 'edit'])->middleware('admin.can:site.settings')->name('settings.edit');
         Route::put('/settings', [SiteSettingController::class, 'update'])->middleware('admin.can:site.settings')->name('settings.update');
