@@ -5,6 +5,9 @@ return [
     // اتصال به اپراتور واقعی از «پنل مدیریت ← اتصال پیامک» انجام می‌شود، نه با کد.
     'driver' => env('SMS_DRIVER', 'log'),
 
+    // به‌صورت پیش‌فرض ارسال همان لحظه انجام می‌شود تا به worker نیاز نباشد؛ برای صف، SMS_QUEUE=true کنید.
+    'queue' => (bool) env('SMS_QUEUE', false),
+
     // فقط برای توسعه/تست محلی: اجازهٔ اتصال اتصال‌های HTTP به آدرس‌های داخلی (localhost و شبکهٔ خصوصی). در تولید false بماند.
     'allow_private_hosts' => (bool) env('SMS_ALLOW_PRIVATE_HOSTS', false),
 
