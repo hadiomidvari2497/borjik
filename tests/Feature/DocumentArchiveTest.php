@@ -34,7 +34,7 @@ class DocumentArchiveTest extends TestCase
             ]);
 
         $response->assertRedirect(route('documents.index'));
-        $document = Document::query()->firstOrFail();
+        $document = app(\\App\\Support\\CurrentBuilding::class)->actingAs($building->id, fn () => Document::query()->firstOrFail());
         $this->assertSame($building->id, $document->building_id);
         $this->assertNotNull($document->file_id);
 
