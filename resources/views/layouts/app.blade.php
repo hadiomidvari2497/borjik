@@ -202,5 +202,35 @@
 <script src="{{ asset('js/jdate.js') }}"></script>
 <script src="{{ asset('js/ui.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
+<script>
+(function () {
+  const nav = document.querySelector('.nav');
+  if (!nav) return;
+
+  const storageKey = 'borjik.sidebar.nav.scrollTop';
+  const restoreScroll = function () {
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved !== null) nav.scrollTop = Number(saved) || 0;
+    } catch (e) {}
+  };
+  const saveScroll = function () {
+    try {
+      sessionStorage.setItem(storageKey, String(nav.scrollTop));
+    } catch (e) {}
+  };
+
+  restoreScroll();
+  window.addEventListener('pageshow', restoreScroll);
+  window.addEventListener('pagehide', saveScroll);
+  nav.addEventListener('click', function (event) {
+    const link = event.target.closest('a[href]');
+    if (!link || event.defaultPrevented || event.button !== 0 ||
+        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
+        link.target === '_blank' || link.hasAttribute('download')) return;
+    saveScroll();
+  });
+})();
+</script>
 </body>
 </html>
