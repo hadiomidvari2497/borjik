@@ -8,6 +8,7 @@ use App\Http\Controllers\ChargeController;
 use App\Http\Controllers\ChargeSettingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\MyContractController;
@@ -109,6 +110,13 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     });
 
     Route::get('/audit', [AuditController::class, 'index'])->middleware('can:audit.view')->name('audit.index');
+
+    Route::middleware('can:document.view')->prefix('documents')->name('documents.')->controller(DocumentController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{id}/download', 'download')->whereNumber('id')->name('download');
+        Route::post('/', 'store')->middleware('can:document.manage')->name('store');
+        Route::delete('/{id}', 'destroy')->whereNumber('id')->middleware('can:document.manage')->name('destroy');
+    });
 
     Route::middleware('can:contract.manage')->prefix('contracts')->name('contracts.')->controller(ContractController::class)->group(function () {
         Route::get('/', 'index')->name('index');
