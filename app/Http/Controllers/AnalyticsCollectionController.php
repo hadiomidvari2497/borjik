@@ -29,7 +29,10 @@ class AnalyticsCollectionController extends Controller
             'pixel_ratio' => ['nullable', 'numeric', 'min:0.25', 'max:10'],
         ]);
 
-        $sessionKey = (string) $request->session()->getId();
+        $sessionKey = (string) $request->session()->get('analytics_session_key', '');
+        if ($sessionKey === '') {
+            return response()->json(['ok' => false], 404);
+        }
         $session = AnalyticsSession::query()->where('session_key', $sessionKey)->first();
         if (! $session) {
             return response()->json(['ok' => false], 404);
@@ -79,8 +82,13 @@ class AnalyticsCollectionController extends Controller
             'path' => ['required', 'string', 'max:500', 'regex:/^\/(?!\/)[^?#]*$/'],
         ]);
 
+        $sessionKey = (string) $request->session()->get('analytics_session_key', '');
+        if ($sessionKey === '') {
+            return response()->json(['ok' => false], 404);
+        }
+
         AnalyticsEvent::query()->create([
-            'session_key' => (string) $request->session()->getId(),
+            'session_key' => $sessionKey,
             'user_id' => $request->user()?->getAuthIdentifier(),
             'event_name' => $data['event_name'],
             'category' => $data['category'] ?? null,
