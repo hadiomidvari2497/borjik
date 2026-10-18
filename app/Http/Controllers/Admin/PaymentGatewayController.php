@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\SiteSetting;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Validation\ValidationException;
+
+class PaymentGatewayController extends Controller
+{
+    private const KEY = 'payment.gateway';
+
+    public function edit()
+    {
+        $settings = SiteSetting::get(self::KEY, []);
+        $settings = is_array($settings) ? $settings : [];
+
+        return view('admin.payment-gateway.index', [
+            'gateway' => $settings,
+            'hasApiKey' => ! empty($settings['api_key']),
+            'hasApiSecret' => ! empty($settings['api_secret']),
+            'hasWebhookSecret' => ! empty($settings['webhook_secret']),
+            'callbackUrl' => route('payment.gateway.callback'),
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $old = SiteSetting::get(self::KEY, []);
+        $old = is_array($old) ? $old : [];
+
+        $data = $request->validate([
+            'provider_name' => ['nullable', 'string', 'max:100'],
+            'driver' => ['required', 'string', 'max:60', 'regex:/^[a-zA-Z0-9_-]+$/'],
+            'environment' => ['required', 'in:sandbox,production'],
+            'api_base_url' => ['nullable', 'url:http,https', 'max:500'],
+            'merchant_id' => ['nullable', 'string', 'max:255'],
+            'api_key' => ['nullable', 'string', 'max:2000'],
+            'api_secret' => ['nullable', 'string', 'max:2000'],
+            'webhook_secret' => ['nullable', 'string', 'max:2000'],
+            'active' => ['nullable', 'boolean'],
+            'clear_api_key' => ['nullable', 'boolean'],
+            'clear_api_secret' => ['nullable', 'boolean'],
+            'clear_webhook_secret' => ['nullable', 'boolean'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'driver.regex' => 'شناسه فنی درگاه فقط می‌تواند شامل حروف انگلیسی، عدد، خط تیره و زیرخط باشد.',
+            'environment.in' => 'محیط درگاه معتبر نیست.',
+            'api_base_url.url' => 'آدرس API باید یک URL معتبر با http یا https باشد.',
+        ]);
+
+        $secret = function (string $field, string $clearField) use ($data, $old): ?string {
+            if (($data[$clearField] ?? false) === true) {
+                return null;
+            }
+            $value = trim((string) ($data[$field] ?? ''));
+            if ($value !== '') {
+                return Crypt::encryptString($value);
+            }
+
+            return $old[$field] ?? null;
+        };
+
+        $settings = [
+            'provider_name' => trim((string) ($data['provider_name'] ?? '')),
+            'driver' => trim($data['driver']),
+            'environment' => $data['environment'],
+            'api_base_url' => trim((string) ($data['api_base_url'] ?? '')),
+            'merchant_id' => trim((string) ($data['merchant_id'] ?? '')),
+            'api_key' => $secret('api_key', 'clear_api_key'),
+            'api_secret' => $secret('api_secret', 'clear_api_secret'),
+            'webhook_secret' => $secret('webhook_secret', 'clear_webhook_secret'),
+            'active' => $request->boolean('active'),
+            'notes' => trim((string) ($data['notes'] ?? '')),
+            'updated_at' => now()->toIso8601String(),
+        ];
+
+        if ($settings['active'] && $settings['provider_name'] === '') {
+            throw ValidationException::withMessages(['provider_name' => 'برای فعال‌سازی اتصال، نام درگاه را وارد کنید.']);
+        }
+
+        // Settings are stored as a JSON value; credentials are encrypted before persistence.
+        SiteSetting::set(self::KEY, $settings, true);
+
+        return redirect()->route('admin.payment-gateway.edit')
+            ->with('status', 'تنظیمات درگاه ذخیره شد. این مرحله اطلاعات اتصال را نگه می‌دارد؛ برای تراکنش واقعی باید آداپتور اختصاصی همان درگاه نیز پیاده‌سازی شود.');
+    }
+
+    public function validateConfiguration()
+    {
+        $settings = SiteSetting::get(self::KEY, []);
+        $settings = is_array($settings) ? $settings : [];
+        $missing = [];
+
+        if (empty($settings['provider_name'])) $missing[] = 'نام درگاه';
+        if (empty($settings['driver'])) $missing[] = 'شناسه فنی درگاه';
+        if (empty($settings['merchant_id'])) $missing[] = 'شناسه پذیرنده';
+        if (empty($settings['api_key'])) $missing[] = 'کلید API';
+
+        if (empty($settings['active'])) {
+            return back()->with('warning', 'اتصال درگاه غیرفعال است؛ این بررسی فقط تنظیمات ذخیره‌شده را اعتبارسنجی می‌کند و تراکنش آزمایشی ارسال نمی‌کند.');
+        }
+
+        if ($missing !== []) {
+            return back()->with('error', 'تنظیمات ناقص است: '.implode('، ', $missing).' .');
+        }
+
+        return back()->with('status', 'فیلدهای پایه کامل هستند. این نتیجه به معنی اتصال زنده یا تأیید پرداخت نیست؛ برای آن باید آداپتور اختصاصی درگاه انتخابی پیاده‌سازی شود.');
+    }
+}
