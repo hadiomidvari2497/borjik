@@ -5,8 +5,9 @@ namespace App\Services\Sms;
 use App\Jobs\SendSmsJob;
 use App\Models\SmsLog;
 use App\Models\SmsTemplate;
+use Throwable;
 
-/** رندر قالب (اول قالب ساختمان، بعد سیستمی، بعد پیش‌فرض config) ← ثبت در sms_logs ← ارسال در صف. */
+/** رندر قالب ← ثبت لاگ ← ارسال فوری به‌صورت پیش‌فرض؛ صف اختیاری است. */
 class SmsSender
 {
     public function sendTemplate(string $key, string $mobile, array $vars = [], ?int $userId = null, ?int $buildingId = null): SmsLog
@@ -23,9 +24,28 @@ class SmsSender
             'status' => 'queued',
         ]);
 
-        SendSmsJob::dispatch($log->id, $mobile, $body);
+        if (config('sms.queue', false)) {
+            SendSmsJob::dispatch($log->id, $mobile, $body);
 
-        return $log;
+            return $log;
+        }
+
+        // ارسال هم‌زمان باعث می‌شود کارکرد ارسال به اجرای Queue Worker وابسته نباشد.
+        try {
+            SendSmsJob::dispatchSync($log->id, $mobile, $body);
+        } catch (Throwable $e) {
+            // خطا باید در آرشیو دیده شود، اما ارسال پیامک نباید کل درخواست برنامه را با 500 متوقف کند.
+            $log->refresh();
+            if ($log->status === 'queued') {
+                $log->update([
+                    'status' => 'failed',
+                    'gateway' => 'unknown',
+                    'error' => 'ارسال اجرا نشد: '.\Illuminate\Support\Str::limit($e->getMessage(), 200, '…'),
+                ]);
+            }
+        }
+
+        return $log->fresh();
     }
 
     private function render(string $key, array $vars, ?int $buildingId): string
