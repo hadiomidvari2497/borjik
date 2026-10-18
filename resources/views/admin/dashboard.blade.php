@@ -20,6 +20,7 @@
     ['title' => 'اشتراک‌های فعال در آستانه انقضا', 'count' => $expiringSoon, 'detail' => 'انقضا در ۷ روز آینده', 'icon' => 'clock', 'url' => $adm->hasPermission('subscriptions.manage') ? route('admin.subscriptions.index') : null],
   ])->filter(fn ($item) => $item['count'] > 0)->values();
 @endphp
+<style>.trend-wrap{margin:18px 0}.trend-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.trend-controls{display:flex;gap:6px;flex-wrap:wrap}.trend-controls a{padding:7px 11px;border:1px solid var(--line);border-radius:9px;text-decoration:none;font-size:12px;color:var(--text)}.trend-controls a.active{background:var(--brand,#1c4f4a);border-color:var(--brand,#1c4f4a);color:#fff}.trend-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:14px 0}.trend-dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-left:5px}.trend-chart{display:grid;grid-template-columns:repeat(var(--trend-count),minmax(0,1fr));gap:5px;align-items:end;height:190px;padding-top:8px}.trend-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;min-width:0}.trend-bars{height:155px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px;border-bottom:1px solid var(--line);padding:0 2px}.trend-bar{width:44%;min-width:2px;max-width:16px;border-radius:4px 4px 0 0;min-height:3px}.trend-label{font-size:9px;color:var(--muted);white-space:nowrap;direction:ltr}.trend-foot{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.8}@media(max-width:650px){.trend-chart{gap:2px;height:160px}.trend-bars{height:125px;gap:2px}.trend-label{font-size:8px;transform:rotate(-35deg);transform-origin:top center;margin-top:4px}.trend-col{gap:3px}}</style>
 
 @if($alerts->isNotEmpty())
   <section class="card" style="padding:18px;margin-bottom:18px">
@@ -63,6 +64,28 @@
     </div>
   @endforeach
 </div>
+
+
+<section class="card trend-wrap" style="padding:18px">
+  <div class="trend-head">
+    <div><h2 style="font-size:16px;font-weight:800;margin:0 0 5px">روند رشد سامانه</h2><div style="font-size:12px;color:var(--muted,#64748b)">مقایسه ثبت‌نام کاربران و ایجاد ساختمان‌ها در بازه انتخابی</div></div>
+    <nav class="trend-controls" aria-label="بازه زمانی">
+      <a href="{{ route('admin.dashboard', ['days' => 7]) }}" class="{{ $trendDays === 7 ? 'active' : '' }}">۷ روز</a>
+      <a href="{{ route('admin.dashboard', ['days' => 30]) }}" class="{{ $trendDays === 30 ? 'active' : '' }}">۳۰ روز</a>
+      <a href="{{ route('admin.dashboard', ['days' => 90]) }}" class="{{ $trendDays === 90 ? 'active' : '' }}">۹۰ روز</a>
+    </nav>
+  </div>
+  <div class="trend-legend"><span><i class="trend-dot" style="background:#3b82c4"></i>کاربران جدید</span><span><i class="trend-dot" style="background:#2a9b8f"></i>ساختمان‌های جدید</span><span style="margin-right:auto">جمع بازه: {{ $F::num($newUsers) }} کاربر و {{ $F::num($newBuildings) }} ساختمان</span></div>
+  <div class="trend-chart" style="--trend-count:{{ count($trend) }}">
+    @foreach($trend as $point)
+      <div class="trend-col" title="{{ $point['label'] }}: {{ $F::num($point['users']) }} کاربر، {{ $F::num($point['buildings']) }} ساختمان">
+        <div class="trend-bars"><span class="trend-bar" style="height:{{ $point['users_height'] }}%;background:#3b82c4" aria-label="کاربران {{ $point['users'] }}"></span><span class="trend-bar" style="height:{{ $point['buildings_height'] }}%;background:#2a9b8f" aria-label="ساختمان‌ها {{ $point['buildings'] }}"></span></div>
+        <span class="trend-label">{{ $point['label'] }}</span>
+      </div>
+    @endforeach
+  </div>
+  <div class="trend-foot">{{ $trendIsWeekly ? 'برای خوانایی، بازه ۹۰ روزه در ستون‌های هفتگی گروه‌بندی شده است.' : 'هر ستون نمایانگر یک روز است. برای مشاهده مقدار دقیق، نشانگر را روی ستون نگه دار.' }} آمار فقط بر اساس تاریخ ثبت کاربران و ساختمان‌ها محاسبه می‌شود.</div>
+</section>
 
 @if($quick->isNotEmpty())
 <div>
