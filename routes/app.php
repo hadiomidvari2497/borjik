@@ -138,9 +138,9 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::middleware('can:supply.manage')->prefix('supplies')->name('supplies.')->controller(SupplyController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
-        Route::put('/{supply}', 'update')->whereNumber('supply')->name('update');
-        Route::post('/{supply}/movements', 'move')->whereNumber('supply')->name('move');
-        Route::delete('/{supply}', 'destroy')->whereNumber('supply')->name('destroy');
+        Route::put('/{id}', 'update')->whereNumber('id')->name('update');
+        Route::post('/{id}/movements', 'move')->whereNumber('id')->name('move');
+        Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
     });
 
     Route::middleware('can:shift.view')->prefix('shifts')->name('shifts.')->controller(SecurityShiftController::class)->group(function () {

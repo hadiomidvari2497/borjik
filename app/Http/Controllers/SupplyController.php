@@ -59,8 +59,9 @@ class SupplyController extends Controller
         return redirect()->route('supplies.index')->with('status', 'قلم ملزومات ثبت شد.');
     }
 
-    public function update(Request $request, Supply $supply)
+    public function update(Request $request, int $id)
     {
+        $supply = Supply::findOrFail($id);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'unit' => ['nullable', 'string', 'max:30'],
@@ -76,8 +77,9 @@ class SupplyController extends Controller
         return redirect()->route('supplies.index')->with('status', 'مشخصات ملزومات ویرایش شد.');
     }
 
-    public function move(Request $request, Supply $supply)
+    public function move(Request $request, int $id)
     {
+        $supply = Supply::findOrFail($id);
         $data = $request->validate([
             'direction' => ['required', 'in:in,out'],
             'quantity' => ['required', 'numeric', 'gt:0', 'max:99999999.99'],
@@ -117,8 +119,9 @@ class SupplyController extends Controller
         return redirect()->route('supplies.index')->with('status', $data['direction'] === 'in' ? 'ورود ملزومات ثبت شد.' : 'مصرف ملزومات ثبت شد.');
     }
 
-    public function destroy(Supply $supply)
+    public function destroy(int $id)
     {
+        $supply = Supply::findOrFail($id);
         if ($supply->movements()->exists()) {
             return redirect()->route('supplies.index')->with('error', 'این قلم گردش موجودی دارد؛ برای حفظ سابقه امکان حذف آن نیست.');
         }
