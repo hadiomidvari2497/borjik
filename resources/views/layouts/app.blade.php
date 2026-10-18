@@ -99,7 +99,7 @@
     <header class="top">
       <div style="display:flex;align-items:center;gap:10px">
         <button class="ib burger" id="burger" type="button" aria-label="باز کردن منو"><svg class="i"><use href="#menu"/></svg></button>
-        @if(!request()->routeIs('calendar.index'))<h1>@yield('title', 'داشبورد')</h1>@endif
+        @if(!request()->routeIs('calendar.index', 'sms-templates.*'))<h1>@yield('title', 'داشبورد')</h1>@endif
       </div>
       <div class="acts">
         <a class="ib" href="{{ route('invitations.index') }}" aria-label="دعوت‌نامه‌ها" title="دعوت‌نامه‌ها"><svg class="i"><use href="#inbox"/></svg></a>
@@ -110,7 +110,7 @@
     </header>
 
     <div class="scroll">
-      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index'))
+      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index', 'sms-templates.*'))
         <section class="workspace-hero" aria-label="معرفی بخش">
           <div class="workspace-hero-copy">
             <div class="workspace-hero-kicker">برجیک <span aria-hidden="true">·</span> مدیریت هوشمند ساختمان</div>
