@@ -22,6 +22,7 @@ use App\Http\Controllers\StorageController;
 use App\Http\Controllers\StaffRoleController;
 use App\Http\Controllers\SecurityShiftController;
 use App\Http\Controllers\SupplyController;
+use App\Http\Controllers\SmsTemplateController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
@@ -140,6 +141,13 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->whereNumber('id')->name('update');
         Route::post('/{id}/movements', 'move')->whereNumber('id')->name('move');
+        Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
+    });
+
+    Route::middleware('can:sms.templates')->prefix('sms-templates')->name('sms-templates.')->controller(SmsTemplateController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->whereNumber('id')->name('update');
         Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
     });
 
