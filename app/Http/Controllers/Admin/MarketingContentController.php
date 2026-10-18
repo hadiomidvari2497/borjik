@@ -11,7 +11,7 @@ class MarketingContentController extends Controller
     public function edit()
     {
         return view('admin.marketing-content.edit', [
-            'content' => array_replace_recursive($this->defaults(), SiteSetting::get('marketing.content', [])),
+            'content' => array_replace($this->defaults(), SiteSetting::get('marketing.content', [])),
         ]);
     }
 
@@ -34,6 +34,8 @@ class MarketingContentController extends Controller
             'about.title' => ['required', 'string', 'max:180'],
             'about.paragraph1' => ['required', 'string', 'max:1200'],
             'about.paragraph2' => ['nullable', 'string', 'max:1200'],
+            'about.note_title' => ['required', 'string', 'max:180'],
+            'about.note_description' => ['required', 'string', 'max:500'],
             'about.points' => ['nullable', 'array', 'max:6'],
             'about.points.*' => ['nullable', 'string', 'max:200'],
             'articles_title' => ['required', 'string', 'max:160'],
@@ -78,7 +80,7 @@ class MarketingContentController extends Controller
                 ['icon' => '▦', 'title' => 'تقویم و اطلاع‌رسانی', 'description' => 'رویدادها و برنامه‌های ساختمان را منظم نگه دارید و ارتباطات را از مسیرهای مشخص پیش ببرید.'],
                 ['icon' => '▤', 'title' => 'اسناد و سوابق', 'description' => 'به اطلاعات و سوابق موردنیاز دسترسی داشته باشید و تصمیم‌ها را با دید روشن‌تری بگیرید.'],
             ],
-            'about' => ['eyebrow' => 'درباره برجیک', 'title' => 'ساختمان بهتر، با همکاری شفاف‌تر', 'paragraph1' => 'برجیک یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.', 'paragraph2' => 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.', 'points' => ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری', 'تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان', 'دسترسی متناسب با نقش هر کاربر در ساختمان']],
+            'about' => ['eyebrow' => 'درباره برجیک', 'title' => 'ساختمان بهتر، با همکاری شفاف‌تر', 'paragraph1' => 'برجیک یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.', 'paragraph2' => 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.', 'note_title' => 'مدیریت بهتر، با اطلاعات روشن‌تر', 'note_description' => 'وقتی وضعیت‌ها مشخص باشند، تصمیم‌گیری و همکاری هم ساده‌تر می‌شود.', 'points' => ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری', 'تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان', 'دسترسی متناسب با نقش هر کاربر در ساختمان']],
             'articles_title' => 'مطالبی برای مدیریت بهتر ساختمان',
             'articles_description' => 'راهنماهای کوتاه درباره‌ی موضوعاتی که هر مدیر و ساکن ساختمان با آن‌ها روبه‌رو می‌شود.',
             'ads' => ['eyebrow' => 'تبلیغات و معرفی خدمات', 'title' => 'کسب‌وکار شما به جامعه‌ی ساختمان‌ها خدمت می‌کند؟', 'description' => 'این بخش برای معرفی خدمات مرتبط با ساختمان، نگهداری، تعمیرات و زندگی آپارتمانی در نظر گرفته شده است. برای فعال‌سازی همکاری تبلیغاتی با ما در ارتباط باشید.', 'button' => 'درخواست همکاری تبلیغاتی'],
