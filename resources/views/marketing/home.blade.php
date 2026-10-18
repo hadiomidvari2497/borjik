@@ -125,6 +125,17 @@
     </style>
 </head>
 <body>
+@php
+$defaultFeatures = [
+ ['icon'=>'◉','title'=>'محاسبه و صدور شارژ','description'=>'قواعد شارژ و هزینه‌های ساختمان را مدیریت کنید و سهم هر واحد را با روشی روشن محاسبه کنید.'],
+ ['icon'=>'⇄','title'=>'پرداخت و پیگیری مالی','description'=>'صورتحساب‌ها، ثبت پرداخت و وضعیت تأیید فیش‌ها را در یک مسیر مشخص دنبال کنید.'],
+ ['icon'=>'☷','title'=>'درخواست‌ها و وظایف','description'=>'درخواست‌های ساکنان را ثبت، ارجاع و پیگیری کنید تا هیچ موردی میان پیام‌ها گم نشود.'],
+ ['icon'=>'♧','title'=>'مدیریت اعضا و پرسنل','description'=>'نقش‌ها و دسترسی‌ها را متناسب با مسئولیت مدیر، ساکن و پرسنل سازمان‌دهی کنید.'],
+ ['icon'=>'▦','title'=>'تقویم و اطلاع‌رسانی','description'=>'رویدادها و برنامه‌های ساختمان را منظم نگه دارید و ارتباطات را از مسیرهای مشخص پیش ببرید.'],
+ ['icon'=>'▤','title'=>'اسناد و سوابق','description'=>'به اطلاعات و سوابق موردنیاز دسترسی داشته باشید و تصمیم‌ها را با دید روشن‌تری بگیرید.'],
+];
+$features = data_get($content ?? [], 'features', $defaultFeatures);
+@endphp
 <header class="site-header">
     <div class="wrap nav">
         <a class="brand" href="#home" aria-label="برجیک، صفحه اصلی"><span class="brand-mark">ب</span><span>برجیک</span></a>
@@ -139,10 +150,10 @@
     <section class="hero" id="home">
         <div class="wrap hero-grid">
             <div>
-                <span class="eyebrow"><i></i> مدیریت نوین ساختمان، در یک جا</span>
-                <h1>مدیریت ساختمان،<br><span>با آرامش بیشتر</span></h1>
-                <p class="hero-copy">برجیک کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.</p>
-                <div class="hero-actions"><a class="btn btn-primary" href="{{ route('login') }}">شروع استفاده از برجیک <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#features">امکانات را ببینید <span aria-hidden="true">⌄</span></a></div>
+                <span class="eyebrow"><i></i> {{ data_get($content ?? [], 'hero.badge', 'مدیریت نوین ساختمان، در یک جا') }}</span>
+                <h1>{{ data_get($content ?? [], 'hero.title', 'مدیریت ساختمان،') }}<br><span>{{ data_get($content ?? [], 'hero.highlight', 'با آرامش بیشتر') }}</span></h1>
+                <p class="hero-copy">{{ data_get($content ?? [], 'hero.description', 'برجیک کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.') }}</p>
+                <div class="hero-actions"><a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از برجیک') }} <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
                 <div class="hero-proof"><div class="proof-avatars" aria-hidden="true"><span>م</span><span>س</span><span>ب</span></div><div><strong>همه‌چیز شفاف‌تر</strong><br>برای مدیران، ساکنان و پرسنل ساختمان</div></div>
             </div>
             <div class="dashboard-art" aria-label="پیش‌نمایش تصویری داشبورد برجیک">
@@ -168,14 +179,11 @@
 
     <section class="content-section" id="features">
         <div class="wrap">
-            <div class="section-head"><span class="section-kicker">امکانات برجیک</span><h2>همه‌ی کارهای ساختمان،<br>در یک تجربه‌ی یکپارچه</h2><p>ابزارهایی برای کمتر شدن کارهای تکراری، روشن‌تر شدن وضعیت‌ها و ارتباط بهتر میان اعضای ساختمان.</p></div>
+            <div class="section-head"><span class="section-kicker">امکانات برجیک</span><h2>{{ data_get($content ?? [], 'features_title', 'همه‌ی کارهای ساختمان، در یک تجربه‌ی یکپارچه') }}</h2><p>{{ data_get($content ?? [], 'features_description', 'ابزارهایی برای کمتر شدن کارهای تکراری، روشن‌تر شدن وضعیت‌ها و ارتباط بهتر میان اعضای ساختمان.') }}</p></div>
             <div class="feature-grid">
-                <article class="feature-card"><div class="feature-icon">◉</div><h3>محاسبه و صدور شارژ</h3><p>قواعد شارژ و هزینه‌های ساختمان را مدیریت کنید و سهم هر واحد را با روشی روشن محاسبه کنید.</p></article>
-                <article class="feature-card"><div class="feature-icon">⇄</div><h3>پرداخت و پیگیری مالی</h3><p>صورتحساب‌ها، ثبت پرداخت و وضعیت تأیید فیش‌ها را در یک مسیر مشخص دنبال کنید.</p></article>
-                <article class="feature-card"><div class="feature-icon">☷</div><h3>درخواست‌ها و وظایف</h3><p>درخواست‌های ساکنان را ثبت، ارجاع و پیگیری کنید تا هیچ موردی میان پیام‌ها گم نشود.</p></article>
-                <article class="feature-card"><div class="feature-icon">♧</div><h3>مدیریت اعضا و پرسنل</h3><p>نقش‌ها و دسترسی‌ها را متناسب با مسئولیت مدیر، ساکن و پرسنل سازمان‌دهی کنید.</p></article>
-                <article class="feature-card"><div class="feature-icon">▦</div><h3>تقویم و اطلاع‌رسانی</h3><p>رویدادها و برنامه‌های ساختمان را منظم نگه دارید و ارتباطات را از مسیرهای مشخص پیش ببرید.</p></article>
-                <article class="feature-card"><div class="feature-icon">▤</div><h3>اسناد و سوابق</h3><p>به اطلاعات و سوابق موردنیاز دسترسی داشته باشید و تصمیم‌ها را با دید روشن‌تری بگیرید.</p></article>
+                @foreach($features as $feature)
+                <article class="feature-card"><div class="feature-icon">{{ $feature['icon'] ?? '✦' }}</div><h3>{{ $feature['title'] ?? '' }}</h3><p>{{ $feature['description'] ?? '' }}</p></article>
+                @endforeach
             </div>
         </div>
     </section>
@@ -194,41 +202,41 @@
     <section class="content-section" id="about">
         <div class="wrap about-grid">
             <div class="about-visual"><div class="about-note"><strong>مدیریت بهتر، با اطلاعات روشن‌تر</strong><p>وقتی وضعیت‌ها مشخص باشند، تصمیم‌گیری و همکاری هم ساده‌تر می‌شود.</p></div></div>
-            <div class="about-copy"><span class="section-kicker">درباره برجیک</span><h2>ساختمان بهتر، با همکاری شفاف‌تر</h2><p>برجیک یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.</p><p>هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.</p><ul class="check-list"><li><span class="check">✓</span><span>اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری</span></li><li><span class="check">✓</span><span>تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان</span></li><li><span class="check">✓</span><span>دسترسی متناسب با نقش هر کاربر در ساختمان</span></li></ul></div>
+            <div class="about-copy"><span class="section-kicker">{{ data_get($content ?? [], 'about.eyebrow', 'درباره برجیک') }}</span><h2>{{ data_get($content ?? [], 'about.title', 'ساختمان بهتر، با همکاری شفاف‌تر') }}</h2><p>{{ data_get($content ?? [], 'about.paragraph1', 'برجیک یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.') }}</p><p>{{ data_get($content ?? [], 'about.paragraph2', 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.') }}</p><ul class="check-list">@foreach(data_get($content ?? [], 'about.points', ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری','تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان','دسترسی متناسب با نقش هر کاربر در ساختمان']) as $point)<li><span class="check">✓</span><span>{{ $point }}</span></li>@endforeach</ul></div>
         </div>
     </section>
 
     <section class="content-section" id="articles" style="background:#f0f6f4">
-        <div class="wrap"><div class="section-head"><span class="section-kicker">دانش‌نامه‌ی برجیک</span><h2>مطالبی برای مدیریت بهتر ساختمان</h2><p>راهنماهای کوتاه درباره‌ی موضوعاتی که هر مدیر و ساکن ساختمان با آن‌ها روبه‌رو می‌شود.</p></div>
+        <div class="wrap"><div class="section-head"><span class="section-kicker">دانش‌نامه‌ی برجیک</span><h2>{{ data_get($content ?? [], 'articles_title', 'مطالبی برای مدیریت بهتر ساختمان') }}</h2><p>{{ data_get($content ?? [], 'articles_description', 'راهنماهای کوتاه درباره‌ی موضوعاتی که هر مدیر و ساکن ساختمان با آن‌ها روبه‌رو می‌شود.') }}</p></div>
             <div class="article-grid">
-                <article class="article-card"><div class="article-art" aria-hidden="true">🧾</div><div class="article-body"><span class="article-tag">مدیریت مالی</span><h3>چطور محاسبه‌ی شارژ را شفاف‌تر کنیم؟</h3><p>آشنایی با اهمیت قواعد روشن، ثبت هزینه‌ها و دسترسی اعضا به سوابق مالی ساختمان.</p></div></article>
-                <article class="article-card"><div class="article-art" aria-hidden="true">🛠️</div><div class="article-body"><span class="article-tag">رسیدگی و نگهداری</span><h3>هیچ درخواست ساکنی نباید گم شود</h3><p>چرا ثبت، ارجاع و پیگیری منظم درخواست‌ها به بهبود تجربه‌ی ساکنان کمک می‌کند.</p></div></article>
-                <article class="article-card"><div class="article-art" aria-hidden="true">🤝</div><div class="article-body"><span class="article-tag">ارتباطات</span><h3>نقش ارتباط شفاف در ساختمان آرام‌تر</h3><p>چند اصل ساده برای اطلاع‌رسانی بهتر و همکاری مؤثرتر میان مدیر و ساکنان.</p></div></article>
+                @forelse($articles as $article)
+                <article class="article-card"><a href="{{ route('marketing.articles.show', $article->slug) }}" aria-label="مطالعهٔ {{ $article->title }}"><div class="article-art" aria-hidden="true">@if($article->cover_image)<img src="{{ $article->cover_image }}" alt="" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">@else 📚 @endif</div></a><div class="article-body"><span class="article-tag">دانش‌نامهٔ برجیک</span><h3><a href="{{ route('marketing.articles.show', $article->slug) }}">{{ $article->title }}</a></h3><p>{{ $article->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($article->body), 140) }}</p><a class="article-tag" href="{{ route('marketing.articles.show', $article->slug) }}">ادامهٔ مطلب ←</a></div></article>
+                @empty
+                <p>مقالات جدید به‌زودی در این بخش منتشر می‌شوند.</p>
+                @endforelse
             </div>
+            <div style="text-align:center;margin-top:24px"><a class="btn btn-light" href="{{ route('marketing.articles.index') }}">مشاهدهٔ همهٔ مقالات ←</a></div>
         </div>
     </section>
 
     <section class="partners" id="ads">
-        <div class="wrap"><div class="partner-panel"><div><span class="mini-label">تبلیغات و معرفی خدمات</span><h2>کسب‌وکار شما به جامعه‌ی ساختمان‌ها خدمت می‌کند؟</h2><p>این بخش برای معرفی خدمات مرتبط با ساختمان، نگهداری، تعمیرات و زندگی آپارتمانی در نظر گرفته شده است. برای فعال‌سازی همکاری تبلیغاتی با ما در ارتباط باشید.</p></div><div class="partner-actions"><a class="btn btn-primary" href="#contact">درخواست همکاری تبلیغاتی</a></div></div></div>
+        <div class="wrap"><div class="partner-panel"><div><span class="mini-label">{{ data_get($content ?? [], 'ads.eyebrow', 'تبلیغات و معرفی خدمات') }}</span><h2>{{ data_get($content ?? [], 'ads.title', 'کسب‌وکار شما به جامعه‌ی ساختمان‌ها خدمت می‌کند؟') }}</h2><p>{{ data_get($content ?? [], 'ads.description', 'این بخش برای معرفی خدمات مرتبط با ساختمان، نگهداری، تعمیرات و زندگی آپارتمانی در نظر گرفته شده است. برای فعال‌سازی همکاری تبلیغاتی با ما در ارتباط باشید.') }}</p></div><div class="partner-actions"><a class="btn btn-primary" href="#contact">{{ data_get($content ?? [], 'ads.button', 'درخواست همکاری تبلیغاتی') }}</a></div></div></div>
     </section>
 
     <section class="content-section" id="partners" style="padding-top:0">
-        <div class="wrap"><div class="partner-panel"><div><span class="mini-label">همکاران ما</span><h2>با همکاری هم، مدیریت ساختمان را بهتر می‌کنیم</h2><p>از شرکت‌های خدمات ساختمانی و تعمیر و نگهداری تا کسب‌وکارهای مرتبط؛ این بخش برای معرفی همکاران و راهکارهای مکمل برجیک آماده شده است.</p></div><div class="partner-actions"><a class="btn btn-light" href="#contact">پیشنهاد همکاری <span aria-hidden="true">←</span></a></div></div></div>
+        <div class="wrap"><div class="partner-panel"><div><span class="mini-label">{{ data_get($content ?? [], 'partners.eyebrow', 'همکاران ما') }}</span><h2>{{ data_get($content ?? [], 'partners.title', 'با همکاری هم، مدیریت ساختمان را بهتر می‌کنیم') }}</h2><p>{{ data_get($content ?? [], 'partners.description', 'از شرکت‌های خدمات ساختمانی و تعمیر و نگهداری تا کسب‌وکارهای مرتبط؛ این بخش برای معرفی همکاران و راهکارهای مکمل برجیک آماده شده است.') }}</p></div><div class="partner-actions"><a class="btn btn-light" href="#contact">{{ data_get($content ?? [], 'partners.button', 'پیشنهاد همکاری') }} <span aria-hidden="true">←</span></a></div></div></div>
     </section>
 
     <section class="content-section contact-section" id="contact">
         <div class="wrap contact-grid">
-            <div><span class="section-kicker">تماس با ما</span><h2>برای شروع همکاری،<br>در ارتباط باشیم</h2><p>برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به برجیک شروع کنید. راه ارتباطی عمومی تیم برجیک نیز در صورت پیکربندی در سامانه نمایش داده می‌شود.</p><a class="btn btn-primary" href="{{ route('login') }}">ورود به برجیک <span aria-hidden="true">←</span></a></div>
+            <div><span class="section-kicker">{{ data_get($content ?? [], 'contact.eyebrow', 'تماس با ما') }}</span><h2>{{ data_get($content ?? [], 'contact.title', 'برای شروع همکاری، در ارتباط باشیم') }}</h2><p>{{ data_get($content ?? [], 'contact.description', 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به برجیک شروع کنید.') }}</p><a class="btn btn-primary" href="{{ route('login') }}">ورود به برجیک <span aria-hidden="true">←</span></a></div>
             <div class="contact-card">
                 <div class="contact-row"><span class="contact-symbol">✉</span><div><strong>ارتباط با تیم برجیک</strong>
-                    @if(config('mail.from.address'))
-                        <a class="contact-email" href="mailto:{{ config('mail.from.address') }}">{{ config('mail.from.address') }}</a>
-                    @else
-                        <small>راه ارتباطی عمومی هنوز در تنظیمات سامانه ثبت نشده است.</small>
-                    @endif
+                    @if(data_get($content ?? [], 'contact.email'))<a class="contact-email" href="mailto:{{ data_get($content, 'contact.email') }}">{{ data_get($content, 'contact.email') }}</a>@else<small>راه ارتباطی عمومی هنوز در پنل مدیریت ثبت نشده است.</small>@endif
                 </div></div>
-                <div class="contact-row"><span class="contact-symbol">◎</span><div><strong>پشتیبانی حساب کاربری</strong><small>برای شروع، وارد سامانه شوید و از امکانات حساب خود استفاده کنید.</small></div></div>
-                <div class="contact-row"><span class="contact-symbol">↗</span><div><strong>همکاری و تبلیغات</strong><small>برای پیشنهاد همکاری، از راه ارتباطی عمومی اعلام‌شده توسط برجیک استفاده کنید.</small></div></div>
+                @if(data_get($content ?? [], 'contact.phone'))<div class="contact-row"><span class="contact-symbol">☎</span><div><strong>شماره تماس</strong><a href="tel:{{ data_get($content, 'contact.phone') }}" dir="ltr">{{ data_get($content, 'contact.phone') }}</a></div></div>@endif
+                <div class="contact-row"><span class="contact-symbol">◎</span><div><strong>{{ data_get($content ?? [], 'contact.support_title', 'پشتیبانی حساب کاربری') }}</strong><small>{{ data_get($content ?? [], 'contact.support_description', 'برای شروع، وارد سامانه شوید و از امکانات حساب خود استفاده کنید.') }}</small></div></div>
+                <div class="contact-row"><span class="contact-symbol">↗</span><div><strong>همکاری و تبلیغات</strong><small>{{ data_get($content ?? [], 'partners.description', 'برای پیشنهاد همکاری از راه ارتباطی عمومی برجیک استفاده کنید.') }}</small></div></div>
             </div>
         </div>
     </section>
