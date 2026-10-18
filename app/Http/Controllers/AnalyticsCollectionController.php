@@ -7,16 +7,11 @@ use App\Models\AnalyticsPageView;
 use App\Models\AnalyticsSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 
 class AnalyticsCollectionController extends Controller
 {
     public function heartbeat(Request $request): JsonResponse
     {
-        if (! Schema::hasTable('analytics_sessions') || ! Schema::hasTable('analytics_page_views')) {
-            return response()->json(['ok' => false], 503);
-        }
-
         $data = $request->validate([
             'visitor_id' => ['nullable', 'string', 'max:64', 'regex:/^[a-zA-Z0-9-]+$/'],
             'path' => ['required', 'string', 'max:500', 'regex:/^\/(?!\/)[^?#]*$/'],
@@ -71,10 +66,6 @@ class AnalyticsCollectionController extends Controller
 
     public function event(Request $request): JsonResponse
     {
-        if (! Schema::hasTable('analytics_events')) {
-            return response()->json(['ok' => false], 503);
-        }
-
         $data = $request->validate([
             'visitor_id' => ['nullable', 'string', 'max:64', 'regex:/^[a-zA-Z0-9-]+$/'],
             'event_name' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_.-]+$/'],
