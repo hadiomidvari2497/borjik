@@ -13,7 +13,6 @@ class AdminSystemDiagnosticsTest extends TestCase
 
     public function test_error_record_with_actor_is_visible_in_admin_diagnostics(): void
     {
-        $user = \App\Models\User::factory()->create();
         $admin = AdminUser::create(['username' => 'diagnostics-admin', 'password' => 'secret-pass-1', 'status' => 'active', 'is_super' => true]);
 
         SystemErrorLog::query()->create([
@@ -25,8 +24,8 @@ class AdminSystemDiagnosticsTest extends TestCase
             'path' => '/example',
             'route_name' => 'example.test',
             'status_code' => 500,
-            'actor_type' => 'user',
-            'user_id' => $user->id,
+            'actor_type' => 'admin',
+            'admin_user_id' => $admin->id,
             'created_at' => now(),
         ]);
 
@@ -36,7 +35,8 @@ class AdminSystemDiagnosticsTest extends TestCase
             ->assertSee('مرکز خطا و عیب‌یابی')
             ->assertSee('Diagnostic test failure')
             ->assertSee('سلامت اجزای سامانه')
-            ->assertSee('example.test');
+            ->assertSee('example.test')
+            ->assertSee('diagnostics-admin');
     }
 
     public function test_diagnostics_page_requires_logs_view_permission(): void
