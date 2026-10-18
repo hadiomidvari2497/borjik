@@ -63,7 +63,6 @@ return [
         'items' => [
             ['label' => 'اسناد', 'icon' => 'folder', 'route' => 'documents.index', 'perm' => ['document.manage', 'document.view'], 'badge' => null],
             ['label' => 'دفترچه تلفن', 'icon' => 'book', 'route' => 'phonebook.index', 'perm' => ['phonebook.building', 'phonebook.personal'], 'badge' => null],
-            ['label' => 'خروجی داده‌ها', 'icon' => 'dl', 'route' => 'export.index', 'perm' => 'export.data', 'badge' => null],
             ['label' => 'تاریخچه تغییرات', 'icon' => 'hist', 'route' => 'audit.index', 'perm' => 'audit.view', 'badge' => null],
         ],
     ],
