@@ -64,6 +64,11 @@ class AnalyticsController extends Controller
             ];
         }
 
+        $topUsers = AnalyticsSession::query()->with('user:id,first_name,last_name,company_name,person_type')
+            ->whereBetween('started_at', [$start, $end])->whereNotNull('user_id')
+            ->select('user_id', DB::raw('SUM(active_seconds) as total_active_seconds'), DB::raw('COUNT(*) as total_sessions'), DB::raw('SUM(pageviews) as total_pageviews'))
+            ->groupBy('user_id')->orderByDesc('total_active_seconds')->limit(10)->get();
+
         $topPages = AnalyticsPageView::query()->whereBetween('viewed_at', [$start, $end])
             ->select('path', DB::raw('COUNT(*) as views'), DB::raw('AVG(active_seconds) as avg_active_seconds'), DB::raw('COUNT(DISTINCT session_key) as sessions'))
             ->groupBy('path')->orderByDesc('views')->limit(12)->get();
@@ -103,7 +108,8 @@ class AnalyticsController extends Controller
             'liveSessions' => $onlineSessions,
             'livePageViews' => $livePageViews,
             'trend' => $trend,
-            'topPages' => $topPages,\n            'topUsers' => $topUsers,
+            'topPages' => $topPages,
+            'topUsers' => $topUsers,
             'sources' => $sources,
             'devices' => $devices,
             'brands' => $brands,
