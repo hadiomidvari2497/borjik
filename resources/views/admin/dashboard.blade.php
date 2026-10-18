@@ -15,7 +15,7 @@
   $quick = collect($menu)->flatMap(fn ($g) => $g['items'])->filter(fn ($i) => !empty($i['desc']) && $i['route'] !== 'admin.account');
   $alerts = collect([
     ['title' => 'اشتراک‌های منقضی یا غیرفعال', 'count' => $expiredSubscriptions, 'detail' => 'نیازمند بررسی وضعیت تمدید', 'icon' => 'crown', 'url' => $adm->hasPermission('subscriptions.manage') ? route('admin.subscriptions.index') : null],
-    ['title' => 'ساختمان‌های بدون اشتراک معتبر', 'count' => $buildingsWithoutValidSubscription, 'detail' => 'بدون اشتراک یا دارای اشتراک نامعتبر', 'icon' => 'building-2', 'url' => $adm->hasPermission('buildings.view') ? route('admin.buildings.index', ['subscription' => 'none']) : null],
+    ['title' => 'ساختمان‌های بدون اشتراک معتبر', 'count' => $buildingsWithoutValidSubscription, 'detail' => 'بدون اشتراک یا دارای اشتراک نامعتبر', 'icon' => 'building-2', 'url' => $adm->hasPermission('buildings.view') ? route('admin.buildings.index') : null],
     ['title' => 'ارسال‌های ناموفق پیامک در ۲۴ ساعت', 'count' => $failedSmsLast24Hours, 'detail' => 'بررسی علت خطا در آرشیو پیامک', 'icon' => 'inbox', 'url' => $adm->hasPermission('sms.logs') ? route('admin.sms.logs.index', ['status' => 'failed']) : null],
     ['title' => 'اشتراک‌های فعال در آستانه انقضا', 'count' => $expiringSoon, 'detail' => 'انقضا در ۷ روز آینده', 'icon' => 'clock', 'url' => $adm->hasPermission('subscriptions.manage') ? route('admin.subscriptions.index') : null],
   ])->filter(fn ($item) => $item['count'] > 0)->values();
@@ -32,17 +32,19 @@
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:10px">
       @foreach($alerts as $alert)
-        @php $alertTag = $alert['url'] ? 'a' : 'div'; @endphp
-        <{{ $alertTag }} @if($alert['url']) href="{{ $alert['url'] }}" @endif style="display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border,#e2e8f0);border-radius:12px;text-decoration:none;color:inherit;min-width:0">
+        <div style="display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border,#e2e8f0);border-radius:12px;min-width:0">
           <span style="width:38px;height:38px;flex:0 0 38px;border-radius:10px;background:#fff3dc;color:#9a6700;display:flex;align-items:center;justify-content:center;font-weight:800">
             <svg class="i"><use href="#{{ $alert['icon'] }}"/></svg>
           </span>
           <span style="flex:1;min-width:0">
             <b style="display:block;font-size:13px;line-height:1.8">{{ $alert['title'] }}</b>
             <small style="display:block;color:var(--muted,#64748b);font-size:11px;line-height:1.8">{{ $alert['detail'] }}</small>
+            @if($alert['url'])
+              <a href="{{ $alert['url'] }}" style="display:inline-block;margin-top:4px;font-size:11px;text-decoration:none">بررسی مورد <span aria-hidden="true">←</span></a>
+            @endif
           </span>
           <strong style="font-size:20px;color:#9a6700">{{ $F::num($alert['count']) }}</strong>
-        </{{ $alertTag }}>
+        </div>
       @endforeach
     </div>
   </section>
