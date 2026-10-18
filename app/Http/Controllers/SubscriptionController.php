@@ -9,6 +9,7 @@ use App\Models\SubscriptionPayment;
 use App\Models\SubscriptionPlan;
 use App\Services\BuildingService;
 use App\Services\Payments\ZarinpalGateway;
+use App\Support\SystemErrorReporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -58,6 +59,15 @@ class SubscriptionController extends Controller
 
         $settings = SiteSetting::get('payment.gateway', []);
         if (! is_array($settings) || empty($settings['active']) || ($settings['driver'] ?? '') !== 'zarinpal') {
+            SystemErrorReporter::warning(
+                $request,
+                'payment.gateway',
+                'کاربر برای خرید اشتراک اقدام کرد اما درگاه پرداخت فعال یا پیکربندی نشده بود.',
+                "خرید اشتراک متوقف شد پیش از ایجاد تراکنش. تنظیم فعال بودن درگاه و انتخاب درایور زرین‌پال بررسی شود.",
+                ['plan_id' => $plan->id, 'plan_price' => (int) $plan->price, 'gateway_active' => (bool) data_get($settings, 'active', false), 'gateway_driver' => (string) data_get($settings, 'driver', '')],
+                422,
+            );
+
             return back()->with('error', 'برای خرید این پلن، ابتدا در پنل مدیریت قالب زرین‌پال را انتخاب و درگاه را با شناسه پذیرنده معتبر فعال کنید.');
         }
 
@@ -106,6 +116,13 @@ class SubscriptionController extends Controller
                     }
                 });
             }
+            SystemErrorReporter::caught(
+                $request,
+                $e,
+                'payment.gateway',
+                'ایجاد تراکنش خرید اشتراک ناموفق بود.',
+                ['user_id' => $user->id, 'plan_id' => $plan->id, 'payment_id' => isset($payment) ? $payment->id : null],
+            );
             Log::warning('Subscription payment request failed', ['user_id' => $user->id, 'plan_id' => $plan->id, 'exception' => $e::class]);
 
             return back()->with('error', 'ایجاد تراکنش پرداخت ناموفق بود. تنظیمات درگاه را بررسی کنید و دوباره تلاش کنید.');
@@ -197,6 +214,13 @@ class SubscriptionController extends Controller
 
             return redirect()->route('subscription.show')->with('status', 'پرداخت با موفقیت تأیید شد و اشتراک شما فعال شد.');
         } catch (\Throwable $e) {
+            SystemErrorReporter::caught(
+                $request,
+                $e,
+                'payment.callback',
+                'تأیید تراکنش خرید اشتراک ناموفق بود.',
+                ['payment_id' => $payment->id, 'subscription_id' => $payment->subscription_id],
+            );
             Log::warning('Subscription payment verification failed', ['payment_id' => $payment->id, 'exception' => $e::class]);
 
             return redirect()->route('subscription.show')->with('error', 'تأیید پرداخت از سمت درگاه ممکن نشد؛ اشتراک تا زمان تأیید معتبر فعال نمی‌شود.');
