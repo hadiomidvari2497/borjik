@@ -7,6 +7,7 @@ use App\Models\BuildingUserRole;
 use App\Models\Role;
 use App\Models\Supply;
 use App\Models\User;
+use App\Support\CurrentBuilding;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -37,6 +38,11 @@ class SupplyInventoryTest extends TestCase
         return $this->actingAs($this->owner)->withSession(['current_building_id' => $this->building->id])->{$method}($uri, $data);
     }
 
+    private function supplyInBuilding(string $name): Supply
+    {
+        return app(CurrentBuilding::class)->actingAs($this->building->id, fn () => Supply::where('name', $name)->firstOrFail());
+    }
+
     public function test_creating_supply_records_initial_stock_movement(): void
     {
         $this->open('post', route('supplies.store'), [
@@ -47,7 +53,7 @@ class SupplyInventoryTest extends TestCase
             'reason' => 'خرید اولیه',
         ])->assertRedirect(route('supplies.index'));
 
-        $supply = Supply::where('name', 'لامپ')->firstOrFail();
+        $supply = $this->supplyInBuilding('لامپ');
         $this->assertSame('10.00', $supply->quantity);
         $this->assertDatabaseHas('supply_movements', ['supply_id' => $supply->id, 'delta' => '10.00', 'reason' => 'خرید اولیه', 'building_id' => $this->building->id]);
     }
@@ -60,13 +66,13 @@ class SupplyInventoryTest extends TestCase
             'min_quantity' => '1',
             'initial_quantity' => '2',
         ])->assertRedirect(route('supplies.index'));
-        $supply = Supply::where('name', 'کیسه زباله')->firstOrFail();
+        $supply = $this->supplyInBuilding('کیسه زباله');
 
         $this->open('post', route('supplies.move', $supply), [
             'direction' => 'out', 'quantity' => '3', 'reason' => 'مصرف تست',
         ])->assertSessionHasErrors('quantity');
 
-        $this->assertSame('2.00', $supply->fresh()->quantity);
+        $this->assertSame('2.00', $this->supplyInBuilding('کیسه زباله')->quantity);
         $this->assertDatabaseCount('supply_movements', 1);
     }
 
