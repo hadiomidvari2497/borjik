@@ -10,6 +10,7 @@ use App\Services\Sms\LogSmsGateway;
 use App\Services\Sms\SmsException;
 use App\Services\Sms\SmsGateway;
 use App\Services\Sms\SmsGatewayFactory;
+use App\Services\Sms\SmsSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -197,4 +198,32 @@ class SmsGatewayTest extends TestCase
         $this->assertStringNotContainsString('sms.example.com', $raw);
         $this->assertSame('SECRET-KEY-123', $p->fresh()->settings()['params'][0]['value']);
     }
+    public function test_sms_sender_delivers_immediately_and_records_final_status_without_a_queue_worker(): void
+    {
+        config(['sms.queue' => false]);
+        $this->provider(['success' => ['json_path' => 'ok', 'expected' => '1'], 'ref_path' => 'id'], ['is_default' => true, 'name' => 'اپراتور فوری']);
+        Http::fake(['*' => Http::response(['ok' => 1, 'id' => 'ref-123'])]);
+
+        $log = app(SmsSender::class)->sendTemplate('otp', '09123456789', ['code' => '123456']);
+
+        $this->assertSame('sent', $log->fresh()->status);
+        $this->assertSame('اپراتور فوری', $log->fresh()->gateway);
+        $this->assertSame('[محرمانه]', $log->fresh()->body);
+        $this->assertSame('ref-123', $log->fresh()->provider_ref);
+        $this->assertNotNull($log->fresh()->sent_at);
+        Http::assertSent(fn (Request $request) => $request['text'] === 'برجیک: کد ورود شما 123456 است. اعتبار ۲ دقیقه.');
+    }
+
+    public function test_sms_sender_marks_delivery_failed_when_no_real_provider_is_configured(): void
+    {
+        config(['sms.queue' => false, 'sms.driver' => 'log']);
+
+        $log = app(SmsSender::class)->sendTemplate('otp', '09123456789', ['code' => '654321']);
+
+        $this->assertSame('failed', $log->fresh()->status);
+        $this->assertSame('log (بدون ارسال واقعی)', $log->fresh()->gateway);
+        $this->assertStringContainsString('پنل پیامکی فعال نیست', $log->fresh()->error);
+        $this->assertSame('[محرمانه]', $log->fresh()->body);
+    }
+
 }

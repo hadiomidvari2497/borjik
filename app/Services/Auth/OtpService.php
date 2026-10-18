@@ -48,7 +48,10 @@ class OtpService
             ]);
         });
 
-        $this->sms->sendTemplate('otp', $mobile, ['code' => $code], $userId);
+        $log = $this->sms->sendTemplate('otp', $mobile, ['code' => $code], $userId);
+        if ($log->status === 'failed') {
+            throw new OtpException('ارسال پیامک انجام نشد. لطفاً اتصال پیامک را بررسی کنید و کمی بعد دوباره تلاش کنید.');
+        }
     }
 
     public function verify(string $mobile, string $code, string $purpose = 'login'): bool
