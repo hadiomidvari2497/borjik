@@ -32,13 +32,16 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->report(function (\Throwable $exception): void {
-            try {
-                if (app()->runningInConsole() || ! app()->bound('request')) {
-                    return;
-                }
+        $recordException = function (\Throwable $exception, Request $request): void {
+            $exceptionId = spl_object_id($exception);
+            if ($request->attributes->get('system_error_logged_exception') === $exceptionId) {
+                return;
+            }
 
-                $request = app(Request::class);
+            // پیش از نوشتن علامت بزن تا خطای ثانویه هنگام ذخیره، حلقه ایجاد نکند.
+            $request->attributes->set('system_error_logged_exception', $exceptionId);
+
+            try {
                 $message = trim($exception->getMessage());
                 // پیام SQL ممکن است شامل مقادیر حساس باشد؛ متن پرس‌وجو را ثبت نمی‌کنیم.
                 $message = preg_replace('/SQL:\\s.*$/is', 'SQL: [جزئیات پرس‌وجو حذف شد]', $message) ?? $message;
@@ -67,5 +70,21 @@ return Application::configure(basePath: dirname(__DIR__))
                 // اگر دیتابیس یا جدول لاگ در دسترس نباشد، از ایجاد حلقهٔ گزارش خطا جلوگیری کن.
                 error_log('System error log persistence failed: '.$loggingException::class);
             }
+        };
+
+        // خطاهای گزارش‌شدهٔ برنامه
+        $exceptions->report(function (\Throwable $exception) use ($recordException): void {
+            if (! app()->runningInConsole() && app()->bound('request')) {
+                $recordException($exception, app(Request::class));
+            }
+        });
+
+        // خطاهایی که Laravel به‌صورت پیش‌فرض گزارش نمی‌کند (مثل برخی ۴۰۴ و ۴۰۳ها) نیز در تاریخچه ثبت شوند.
+        $exceptions->render(function (\Throwable $exception, Request $request) use ($recordException) {
+            if (! app()->runningInConsole()) {
+                $recordException($exception, $request);
+            }
+
+            return null;
         });
     })->create();
