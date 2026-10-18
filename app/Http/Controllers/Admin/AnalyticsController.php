@@ -145,6 +145,9 @@ class AnalyticsController extends Controller
 
         return response()->streamDownload(function () use ($sessions): void {
             $output = fopen('php://output', 'w');
+            if ($output === false) {
+                return;
+            }
             fwrite($output, "\xEF\xBB\xBF");
             fputcsv($output, ['started_at', 'visitor_id', 'user_id', 'user_name', 'source', 'medium', 'campaign', 'landing_page', 'exit_page', 'pageviews', 'active_seconds', 'device_type', 'device_brand', 'browser', 'browser_version', 'os', 'os_version', 'screen_width', 'screen_height']);
             foreach ($sessions as $session) {
