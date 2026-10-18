@@ -28,7 +28,7 @@ class SystemDiagnosticsController extends Controller
 
         $queryText = trim((string) ($filters['q'] ?? ''));
         $errors = SystemErrorLog::query()
-            ->with(['user:id,name,phone', 'admin:id,name,username'])
+            ->with(['user:id,name', 'admin:id,name,username'])
             ->when($queryText !== '', fn ($query) => $query->where(function ($search) use ($queryText) {
                 $like = '%'.addcslashes($queryText, '%_\\\\').'%';
                 $search->where('exception_class', 'like', $like)
