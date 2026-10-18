@@ -29,28 +29,51 @@ class CalendarController extends Controller
         $user = $request->user();
         abort_unless($user->hasPermission('event.view') || $user->hasPermission('event.manage'), 403);
 
+        $viewMode = (string) $request->query('view', 'month');
+        if (! in_array($viewMode, ['month', 'week', 'day'], true)) {
+            $viewMode = 'month';
+        }
         $monthInput = (string) $request->query('month', Jalalian::fromCarbon(now())->format('Y/m'));
-        $parsed = preg_match('#^(\d{4})/(\d{1,2})$#', str_replace(['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'], range(0, 9), $monthInput), $match)
+        $dateInput = (string) $request->query('date', now()->format('Y/m/d'));
+        $monthLatin = str_replace(['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'], range(0, 9), $monthInput);
+        $parsedMonth = preg_match('#^(\\d{4})/(\\d{1,2})$#', $monthLatin, $match)
             ? JalaliDate::parse(sprintf('%04d/%02d/01', (int) $match[1], (int) $match[2]))
             : null;
-        $jalali = $parsed ? Jalalian::fromCarbon($parsed) : Jalalian::fromCarbon(now());
+        $parsedDate = $request->query->has('date') ? JalaliDate::parse($dateInput) : null;
+        $anchor = ($parsedDate ?? $parsedMonth ?? now())->startOfDay();
+        $jalali = Jalalian::fromCarbon($anchor);
         $year = $jalali->getYear();
         $month = $jalali->getMonth();
         $jalaliStart = new Jalalian($year, $month, 1);
-        $start = $jalaliStart->toCarbon()->startOfDay();
+        $monthStart = $jalaliStart->toCarbon()->startOfDay();
         $daysCount = $jalaliStart->getMonthDays();
-        $end = $start->copy()->addDays($daysCount);
         $monthKey = sprintf('%04d/%02d', $year, $month);
         $prevKey = sprintf('%04d/%02d', $month === 1 ? $year - 1 : $year, $month === 1 ? 12 : $month - 1);
         $nextKey = sprintf('%04d/%02d', $month === 12 ? $year + 1 : $year, $month === 12 ? 1 : $month + 1);
+
+        if ($viewMode === 'week') {
+            $daysSinceSaturday = ((int) $anchor->dayOfWeek + 1) % 7;
+            $start = $anchor->copy()->subDays($daysSinceSaturday)->startOfDay();
+            $rangeDays = 7;
+        } elseif ($viewMode === 'day') {
+            $start = $anchor->copy()->startOfDay();
+            $rangeDays = 1;
+        } else {
+            $start = $monthStart;
+            $rangeDays = $daysCount;
+        }
+        $end = $start->copy()->addDays($rangeDays);
+        $anchorKey = JalaliDate::format($anchor);
+        $prevDateKey = JalaliDate::format($viewMode === 'week' ? $start->copy()->subWeek() : ($viewMode === 'day' ? $start->copy()->subDay() : $monthStart));
+        $nextDateKey = JalaliDate::format($viewMode === 'week' ? $start->copy()->addWeek() : ($viewMode === 'day' ? $start->copy()->addDay() : $monthStart));
 
         $filter = (string) $request->query('filter', 'all');
         if (! in_array($filter, ['all', 'events', 'tasks', 'polls'], true)) { $filter = 'all'; }
 
         $items = collect();
         $customEvents = CalendarEvent::query()
+            ->where('starts_at', '>=', $start)
             ->where('starts_at', '<', $end)
-            ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', $start))
             ->with('creator')
             ->orderBy('starts_at')
             ->get();
@@ -75,7 +98,7 @@ class CalendarController extends Controller
 
         $tasks = Ticket::query()->where('kind', TicketKind::Task->value)
             ->whereNotIn('status', ['done', 'closed'])
-            ->whereNotNull('deadline')->whereBetween('deadline', [$start, $end])
+            ->whereNotNull('deadline')->where('deadline', '>=', $start)->where('deadline', '<', $end)
             ->when(! $user->hasPermission('ticket.view.all'), fn ($query) => $query->where(function ($q) use ($user) {
                 $q->where('created_by', $user->id)->orWhereHas('assignees', fn ($a) => $a->where('user_id', $user->id));
             }))
@@ -90,7 +113,7 @@ class CalendarController extends Controller
         }
 
         $polls = Poll::query()->where(function ($query) use ($start, $end) {
-            $query->whereBetween('starts_at', [$start, $end])->orWhereBetween('ends_at', [$start, $end]);
+            $query->where(function ($q) use ($start, $end) { $q->where('starts_at', '>=', $start)->where('starts_at', '<', $end); })->orWhere(function ($q) use ($start, $end) { $q->where('ends_at', '>=', $start)->where('ends_at', '<', $end); });
         })->get(['id', 'title', 'starts_at', 'ends_at']);
         foreach ($polls as $poll) {
             foreach ([['date' => $poll->starts_at, 'type' => 'شروع نظرسنجی', 'color' => 'blue'], ['date' => $poll->ends_at, 'type' => 'پایان نظرسنجی', 'color' => 'rose']] as $index => $entry) {
@@ -113,24 +136,26 @@ class CalendarController extends Controller
             || ($filter === 'polls' && in_array($item['type'], ['شروع نظرسنجی', 'پایان نظرسنجی'], true)))->values();
 
         $byDate = $items->groupBy('date');
-        $days = collect(range(1, $daysCount))->map(function (int $day) use ($start, $byDate) {
+        $days = collect(range(1, $rangeDays))->map(function (int $day) use ($start, $byDate, $viewMode) {
             $date = $start->copy()->addDays($day - 1);
             return [
                 'day' => $day,
                 'date' => $date->toDateString(),
-                'jalali' => Fa::digits((string) $day),
+                'jalali' => Fa::digits((string) ($viewMode === 'month' ? $day : Jalalian::fromCarbon($date)->getDay())),
                 'is_today' => $date->isToday(),
                 'items' => ($byDate->get($date->toDateString()) ?? collect())->sortBy('starts_at')->values(),
             ];
         });
-        $leading = (Carbon::parse($start)->dayOfWeek + 1) % 7;
+        $leading = $viewMode === 'month' ? (Carbon::parse($start)->dayOfWeek + 1) % 7 : 0;
         $upcoming = $items->filter(fn ($item) => $item['starts_at']->greaterThanOrEqualTo(now()->startOfDay()))
             ->sortBy('starts_at')->take(6)->values();
 
         return view('calendar.index', [
             'year' => $year, 'month' => $month, 'monthName' => self::MONTHS[$month],
             'monthKey' => $monthKey, 'prevKey' => $prevKey, 'nextKey' => $nextKey,
+            'viewMode' => $viewMode, 'anchorKey' => $anchorKey, 'prevDateKey' => $prevDateKey, 'nextDateKey' => $nextDateKey,
             'days' => $days, 'leading' => $leading, 'items' => $items,
+            'start' => $start, 'end' => $end,
             'upcoming' => $upcoming, 'canManage' => $user->hasPermission('event.manage'),
             'todayLabel' => JalaliDate::format(now()),
             'monthNames' => self::MONTHS,
@@ -221,6 +246,37 @@ class CalendarController extends Controller
 
         return redirect()->route('events.index', ['month' => Jalalian::fromCarbon($start)->format('Y/m')])
             ->with('status', 'رویداد با موفقیت ویرایش شد.');
+    }
+
+
+    public function move(Request $request, CurrentBuilding $current, int $event): RedirectResponse
+    {
+        abort_unless($current->id() && $request->user()->hasPermission('event.manage'), 403);
+        $data = $request->validate([
+            'start_date' => ['required', 'string', 'max:10'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+        ]);
+        $start = JalaliDate::parse($data['start_date']);
+        if (! $start) {
+            return back()->withErrors(['start_date' => 'تاریخ شمسی واردشده معتبر نیست.'])->withInput();
+        }
+
+        $item = CalendarEvent::query()->findOrFail($event);
+        $oldStart = $item->starts_at->copy();
+        $duration = $item->ends_at ? max(0, $oldStart->diffInSeconds($item->ends_at, false)) : 0;
+        $start = $item->is_all_day
+            ? $start->startOfDay()
+            : $start->setTimeFromTimeString($data['start_time'] ?? $oldStart->format('H:i'));
+        $item->starts_at = $start;
+        $item->ends_at = $item->is_all_day ? $start->copy()->endOfDay() : $start->copy()->addSeconds($duration);
+        $item->reminder_sent_at = null;
+        $item->save();
+
+        return redirect()->route('events.index', [
+            'view' => $request->input('view', 'week'),
+            'date' => JalaliDate::format($start),
+            'filter' => $request->input('filter', 'all'),
+        ])->with('status', 'زمان رویداد با موفقیت جابه‌جا شد.');
     }
 
     public function destroy(Request $request, int $event): RedirectResponse
