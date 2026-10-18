@@ -115,7 +115,7 @@
 
     <div class="scroll">
       @php
-        $workspaceHeroVisible = !request()->routeIs('dashboard', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests', 'requests.index', 'requests.show', 'tickets.show');
+        $workspaceHeroVisible = !request()->routeIs('dashboard', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index');
         $workspaceHeroCopy = match (true) {
           request()->routeIs('buildings.*', 'building.*') => ['ساختمان و تنظیمات', 'اطلاعات ساختمان، دسترسی‌ها و تنظیمات اصلی را از این بخش مدیریت کنید.', 'bld'],
           request()->routeIs('units.*', 'blocks.*', 'parkings.*', 'storages.*') => ['فضاها و واحدهای ساختمان', 'اطلاعات واحدها و فضاهای مشترک را مرتب، دقیق و یکجا مدیریت کنید.', 'doc'],
