@@ -1,11 +1,13 @@
 <?php
 
-use App\Http\Controllers\MarketingController;
-use Illuminate\Support\Facades\Route;
+use App\\Http\\Controllers\\MarketingController;
+use App\\Http\\Controllers\\SubscriptionController;
+use Illuminate\\Support\\Facades\\Route;
 
 Route::get('/', [MarketingController::class, 'home'])->name('home');
 Route::get('/enamad/image', [MarketingController::class, 'enamadImage'])->name('marketing.enamad.image');
-Route::get('/payment/gateway/callback', [\\App\\Http\\Controllers\\SubscriptionController::class, 'callback'])->name('payment.gateway.callback');\nRoute::get('/articles', [MarketingController::class, 'articles'])->name('marketing.articles.index');
+Route::get('/payment/gateway/callback', [SubscriptionController::class, 'callback'])->name('payment.gateway.callback');
+Route::get('/articles', [MarketingController::class, 'articles'])->name('marketing.articles.index');
 Route::get('/articles/{slug}', [MarketingController::class, 'article'])->name('marketing.articles.show');
 
 require __DIR__.'/auth.php';
