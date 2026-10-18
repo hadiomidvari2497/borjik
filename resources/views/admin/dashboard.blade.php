@@ -2,9 +2,9 @@
 @section('title', 'داشبورد مدیریت')
 @section('content')
 @php
-  $F = \\App\\Support\\Fa::class;
+  $F = \App\Support\Fa::class;
   $adm = auth('admin')->user();
-  $menu = \\App\\Support\\AdminMenu::for($adm);
+  $menu = \App\Support\AdminMenu::for($adm);
   $pct = fn ($part, $whole) => $whole > 0 ? min(100, round($part / $whole * 100)) : 0;
   $kpis = [
     ['کاربران سامانه', $usersCount, $F::num($newUsers).' ثبت‌نام در ۳۰ روز اخیر', 'users', '#3b82c4', $pct($newUsers, $usersCount)],
