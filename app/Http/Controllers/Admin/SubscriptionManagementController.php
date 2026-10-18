@@ -1,15 +1,15 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Building;
-use App\\Models\\Subscription;
-use App\\Models\\SubscriptionPlan;
-use App\\Models\\User;
-use App\\Support\\MobileNumber;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
+use App\Http\Controllers\Controller;
+use App\Models\Building;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use App\Models\User;
+use App\Support\MobileNumber;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionManagementController extends Controller
 {
@@ -17,7 +17,7 @@ class SubscriptionManagementController extends Controller
     {
         $q = trim((string) $request->query('q', ''));
         $latinQ = MobileNumber::toLatinDigits($q);
-        $like = '%'.addcslashes($latinQ, '%_\\').'%';
+        $like = '%'.addcslashes($latinQ, '%_\').'%';
 
         $users = User::query()
             ->when($q !== '', fn ($query) => $query->where(function ($where) use ($like) {
