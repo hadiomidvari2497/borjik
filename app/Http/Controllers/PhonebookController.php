@@ -87,7 +87,7 @@ class PhonebookController extends Controller
         $data = $request->validate([
             'scope' => ['required', 'in:building,personal'],
             'name' => ['required', 'string', 'max:150'],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9۰-۹٠-٩+()\-\s.]{5,20}$/u'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9۰-۹٠-٩+()\-\s.]{3,20}$/u'],
             'category' => ['required', 'in:emergency,fire,management,security,resident,service,other'],
         ], [
             'name.required' => 'نام مخاطب را وارد کنید.',
@@ -113,7 +113,7 @@ class PhonebookController extends Controller
         $this->authorizeEntry($request, $contact, $scope);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
-            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9۰-۹٠-٩+()\-\s.]{5,20}$/u'],
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9۰-۹٠-٩+()\-\s.]{3,20}$/u'],
             'category' => ['required', 'in:emergency,fire,management,security,resident,service,other'],
         ], [
             'name.required' => 'نام مخاطب را وارد کنید.',
