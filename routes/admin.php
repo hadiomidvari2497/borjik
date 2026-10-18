@@ -43,6 +43,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
         });
 
+        Route::prefix('subscriptions')->name('subscriptions.')->middleware('admin.can:subscriptions.manage')->controller(SubscriptionManagementController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
+
         Route::prefix('sms')->name('sms.')->group(function () {
             Route::prefix('providers')->name('providers.')->middleware('admin.can:sms.settings')->controller(SmsProviderController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
