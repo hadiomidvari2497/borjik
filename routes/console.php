@@ -11,5 +11,6 @@ Artisan::command('inspire', function () {
 // زمان‌بندی روزانه (ساعت‌ها به وقت UTC‌اند؛ ۰۶:۰۰ UTC ≈ ۰۹:۳۰ تهران). نیازمند اجرای هر دقیقه‌ی `php artisan schedule:run` است.
 Schedule::command('rent:issue-invoices')->dailyAt('06:00')->withoutOverlapping();
 Schedule::command('charges:remind-expenses')->dailyAt('06:30')->withoutOverlapping();
+Schedule::command('charges:issue-late-fees')->dailyAt('07:30')->withoutOverlapping();
 Schedule::command('requests:notify-overdue')->dailyAt('07:00')->withoutOverlapping();
 Schedule::command('calendar:send-reminders')->everyMinute()->withoutOverlapping();
