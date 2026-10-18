@@ -136,13 +136,17 @@ class CalendarController extends Controller
             || ($filter === 'polls' && in_array($item['type'], ['شروع نظرسنجی', 'پایان نظرسنجی'], true)))->values();
 
         $byDate = $items->groupBy('date');
-        $days = collect(range(1, $rangeDays))->map(function (int $day) use ($start, $byDate, $viewMode) {
+        $fixedSolarHolidays = ['01-01', '01-02', '01-03', '01-04', '01-12', '01-13', '03-14', '03-15', '11-22'];
+        $days = collect(range(1, $rangeDays))->map(function (int $day) use ($start, $byDate, $viewMode, $fixedSolarHolidays) {
             $date = $start->copy()->addDays($day - 1);
+            $solar = Jalalian::fromCarbon($date);
+            $solarKey = sprintf('%02d-%02d', $solar->getMonth(), $solar->getDay());
             return [
                 'day' => $day,
                 'date' => $date->toDateString(),
-                'jalali' => Fa::digits((string) ($viewMode === 'month' ? $day : Jalalian::fromCarbon($date)->getDay())),
+                'jalali' => Fa::digits((string) ($viewMode === 'month' ? $day : $solar->getDay())),
                 'is_today' => $date->isToday(),
+                'is_holiday' => $date->isFriday() || in_array($solarKey, $fixedSolarHolidays, true),
                 'items' => ($byDate->get($date->toDateString()) ?? collect())->sortBy('starts_at')->values(),
             ];
         });
