@@ -22,19 +22,15 @@
 <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('css/notify.css') }}">
 <style>
-.workspace-hero{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:22px;overflow:hidden;margin:0 0 20px;padding:clamp(21px,3.5vw,32px);border:1px solid rgba(255,255,255,.12);border-radius:24px;background:radial-gradient(circle at 9% 12%,rgba(153,235,211,.22),transparent 31%),linear-gradient(122deg,#102f3b 0%,#155c5b 57%,#278b79 100%);box-shadow:0 16px 38px rgba(19,76,72,.16);color:#fff}
-.workspace-hero:before,.workspace-hero:after{content:"";position:absolute;z-index:-1;pointer-events:none;border:1px solid rgba(255,255,255,.15);border-radius:50%}
-.workspace-hero:before{width:270px;height:270px;inset-inline-end:-95px;top:-155px;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.03)}
-.workspace-hero:after{width:170px;height:170px;inset-inline-start:22%;bottom:-135px;box-shadow:0 0 0 22px rgba(255,255,255,.03)}
+.workspace-hero{position:relative;isolation:isolate;overflow:hidden;margin:0 0 19px;padding:clamp(22px,4vw,34px);border:1px solid rgba(255,255,255,.12);border-radius:25px;background:radial-gradient(circle at 12% 10%,rgba(165,234,213,.17),transparent 32%),linear-gradient(125deg,#102f3e 0%,#176b63 58%,#388f80 100%);box-shadow:0 18px 42px rgba(23,77,69,.15);color:#fff}
+.workspace-hero:after{content:"";position:absolute;z-index:-1;width:270px;height:270px;inset-inline-end:-85px;top:-155px;border:1px solid rgba(255,255,255,.17);border-radius:50%;box-shadow:0 0 0 30px rgba(255,255,255,.035),0 0 0 65px rgba(255,255,255,.03);pointer-events:none}
 .workspace-hero-copy{position:relative;z-index:1;min-width:0}
-.workspace-hero-kicker{display:inline-flex;align-items:center;gap:8px;margin-bottom:11px;color:#d5f5e9;font-size:10px;font-weight:800;letter-spacing:.04em}
-.workspace-hero-kicker:before{content:"";width:7px;height:7px;border-radius:50%;background:#8be1b8;box-shadow:0 0 0 4px rgba(139,225,184,.14)}
-.workspace-hero h2{margin:0 0 7px;color:#fff;font-size:clamp(21px,2.7vw,29px);font-weight:900;line-height:1.55;letter-spacing:-.35px}
-.workspace-hero p{max-width:690px;margin:0;color:#d6eae6;font-size:12px;line-height:2}
-.workspace-hero-mark{display:grid;place-items:center;flex:0 0 76px;width:76px;height:76px;border:1px solid rgba(255,255,255,.25);border-radius:23px;background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.06));box-shadow:inset 0 1px rgba(255,255,255,.2);transform:rotate(-4deg)}
+.workspace-hero-kicker{display:inline-flex;align-items:center;gap:7px;margin-bottom:13px;padding:6px 11px;border:1px solid rgba(255,255,255,.21);border-radius:999px;background:rgba(255,255,255,.075);color:#dff9f1;font-size:11px;font-weight:750}
+.workspace-hero h2{margin:0 0 7px;color:#fff;font-size:clamp(23px,3vw,32px);font-weight:900;line-height:1.55;letter-spacing:-.4px}
+.workspace-hero p{max-width:630px;margin:0;color:#d6eee7;font-size:12px;line-height:2}
+.workspace-hero-mark{display:grid;place-items:center;flex:0 0 76px;width:76px;height:76px;border:1px solid rgba(255,255,255,.21);border-radius:17px;background:rgba(255,255,255,.075);backdrop-filter:blur(8px)}
 .workspace-hero-mark .i{width:36px;height:36px;color:#e4fff4;stroke-width:1.45}
-@media(max-width:600px){.workspace-hero{align-items:flex-start;padding:21px;border-radius:20px;gap:13px}.workspace-hero-mark{flex-basis:53px;width:53px;height:53px;border-radius:16px}.workspace-hero-mark .i{width:27px;height:27px}.workspace-hero h2{font-size:21px}.workspace-hero p{font-size:11px}}
-@media(prefers-reduced-motion:no-preference){.workspace-hero{animation:workspaceHeroIn .42s ease-out both}@keyframes workspaceHeroIn{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}}
+@media(max-width:600px){.workspace-hero{padding:21px;border-radius:19px;gap:13px}.workspace-hero-mark{flex-basis:53px;width:53px;height:53px;border-radius:14px}.workspace-hero-mark .i{width:27px;height:27px}.workspace-hero h2{font-size:22px}.workspace-hero p{font-size:11px}}
 </style>
 </head>
 <body>
@@ -103,7 +99,7 @@
     <header class="top">
       <div style="display:flex;align-items:center;gap:10px">
         <button class="ib burger" id="burger" type="button" aria-label="باز کردن منو"><svg class="i"><use href="#menu"/></svg></button>
-        <h1>@yield('title', 'داشبورد')</h1>
+        @if(!request()->routeIs('calendar.index'))<h1>@yield('title', 'داشبورد')</h1>@endif
       </div>
       <div class="acts">
         <a class="ib" href="{{ route('invitations.index') }}" aria-label="دعوت‌نامه‌ها" title="دعوت‌نامه‌ها"><svg class="i"><use href="#inbox"/></svg></a>
