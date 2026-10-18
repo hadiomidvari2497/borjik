@@ -52,6 +52,10 @@ return [
         'items' => [
             ['label' => 'مرکز خطا و عیب‌یابی', 'icon' => 'activity', 'route' => 'admin.system-diagnostics.index', 'active' => 'admin.system-diagnostics.*', 'perm' => 'logs.view',
                 'desc' => 'تاریخچه خطاها، شناسایی کاربر و بررسی سلامت اجزای اصلی سامانه'],
+            ['label' => 'سلامت هاست', 'icon' => 'activity', 'route' => 'admin.monitoring.host', 'active' => 'admin.monitoring.host', 'perm' => 'logs.view',
+                'desc' => 'بررسی منابع سرور، دیسک، حافظه و سرویس‌های ضروری'],
+            ['label' => 'پایش Cron', 'icon' => 'history', 'route' => 'admin.monitoring.cron', 'active' => 'admin.monitoring.cron', 'perm' => 'logs.view',
+                'desc' => 'زمان اجرا، مدت، خروجی و خطاهای دستورات زمان‌بندی‌شده'],
             ['label' => 'تاریخچه فعالیت مدیران', 'icon' => 'history', 'route' => 'admin.activity-logs.index', 'active' => 'admin.activity-logs.*', 'perm' => 'logs.view',
                 'desc' => 'ردیابی عملیات موفق مدیران همراه با زمان، مسیر و IP'],
         ],
