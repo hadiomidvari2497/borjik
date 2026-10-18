@@ -114,7 +114,7 @@
     </header>
 
     <div class="scroll">
-      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index'))
+      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'calendar.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index'))
         <section class="workspace-hero" aria-label="معرفی بخش">
           <div class="workspace-hero-copy">
             <div class="workspace-hero-kicker">برجیک <span aria-hidden="true">·</span> مدیریت هوشمند ساختمان</div>
