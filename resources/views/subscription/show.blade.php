@@ -4,6 +4,8 @@
 @section('content')
 <div class="card">
   <div class="page-h"><h2>اشتراک برجیک</h2></div>
+  @if(session('error'))<div class="warnbox" style="margin:10px 0">{{ session('error') }}</div>@endif
+  @if(session('status'))<div class="warnbox" style="margin:10px 0">{{ session('status') }}</div>@endif
   @if($subscription)
     <div class="warnbox" style="margin:10px 0;background:var(--brand-soft);border-color:transparent">
       اشتراک فعال دارید:
@@ -19,7 +21,7 @@
   @else
     <p style="color:var(--muted);margin:8px 0 16px;line-height:1.8">
       برای ساخت ساختمان و استفاده از امکانات سامانه، یکی از پلن‌های زیر را انتخاب کنید.
-      پلن‌های رایگان بدون پرداخت فعال می‌شوند.
+      پلن‌های رایگان بدون پرداخت فعال می‌شوند؛ برای پلن‌های پولی باید پرداخت در درگاه تأیید شود.
     </p>
   @endif
 </div>
@@ -50,20 +52,23 @@
             </b>
           </p>
           <form method="POST" action="{{ route('subscription.subscribe', $plan->id) }}"
-            data-confirm="{{ $free ? 'پلن رایگان فعال شود؟' : 'این پلن فعال شود؟' }}"
-            data-confirm-title="فعال‌سازی اشتراک">
+            data-confirm="{{ $free ? 'پلن رایگان فعال شود؟' : 'برای پرداخت به درگاه زرین‌پال هدایت می‌شوید. ادامه می‌دهید؟' }}"
+            data-confirm-title="{{ $free ? 'فعال‌سازی اشتراک' : 'پرداخت اشتراک' }}">
             @csrf
             <button class="btn {{ $free ? '' : 'sec' }}" type="submit" style="width:100%;justify-content:center">
-              @if($subscription)
-                {{ $free ? 'تعویض به پلن رایگان' : 'تمدید / تعویض به این پلن' }}
+              @if($free)
+                {{ $subscription ? 'تعویض به پلن رایگان' : 'فعال‌سازی رایگان' }}
               @else
-                {{ $free ? 'فعال‌سازی رایگان' : 'انتخاب و فعال‌سازی' }}
+                {{ $subscription ? 'پرداخت و تمدید / تعویض پلن' : 'پرداخت و خرید اشتراک' }}
               @endif
             </button>
           </form>
         </div>
       @endforeach
     </div>
+  @endif
+  @if(!$gatewayReady && $plans->contains(fn ($plan) => (int) $plan->price > 0))
+    <div class="warnbox" style="margin-top:14px">خرید پلن پولی تا زمان فعال‌سازی قالب زرین‌پال و ثبت شناسه پذیرنده معتبر در پنل مدیریت امکان‌پذیر نیست. هیچ اشتراک پولی بدون تأیید درگاه فعال نخواهد شد.</div>
   @endif
 </div>
 @endsection

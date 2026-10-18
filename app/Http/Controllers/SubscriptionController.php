@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Building;
+use App\Models\SiteSetting;
 use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
 use App\Models\SubscriptionPlan;
 use App\Services\BuildingService;
+use App\Services\Payments\ZarinpalGateway;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-/** صفحهٔ اشتراک برای کاربر (بدون نیاز به ساختمان فعال). پلن‌ها از پنل ادمین مدیریت می‌شوند. */
 class SubscriptionController extends Controller
 {
     public function show(Request $request, BuildingService $buildings)
@@ -26,28 +30,185 @@ class SubscriptionController extends Controller
             ->orderBy('duration_months')
             ->get();
 
+        $gateway = SiteSetting::get('payment.gateway', []);
+        $gatewayReady = is_array($gateway)
+            && ! empty($gateway['active'])
+            && ($gateway['driver'] ?? '') === 'zarinpal'
+            && ! empty($gateway['merchant_id']);
+
         return view('subscription.show', [
             'subscription' => $current,
             'plans' => $plans,
+            'gatewayReady' => $gatewayReady,
         ]);
     }
 
-    /**
-     * انتخاب پلن.
-     * تا زمان اتصال درگاه پرداخت، اشتراک بلافاصله فعال می‌شود (مناسب پلن رایگان و تست).
-     */
-    public function subscribe(Request $request, int $id)
+    /** پلن رایگان مستقیماً فعال می‌شود؛ پلن پولی فقط با شروع تراکنش واقعی. */
+    public function subscribe(Request $request, int $id, ZarinpalGateway $gateway)
     {
         $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
         $user = $request->user();
 
-        DB::transaction(function () use ($user, $plan) {
-            Subscription::where('user_id', $user->id)
-                ->where('status', 'active')
-                ->update(['status' => 'expired']);
+        if ((int) $plan->price === 0) {
+            $this->activateFreePlan($user->id, $plan);
 
+            return redirect()->route('buildings.create')
+                ->with('status', 'اشتراک رایگان «'.$plan->name.'» فعال شد. حالا می‌توانید ساختمان بسازید.');
+        }
+
+        $settings = SiteSetting::get('payment.gateway', []);
+        if (! is_array($settings) || empty($settings['active']) || ($settings['driver'] ?? '') !== 'zarinpal') {
+            return back()->with('error', 'برای خرید این پلن، ابتدا در پنل مدیریت قالب زرین‌پال را انتخاب و درگاه را با شناسه پذیرنده معتبر فعال کنید.');
+        }
+
+        try {
+            $payment = DB::transaction(function () use ($user, $plan) {
+                $pending = Subscription::create([
+                    'user_id' => $user->id,
+                    'plan_id' => $plan->id,
+                    'units_limit' => $plan->units_limit,
+                    'starts_at' => now(),
+                    'expires_at' => now()->addMonths(max(1, (int) $plan->duration_months)),
+                    'status' => 'pending',
+                ]);
+
+                return SubscriptionPayment::create([
+                    'subscription_id' => $pending->id,
+                    'user_id' => $user->id,
+                    'amount' => (int) $plan->price,
+                    'gateway' => 'zarinpal',
+                    'status' => 'pending',
+                    'raw_response' => [
+                        'plan_id' => $plan->id,
+                        'amount_rial' => (int) $plan->price * 10,
+                    ],
+                ]);
+            });
+
+            $result = $gateway->request((int) $plan->price * 10, $payment->id, $user);
+            $payment->update([
+                'raw_response' => array_merge($payment->raw_response ?? [], [
+                    'authority' => $result['authority'],
+                    'request' => $result['response'],
+                ]),
+            ]);
+
+            return redirect()->away($result['payment_url']);
+        } catch (\Throwable $e) {
+            if (isset($payment)) {
+                DB::transaction(function () use ($payment, $e) {
+                    $payment->update([
+                        'status' => 'failed',
+                        'raw_response' => array_merge($payment->raw_response ?? [], ['request_error' => mb_substr($e->getMessage(), 0, 500)]),
+                    ]);
+                    if ($payment->subscription_id) {
+                        Subscription::whereKey($payment->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
+                    }
+                });
+            }
+            Log::warning('Subscription payment request failed', ['user_id' => $user->id, 'plan_id' => $plan->id, 'exception' => $e::class]);
+
+            return back()->with('error', 'ایجاد تراکنش پرداخت ناموفق بود. تنظیمات درگاه را بررسی کنید و دوباره تلاش کنید.');
+        }
+    }
+
+    /** Callback عمومی است؛ فعال‌سازی فقط پس از تأیید سمت سرور با API زرین‌پال انجام می‌شود. */
+    public function callback(Request $request, ZarinpalGateway $gateway)
+    {
+        $authority = (string) $request->query('Authority', '');
+        $status = strtoupper((string) $request->query('Status', ''));
+
+        $payment = SubscriptionPayment::query()
+            ->where('gateway', 'zarinpal')
+            ->where('status', 'pending')
+            ->where('raw_response->authority', $authority)
+            ->first();
+
+        if (! $payment || $authority === '') {
+            return redirect()->route('subscription.show')->with('error', 'تراکنش معتبر یا در انتظار پرداختی برای این بازگشت پیدا نشد.');
+        }
+
+        if ($status !== 'OK') {
+            DB::transaction(function () use ($payment, $request) {
+                $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+                if ($locked->status === 'pending') {
+                    $locked->update(['status' => 'failed', 'raw_response' => array_merge($locked->raw_response ?? [], ['callback_status' => (string) $request->query('Status', '')])]);
+                    Subscription::whereKey($locked->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
+                }
+            });
+
+            return redirect()->route('subscription.show')->with('error', 'پرداخت انجام نشد؛ اشتراک فعال نشده است.');
+        }
+
+        try {
+            $amountRial = (int) data_get($payment->raw_response, 'amount_rial', 0);
+            if ($amountRial <= 0) {
+                throw new \RuntimeException('Invalid stored payment amount.');
+            }
+
+            $verification = $gateway->verify($authority, $amountRial);
+            $code = (int) data_get($verification, 'data.code', 0);
+            if (! in_array($code, [100, 101], true)) {
+                DB::transaction(function () use ($payment, $verification) {
+                    $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+                    if ($locked->status === 'pending') {
+                        $locked->update(['status' => 'failed', 'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification])]);
+                        Subscription::whereKey($locked->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
+                    }
+                });
+
+                return redirect()->route('subscription.show')->with('error', 'درگاه پرداخت را تأیید نکرد؛ اشتراک فعال نشده است.');
+            }
+
+            DB::transaction(function () use ($payment, $verification, $authority) {
+                $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+                if ($locked->status === 'paid') {
+                    return;
+                }
+                if ($locked->status !== 'pending') {
+                    throw new \RuntimeException('Payment is no longer pending.');
+                }
+
+                $subscription = Subscription::whereKey($locked->subscription_id)->lockForUpdate()->firstOrFail();
+                if ($subscription->status !== 'pending') {
+                    throw new \RuntimeException('Pending subscription not found.');
+                }
+
+                Subscription::where('user_id', $locked->user_id)
+                    ->where('status', 'active')
+                    ->update(['status' => 'expired']);
+
+                $subscription->update(['status' => 'active', 'starts_at' => now()]);
+                $previousIds = Subscription::where('user_id', $locked->user_id)
+                    ->where('id', '!=', $subscription->id)
+                    ->pluck('id');
+                if ($previousIds->isNotEmpty()) {
+                    Building::whereIn('subscription_id', $previousIds)->get()
+                        ->each(fn (Building $building) => $building->update(['subscription_id' => $subscription->id]));
+                }
+
+                $locked->update([
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                    'ref_id' => (string) data_get($verification, 'data.ref_id', $authority),
+                    'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification]),
+                ]);
+            });
+
+            return redirect()->route('subscription.show')->with('status', 'پرداخت با موفقیت تأیید شد و اشتراک شما فعال شد.');
+        } catch (\Throwable $e) {
+            Log::warning('Subscription payment verification failed', ['payment_id' => $payment->id, 'exception' => $e::class]);
+
+            return redirect()->route('subscription.show')->with('error', 'تأیید پرداخت از سمت درگاه ممکن نشد؛ اشتراک تا زمان تأیید معتبر فعال نمی‌شود.');
+        }
+    }
+
+    private function activateFreePlan(int $userId, SubscriptionPlan $plan): void
+    {
+        DB::transaction(function () use ($userId, $plan) {
+            Subscription::where('user_id', $userId)->where('status', 'active')->update(['status' => 'expired']);
             $subscription = Subscription::create([
-                'user_id' => $user->id,
+                'user_id' => $userId,
                 'plan_id' => $plan->id,
                 'units_limit' => $plan->units_limit,
                 'starts_at' => now(),
@@ -55,22 +216,11 @@ class SubscriptionController extends Controller
                 'status' => 'active',
             ]);
 
-            // با تغییر پلن، ساختمان‌های قبلی هم زیر پوشش اشتراک جدید قرار می‌گیرند.
-            // سقف واحدها برای مجموع ساختمان‌های منتقل‌شده محاسبه می‌شود.
-            $previousSubscriptionIds = Subscription::where('user_id', $user->id)
-                ->where('id', '!=', $subscription->id)
-                ->pluck('id');
-
-            if ($previousSubscriptionIds->isNotEmpty()) {
-                \App\Models\Building::whereIn('subscription_id', $previousSubscriptionIds)->get()
-                    ->each(fn ($b) => $b->update(['subscription_id' => $subscription->id]));
+            $previousIds = Subscription::where('user_id', $userId)->where('id', '!=', $subscription->id)->pluck('id');
+            if ($previousIds->isNotEmpty()) {
+                Building::whereIn('subscription_id', $previousIds)->get()
+                    ->each(fn (Building $building) => $building->update(['subscription_id' => $subscription->id]));
             }
         });
-
-        $label = ((int) $plan->price === 0) ? 'رایگان' : $plan->name;
-
-        return redirect()
-            ->route('buildings.create')
-            ->with('status', 'اشتراک «'.$label.'» فعال شد. حالا می‌توانید ساختمان بسازید.');
     }
 }
