@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MarketingContentController extends Controller
 {
@@ -40,6 +41,7 @@ class MarketingContentController extends Controller
             'enamad' => ['nullable', 'array'],
             'enamad.enabled' => ['nullable', 'boolean'],
             'enamad.image_url' => ['nullable', 'url', 'max:2048'],
+            'enamad_image_file' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:2048'],
             'enamad.verification_url' => ['nullable', 'url', 'max:2048'],
             'enamad.alt' => ['nullable', 'string', 'max:160'],
             'about.eyebrow' => ['required', 'string', 'max:100'],
@@ -73,9 +75,20 @@ class MarketingContentController extends Controller
             'hero.highlight' => 'عبارت برجسته',
         ]);
 
+        $existingEnamad = data_get(SiteSetting::get('marketing.content', []), 'enamad', []);
+        $imagePath = data_get($existingEnamad, 'image_path');
+        if ($request->hasFile('enamad_image_file')) {
+            $newImagePath = $request->file('enamad_image_file')->store('enamad', 'public');
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            $imagePath = $newImagePath;
+        }
+
         $data['enamad'] = [
             'enabled' => $request->boolean('enamad.enabled'),
             'image_url' => data_get($data, 'enamad.image_url'),
+            'image_path' => $imagePath,
             'verification_url' => data_get($data, 'enamad.verification_url'),
             'alt' => data_get($data, 'enamad.alt', 'نماد اعتماد الکترونیکی برجیک'),
         ];
