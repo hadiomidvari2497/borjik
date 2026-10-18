@@ -51,7 +51,7 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
 .cal-form{display:grid;gap:11px}.cal-field label{display:block;font-size:10px;font-weight:800;color:#4c6170;margin-bottom:6px}.cal-field input,.cal-field select,.cal-field textarea{width:100%;min-width:0;border:1px solid #dce6e9;border-radius:10px;background:var(--card,#fff);color:var(--cal-ink);padding:10px 11px;font:inherit;font-size:11px;outline:none}.cal-field input:focus,.cal-field select:focus,.cal-field textarea:focus{border-color:#68b5a2;box-shadow:0 0 0 3px #329b8116}.cal-two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.cal-check{display:flex;align-items:center;gap:8px;font-size:10px;color:#526977}.cal-check input{accent-color:#176b63}.cal-submit{border:0;border-radius:11px;background:linear-gradient(120deg,#176b63,#2b9280);color:#fff;padding:12px;font:inherit;font-size:11px;font-weight:850;cursor:pointer}.cal-status{padding:11px 13px;border-radius:12px;background:#eaf8f1;color:#176b63;font-size:11px;margin-bottom:15px}.cal-errors{padding:11px 13px;border-radius:12px;background:#fff1f0;color:#a43e3e;font-size:11px;line-height:1.9;margin-bottom:15px}
 .cal-view-switch{display:flex;gap:4px;padding:4px;border-radius:11px;background:#f1f6f5}.cal-view-switch a{padding:7px 10px;border-radius:8px;color:var(--cal-muted);text-decoration:none;font-size:10px;font-weight:850}.cal-view-switch a.active{background:#fff;color:#176b63;box-shadow:0 2px 7px #173d4b10}.cal-days.mode-day{grid-template-columns:minmax(0,1fr)}.cal-days.mode-day .cal-day{min-height:330px;padding:15px}.cal-days.mode-week .cal-day{min-height:230px}.cal-days.mode-week .cal-day-number{margin-bottom:10px}.cal-day.is-drop-target{outline:2px dashed #2b9280;outline-offset:-4px;background:#e8f8f1}.cal-event[draggable=true]{cursor:grab}.cal-event[draggable=true]:active{cursor:grabbing;opacity:.65}.cal-day-label{display:block;font-size:9px;color:var(--cal-muted);margin-top:1px}.cal-filters{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--cal-line)}.cal-filter{display:inline-flex;padding:7px 11px;border:1px solid var(--cal-line);border-radius:9px;text-decoration:none;color:var(--cal-muted);font-size:10px;font-weight:800}.cal-filter.active{background:#e6f6f0;border-color:#b8e4d5;color:#176b63}.cal-edit{margin-top:9px;border-top:1px dashed var(--cal-line);padding-top:8px}.cal-edit summary{font-size:10px;font-weight:800;color:#176b63;cursor:pointer}.cal-delete{display:inline-flex;margin-top:5px;border:0;background:transparent;color:#b14a4a;padding:0;font-size:9px;cursor:pointer}
 @media(max-width:1050px){.cal-layout{grid-template-columns:minmax(0,1fr) 255px}.cal-day{min-height:105px;padding:6px 5px}.cal-empty{min-height:105px}}
-@media(max-width:760px){.cal-layout{grid-template-columns:1fr}.cal-side{grid-template-columns:1fr}.cal-day{min-height:87px;padding:5px 3px}.cal-empty{min-height:87px}.cal-event{font-size:8px;padding:4px 3px}.cal-day-number{width:25px;height:25px;font-size:11px}.cal-weekdays div{font-size:9px;padding:10px 1px}.cal-toolbar{padding:15px}.cal-month h3{font-size:16px}.cal-stats{gap:7px}.cal-stat{padding:11px 8px;gap:7px}.cal-stat-icon{width:32px;height:32px;font-size:15px}.cal-stat strong{font-size:17px}.cal-stat span{font-size:9px}.cal-date-card{min-width:110px}.cal-hero{border-radius:19px}}
+@media(max-width:760px){.cal-card:has(.cal-days.mode-week){overflow-x:auto}.cal-weekdays:has(+ .cal-days.mode-week),.cal-days.mode-week{min-width:700px}.cal-layout{grid-template-columns:1fr}.cal-side{grid-template-columns:1fr}.cal-day{min-height:87px;padding:5px 3px}.cal-empty{min-height:87px}.cal-event{font-size:8px;padding:4px 3px}.cal-day-number{width:25px;height:25px;font-size:11px}.cal-weekdays div{font-size:9px;padding:10px 1px}.cal-toolbar{padding:15px}.cal-month h3{font-size:16px}.cal-stats{gap:7px}.cal-stat{padding:11px 8px;gap:7px}.cal-stat-icon{width:32px;height:32px;font-size:15px}.cal-stat strong{font-size:17px}.cal-stat span{font-size:9px}.cal-date-card{min-width:110px}.cal-hero{border-radius:19px}}
 @media(max-width:420px){.cal-day{min-height:72px}.cal-empty{min-height:72px}.cal-event{font-size:7px}.cal-more{font-size:8px;padding:2px}.cal-nav a,.cal-today{min-width:30px;height:31px;padding:0 7px}.cal-month{gap:8px}}
 </style>
 <div class="calendar-page">
@@ -211,9 +211,7 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
         </aside>
     </div>
 </div>
-@endsection
-
-@push('scripts')
+<script>
 <script>
 (() => {
     const root = document.querySelector('.calendar-page');
@@ -269,4 +267,4 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
     });
 })();
 </script>
-@endpush
+@endsection
