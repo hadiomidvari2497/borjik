@@ -2,7 +2,7 @@
 @section('title', 'مرکز خطا و عیب‌یابی')
 @section('content')
 @php
-  $F = \\App\\Support\\Fa::class;
+  $F = \App\Support\Fa::class;
   $okCount = collect($health)->where('status', 'ok')->count();
   $badCount = collect($health)->where('status', 'fail')->count();
 @endphp
