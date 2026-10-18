@@ -20,6 +20,7 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ParkingController;
 use App\Http\Controllers\StorageController;
 use App\Http\Controllers\StaffRoleController;
+use App\Http\Controllers\SecurityShiftController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
@@ -131,6 +132,16 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/{id}/approve', 'approve')->whereNumber('id')->name('approve');
         Route::post('/{id}/reject', 'reject')->whereNumber('id')->name('reject');
+    });
+
+    Route::middleware('can:shift.view')->prefix('shifts')->name('shifts.')->controller(SecurityShiftController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::middleware('can:shift.manage')->group(function () {
+            Route::post('/', 'store')->name('store');
+            Route::get('/{shift}/edit', 'edit')->whereNumber('shift')->name('edit');
+            Route::put('/{shift}', 'update')->whereNumber('shift')->name('update');
+            Route::delete('/{shift}', 'destroy')->whereNumber('shift')->name('destroy');
+        });
     });
 
     Route::get('/staff', [TeamController::class, 'staff'])->middleware('can:staff.manage')->name('staff.index');
