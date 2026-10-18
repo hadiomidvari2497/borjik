@@ -201,7 +201,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
     <section class="content-section" id="about">
         <div class="wrap about-grid">
-            <div class="about-visual"><div class="about-note"><strong>مدیریت بهتر، با اطلاعات روشن‌تر</strong><p>وقتی وضعیت‌ها مشخص باشند، تصمیم‌گیری و همکاری هم ساده‌تر می‌شود.</p></div></div>
+            <div class="about-visual"><div class="about-note"><strong>{{ data_get($content ?? [], 'about.note_title', 'مدیریت بهتر، با اطلاعات روشن‌تر') }}</strong><p>{{ data_get($content ?? [], 'about.note_description', 'وقتی وضعیت‌ها مشخص باشند، تصمیم‌گیری و همکاری هم ساده‌تر می‌شود.') }}</p></div></div>
             <div class="about-copy"><span class="section-kicker">{{ data_get($content ?? [], 'about.eyebrow', 'درباره برجیک') }}</span><h2>{{ data_get($content ?? [], 'about.title', 'ساختمان بهتر، با همکاری شفاف‌تر') }}</h2><p>{{ data_get($content ?? [], 'about.paragraph1', 'برجیک یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.') }}</p><p>{{ data_get($content ?? [], 'about.paragraph2', 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.') }}</p><ul class="check-list">@foreach(data_get($content ?? [], 'about.points', ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری','تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان','دسترسی متناسب با نقش هر کاربر در ساختمان']) as $point)<li><span class="check">✓</span><span>{{ $point }}</span></li>@endforeach</ul></div>
         </div>
     </section>
