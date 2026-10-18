@@ -15,7 +15,7 @@
 <div class="docs-page">
   <section class="docs-hero">
     <div><h2>بایگانی اسناد ساختمان</h2><p>آیین‌نامه‌ها، صورت‌جلسه‌ها، اسناد مالی و فایل‌های فنی را در یک محل امن نگه‌دار. فایل‌ها خصوصی هستند و دسترسی به آن‌ها بر اساس ساختمان و نقش کاربر کنترل می‌شود.</p></div>
-    <div class="docs-stats"><div class="docs-stat"><b>{{ $F::num($totalDocuments) }}</b><span>سند فعال</span></div><div class="docs-stat"><b>{{ $F::num($categories->count()) }}</b><span>دسته‌بندی</span></div></div>
+    <div class="docs-stats"><div class="docs-stat"><b>{{ $F::num($totalDocuments) }}</b><span>سند فعال</span></div><div class="docs-stat"><b>{{ $F::num(count($categories)) }}</b><span>دسته‌بندی</span></div></div>
   </section>
 
   <section class="card">
