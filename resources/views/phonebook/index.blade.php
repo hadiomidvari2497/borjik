@@ -1,0 +1,148 @@
+@php($F = \App\Support\Fa::class)
+@extends('layouts.app')
+@section('title', 'دفترچه تلفن')
+@section('content')
+<style>
+.phonebook-page{display:grid;gap:18px;color:var(--text,var(--ink,#203342))}
+.phonebook-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:clamp(22px,4vw,34px);margin-bottom:20px;border-radius:24px;background:linear-gradient(125deg,#123d42,#176b63 55%,#398d83);color:#fff;box-shadow:0 18px 40px #175c551f}
+.phonebook-hero h2{margin:0 0 8px;font-size:clamp(23px,3vw,31px);line-height:1.6;font-weight:900;color:#fff}
+.phonebook-hero p{margin:0;max-width:660px;color:#d9f0e9;font-size:12px;line-height:2}
+.phonebook-hero-mark{display:grid;place-items:center;flex:0 0 70px;width:70px;height:70px;border:1px solid #ffffff45;border-radius:22px;background:#ffffff16;font-size:28px}
+.phonebook-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
+.phonebook-stat{min-width:95px;padding:9px 13px;border:1px solid #ffffff35;border-radius:12px;background:#ffffff12}
+.phonebook-stat strong{display:block;font-size:20px;line-height:1.5;color:#fff}.phonebook-stat span{font-size:10px;color:#d9f0e9}
+.phonebook-panel{overflow:hidden;border:1px solid var(--line,#e2e9ed);border-radius:19px;background:var(--card,#fff)}
+.phonebook-panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line,#e2e9ed)}
+.phonebook-panel-head h3{margin:0 0 4px;font-size:15px;font-weight:850}.phonebook-panel-head p{margin:0;color:var(--muted,#718096);font-size:11px;line-height:1.8}
+.phonebook-body{padding:18px 20px}
+.phonebook-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.phonebook-tab{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--line,#e2e9ed);border-radius:12px;background:var(--card,#fff);color:var(--muted,#718096);text-decoration:none;font-size:12px;font-weight:800}
+.phonebook-tab.active{border-color:#b6ddd0;background:#eaf7f2;color:#176b63}
+.phonebook-search{display:flex;gap:9px;margin-bottom:16px}
+.phonebook-search input{flex:1;min-width:0;border:1px solid var(--line,#dce5eb);border-radius:12px;padding:10px 12px;background:var(--card,#fff);color:inherit;font:inherit;font-size:12px}
+.phonebook-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+.phonebook-contact{min-width:0;padding:15px;border:1px solid var(--line,#e2e9ed);border-radius:16px;background:var(--card,#fff)}
+.phonebook-contact-top{display:flex;align-items:flex-start;gap:11px}
+.phonebook-avatar{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border-radius:14px;background:#e8f6f1;color:#176b63;font-size:15px;font-weight:900}
+.phonebook-contact-main{flex:1;min-width:0}.phonebook-contact h4{margin:0 0 5px;font-size:13px;line-height:1.8;overflow-wrap:anywhere}
+.phonebook-chip{display:inline-flex;padding:4px 8px;border-radius:8px;background:var(--surface-2,#f1f5f6);color:var(--muted,#617381);font-size:10px}
+.phonebook-phone{display:block;margin-top:12px;color:#176b63;font-size:14px;font-weight:850;direction:ltr;text-align:right;text-decoration:none;overflow-wrap:anywhere}
+.phonebook-roles{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.phonebook-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px;padding-top:12px;border-top:1px solid var(--line,#edf1f4)}
+.phonebook-actions form{margin:0}
+.phonebook-edit{margin-top:13px;padding-top:13px;border-top:1px dashed var(--line,#dce5eb)}
+.phonebook-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.phonebook-form-grid .fld{min-width:0}.phonebook-form-grid .fld label{display:block;margin-bottom:6px;font-size:11px;font-weight:800;color:var(--muted,#526575)}
+.phonebook-form-grid input,.phonebook-form-grid select{width:100%;min-width:0;border:1px solid var(--line,#dce5eb);border-radius:11px;padding:10px 11px;background:var(--card,#fff);color:inherit;font:inherit;font-size:12px}
+.phonebook-empty{padding:28px 16px;text-align:center;color:var(--muted,#718096);font-size:12px;line-height:2;border:1px dashed var(--line,#cfddd9);border-radius:15px}
+.phonebook-empty strong{display:block;color:inherit;font-size:14px;margin-bottom:4px}
+.phonebook-form-errors{padding:11px 13px;margin-bottom:13px;border-radius:12px;background:#fff4f2;border:1px solid #f0d4cf;color:#a3433c;font-size:11px;line-height:1.9}
+@media(max-width:680px){.phonebook-hero{align-items:flex-start}.phonebook-hero-mark{flex-basis:52px;width:52px;height:52px;border-radius:16px}.phonebook-form-grid{grid-template-columns:1fr}.phonebook-panel-head,.phonebook-body{padding:15px}.phonebook-search{flex-direction:column}.phonebook-search .btn{width:100%}}
+</style>
+<div class="phonebook-page">
+  <section class="phonebook-hero">
+    <div>
+      <h2>ارتباطات مهم، همیشه در دسترس</h2>
+      <p>شماره‌های ضروری ساختمان را در یک دفترچهٔ مشترک نگه دارید و مخاطبان دلخواهتان را در دفترچهٔ خصوصی خودتان مدیریت کنید.</p>
+      <div class="phonebook-stats">
+        @if($canBuilding)<div class="phonebook-stat"><strong>{{ $F::num($buildingCount) }}</strong><span>تماس‌های ساختمان</span></div>@endif
+        @if($canPersonal)<div class="phonebook-stat"><strong>{{ $F::num($personalEntries->total()) }}</strong><span>مخاطبان شخصی</span></div>@endif
+      </div>
+    </div>
+    <div class="phonebook-hero-mark" aria-hidden="true">☎</div>
+  </section>
+
+  @if($canBuilding && $canPersonal)
+    <nav class="phonebook-tabs" aria-label="نوع دفترچه">
+      <a class="phonebook-tab {{ $activeTab === 'building' ? 'active' : '' }}" href="{{ route('phonebook.index', ['tab' => 'building']) }}">دفترچهٔ ساختمان</a>
+      <a class="phonebook-tab {{ $activeTab === 'personal' ? 'active' : '' }}" href="{{ route('phonebook.index', ['tab' => 'personal']) }}">دفترچهٔ شخصی</a>
+    </nav>
+  @endif
+
+  <section class="phonebook-panel">
+    <div class="phonebook-panel-head">
+      <div><h3>{{ $activeTab === 'building' && $canBuilding ? 'دفترچه تلفن ساختمان' : 'دفترچه تلفن شخصی' }}</h3>
+      <p>{{ $activeTab === 'building' && $canBuilding ? 'برای مالک و مدیر ساختمان؛ شامل مخاطبان ثبت‌شده و شماره تماس اعضای فعال.' : 'این فهرست خصوصی است و فقط خودت به مخاطبان ثبت‌شده در آن دسترسی داری.' }}</p></div>
+      <span class="phonebook-chip">{{ $activeTab === 'building' && $canBuilding ? 'مشترک و مدیریت‌شده' : 'خصوصی' }}</span>
+    </div>
+    <div class="phonebook-body">
+      <form class="phonebook-search" method="GET" action="{{ route('phonebook.index') }}">
+        <input type="hidden" name="tab" value="{{ $activeTab }}">
+        <input type="search" name="q" value="{{ $search }}" placeholder="جست‌وجوی نام، شماره یا دسته‌بندی..." aria-label="جست‌وجوی مخاطب">
+        <button class="btn" type="submit">جست‌وجو</button>
+        @if($search !== '')<a class="btn sec" href="{{ route('phonebook.index', ['tab' => $activeTab]) }}">پاک‌کردن</a>@endif
+      </form>
+
+      @if($activeTab === 'building' && $canBuilding)
+        @if($buildingEntries->isEmpty() && $buildingPeople->isEmpty())<div class="phonebook-empty"><strong>دفترچهٔ ساختمان هنوز مخاطبی ندارد</strong>شماره‌های ضروری را ثبت کن؛ اعضای فعال ساختمان نیز در این فهرست نمایش داده می‌شوند.</div>@endif
+        <div class="phonebook-grid">
+          @foreach($buildingEntries as $contact)
+            <article class="phonebook-contact">
+              <div class="phonebook-contact-top"><div class="phonebook-avatar">{{ mb_substr($contact->name, 0, 1) }}</div><div class="phonebook-contact-main"><h4>{{ $contact->name }}</h4><span class="phonebook-chip">{{ $categories[$contact->category] ?? 'سایر شماره‌ها' }}</span></div></div>
+              <a class="phonebook-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $contact->phone) }}">{{ $F::num($contact->phone) }}</a>
+              <div class="phonebook-actions">
+                <details><summary class="btn sec sm">ویرایش</summary><form class="phonebook-edit" method="POST" action="{{ route('phonebook.update', $contact->id) }}">@csrf @method('PUT')
+                  <div class="phonebook-form-grid" style="grid-template-columns:1fr">
+                    <div class="fld"><label>نام مخاطب</label><input name="name" value="{{ $contact->name }}" maxlength="150" required></div>
+                    <div class="fld"><label>شماره تماس</label><input name="phone" value="{{ $contact->phone }}" maxlength="20" inputmode="tel" required></div>
+                    <div class="fld"><label>دسته‌بندی</label><select name="category" required>@foreach($categories as $key => $label)<option value="{{ $key }}" @selected($contact->category === $key)>{{ $label }}</option>@endforeach</select></div>
+                  </div><button class="btn sm" style="margin-top:10px" type="submit">ذخیره تغییرات</button>
+                </form></details>
+                <form method="POST" action="{{ route('phonebook.destroy', $contact->id) }}" data-confirm="این مخاطب از دفترچهٔ ساختمان حذف شود؟" data-confirm-title="حذف مخاطب" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
+              </div>
+            </article>
+          @endforeach
+          @foreach($buildingPeople as $person)
+            <article class="phonebook-contact"><div class="phonebook-contact-top"><div class="phonebook-avatar">{{ mb_substr($person['name'] ?: 'ک', 0, 1) }}</div><div class="phonebook-contact-main"><h4>{{ $person['name'] ?: 'بدون نام' }}</h4><span class="phonebook-chip">عضو ساختمان</span></div></div>
+              <a class="phonebook-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $person['phone']) }}">{{ $F::num($person['phone']) }}</a><div class="phonebook-roles">@foreach($person['roles'] as $role)<span class="phonebook-chip">{{ $role }}</span>@endforeach</div>
+            </article>
+          @endforeach
+        </div>
+        <section class="phonebook-panel" style="margin-top:18px"><div class="phonebook-panel-head"><div><h3>افزودن شمارهٔ ضروری</h3><p>برای اورژانس، آتش‌نشانی، خدمات، حراست و سایر تماس‌های مهم.</p></div></div><div class="phonebook-body">
+          @if($errors->any())<div class="phonebook-form-errors">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
+          <form method="POST" action="{{ route('phonebook.store') }}">@csrf<input type="hidden" name="scope" value="building">
+            <div class="phonebook-form-grid">
+              <div class="fld"><label for="building-name">نام مخاطب *</label><input id="building-name" name="name" value="{{ old('scope') === 'building' ? old('name') : '' }}" maxlength="150" required placeholder="مثلاً آتش‌نشانی"></div>
+              <div class="fld"><label for="building-phone">شماره تماس *</label><input id="building-phone" name="phone" value="{{ old('scope') === 'building' ? old('phone') : '' }}" maxlength="20" inputmode="tel" required placeholder="شماره تلفن"></div>
+              <div class="fld"><label for="building-category">دسته‌بندی *</label><select id="building-category" name="category" required><option value="">انتخاب دسته</option>@foreach($categories as $key => $label)<option value="{{ $key }}" @selected(old('scope') === 'building' && old('category') === $key)>{{ $label }}</option>@endforeach</select></div>
+            </div><div style="display:flex;justify-content:flex-start;margin-top:14px"><button class="btn" type="submit">ثبت شماره در دفترچهٔ ساختمان</button></div>
+          </form>
+        </div></section>
+      @else
+        @if($personalEntries->isEmpty())<div class="phonebook-empty"><strong>هنوز مخاطبی ذخیره نکرده‌ای</strong>شماره‌های موردنیازت را اضافه کن تا همیشه در دفترچهٔ شخصی‌ات در دسترس باشند.</div>
+        @else
+          <div class="phonebook-grid">
+            @foreach($personalEntries as $contact)
+              <article class="phonebook-contact">
+                <div class="phonebook-contact-top"><div class="phonebook-avatar">{{ mb_substr($contact->name, 0, 1) }}</div><div class="phonebook-contact-main"><h4>{{ $contact->name }}</h4><span class="phonebook-chip">{{ $categories[$contact->category] ?? 'سایر شماره‌ها' }}</span></div></div>
+                <a class="phonebook-phone" href="tel:{{ preg_replace('/[^0-9+]/', '', $contact->phone) }}">{{ $F::num($contact->phone) }}</a>
+                <div class="phonebook-actions">
+                  <details><summary class="btn sec sm">ویرایش</summary><form class="phonebook-edit" method="POST" action="{{ route('phonebook.update', $contact->id) }}">@csrf @method('PUT')
+                    <div class="phonebook-form-grid" style="grid-template-columns:1fr">
+                      <div class="fld"><label>نام مخاطب</label><input name="name" value="{{ $contact->name }}" maxlength="150" required></div>
+                      <div class="fld"><label>شماره تماس</label><input name="phone" value="{{ $contact->phone }}" maxlength="20" inputmode="tel" required></div>
+                      <div class="fld"><label>دسته‌بندی</label><select name="category" required>@foreach($categories as $key => $label)<option value="{{ $key }}" @selected($contact->category === $key)>{{ $label }}</option>@endforeach</select></div>
+                    </div><button class="btn sm" style="margin-top:10px" type="submit">ذخیره تغییرات</button>
+                  </form></details>
+                  <form method="POST" action="{{ route('phonebook.destroy', $contact->id) }}" data-confirm="این مخاطب از دفترچهٔ شخصی حذف شود؟" data-confirm-title="حذف مخاطب" data-confirm-icon="warning">@csrf @method('DELETE')<button class="btn dng sm" type="submit">حذف</button></form>
+                </div>
+              </article>
+            @endforeach
+          </div>
+          <div style="margin-top:16px">{{ $personalEntries->links() }}</div>
+        @endif
+        <section class="phonebook-panel" style="margin-top:18px"><div class="phonebook-panel-head"><div><h3>افزودن مخاطب شخصی</h3><p>این شماره فقط در دفترچهٔ خصوصی حساب خودت ذخیره می‌شود.</p></div></div><div class="phonebook-body">
+          @if($errors->any())<div class="phonebook-form-errors">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
+          <form method="POST" action="{{ route('phonebook.store') }}">@csrf<input type="hidden" name="scope" value="personal">
+            <div class="phonebook-form-grid">
+              <div class="fld"><label for="personal-name">نام مخاطب *</label><input id="personal-name" name="name" value="{{ old('scope', 'personal') === 'personal' ? old('name') : '' }}" maxlength="150" required placeholder="نام و نام خانوادگی"></div>
+              <div class="fld"><label for="personal-phone">شماره تماس *</label><input id="personal-phone" name="phone" value="{{ old('scope', 'personal') === 'personal' ? old('phone') : '' }}" maxlength="20" inputmode="tel" required placeholder="شماره تلفن"></div>
+              <div class="fld"><label for="personal-category">دسته‌بندی *</label><select id="personal-category" name="category" required><option value="">انتخاب دسته</option>@foreach($categories as $key => $label)<option value="{{ $key }}" @selected(old('scope', 'personal') === 'personal' && old('category') === $key)>{{ $label }}</option>@endforeach</select></div>
+            </div><div style="display:flex;justify-content:flex-start;margin-top:14px"><button class="btn" type="submit">ذخیره مخاطب شخصی</button></div>
+          </form>
+        </div></section>
+      @endif
+    </div>
+  </section>
+</div>
+@endsection

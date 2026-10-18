@@ -40,16 +40,16 @@
 @media(prefers-reduced-motion:no-preference){.workspace-hero-mark{transition:transform .25s ease,background .25s ease}.workspace-panel:hover .workspace-hero-mark{transform:translateY(-2px);background:linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,.06))}}
 
 /* Keep bespoke workspace heroes on specialized pages in the same visual system. */
-.docs-hero,.poll-hero,.cal-hero,.sms-hero,.task-hero,.shift-hero,.notice-hero,.role-hero,.mui-hero{
+.docs-hero,.poll-hero,.cal-hero,.sms-hero,.task-hero,.shift-hero,.notice-hero,.role-hero,.mui-hero,.phonebook-hero{
   border-radius:27px!important;
   background:radial-gradient(ellipse at 8% 0%,rgba(139,239,213,.22),transparent 36%),radial-gradient(ellipse at 100% 100%,rgba(99,213,192,.16),transparent 38%),linear-gradient(118deg,#102b3b 0%,#155c5c 52%,#278778 100%)!important;
   box-shadow:inset 0 -1px 0 rgba(255,255,255,.13),0 12px 30px rgba(16,65,65,.08)!important;
   color:#fff!important;
 }
-.docs-hero h2,.poll-hero h2,.cal-hero h2,.sms-hero h2,.task-hero h2,.shift-hero h2,.notice-hero h2,.role-hero h2,.mui-hero h2{
+.docs-hero h2,.poll-hero h2,.cal-hero h2,.sms-hero h2,.task-hero h2,.shift-hero h2,.notice-hero h2,.role-hero h2,.mui-hero h2,.phonebook-hero h2{
   color:#fff!important;font-weight:900!important;letter-spacing:-.4px!important;line-height:1.5!important;
 }
-.docs-hero p,.poll-hero p,.cal-hero p,.sms-hero p,.task-hero p,.shift-hero p,.notice-hero p,.role-hero p,.mui-hero p{
+.docs-hero p,.poll-hero p,.cal-hero p,.sms-hero p,.task-hero p,.shift-hero p,.notice-hero p,.role-hero p,.mui-hero p,.phonebook-hero p{
   color:#d8f1e9!important;line-height:2!important;
 }
 .docs-hero:after,.poll-hero:after,.cal-hero:after,.role-hero:after,.mui-hero:before,.mui-hero:after{
@@ -59,7 +59,7 @@
   border-color:rgba(255,255,255,.26)!important;background:rgba(255,255,255,.09)!important;
 }
 @media(max-width:600px){
-  .docs-hero,.poll-hero,.cal-hero,.sms-hero,.task-hero,.shift-hero,.notice-hero,.role-hero,.mui-hero{border-radius:22px!important}
+  .docs-hero,.poll-hero,.cal-hero,.sms-hero,.task-hero,.shift-hero,.notice-hero,.role-hero,.mui-hero,.phonebook-hero{border-radius:22px!important}
 }
 
 </style>
@@ -141,7 +141,7 @@
     </header>
 
     <div class="scroll">
-      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'events.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index', 'sms-templates.*'))
+      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'events.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index', 'sms-templates.*', 'phonebook.*'))
         <section class="panel workspace-panel">
           <header class="workspace-hero" aria-label="معرفی بخش">
             <div class="workspace-hero-copy">
