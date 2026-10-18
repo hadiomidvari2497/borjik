@@ -10,6 +10,7 @@ class MarketingController extends Controller
     public function home()
     {
         $content = SiteSetting::get('marketing.content', []);
+
         $articles = Article::query()
             ->where('status', 'published')
             ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
