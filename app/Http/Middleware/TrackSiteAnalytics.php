@@ -98,7 +98,7 @@ class TrackSiteAnalytics
                 'exit_page' => $path,
                 'pageviews' => (int) ($existing?->pageviews ?? 0) + 1,
                 'active_seconds' => (int) ($existing?->active_seconds ?? 0),
-                'engaged' => (bool) ($existing?->engaged ?? false),
+                'engaged' => (bool) ($existing?->engaged ?? false) || ((int) ($existing?->pageviews ?? 0) + 1 >= 2),
                 'source' => mb_substr($existing?->source && $existing->source !== 'direct' ? $existing->source : ($source ?: 'direct'), 0, 190),
                 'medium' => mb_substr($existing?->medium && $existing->medium !== 'none' ? $existing->medium : ($medium ?: 'none'), 0, 100),
                 'campaign' => $existing?->campaign ?: $this->nullableQuery($request, 'utm_campaign'),
