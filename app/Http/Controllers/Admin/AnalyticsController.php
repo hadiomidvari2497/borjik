@@ -7,7 +7,6 @@ use App\Models\AnalyticsEvent;
 use App\Models\AnalyticsPageView;
 use App\Models\AnalyticsSession;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -58,7 +57,7 @@ class AnalyticsController extends Controller
             $day = $start->copy()->addDays($i)->toDateString();
             $trend[] = [
                 'day' => $day,
-                'label' => \App\Support\Fa::date($day, 'm/d'),
+                'label' => \App\Support\Fa::date($start->copy()->addDays($i), 'm/d'),
                 'sessions' => (int) ($dailySessions[$day]->total ?? 0),
                 'pageviews' => (int) ($dailyViews[$day]->total ?? 0),
             ];
