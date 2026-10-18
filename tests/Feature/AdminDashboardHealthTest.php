@@ -25,6 +25,30 @@ class AdminDashboardHealthTest extends TestCase
             ->assertSee('داشبورد مدیریت')
             ->assertSee('نیازمند رسیدگی')
             ->assertSee('مورد فوری برای رسیدگی پیدا نشد')
-            ->assertSee('دسترسی سریع');
+            ->assertSee('دسترسی سریع')
+            ->assertSee('روند رشد سامانه')
+            ->assertSee('۷ روز')
+            ->assertSee('۳۰ روز')
+            ->assertSee('۹۰ روز');
+    }
+    public function test_dashboard_accepts_supported_trend_ranges(): void
+    {
+        $admin = AdminUser::create([
+            'username' => 'dashboard-range-admin',
+            'password' => 'secret-pass-1',
+            'status' => 'active',
+            'is_super' => true,
+        ]);
+
+        foreach ([7, 30, 90] as $days) {
+            $this->actingAs($admin, 'admin')
+                ->get(route('admin.dashboard', ['days' => $days]))
+                ->assertOk()
+                ->assertSee('روند رشد سامانه');
+        }
+
+        $this->actingAs($admin, 'admin')
+            ->get(route('admin.dashboard', ['days' => 14]))
+            ->assertSessionHasErrors('days');
     }
 }
