@@ -55,6 +55,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 SystemErrorLog::query()->create([
                     'exception_class' => mb_substr($exception::class, 0, 255),
                     'message' => $message,
+                    'details' => mb_substr(preg_replace('/((?:password|passwd|token|secret|api[_-]?key|authorization|cookie)\\s*[=:]\\s*)[^,\\s;]+/i', '$1[REDACTED]', $exception::class."\\n".$message."\\nFile: ".$exception->getFile()."\\nLine: ".$exception->getLine()."\\nTrace:\\n".$exception->getTraceAsString()) ?? $message, 50000),
+                    'severity' => $status >= 500 ? 'error' : 'warning',
+                    'category' => 'runtime',
+                    'context' => null,
                     'file' => mb_substr($exception->getFile(), 0, 1000),
                     'line' => $exception->getLine(),
                     'method' => mb_substr($request->method(), 0, 10),
