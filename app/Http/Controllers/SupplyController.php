@@ -7,7 +7,6 @@ use App\Models\SupplyMovement;
 use App\Support\CurrentBuilding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class SupplyController extends Controller
 {
