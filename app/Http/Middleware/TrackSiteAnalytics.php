@@ -22,6 +22,9 @@ class TrackSiteAnalytics
 
         if ($response->getStatusCode() < 400 && str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
             try {
+                if (! Schema::hasTable('analytics_sessions') || ! Schema::hasTable('analytics_page_views')) {
+                    return $response;
+                }
                 $this->recordPageView($request);
                 $content = $response->getContent();
                 if (is_string($content) && stripos($content, '</body>') !== false) {
@@ -29,7 +32,7 @@ class TrackSiteAnalytics
                     $response->setContent((string) preg_replace('/<\/body>/i', $script.'</body>', $content, 1));
                 }
             } catch (Throwable $exception) {
-                report($exception);
+                error_log('Site analytics tracking failed: '.$exception::class);
             }
         }
 
@@ -46,7 +49,7 @@ class TrackSiteAnalytics
             return false;
         }
 
-        return Schema::hasTable('analytics_sessions') && Schema::hasTable('analytics_page_views');
+        return true;
     }
 
     private function recordPageView(Request $request): void
