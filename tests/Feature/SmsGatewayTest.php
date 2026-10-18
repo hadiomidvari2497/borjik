@@ -10,6 +10,7 @@ use App\Services\Sms\LogSmsGateway;
 use App\Services\Sms\SmsException;
 use App\Services\Sms\SmsGateway;
 use App\Services\Sms\SmsGatewayFactory;
+use App\Services\Sms\SmsSender;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
