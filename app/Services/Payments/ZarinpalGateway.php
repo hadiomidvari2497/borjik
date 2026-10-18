@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Models\SiteSetting;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 class ZarinpalGateway
