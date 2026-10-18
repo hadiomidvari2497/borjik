@@ -20,8 +20,8 @@
       @foreach($supplies as $supply)
         <tr>
           <td><b>{{ $supply->name }}</b><div class="muted">{{ $supply->unit ?: 'بدون واحد' }}</div></td>
-          <td><strong>{{ $F::num(number_format((float) $supply->quantity, 2, '.', '')) }}</strong> {{ $supply->unit }}</td>
-          <td>{{ $F::num(number_format((float) $supply->min_quantity, 2, '.', '')) }} {{ $supply->unit }}</td>
+          <td><strong>{{ $quantity($supply->quantity) }}</strong> {{ $supply->unit }}</td>
+          <td>{{ $quantity($supply->min_quantity) }} {{ $supply->unit }}</td>
           <td>@if((float) $supply->quantity <= (float) $supply->min_quantity)<span class="badge warn">نیاز به تأمین</span>@else<span class="badge">موجود</span>@endif</td>
           <td style="min-width:210px">
             <form method="POST" action="{{ route('supplies.update', $supply) }}">@csrf @method('PUT')
@@ -68,7 +68,7 @@
   @else
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>قلم</th><th>نوع</th><th>مقدار</th><th>توضیح</th><th>ثبت‌کننده</th><th>زمان ثبت</th></tr></thead><tbody>
       @foreach($movements as $movement)
-        <tr><td>{{ $movement->supply?->name ?? 'قلم حذف‌شده' }}</td><td>{{ (float) $movement->delta > 0 ? 'ورود' : 'مصرف / خروج' }}</td><td>{{ (float) $movement->delta > 0 ? '+' : '−' }}{{ $F::num(number_format(abs((float) $movement->delta), 2, '.', '')) }} {{ $movement->supply?->unit }}</td><td>{{ $movement->reason ?: '—' }}</td><td>{{ $movement->user?->display_name ?: $movement->user?->mobile ?: '—' }}</td><td>{{ $F::num($movement->created_at?->format('Y/m/d H:i')) }}</td></tr>
+        <tr><td>{{ $movement->supply?->name ?? 'قلم حذف‌شده' }}</td><td>{{ (float) $movement->delta > 0 ? 'ورود' : 'مصرف / خروج' }}</td><td>{{ (float) $movement->delta > 0 ? '+' : '−' }}{{ $quantity(abs((float) $movement->delta)) }} {{ $movement->supply?->unit }}</td><td>{{ $movement->reason ?: '—' }}</td><td>{{ $movement->user?->display_name ?: $movement->user?->mobile ?: '—' }}</td><td>{{ $movement->created_at ? $F::date($movement->created_at, 'Y/m/d H:i') : '—' }}</td></tr>
       @endforeach
     </tbody></table></div>
   @endif
