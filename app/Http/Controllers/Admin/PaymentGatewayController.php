@@ -22,7 +22,7 @@ class PaymentGatewayController extends Controller
             'hasApiKey' => ! empty($settings['api_key']),
             'hasApiSecret' => ! empty($settings['api_secret']),
             'hasWebhookSecret' => ! empty($settings['webhook_secret']),
-            'callbackUrl' => route('payment.gateway.callback'),
+            'callbackUrl' => url('/payment/gateway/callback'),
         ]);
     }
 
