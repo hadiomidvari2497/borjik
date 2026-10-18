@@ -45,7 +45,7 @@
     <form method="GET" class="card" style="padding:14px;margin-bottom:16px">
       <div class="sd-filters">
         <div><label for="sd-q">جست‌وجو</label><input id="sd-q" name="q" value="{{ $filters['q'] }}" placeholder="نوع خطا، پیام، مسیر یا شناسه کاربر"></div>
-        <div><label for="sd-status">کد پاسخ</label><select id="sd-status" name="status"><option value="">همه خطاها</option><option value="500" @selected($filters['status']==='500')>۵۰۰ — خطای سرور</option><option value="503" @selected($filters['status']==='503')>۵۰۳ — سرویس در دسترس نیست</option><option value="404" @selected($filters['status']==='404')>۴۰۴ — پیدا نشد</option><option value="403" @selected($filters['status']==='403')>۴۰۳ — عدم دسترسی</option><option value="other" @selected($filters['status']==='other')>سایر کدها</option></select></div>
+        <div><label for="sd-status">کد پاسخ</label><select id="sd-status" name="status"><option value="">همه خطاها</option><option value="500" @selected($filters['status']==='500')>۵۰۰ — خطای سرور</option><option value="503" @selected($filters['status']==='503')>۵۰۳ — سرویس در دسترس نیست</option><option value="404" @selected($filters['status']==='404')>۴۰۴ — پیدا نشد</option><option value="403" @selected($filters['status']==='403')>۴۰۳ — عدم دسترسی</option><option value="422" @selected($filters['status']==='422')>۴۲۲ — خطای قابل‌مدیریت برنامه</option><option value="other" @selected($filters['status']==='other')>سایر کدها</option></select></div>
         <div><label for="sd-from">از تاریخ میلادی</label><input id="sd-from" type="date" name="from" value="{{ $filters['from'] }}"></div>
         <div><label for="sd-to">تا تاریخ میلادی</label><input id="sd-to" type="date" name="to" value="{{ $filters['to'] }}"></div>
       </div>
