@@ -85,7 +85,7 @@ class PaymentGatewayController extends Controller
         SiteSetting::set(self::KEY, $settings, true);
 
         return redirect()->route('admin.payment-gateway.edit')
-            ->with('status', 'تنظیمات درگاه ذخیره شد. این مرحله اطلاعات اتصال را نگه می‌دارد؛ برای تراکنش واقعی باید آداپتور اختصاصی همان درگاه نیز پیاده‌سازی شود.');
+            ->with('status', $settings['driver'] === 'zarinpal' ? 'تنظیمات زرین‌پال ذخیره شد. برای خرید واقعی، شناسه پذیرنده معتبر و محیط مناسب را تنظیم کنید.' : 'تنظیمات درگاه ذخیره شد. برای درگاه‌های دیگر، آداپتور اختصاصی لازم است.');
     }
 
     public function validateConfiguration()
@@ -97,7 +97,7 @@ class PaymentGatewayController extends Controller
         if (empty($settings['provider_name'])) $missing[] = 'نام درگاه';
         if (empty($settings['driver'])) $missing[] = 'شناسه فنی درگاه';
         if (empty($settings['merchant_id'])) $missing[] = 'شناسه پذیرنده';
-        if (empty($settings['api_key'])) $missing[] = 'کلید API';
+        if (($settings['driver'] ?? '') !== 'zarinpal' && empty($settings['api_key'])) $missing[] = 'کلید API';
 
         if (empty($settings['active'])) {
             return back()->with('warning', 'اتصال درگاه غیرفعال است؛ این بررسی فقط تنظیمات ذخیره‌شده را اعتبارسنجی می‌کند و تراکنش آزمایشی ارسال نمی‌کند.');
@@ -107,6 +107,6 @@ class PaymentGatewayController extends Controller
             return back()->with('error', 'تنظیمات ناقص است: '.implode('، ', $missing).' .');
         }
 
-        return back()->with('status', 'فیلدهای پایه کامل هستند. این نتیجه به معنی اتصال زنده یا تأیید پرداخت نیست؛ برای آن باید آداپتور اختصاصی درگاه انتخابی پیاده‌سازی شود.');
+        return back()->with('status', ($settings['driver'] ?? '') === 'zarinpal' ? 'تنظیمات پایه زرین‌پال کامل است؛ برای اطمینان از اتصال، یک پرداخت آزمایشی واقعی در محیط Sandbox انجام دهید.' : 'فیلدهای پایه کامل هستند؛ این بررسی به معنی تأیید اتصال زنده نیست.');
     }
 }
