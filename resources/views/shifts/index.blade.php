@@ -63,7 +63,7 @@
           <td><strong>{{ $shift->shift_date ? \App\Support\JalaliDate::format($shift->shift_date) : 'هر '.$weekdays[(int) $shift->weekday] }}</strong><div class="shift-meta">{{ $shift->shift_date ? 'شیفت تاریخ‌دار' : 'برنامه تکرارشونده هفتگی' }}</div></td>
           <td><strong>{{ \App\Support\Fa::digits(substr((string) $shift->start_time, 0, 5)) }} تا {{ \App\Support\Fa::digits(substr((string) $shift->end_time, 0, 5)) }}</strong></td>
           <td>{{ $shift->location ?: '—' }}</td>
-          @if($canManage)<td><div class="shift-inline-actions"><a class="shift-btn" href="{{ route('shifts.edit', $shift) }}">ویرایش</a><form method="POST" action="{{ route('shifts.destroy', $shift) }}" onsubmit="return confirm('این شیفت حذف شود؟')">@csrf @method('DELETE')<button class="shift-btn danger" type="submit">حذف</button></form></div></td>@endif
+          @if($canManage)<td><div class="shift-inline-actions"><a class="shift-btn" href="{{ route('shifts.edit', $shift) }}">ویرایش</a><form method="POST" action="{{ route('shifts.destroy', $shift) }}" data-confirm="این شیفت حذف شود؟" data-confirm-title="حذف شیفت" data-confirm-icon="warning">@csrf @method('DELETE')<button class="shift-btn danger" type="submit">حذف</button></form></div></td>@endif
         </tr>
       @endforeach
       </tbody></table></div>

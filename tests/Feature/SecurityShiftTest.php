@@ -83,19 +83,19 @@ class SecurityShiftTest extends TestCase
         $this->assertDatabaseHas('security_shifts', [
             'building_id' => $this->building->id,
             'user_id' => $this->guard->id,
-            'shift_date' => '2026-10-18',
+            'shift_date' => '2026-10-18 00:00:00',
         ]);
     }
 
     public function test_guard_can_only_see_own_shifts_and_cannot_manage_them(): void
     {
-        $shift = SecurityShift::create([
-            'building_id' => $this->building->id,
+        $this->open($this->owner, 'post', route('shifts.store'), [
             'user_id' => $this->guard->id,
+            'schedule_type' => 'weekly',
             'weekday' => 1,
             'start_time' => '08:00',
             'end_time' => '16:00',
-        ]);
+        ])->assertRedirect(route('shifts.index'));
 
         $this->open($this->guard, 'get', route('shifts.index'))->assertOk()->assertSee('نگهبان')->assertDontSee('حذف');
         $this->open($this->guard, 'post', route('shifts.store'), [
@@ -105,6 +105,6 @@ class SecurityShiftTest extends TestCase
             'start_time' => '08:00',
             'end_time' => '16:00',
         ])->assertForbidden();
-        $this->assertDatabaseHas('security_shifts', ['id' => $shift->id]);
+        $this->assertDatabaseCount('security_shifts', 1);
     }
 }
