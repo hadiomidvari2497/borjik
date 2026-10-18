@@ -39,8 +39,9 @@ class AnalyticsCollectionController extends Controller
         }
 
         $path = mb_substr(rtrim($data['path'], '/') ?: '/', 0, 500);
-        $delta = (int) $data['active_seconds'];
         $now = now();
+        $elapsed = max(0, min(30, (int) $session->last_seen_at->diffInSeconds($now)));
+        $delta = min((int) $data['active_seconds'], $elapsed);
         $session->forceFill([
             'visitor_id' => $data['visitor_id'] ?? $session->visitor_id,
             'user_id' => $request->user()?->getAuthIdentifier() ?? $session->user_id,
