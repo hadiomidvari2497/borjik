@@ -255,6 +255,31 @@ class PaymentFlowTest extends TestCase
         $this->as($stranger)->get(route('files.show', $fileId))->assertForbidden();
     }
 
+    public function test_only_resident_members_can_submit_and_only_owner_or_manager_can_review(): void
+    {
+        $manager = $this->user('09120000004', 'مدیر دوم');
+        $staff = $this->user('09120000005', 'پرسنل');
+        $this->join($manager, 'manager');
+        $this->join($staff, 'security');
+
+        // مالک و مدیر فقط به صف بررسی دسترسی دارند و نباید فیش ثبت کنند.
+        $this->as($this->manager)->get(route('my.payments'))->assertForbidden();
+        $this->as($this->manager)->post(route('my.payments.store'))->assertForbidden();
+        $this->as($manager)->get(route('my.payments'))->assertForbidden();
+        $this->as($manager)->post(route('my.payments.store'))->assertForbidden();
+
+        $this->as($this->manager)->get(route('payments.index'))->assertOk();
+        $this->as($manager)->get(route('payments.index'))->assertOk();
+
+        // اعضای پرسنل نه امکان ثبت فیش دارند و نه امکان مشاهده/بررسی پرداخت‌ها.
+        $this->as($staff)->get(route('my.payments'))->assertForbidden();
+        $this->as($staff)->post(route('my.payments.store'))->assertForbidden();
+        $this->as($staff)->get(route('payments.index'))->assertForbidden();
+
+        // عضو عادی امکان ثبت و مشاهده فیش‌های خودش را حفظ می‌کند.
+        $this->as($this->tenant)->get(route('my.payments'))->assertOk();
+    }
+
     public function test_pages_and_permissions(): void
     {
         $this->as($this->tenant)->get(route('payments.index'))->assertForbidden();
