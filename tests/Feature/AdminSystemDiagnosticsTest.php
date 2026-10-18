@@ -11,7 +11,7 @@ class AdminSystemDiagnosticsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_reported_exception_is_saved_with_the_current_user_and_visible_in_admin_diagnostics(): void
+    public function test_error_record_with_actor_is_visible_in_admin_diagnostics(): void
     {
         $user = \App\Models\User::factory()->create();
         $admin = AdminUser::create(['username' => 'diagnostics-admin', 'password' => 'secret-pass-1', 'status' => 'active', 'is_super' => true]);
