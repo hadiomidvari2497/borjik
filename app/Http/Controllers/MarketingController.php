@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\SiteSetting;
+use Illuminate\Support\Facades\Storage;
 
 class MarketingController extends Controller
 {
@@ -20,6 +21,15 @@ class MarketingController extends Controller
             ->get();
 
         return view('marketing.home', compact('content', 'articles'));
+    }
+
+    public function enamadImage()
+    {
+        $path = data_get(SiteSetting::get('marketing.content', []), 'enamad.image_path');
+
+        abort_unless(is_string($path) && $path !== '' && Storage::disk('public')->exists($path), 404);
+
+        return Storage::disk('public')->response($path);
     }
 
     public function articles()
