@@ -31,7 +31,7 @@
     <div class="bu-filters">
       <div class="fld"><label for="bu-q">جست‌وجو</label><input id="bu-q" name="q" value="{{ $filters['q'] }}" placeholder="نام، موبایل یا کد ملی"></div>
       <div class="fld"><label for="bu-building">ساختمان</label><select id="bu-building" name="building_id"><option value="">همه ساختمان‌ها</option>@foreach($buildings as $b)<option value="{{ $b->id }}" @selected((string)$filters['building_id'] === (string)$b->id)>{{ $b->name }}</option>@endforeach</select></div>
-      <div class="fld"><label for="bu-role">نقش</label><select id="bu-role" name="role_id"><option value="">همه نقش‌ها</option>@foreach($roles as $r)<option value="{{ $r->id }}" @selected((string)$filters['role_id'] === (string)$r->id)>{{ $r->name }}</option>@endforeach</select></div>
+      <div class="fld"><label for="bu-role">نقش</label><select id="bu-role" name="role_key"><option value="">همه نقش‌ها</option>@foreach($roles as $r)<option value="{{ $r->key }}" @selected((string)$filters['role_key'] === $r->key)>{{ $r->name_fa }}</option>@endforeach</select></div>
       <div class="fld"><label for="bu-status">وضعیت حساب</label><select id="bu-status" name="status"><option value="">همه</option><option value="active" @selected($filters['status']==='active')>فعال</option><option value="disabled" @selected($filters['status']==='disabled')>غیرفعال</option></select></div>
       <div class="fld"><label for="bu-membership">وضعیت عضویت</label><select id="bu-membership" name="membership_status"><option value="">همه وضعیت‌ها</option>@foreach($membershipLabels as $key => $label)<option value="{{ $key }}" @selected($filters['membership_status']===$key)>{{ $label }}</option>@endforeach</select></div>
       <div class="fbar" style="margin:0;gap:6px"><button class="btn" type="submit">اعمال فیلتر</button><a class="btn sec" href="{{ route('admin.building-users.index') }}">پاک‌کردن</a></div>
@@ -51,7 +51,7 @@
           <td><span class="bu-status {{ $u->status === 'active' ? 'active' : 'disabled' }}">{{ $u->status === 'active' ? 'فعال' : 'غیرفعال' }}</span></td>
           <td>@if($u->buildingRoles->isEmpty())<span class="bu-muted">هنوز عضویتی ثبت نشده</span>@else<div class="bu-building">
             @foreach($u->buildingRoles as $m)
-              <span class="pill" title="{{ $m->role?->name ?: 'بدون نقش' }} — {{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }}">{{ $m->building?->name ?: 'ساختمان حذف‌شده' }} · {{ $m->role?->name ?: 'بدون نقش' }} <span class="bu-muted">({{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }})</span></span>
+              <span class="pill" title="{{ $m->role?->name_fa ?: 'بدون نقش' }} — {{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }}">{{ $m->building?->name ?: 'ساختمان حذف‌شده' }} · {{ $m->role?->name ?: 'بدون نقش' }} <span class="bu-muted">({{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }})</span></span>
             @endforeach
           </div>@endif</td>
           <td>@if($u->mobile_verified_at)<span class="bu-status active">تأییدشده</span>@else<span class="bu-muted">تأیید نشده</span>@endif</td>
