@@ -155,6 +155,7 @@ class CalendarController extends Controller
             'monthKey' => $monthKey, 'prevKey' => $prevKey, 'nextKey' => $nextKey,
             'viewMode' => $viewMode, 'anchorKey' => $anchorKey, 'prevDateKey' => $prevDateKey, 'nextDateKey' => $nextDateKey,
             'days' => $days, 'leading' => $leading, 'items' => $items,
+            'start' => $start, 'end' => $end,
             'upcoming' => $upcoming, 'canManage' => $user->hasPermission('event.manage'),
             'todayLabel' => JalaliDate::format(now()),
             'monthNames' => self::MONTHS,
