@@ -51,7 +51,7 @@
 @else
   <section class="card" style="display:flex;align-items:center;gap:12px;padding:16px;margin-bottom:18px">
     <span style="width:38px;height:38px;border-radius:10px;background:#e8f7ef;color:#18794e;display:flex;align-items:center;justify-content:center"><svg class="i"><use href="#shield-check"/></svg></span>
-    <div><b style="display:block;font-size:14px">مورد فوری برای رسیدگی پیدا نشد</b><small style="color:var(--muted,#64748b)">در حال حاضر هشدار فعالی در شاخص‌های بررسی‌شده وجود ندارد.</small></div>
+    <div><b style="display:block;font-size:14px">نیازمند رسیدگی</b><small style="color:var(--muted,#64748b)">مورد فوری برای رسیدگی پیدا نشد؛ در حال حاضر هشدار فعالی در شاخص‌های بررسی‌شده وجود ندارد.</small></div>
   </section>
 @endif
 
