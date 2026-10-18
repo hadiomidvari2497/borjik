@@ -20,6 +20,8 @@ return [
                 'desc' => 'قیمت، مدت و سقف واحد پلن‌ها'],
             ['label' => 'اشتراک کاربران', 'icon' => 'users', 'route' => 'admin.subscriptions.index', 'active' => 'admin.subscriptions.*', 'perm' => 'subscriptions.manage',
                 'desc' => 'فعال‌سازی دستی پلن برای کاربران موجود'],
+            ['label' => 'اتصالات و درگاه پرداخت', 'icon' => 'credit-card', 'route' => 'admin.payment-gateway.edit', 'active' => 'admin.payment-gateway.*', 'perm' => 'gateway.manage',
+                'desc' => 'تنظیمات اتصال، اطلاعات پذیرنده و کلیدهای درگاه'],
         ],
     ],
     [
