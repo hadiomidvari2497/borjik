@@ -19,6 +19,7 @@ class SystemErrorLog extends Model
             'user_id' => 'integer',
             'admin_user_id' => 'integer',
             'created_at' => 'datetime',
+            'context' => 'array',
         ];
     }
 
