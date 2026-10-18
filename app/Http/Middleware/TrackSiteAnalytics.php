@@ -23,7 +23,7 @@ class TrackSiteAnalytics
 
         if ($response->getStatusCode() < 400 && str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
             try {
-                if (! Schema::hasTable('analytics_sessions') || ! Schema::hasTable('analytics_page_views')) {
+                if (! Schema::hasTable('analytics_sessions')) {
                     return $response;
                 }
                 $this->recordPageView($request);
