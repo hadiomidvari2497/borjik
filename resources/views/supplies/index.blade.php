@@ -1,4 +1,7 @@
-@php($F = \App\Support\Fa::class)
+@php
+  $F = \App\Support\Fa::class;
+  $quantity = static fn ($value) => $F::digits(number_format((float) $value, 2, '.', ','));
+@endphp
 @extends('layouts.app')
 @section('title', 'موجودی ملزومات')
 @section('content')
