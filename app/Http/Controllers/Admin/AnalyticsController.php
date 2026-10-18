@@ -72,6 +72,11 @@ class AnalyticsController extends Controller
             ->select('path', DB::raw('COUNT(*) as views'), DB::raw('AVG(active_seconds) as avg_active_seconds'), DB::raw('COUNT(DISTINCT session_key) as sessions'))
             ->groupBy('path')->orderByDesc('views')->limit(12)->get();
 
+        $landingPages = (clone $periodSessions)->whereNotNull('landing_page')
+            ->select('landing_page as path', DB::raw('COUNT(*) as sessions'))->groupBy('landing_page')->orderByDesc('sessions')->limit(8)->get();
+        $exitPages = (clone $periodSessions)->whereNotNull('exit_page')
+            ->select('exit_page as path', DB::raw('COUNT(*) as sessions'))->groupBy('exit_page')->orderByDesc('sessions')->limit(8)->get();
+
         $sources = (clone $periodSessions)->select('source', 'medium', DB::raw('COUNT(*) as sessions'))
             ->groupBy('source', 'medium')->orderByDesc('sessions')->limit(12)->get();
         $devices = $this->breakdown($periodSessions, 'device_type');
@@ -89,6 +94,11 @@ class AnalyticsController extends Controller
         $resolutionCounts = (clone $periodSessions)->whereNotNull('screen_width')->whereNotNull('screen_height')
             ->get(['screen_width', 'screen_height'])->map(fn ($row) => $row->screen_width.' × '.$row->screen_height)
             ->countBy()->sortDesc()->take(10);
+        $viewportCounts = (clone $periodSessions)->whereNotNull('viewport_width')->whereNotNull('viewport_height')
+            ->get(['viewport_width', 'viewport_height'])->map(fn ($row) => $row->viewport_width.' × '.$row->viewport_height)
+            ->countBy()->sortDesc()->take(6);
+        $pixelRatios = (clone $periodSessions)->whereNotNull('pixel_ratio')->pluck('pixel_ratio')
+            ->map(fn ($ratio) => number_format((float) $ratio, 2).'×')->countBy()->sortDesc()->take(6);
 
         return view('admin.analytics.index', [
             'days' => $days,
@@ -110,6 +120,8 @@ class AnalyticsController extends Controller
             'topPages' => $topPages,
             'topUsers' => $topUsers,
             'sources' => $sources,
+            'landingPages' => $landingPages,
+            'exitPages' => $exitPages,
             'devices' => $devices,
             'brands' => $brands,
             'browsers' => $browsers,
@@ -119,6 +131,8 @@ class AnalyticsController extends Controller
             'campaigns' => $campaigns,
             'events' => $events,
             'resolutions' => $resolutionCounts,
+            'viewports' => $viewportCounts,
+            'pixelRatios' => $pixelRatios,
         ]);
     }
 
