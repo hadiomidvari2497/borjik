@@ -17,7 +17,9 @@ class RecordAdminActivity
 
         $response = $next($request);
 
-        if ($admin && in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && $response->getStatusCode() < 400) {
+        $hasValidationErrors = $request->hasSession() && $request->session()->has('errors');
+
+        if ($admin && in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true) && $response->getStatusCode() < 400 && ! $hasValidationErrors) {
             try {
                 AdminActivityLog::query()->create([
                     'admin_user_id' => $admin->getAuthIdentifier(),
