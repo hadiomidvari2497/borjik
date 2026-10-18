@@ -145,8 +145,9 @@ class AdminAccessTest extends TestCase
     {
         $this->admin(['username' => 'boss', 'password' => 'secret-pass-1']);
 
-        // کاربر قبلاً صفحهٔ پنل ساختمان را بدون ورود باز کرده؛ آدرس آن در نشست می‌ماند
-        $this->get('/')->assertRedirect(route('login'));
+        // آدرس ریشه اکنون صفحهٔ عمومی است و نباید به‌عنوان مقصد ورود ذخیره شود
+        $this->get('/')->assertOk()->assertSeeText('مدیریت ساختمان، با آرامش بیشتر')
+            ->assertSessionMissing('url.intended');
         $this->post('/admin/login', ['username' => 'boss', 'password' => 'secret-pass-1'])
             ->assertRedirect(route('admin.dashboard'));
         $this->assertNull(session('url.intended'));
