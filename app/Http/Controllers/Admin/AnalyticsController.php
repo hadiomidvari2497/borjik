@@ -103,7 +103,7 @@ class AnalyticsController extends Controller
             'liveSessions' => $onlineSessions,
             'livePageViews' => $livePageViews,
             'trend' => $trend,
-            'topPages' => $topPages,
+            'topPages' => $topPages,\n            'topUsers' => $topUsers,
             'sources' => $sources,
             'devices' => $devices,
             'brands' => $brands,
