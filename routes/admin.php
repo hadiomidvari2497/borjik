@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\MarketingContentController;
 use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminActivityLogController;
+use App\Http\Middleware\RecordAdminActivity;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\BuildingUserController;
@@ -25,9 +27,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/two-factor', [AuthController::class, 'verifyChallenge'])->middleware('throttle:admin-login')->name('two-factor.verify');
     });
 
-    Route::middleware('admin')->group(function () {
+    Route::middleware(['admin', RecordAdminActivity::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
+        Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->middleware('admin.can:logs.view')->name('activity-logs.index');
 
         Route::prefix('account')->name('account')->controller(AccountController::class)->group(function () {
             Route::get('/', 'show');
