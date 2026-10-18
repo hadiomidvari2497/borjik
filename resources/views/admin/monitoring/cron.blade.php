@@ -1,0 +1,40 @@
+@extends('admin.layout')
+@section('title', 'پایش Cron و زمان‌بندی')
+@section('content')
+@php $F = \App\Support\Fa::class; @endphp
+<style>
+.cm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.cm-stat,.cm-panel{border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.cm-stat small{display:block;color:var(--muted);font-size:12px;margin-bottom:7px}.cm-stat strong{font-size:23px}.cm-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}.cm-filters label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.cm-filters input,.cm-filters select{width:100%;min-width:0}.cm-copy{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:transparent;color:inherit;cursor:pointer;font:inherit;font-size:12px;white-space:nowrap}.cm-ok{color:#16804a;font-weight:800}.cm-fail{color:#c0392b;font-weight:800}.cm-muted{font-size:12px;color:var(--muted);line-height:1.8}.cm-code{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;font-size:11px;padding:10px;border:1px solid var(--line);border-radius:8px;max-width:560px}.cm-date{white-space:nowrap;font-size:12px}.cm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:900px){.cm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cm-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.cm-grid,.cm-filters{grid-template-columns:1fr}.cm-stat strong{font-size:20px}}
+</style>
+<div class="card">
+ <div class="cm-head"><div><h2 style="margin:0">پایش اجرای Cron</h2><p class="cm-muted">زمان شروع و پایان هر اجرای زمان‌بندی‌شده، مدت اجرا، خروجی و خطاها را بررسی و کپی کن.</p><p class="cm-muted">آخرین بررسی صفحه: {{ $F::date($checkedAt, 'j F Y - H:i:s') }}</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sec" onclick="location.reload()">↻ تازه‌سازی</button><button type="button" class="cm-copy" id="cm-copy-all">کپی همهٔ لاگ‌های این صفحه</button></div></div>
+ <div class="cm-grid"><div class="cm-stat"><small>کل اجراهای ثبت‌شده</small><strong>{{ $F::num($stats['total']) }}</strong></div><div class="cm-stat"><small>موفق</small><strong class="cm-ok">{{ $F::num($stats['success']) }}</strong></div><div class="cm-stat"><small>ناموفق</small><strong class="cm-fail">{{ $F::num($stats['failed']) }}</strong></div><div class="cm-stat"><small>اجراهای امروز</small><strong>{{ $F::num($stats['today']) }}</strong></div></div>
+ <div class="cm-panel" style="margin-bottom:18px"><div class="cm-head"><h3 style="margin:0;font-size:15px">وضعیت اجرای Scheduler</h3><span class="{{ $schedulerHealthy ? 'cm-ok' : 'cm-fail' }}">{{ $schedulerHealthy ? '● فعال؛ heartbeat اخیر ثبت شده' : '● هشدار؛ heartbeat تازه‌ای ثبت نشده' }}</span></div><p class="cm-muted">آخرین heartbeat موفق: {{ $lastHeartbeat ? $F::date($lastHeartbeat, 'j F Y - H:i:s') : 'هنوز ثبت نشده' }}</p><p class="cm-muted">برای تشخیص اجرای واقعی Cron، سرور باید هر دقیقه دستور <code>php artisan schedule:run</code> را اجرا کند. اگر migration تازه نصب شده باشد، بعد از اجرای migration اولین لاگ‌ها با نوبت‌های بعدی ایجاد می‌شوند.</p><button type="button" class="cm-copy" id="cm-copy-health">کپی وضعیت Scheduler</button></div>
+ <form method="GET" class="cm-panel" style="margin-bottom:18px"><div class="cm-filters"><div><label for="cm-task">نام دستور</label><input id="cm-task" name="task" value="{{ $filters['task'] }}" placeholder="مثلاً calendar:send-reminders"></div><div><label for="cm-status">وضعیت</label><select id="cm-status" name="status"><option value="">همه</option><option value="success" @selected($filters['status']==='success')>موفق</option><option value="failed" @selected($filters['status']==='failed')>ناموفق</option><option value="running" @selected($filters['status']==='running')>در حال اجرا</option></select></div><div><label for="cm-from">از تاریخ</label><input type="date" id="cm-from" name="from" value="{{ $filters['from'] }}"></div><div><label for="cm-to">تا تاریخ</label><input type="date" id="cm-to" name="to" value="{{ $filters['to'] }}"></div></div><div style="display:flex;gap:8px;margin-top:12px"><button type="submit" class="btn">اعمال فیلتر</button><a class="btn sec" href="{{ route('admin.monitoring.cron') }}">پاک‌کردن</a></div></form>
+ @if(!$tableExists)
+  <div class="empty">جدول لاگ زمان‌بندی وجود ندارد. دستور <code>php artisan migrate --force</code> را پس از استقرار اجرا کن.</div>
+ @elseif($logs->isEmpty())
+  <div class="empty">با این فیلترها لاگی ثبت نشده است. اگر تازه قابلیت را نصب کرده‌ای، اجرای بعدی Scheduler را بررسی کن.</div>
+ @else
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>شروع</th><th>وظیفه</th><th>وضعیت</th><th>پایان</th><th>مدت</th><th>جزئیات و لاگ</th></tr></thead><tbody>
+  @foreach($logs as $log)
+   @php $payload = "شناسه: {$log->id}\nوظیفه: {$log->task_name}\nوضعیت: {$log->status}\nزمان برنامه‌ریزی‌شده: ".($log->scheduled_at ?: '—')."\nشروع: ".($log->started_at ?: '—')."\nپایان: ".($log->finished_at ?: '—')."\nمدت: ".($log->duration_ms === null ? '—' : $log->duration_ms.' ms')."\nخروجی:\n".($log->output ?: 'خروجی ثبت نشده')."\nخطا:\n".($log->error ?: 'خطایی ثبت نشده'); @endphp
+   <tr><td class="cm-date">{{ $log->started_at ? $F::date($log->started_at, 'j F Y H:i:s') : '—' }}</td><td><strong>{{ $log->task_name }}</strong><div class="cm-muted">شناسه: {{ $F::num($log->id) }}</div></td><td><span class="{{ $log->status === 'success' ? 'cm-ok' : ($log->status === 'failed' ? 'cm-fail' : 'cm-muted') }}">{{ ['success' => 'موفق', 'failed' => 'ناموفق', 'running' => 'در حال اجرا'][$log->status] ?? $log->status }}</span></td><td class="cm-date">{{ $log->finished_at ? $F::date($log->finished_at, 'j F Y H:i:s') : '—' }}</td><td>{{ $log->duration_ms === null ? '—' : $F::num($log->duration_ms).' ms' }}</td><td><details><summary style="cursor:pointer;margin-bottom:8px">نمایش خروجی و خطا</summary><div class="cm-muted">شروع: {{ $log->started_at ?: '—' }} | پایان: {{ $log->finished_at ?: '—' }}</div><pre class="cm-code">{{ $payload }}</pre></details><button class="cm-copy" type="button" data-copy="{{ base64_encode($payload) }}">کپی این لاگ</button></td></tr>
+  @endforeach
+  </tbody></table></div><div style="margin-top:16px">{{ $logs->links() }}</div>
+ @endif
+ <p class="cm-muted" style="margin-top:16px">زمان‌ها بر اساس منطقه زمانی برنامه ذخیره می‌شوند. لاگ‌ها از زمان فعال‌سازی این قابلیت به بعد قابل‌ثبت‌اند؛ اجرای تاریخی قبل از نصب قابل‌بازیابی نیست. موفقیت اجرای دستور به معنی موفقیت قطعی سرویس بیرونی نیست، مگر اینکه خود دستور آن را اعتبارسنجی کند.</p>
+</div>
+<div id="cm-toast" class="cm-muted" role="status" aria-live="polite" style="display:none"></div>
+@push('scripts')
+<script>
+(function(){
+ const toast=document.getElementById('cm-toast');
+ async function copy(value){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value)}else{const a=document.createElement('textarea');a.value=value;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();if(!document.execCommand('copy'))throw new Error('copy failed');a.remove()}toast.textContent='متن در کلیپ‌بورد کپی شد.';toast.style.display='block'}catch(e){toast.textContent='کپی خودکار ناموفق بود؛ مجوز مرورگر را بررسی کن.';toast.style.display='block'}}
+ document.getElementById('cm-copy-health').addEventListener('click',()=>copy('وضعیت Scheduler برجیک\nآخرین heartbeat موفق: {{ $lastHeartbeat ?: 'ثبت نشده' }}\nوضعیت: {{ $schedulerHealthy ? 'فعال' : 'هشدار؛ heartbeat تازه ثبت نشده' }}'));
+ document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{copy(decodeURIComponent(escape(atob(b.dataset.copy))))}catch(e){copy(atob(b.dataset.copy))}}));
+ document.getElementById('cm-copy-all').addEventListener('click',()=>copy(Array.from(document.querySelectorAll('[data-copy]')).map(b=>{try{return decodeURIComponent(escape(atob(b.dataset.copy)))}catch(e){return atob(b.dataset.copy)}}).join('\n\n--------------------\n\n')||'در این صفحه لاگی وجود ندارد.'));
+})();
+</script>
+@endpush
+@endsection
