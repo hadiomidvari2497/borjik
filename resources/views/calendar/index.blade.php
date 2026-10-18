@@ -53,6 +53,33 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
 @media(max-width:1050px){.cal-layout{grid-template-columns:minmax(0,1fr) 255px}.cal-day{min-height:105px;padding:6px 5px}.cal-empty{min-height:105px}}
 @media(max-width:760px){.cal-card:has(.cal-days.mode-week){overflow-x:auto}.cal-weekdays:has(+ .cal-days.mode-week),.cal-days.mode-week{min-width:700px}.cal-layout{grid-template-columns:1fr}.cal-side{grid-template-columns:1fr}.cal-day{min-height:87px;padding:5px 3px}.cal-empty{min-height:87px}.cal-event{font-size:8px;padding:4px 3px}.cal-day-number{width:25px;height:25px;font-size:11px}.cal-weekdays div{font-size:9px;padding:10px 1px}.cal-toolbar{padding:15px}.cal-month h3{font-size:16px}.cal-stats{gap:7px}.cal-stat{padding:11px 8px;gap:7px}.cal-stat-icon{width:32px;height:32px;font-size:15px}.cal-stat strong{font-size:17px}.cal-stat span{font-size:9px}.cal-date-card{min-width:110px}.cal-hero{border-radius:19px}}
 @media(max-width:420px){.cal-day{min-height:72px}.cal-empty{min-height:72px}.cal-event{font-size:7px}.cal-more{font-size:8px;padding:2px}.cal-nav a,.cal-today{min-width:30px;height:31px;padding:0 7px}.cal-month{gap:8px}}
+
+/* Calendar polish: clearer focus states, holiday tint, and an hour-aware day canvas */
+.cal-toolbar{background:linear-gradient(180deg,#fff 0%,#fbfdfc 100%)}
+.cal-view-switch{border:1px solid #e2ece8;background:#f0f6f3}
+.cal-view-switch a.active{background:#176b63;color:#fff;box-shadow:0 4px 12px #176b6330}
+.cal-day{transition:background .18s ease,box-shadow .18s ease}
+.cal-day.is-today{z-index:1;background:linear-gradient(145deg,#e3f7ef 0%,#f7fcf9 55%,#fff 100%);box-shadow:inset 0 0 0 2px #2b9280}
+.cal-day.is-today:after{content:"امروز";position:absolute;top:9px;inset-inline-end:8px;padding:3px 7px;border-radius:99px;background:#176b63;color:#fff;font-size:8px;font-weight:900}
+.cal-day.is-holiday:not(.is-today){background:linear-gradient(160deg,#fff3f3 0%,#fff 72%)}
+.cal-day.is-holiday:not(.is-today) .cal-day-number{color:#b94d59;background:#fff0f0}
+.cal-day.is-holiday:not(.is-today):before{content:"";position:absolute;top:0;right:0;left:0;height:3px;background:#e9a0a5}
+.cal-day.is-holiday.is-today:before{content:"";position:absolute;top:0;right:0;left:0;height:3px;background:#176b63}
+.cal-day.is-drop-target{outline:2px dashed #248d76;outline-offset:-5px;background:#e4f8ee!important;box-shadow:inset 0 0 0 2px #248d7620}
+.cal-event[draggable=true]{cursor:grab;box-shadow:0 1px 2px #173d4b08}
+.cal-event[draggable=true]:hover{filter:saturate(1.12);box-shadow:0 3px 9px #173d4b14}
+.cal-days.mode-day{display:block;padding:12px;background:#f7faf9}
+.cal-days.mode-day .cal-day{min-height:760px;border:1px solid var(--cal-line);border-radius:15px;background:#fff;overflow:hidden;padding:10px 14px}
+.cal-days.mode-day .cal-day-number{position:relative;z-index:2;width:auto;height:34px;display:flex;justify-content:flex-start;gap:10px;margin:0 0 8px;background:transparent;color:var(--cal-ink);font-size:15px}
+.cal-days.mode-day .cal-day.is-today .cal-day-number{background:transparent;color:#176b63;box-shadow:none}
+.cal-days.mode-day .cal-day.is-today:after{top:14px;inset-inline-end:14px}
+.cal-days.mode-day .cal-day-events.is-timeline{position:absolute;top:58px;right:0;left:0;bottom:12px;display:block;border-top:1px solid #edf1f2;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(6.25% - 1px),#e8eff0 calc(6.25% - 1px),#e8eff0 6.25%)}
+.cal-hour-mark{position:absolute;left:0;right:0;border-top:1px solid #e8eff0;height:0;pointer-events:none}
+.cal-hour-mark span{position:absolute;right:12px;top:-9px;padding:0 5px;background:#fff;color:#81929a;font-size:9px;font-weight:750}
+.cal-days.mode-day .cal-event{position:absolute;right:62px;left:12px;width:auto;z-index:1;min-height:31px;padding:6px 10px;border-radius:9px;white-space:normal;text-align:right;box-shadow:0 3px 10px #173d4b0b}
+.cal-days.mode-day .cal-day-label{display:inline-block;margin:0;color:inherit;font-size:10px}
+@media(max-width:760px){.cal-days.mode-day{padding:7px}.cal-days.mode-day .cal-day{min-height:700px}.cal-days.mode-day .cal-event{right:52px;left:7px;font-size:10px}.cal-days.mode-day .cal-day-number{font-size:13px}}
+
 </style>
 <div class="calendar-page">
     <section class="cal-hero">
@@ -110,18 +137,21 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
             <div class="cal-days mode-{{ $viewMode }}">
                 @for($i=0;$i<$leading;$i++)<div class="cal-empty" aria-hidden="true"></div>@endfor
                 @foreach($days as $day)
-                    <div class="cal-day {{ $day['is_today'] ? 'is-today' : '' }}" data-date="{{ $day['date'] }}" data-jalali-date="{{ \App\Support\JalaliDate::format(\Illuminate\Support\Carbon::parse($day['date'])) }}">
+                    <div class="cal-day {{ $day['is_today'] ? 'is-today' : '' }} {{ $day['is_holiday'] ? 'is-holiday' : '' }}" title="{{ $day['is_holiday'] ? 'روز تعطیل' : '' }}" data-date="{{ $day['date'] }}" data-jalali-date="{{ \App\Support\JalaliDate::format(\Illuminate\Support\Carbon::parse($day['date'])) }}">
                         <div class="cal-day-number">
                             @if($viewMode !== 'day')<span class="cal-day-label">{{ $weekdays[(\Illuminate\Support\Carbon::parse($day['date'])->dayOfWeek + 1) % 7] }}</span>@endif
                             {{ $day['jalali'] }}
                         </div>
-                        <div class="cal-day-events">
+                        <div class="cal-day-events {{ $viewMode === 'day' ? 'is-timeline' : '' }}">
+                            @if($viewMode === 'day')
+                                @for($hour = 6; $hour <= 22; $hour++)<div class="cal-hour-mark" style="top: {{ (($hour - 6) / 16) * 100 }}%"><span>{{ $F::digits(sprintf('%02d:00', $hour)) }}</span></div>@endfor
+                            @endif
                             @foreach(($viewMode === 'month' ? $day['items']->take(3) : $day['items']) as $item)
                                 @php $draggable = $item['event_id'] && $item['managed']; @endphp
                                 @if($item['url'])
                                     <a class="cal-event {{ $item['color'] }}" href="{{ $item['url'] }}" title="{{ $item['title'] }} · {{ $item['type'] }}">{{ $item['title'] }}</a>
                                 @else
-                                    <div class="cal-event {{ $item['color'] }}" title="{{ $item['title'] }} · {{ $item['type'] }}" @if($draggable) draggable="true" data-event-id="{{ $item['event_id'] }}" data-move-url="{{ route('events.move', $item['event_id']) }}" data-start-time="{{ $item['starts_at']->format('H:i') }}" @endif>
+                                    <div class="cal-event {{ $item['color'] }}" title="{{ $item['title'] }} · {{ $item['type'] }}" @if($viewMode === 'day') style="top: {{ max(0, min(96, (($item['starts_at']->hour * 60 + $item['starts_at']->minute - 360) / 960) * 100)) }}%" @endif @if($draggable) draggable="true" data-event-id="{{ $item['event_id'] }}" data-move-url="{{ route('events.move', $item['event_id']) }}" data-start-time="{{ $item['starts_at']->format('H:i') }}" @endif>
                                         @if($viewMode !== 'month' && !(($item['event_model']?->is_all_day) ?? false))<strong>{{ $item['time'] }}</strong> · @endif{{ $item['title'] }}
                                     </div>
                                 @endif
@@ -212,7 +242,6 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
     </div>
 </div>
 <script>
-<script>
 (() => {
     const root = document.querySelector('.calendar-page');
     if (!root) return;
@@ -238,25 +267,30 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
         day.addEventListener('dragleave', (e) => {
             if (!day.contains(e.relatedTarget)) day.classList.remove('is-drop-target');
         });
-        day.addEventListener('drop', async (e) => {
+        day.addEventListener('drop', (e) => {
             if (!dragged) return;
             e.preventDefault();
             day.classList.remove('is-drop-target');
             const url = dragged.dataset.moveUrl;
             if (!url) return;
+            let startTime = dragged.dataset.startTime || '09:00';
+            if (root.querySelector('.cal-days.mode-day')) {
+                const timeline = day.querySelector('.cal-day-events.is-timeline');
+                if (timeline) {
+                    const rect = timeline.getBoundingClientRect();
+                    const ratio = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+                    const minutes = Math.round((360 + ratio * 960) / 15) * 15;
+                    const bounded = Math.max(360, Math.min(1320, minutes));
+                    startTime = String(Math.floor(bounded / 60)).padStart(2, '0') + ':' + String(bounded % 60).padStart(2, '0');
+                }
+            }
             const token = @json(csrf_token());
             const payload = new URLSearchParams({
-                _token: token,
-                _method: 'PATCH',
-                start_date: day.dataset.jalaliDate,
-                start_time: dragged.dataset.startTime || '09:00',
-                view: @json($viewMode),
-                filter: @json($filter)
+                _token: token, _method: 'PATCH', start_date: day.dataset.jalaliDate,
+                start_time: startTime, view: @json($viewMode), filter: @json($filter)
             });
             const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = url;
-            form.hidden = true;
+            form.method = 'POST'; form.action = url; form.hidden = true;
             payload.forEach((value, key) => {
                 const input = document.createElement('input');
                 input.type = 'hidden'; input.name = key; input.value = value; form.appendChild(input);

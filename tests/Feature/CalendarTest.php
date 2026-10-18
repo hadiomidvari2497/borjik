@@ -208,7 +208,9 @@ class CalendarTest extends TestCase
         $this->open($this->tenant, 'get', route('events.index', ['view' => 'day', 'date' => $date]))
             ->assertOk()
             ->assertSee('mode-day', false)
-            ->assertSee('برنامه روزانه');
+            ->assertSee('برنامه روزانه')
+            ->assertSee('is-timeline', false)
+            ->assertSee('cal-hour-mark', false);
     }
 
     public function test_manager_can_move_calendar_event_to_another_jalali_date(): void
@@ -238,6 +240,7 @@ class CalendarTest extends TestCase
         $this->assertDatabaseHas('calendar_events', [
             'id' => $event->id,
             'starts_at' => $target->format('Y-m-d H:i:s'),
+            'ends_at' => $target->copy()->addHour()->format('Y-m-d H:i:s'),
         ]);
     }
 
