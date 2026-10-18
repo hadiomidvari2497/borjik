@@ -63,16 +63,25 @@
             $actor = $error->actor_type === 'admin'
               ? ($error->admin?->name ?: ($error->admin?->username ?: 'مدیر حذف‌شده'))
               : ($error->actor_type === 'user' ? ($error->user?->name ?: 'کاربر حذف‌شده') : 'مهمان / بدون ورود');
-            $details = "نوع: {$error->exception_class}\nپیام: {$error->message}\nکد پاسخ: {$error->status_code}\nکاربر: {$actor}\nشناسه کاربر: ".($error->user_id ?: '—')."\nشناسه مدیر: ".($error->admin_user_id ?: '—')."\nمسیر: ".($error->path ?: '—')."\nنام مسیر: ".($error->route_name ?: '—')."\nفایل: ".($error->file ?: '—')."\nخط: ".($error->line ?: '—')."\nزمان: ".($error->created_at ? $F::date($error->created_at, 'Y/m/d H:i:s') : '—');
+            $details = "شناسه لاگ: {$error->id}\\nشدت: ".($error->severity ?? 'error')."\\nدسته: ".($error->category ?? 'عمومی')."\\nنوع: {$error->exception_class}\\nپیام: {$error->message}\\nجزئیات فنی:\\n".($error->details ?: 'جزئیات فنی اضافی ثبت نشده است.')."\\nزمینه: ".json_encode($error->context ?? [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)."\\nکد پاسخ: {$error->status_code}\\nکاربر: {$actor}\\nشناسه کاربر: ".($error->user_id ?: '—')."\\nشناسه مدیر: ".($error->admin_user_id ?: '—')."\\nروش: ".($error->method ?: '—')."\\nمسیر: ".($error->path ?: '—')."\\nنام مسیر: ".($error->route_name ?: '—')."\\nفایل: ".($error->file ?: '—')."\\nخط: ".($error->line ?: '—')."\\nزمان: ".($error->created_at ? $F::date($error->created_at, 'Y/m/d H:i:s') : '—');
           @endphp
           <tr>
             <td class="sd-date">{{ $error->created_at ? $F::date($error->created_at, 'j F Y H:i') : '—' }}</td>
-            <td><div style="font-weight:750;max-width:210px;overflow-wrap:anywhere">{{ class_basename($error->exception_class) }}</div><div class="sd-muted">{{ $error->exception_class }}</div></td>
+            <td><div style="font-weight:750;max-width:210px;overflow-wrap:anywhere">{{ class_basename($error->exception_class) }}</div><div class="sd-muted">{{ $error->exception_class }}</div><div class="sd-muted">{{ $error->category ?: 'عمومی' }} · {{ ($error->severity ?? 'error') === 'warning' ? 'هشدار' : 'خطا' }}</div></td>
             <td class="sd-message">{{ \Illuminate\Support\Str::limit($error->message, 180) }}</td>
             <td><div style="font-weight:750">{{ $actor }}</div><div class="sd-muted">{{ $error->actor_type === 'admin' ? 'مدیر پنل' : ($error->actor_type === 'user' ? 'کاربر سامانه' : 'مهمان') }}</div><div class="sd-muted">شناسه: {{ $F::num($error->admin_user_id ?: ($error->user_id ?: 0)) }}</div></td>
             <td class="sd-path">{{ $error->path ?: '—' }}<div class="sd-muted">{{ $error->route_name ?: '' }}</div><div class="sd-muted">{{ $error->file ? basename($error->file).':'.$error->line : '' }}</div></td>
             <td>{{ $F::num($error->status_code) }}</td>
-            <td><button class="sd-copy" type="button" data-copy-details="{{ base64_encode($details) }}">کپی جزئیات</button></td>
+            <td>
+              <details>
+                <summary style="cursor:pointer;font-size:12px;margin-bottom:8px">نمایش جزئیات کامل</summary>
+                <div style="min-width:260px;max-width:520px">
+                  <div class="sd-muted">شناسه لاگ: {{ $F::num($error->id) }} · {{ $error->category ?: 'عمومی' }}</div>
+                  <pre style="white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;max-height:280px;overflow:auto;font-size:11px;padding:10px;border:1px solid var(--line);border-radius:8px">{{ $details }}</pre>
+                </div>
+              </details>
+              <button class="sd-copy" type="button" data-copy-details="{{ base64_encode($details) }}">کپی همین لاگ</button>
+            </td>
           </tr>
         @endforeach
         </tbody>
