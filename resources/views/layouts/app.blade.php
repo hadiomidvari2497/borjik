@@ -146,7 +146,7 @@
             </p>
           </div>
           <div class="workspace-hero-mark" aria-hidden="true">
-            <svg class="i"><use href="#{{ request()->routeIs('buildings.*', 'building.*') ? 'bld' : (request()->routeIs('units.*', 'blocks.*', 'parkings.*', 'storages.*', 'contracts.*', 'my.contracts', 'audit.*') ? 'doc' : (request()->routeIs('charges.*', 'charge-settings.*', 'expenses.*', 'payments.*', 'my.invoices', 'my.payments*') ? 'coin' : (request()->routeIs('team.*', 'members.*', 'staff.*', 'staff-roles.*', 'invitations.*', 'tickets.*', 'requests.*', 'my.requests*') ? 'inbox' : (request()->routeIs('notifications.*') ? 'bell' : (request()->routeIs('subscription.*') ? 'star' : (request()->routeIs('profile.*', 'account.*') ? 'user' : 'bld'))))) }}"/></svg>
+            <svg class="i"><use href="#{{ request()->routeIs('buildings.*', 'building.*') ? 'bld' : (request()->routeIs('units.*', 'blocks.*', 'parkings.*', 'storages.*', 'contracts.*', 'my.contracts', 'audit.*') ? 'doc' : (request()->routeIs('charges.*', 'charge-settings.*', 'expenses.*', 'payments.*', 'my.invoices', 'my.payments*') ? 'coin' : (request()->routeIs('team.*', 'members.*', 'staff.*', 'staff-roles.*', 'invitations.*', 'tickets.*', 'requests.*', 'my.requests*') ? 'inbox' : (request()->routeIs('notifications.*') ? 'bell' : (request()->routeIs('subscription.*') ? 'star' : (request()->routeIs('profile.*', 'account.*') ? 'user' : 'bld')))))) }}"/></svg>
           </div>
         </section>
       @endif
