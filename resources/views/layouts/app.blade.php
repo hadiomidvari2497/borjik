@@ -146,7 +146,7 @@
             </p>
           </div>
           <div class="workspace-hero-mark" aria-hidden="true">
-            <svg class="i"><use href="#bld"</svg>
+            <svg class="i"><use href="#bld"/></svg>
           </div>
         </section>
       @endif
