@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use Illuminate\\Console\\Scheduling\\Schedule;
-use Illuminate\\Support\\Facades\\Artisan;
-use Tests\\TestCase;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Artisan;
+use Tests\TestCase;
 
 class SchedulerConfigurationTest extends TestCase
 {
@@ -17,7 +17,7 @@ class SchedulerConfigurationTest extends TestCase
         $commands = collect($events)
             ->pluck('command')
             ->filter()
-            ->implode("\\n");
+            ->implode("\n");
 
         foreach ([
             'rent:issue-invoices',
