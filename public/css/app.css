@@ -171,7 +171,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th{color:var(--muted);font-weight:500;text-align:start;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 .tbl td{padding:11px 8px;border-bottom:1px dashed var(--line);vertical-align:middle}
-.tbl .act{display:flex;gap:6px;justify-content:flex-end}.tbl .act form{margin:0}
+.tbl .act form{margin:0}
 .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
 .fld label{display:block;font-size:12.5px;margin:0 0 6px;color:var(--muted)}
 .fld input,.fld select,.fld textarea{width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:var(--card);font:inherit;color:inherit}
@@ -195,36 +195,15 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 .hero .btn{background:#fff;color:var(--brand-d)}.hero .btn.sec{background:rgba(255,255,255,.18);color:#fff}
 
 
-/* Member role switch — compact, clear and touch-friendly */
-.membership-change{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:7px;margin-top:5px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,var(--brand-soft),transparent);min-width:225px}
-.membership-current{display:flex;align-items:center;gap:8px;padding:2px 7px;min-width:88px}
-.membership-current-dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px var(--brand-soft);flex:none}
-.membership-current small{display:block;font-size:10px;color:var(--muted);line-height:1.5;white-space:nowrap}
-.membership-current b{display:block;font-size:12px;line-height:1.6;color:var(--text);white-space:nowrap}
-.btn.membership-action{padding:9px 12px;border-radius:12px;font-size:11.5px;gap:6px;white-space:nowrap;box-shadow:0 3px 9px rgba(31,106,99,.16);transition:transform .16s ease,box-shadow .16s ease}
-.btn.membership-action:hover{transform:translateY(-1px);box-shadow:0 5px 13px rgba(31,106,99,.22)}
-.btn.membership-action .i{width:15px;height:15px}
-@media(max-width:860px){.membership-change{min-width:0;width:100%;justify-content:space-between}.membership-current{flex:1}.btn.membership-action{flex:0 0 auto}}
-@media(prefers-reduced-motion:reduce){.btn.membership-action{transition:none}}
-
-
-/* Keep membership switch clear of the adjacent activate/deactivate actions */
-.tbl .act{flex-wrap:wrap;align-items:center;gap:8px}
-.tbl .act>.membership-change{flex:1 1 100%;width:100%;min-width:0;justify-content:space-between;margin-top:2px}
-.tbl .act>.membership-change .membership-current{flex:1 1 auto;min-width:0}
-.tbl .act>.membership-change .membership-action{flex:0 0 auto}
-@media(max-width:860px){.tbl .act>.membership-change{flex:1 1 100%;width:100%}}
-
-
-/* Membership action: lightweight pill controls that sit neatly beside status actions */
-.tbl .act{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px}
-.tbl .act form{max-width:100%}
-.tbl .act>.membership-change{display:inline-flex;flex:0 1 auto;align-items:center;justify-content:flex-start;gap:6px;flex-wrap:wrap;width:auto;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:none}
+/* Member role switch — one canonical, theme-aware set of controls */
+.membership-change{display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;flex-wrap:wrap;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:none}
 .membership-current{display:inline-flex;align-items:center;gap:7px;min-width:0;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
-.membership-current-dot{width:7px;height:7px;box-shadow:0 0 0 3px var(--brand-soft)}
+.membership-current-dot{width:7px;height:7px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 3px var(--brand-soft);flex:none}
 .membership-current small{display:none}
-.membership-current b{font-size:11.5px;line-height:1.4}
-.btn.membership-action{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border:1px solid var(--brand);border-radius:999px;background:var(--brand-soft);color:var(--brand-d);font-size:11.5px;font-weight:700;box-shadow:none;white-space:nowrap}
+.membership-current b{font-size:11.5px;line-height:1.4;color:var(--text)}
+.btn.membership-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border:1px solid var(--brand);border-radius:999px;background:var(--brand-soft);color:var(--brand-d);font-size:11.5px;font-weight:700;box-shadow:none;white-space:nowrap;transition:transform .16s ease,background .16s ease,color .16s ease}
 :root[data-theme="dark"] .btn.membership-action{color:var(--brand)}
+.btn.membership-action .i{width:15px;height:15px}
 .btn.membership-action:hover{transform:translateY(-1px);background:var(--brand);color:#fff;box-shadow:0 3px 9px rgba(31,106,99,.15)}
-@media(max-width:860px){.tbl .act>.membership-change{width:auto;flex:0 1 auto}.tbl .act>.membership-change .membership-current{flex:0 0 auto}.tbl .act>.membership-change .membership-action{flex:0 1 auto}}
+@media(max-width:860px){.tbl .act{flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px}.tbl .act form{max-width:100%}.tbl .act>.membership-change{width:auto;min-width:0;flex:0 1 auto}.tbl .act>.membership-change .membership-current{flex:0 0 auto}.tbl .act>.membership-change .membership-action{flex:0 1 auto}}
+@media(prefers-reduced-motion:reduce){.btn.membership-action{transition:none}}

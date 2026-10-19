@@ -10,6 +10,13 @@
 <style>
 .pm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.pm-card{border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}.pm-muted{font-size:12px;color:var(--muted);line-height:1.9}.pm-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.pm-table{width:100%;border-collapse:collapse}.pm-table th,.pm-table td{padding:10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}.pm-table th{font-size:12px;color:var(--muted)}.pm-pill{display:inline-flex;padding:4px 9px;border-radius:99px;font-size:11px;font-weight:800}.pm-ok{background:#e8f7ee;color:#17683a}.pm-fail{background:#fff0ef;color:#a52b24}.pm-unknown{background:var(--surface);color:var(--muted)}.pm-wrap{overflow:auto}
 @media(max-width:900px){.pm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.pm-grid{grid-template-columns:1fr}}
+
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) .pm-ok{background:rgba(47,160,96,.18);color:#91e0ae}
+ :root:not([data-theme="light"]) .pm-fail{background:rgba(224,69,58,.18);color:#ffaaa3}
+}
+:root[data-theme="dark"] .pm-ok{background:rgba(47,160,96,.18);color:#91e0ae}
+:root[data-theme="dark"] .pm-fail{background:rgba(224,69,58,.18);color:#ffaaa3}
 </style>
 <div class="card">
   <div class="pm-head"><div><h2 style="margin:0">پایش عملکرد برجیک</h2><p class="pm-muted">خط مبنای دیتابیس، کش، خواندن/نوشتن فایل و منابع قابل‌مشاهده از PHP؛ این صفحه فعلاً ابزار اندازه‌گیری است، نه ادعای بهینه‌سازی.</p></div>

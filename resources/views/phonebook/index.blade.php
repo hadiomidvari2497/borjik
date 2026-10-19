@@ -112,6 +112,38 @@
 }
 @media(prefers-reduced-motion:reduce){.phonebook-contact,.phonebook-tab,.phonebook-phone,.phonebook-search input{transition:none}}
 
+
+/* Theme audit: preserve the shared dark palette on phone-book controls and contact details. */
+:root[data-theme="dark"] .phonebook-tabs,
+:root[data-theme="dark"] .phonebook-edit,
+:root[data-theme="dark"] .phonebook-page .phonebook-panel .phonebook-panel{background:var(--track,#1b2f2d);border-color:var(--line)}
+:root[data-theme="dark"] .phonebook-tab.active{background:var(--card);border-color:var(--line);color:var(--brand)}
+:root[data-theme="dark"] .phonebook-avatar{background:var(--brand-soft);border-color:var(--line);color:var(--brand)}
+:root[data-theme="dark"] .phonebook-phone{background:var(--panel);border-color:var(--line);color:var(--brand)}
+:root[data-theme="dark"] .phonebook-phone:before,
+:root[data-theme="dark"] .phonebook-empty:before{background:var(--brand-soft);border-color:var(--line);color:var(--brand)}
+:root[data-theme="dark"] .phonebook-empty{background:var(--panel);border-color:var(--line)}
+:root[data-theme="dark"] .phonebook-form-errors{background:rgba(224,69,58,.14);border-color:rgba(255,130,120,.35);color:#ffaaa3}
+:root[data-theme="dark"] .phonebook-contact:hover{border-color:var(--brand)}
+:root[data-theme="dark"] .phonebook-search input:focus,
+:root[data-theme="dark"] .phonebook-form-grid input:focus,
+:root[data-theme="dark"] .phonebook-form-grid select:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) .phonebook-tabs,
+ :root:not([data-theme="light"]) .phonebook-edit,
+ :root:not([data-theme="light"]) .phonebook-page .phonebook-panel .phonebook-panel{background:var(--track,#1b2f2d);border-color:var(--line)}
+ :root:not([data-theme="light"]) .phonebook-tab.active{background:var(--card);border-color:var(--line);color:var(--brand)}
+ :root:not([data-theme="light"]) .phonebook-avatar{background:var(--brand-soft);border-color:var(--line);color:var(--brand)}
+ :root:not([data-theme="light"]) .phonebook-phone{background:var(--panel);border-color:var(--line);color:var(--brand)}
+ :root:not([data-theme="light"]) .phonebook-phone:before,
+ :root:not([data-theme="light"]) .phonebook-empty:before{background:var(--brand-soft);border-color:var(--line);color:var(--brand)}
+ :root:not([data-theme="light"]) .phonebook-empty{background:var(--panel);border-color:var(--line)}
+ :root:not([data-theme="light"]) .phonebook-form-errors{background:rgba(224,69,58,.14);border-color:rgba(255,130,120,.35);color:#ffaaa3}
+ :root:not([data-theme="light"]) .phonebook-contact:hover{border-color:var(--brand)}
+ :root:not([data-theme="light"]) .phonebook-search input:focus,
+ :root:not([data-theme="light"]) .phonebook-form-grid input:focus,
+ :root:not([data-theme="light"]) .phonebook-form-grid select:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+}
 </style>
 <div class="phonebook-page">
   <section class="phonebook-hero">

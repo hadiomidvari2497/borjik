@@ -7,7 +7,7 @@
     $trailing = (7 - (($leading + $days->count()) % 7)) % 7;
 @endphp
 <style>
-.calendar-page{--cal-ink:#183346;--cal-muted:#718392;--cal-line:#e4ecef;--cal-teal:#176b63;color:var(--cal-ink)}
+.calendar-page{--cal-ink:var(--text,#183346);--cal-muted:var(--muted,#718392);--cal-line:var(--line,#e4ecef);--cal-teal:var(--brand,#176b63);color:var(--cal-ink)}
 .cal-hero{position:relative;isolation:isolate;overflow:hidden;border-radius:25px;padding:clamp(22px,4vw,34px);margin-bottom:19px;color:#fff;background:radial-gradient(circle at 12% 10%,#a5ead52c,transparent 32%),linear-gradient(125deg,#102f3e,#176b63 58%,#388f80);box-shadow:0 18px 42px #174d4525}
 .cal-hero:after{content:"";position:absolute;z-index:-1;width:270px;height:270px;inset-inline-end:-85px;top:-155px;border:1px solid #ffffff2b;border-radius:50%;box-shadow:0 0 0 30px #ffffff09,0 0 0 65px #ffffff08}
 .cal-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
@@ -80,6 +80,44 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
 .cal-days.mode-day .cal-day-label{display:inline-block;margin:0;color:inherit;font-size:10px}
 @media(max-width:760px){.cal-days.mode-day{padding:7px}.cal-days.mode-day .cal-day{min-height:700px}.cal-days.mode-day .cal-event{right:52px;left:7px;font-size:10px}.cal-days.mode-day .cal-day-number{font-size:13px}}
 
+
+/* Theme audit: calendar surfaces and event types remain legible in dark mode. */
+:root[data-theme="dark"] .cal-stat-icon{background:var(--brand-soft);color:var(--brand)}
+:root[data-theme="dark"] .cal-nav a:hover,
+:root[data-theme="dark"] .cal-today:hover{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+:root[data-theme="dark"] .cal-weekdays{background:var(--track)}
+:root[data-theme="dark"] .cal-weekdays div,
+:root[data-theme="dark"] .cal-day-number{color:var(--muted)}
+:root[data-theme="dark"] .cal-day{border-color:var(--line)}
+:root[data-theme="dark"] .cal-day.is-today{background:linear-gradient(150deg,rgba(60,194,179,.16),var(--card) 75%)}
+:root[data-theme="dark"] .cal-day.is-holiday:not(.is-today){background:rgba(232,163,61,.07)}
+:root[data-theme="dark"] .cal-day.is-holiday:not(.is-today) .cal-day-number{color:#f0bd68}
+:root[data-theme="dark"] .cal-event.teal{background:rgba(60,194,179,.16);color:#8ce3d7}
+:root[data-theme="dark"] .cal-event.blue{background:rgba(91,143,255,.18);color:#a9c3ff}
+:root[data-theme="dark"] .cal-event.amber{background:rgba(232,163,61,.17);color:#f4c775}
+:root[data-theme="dark"] .cal-event.rose{background:rgba(224,69,90,.17);color:#ffabb4}
+:root[data-theme="dark"] .cal-event.violet{background:rgba(164,125,220,.18);color:#d0b5ff}
+:root[data-theme="dark"] .cal-filter.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+:root[data-theme="dark"] .cal-days.mode-day .cal-day{border-color:var(--line)}
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) .cal-stat-icon{background:var(--brand-soft);color:var(--brand)}
+ :root:not([data-theme="light"]) .cal-nav a:hover,
+ :root:not([data-theme="light"]) .cal-today:hover{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+ :root:not([data-theme="light"]) .cal-weekdays{background:var(--track)}
+ :root:not([data-theme="light"]) .cal-weekdays div,
+ :root:not([data-theme="light"]) .cal-day-number{color:var(--muted)}
+ :root:not([data-theme="light"]) .cal-day{border-color:var(--line)}
+ :root:not([data-theme="light"]) .cal-day.is-today{background:linear-gradient(150deg,rgba(60,194,179,.16),var(--card) 75%)}
+ :root:not([data-theme="light"]) .cal-day.is-holiday:not(.is-today){background:rgba(232,163,61,.07)}
+ :root:not([data-theme="light"]) .cal-day.is-holiday:not(.is-today) .cal-day-number{color:#f0bd68}
+ :root:not([data-theme="light"]) .cal-event.teal{background:rgba(60,194,179,.16);color:#8ce3d7}
+ :root:not([data-theme="light"]) .cal-event.blue{background:rgba(91,143,255,.18);color:#a9c3ff}
+ :root:not([data-theme="light"]) .cal-event.amber{background:rgba(232,163,61,.17);color:#f4c775}
+ :root:not([data-theme="light"]) .cal-event.rose{background:rgba(224,69,90,.17);color:#ffabb4}
+ :root:not([data-theme="light"]) .cal-event.violet{background:rgba(164,125,220,.18);color:#d0b5ff}
+ :root:not([data-theme="light"]) .cal-filter.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+ :root:not([data-theme="light"]) .cal-days.mode-day .cal-day{border-color:var(--line)}
+}
 </style>
 <div class="calendar-page">
     <section class="cal-hero">
