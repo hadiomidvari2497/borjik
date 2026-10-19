@@ -67,3 +67,5 @@ $tracked(Schedule::command('charges:remind-expenses')->dailyAt('06:30')->without
 $tracked(Schedule::command('charges:issue-late-fees')->dailyAt('07:30')->withoutOverlapping(), 'charges:issue-late-fees');
 $tracked(Schedule::command('requests:notify-overdue')->dailyAt('07:00')->withoutOverlapping(), 'requests:notify-overdue');
 $tracked(Schedule::command('calendar:send-reminders')->everyMinute()->withoutOverlapping(), 'calendar:send-reminders');
+$tracked(Schedule::command('borjik:health-check')->everyFiveMinutes()->withoutOverlapping(), 'borjik:health-check');
+$tracked(Schedule::command('borjik:backup')->hourly()->withoutOverlapping(), 'borjik:backup');
