@@ -8,6 +8,16 @@
 <style>
 .oc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}.oc-card{border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}.oc-muted{color:var(--muted);font-size:12px;line-height:1.9}.oc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.oc-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.oc-form label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.oc-form input,.oc-form select{width:100%;min-width:0}.oc-check{display:flex;align-items:center;gap:8px;font-size:13px}.oc-check input{width:auto}.oc-table{width:100%;border-collapse:collapse}.oc-table th,.oc-table td{padding:10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}.oc-table th{font-size:12px;color:var(--muted)}.oc-pill{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800}.oc-good{background:#e8f7ee;color:#17683a}.oc-bad{background:#fff0ef;color:#a52b24}.oc-warn{background:#fff5df;color:#8a5a08}.oc-secret{background:var(--surface);border:1px solid var(--line);padding:10px;border-radius:9px;font-size:12px;color:var(--muted)}.oc-section{margin-top:22px}.oc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 @media(max-width:800px){.oc-grid{grid-template-columns:1fr}.oc-form{grid-template-columns:1fr}.oc-table-wrap{overflow:auto}.oc-table{min-width:680px}}
+
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) .oc-good{background:rgba(47,160,96,.18);color:#91e0ae}
+ :root:not([data-theme="light"]) .oc-bad{background:rgba(224,69,58,.18);color:#ffaaa3}
+ :root:not([data-theme="light"]) .oc-warn{background:rgba(232,163,61,.18);color:#f4c775}
+}
+:root[data-theme="dark"] .oc-good{background:rgba(47,160,96,.18);color:#91e0ae}
+:root[data-theme="dark"] .oc-bad{background:rgba(224,69,58,.18);color:#ffaaa3}
+:root[data-theme="dark"] .oc-warn{background:rgba(232,163,61,.18);color:#f4c775}
+
 </style>
 <div class="card">
   <div class="oc-head"><div><h2 style="margin:0">مرکز عملیات برجیک</h2><p class="oc-muted">سلامت سرویس، هشدار پیامکی و نسخه‌های پشتیبان را از یکجا مدیریت کن.</p></div><span class="oc-pill {{ $smsReady ? 'oc-good' : 'oc-warn' }}">{{ $smsReady ? 'اتصال پیامکی آماده است' : 'اتصال پیامکی تنظیم نشده' }}</span></div>
