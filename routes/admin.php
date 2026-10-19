@@ -68,6 +68,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/marketing-content', [MarketingContentController::class, 'update'])->middleware('admin.can:site.settings')->name('marketing-content.update');
 
         Route::prefix('articles')->name('articles.')->middleware('admin.can:articles.manage')->controller(ArticleController::class)->group(function () {
+            Route::get('/template', 'downloadTemplate')->name('template');
+            Route::post('/import', 'import')->middleware('throttle:3,1')->name('import');
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');
