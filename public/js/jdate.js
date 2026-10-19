@@ -243,6 +243,7 @@
     document.addEventListener('click', function (e) { if (openPicker && !openPicker.wrap.contains(e.target)) openPicker.close(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && openPicker) openPicker.close(); });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+    document.addEventListener('borjik:content-updated', init);
   }
   root.JDate = { toJalali: toJalali, toGregorian: toGregorian, monthLength: monthLength, isLeap: isLeap, parse: parse, format: format, init: init };
   if (typeof module !== 'undefined' && module.exports) module.exports = root.JDate;
