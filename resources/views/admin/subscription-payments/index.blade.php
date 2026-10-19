@@ -2,7 +2,7 @@
 @section('title', 'گزارش پرداخت اشتراک‌ها')
 @section('content')
 @php
-  $F = \\App\\Support\\Fa::class;
+  $F = \App\Support\Fa::class;
   $statusLabels = ['paid' => 'پرداخت موفق', 'pending' => 'در انتظار پرداخت', 'failed' => 'ناموفق'];
   $gatewayLabels = ['zarinpal' => 'زرین‌پال'];
   $subscriptionStatusLabels = ['active' => 'فعال', 'pending' => 'در انتظار', 'expired' => 'منقضی‌شده', 'failed' => 'ناموفق'];
@@ -58,7 +58,7 @@
       <tbody>
       @foreach($daily as $day)
         <tr>
-          <td style="white-space:nowrap">{{ $F::date(\\Carbon\\Carbon::parse($day->day), 'j F Y') }}</td>
+          <td style="white-space:nowrap">{{ $F::date(\Carbon\Carbon::parse($day->day), 'j F Y') }}</td>
           <td>{{ $F::num($day->total) }}</td><td>{{ $F::num($day->paid_count) }}</td><td>{{ $F::num($day->failed_count) }}</td>
           <td><b>{{ $F::money($day->revenue) }}</b></td>
         </tr>
