@@ -9,6 +9,7 @@ use App\Support\JalaliDate;
 use App\Support\MobileNumber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class SubscriptionPaymentReportController extends Controller
 {
@@ -115,16 +116,28 @@ class SubscriptionPaymentReportController extends Controller
     private function filters(Request $request): array
     {
         $request->validate([
-            'from' => ['nullable', 'string', 'max:20', 'regex:/^\d{4}\/\d{1,2}\/\d{1,2}$/'],
-            'to' => ['nullable', 'string', 'max:20', 'regex:/^\d{4}\/\d{1,2}\/\d{1,2}$/'],
+            'from' => ['nullable', 'string', 'max:20'],
+            'to' => ['nullable', 'string', 'max:20'],
             'status' => ['nullable', 'in:paid,pending,failed'],
             'gateway' => ['nullable', 'string', 'max:30'],
             'q' => ['nullable', 'string', 'max:100'],
         ]);
 
+        $from = JalaliDate::parse($request->query('from'));
+        $to = JalaliDate::parse($request->query('to'));
+        if ($request->filled('from') && ! $from) {
+            throw ValidationException::withMessages(['from' => 'تاریخ شروع شمسی معتبر نیست.']);
+        }
+        if ($request->filled('to') && ! $to) {
+            throw ValidationException::withMessages(['to' => 'تاریخ پایان شمسی معتبر نیست.']);
+        }
+        if ($from && $to && $from->gt($to)) {
+            throw ValidationException::withMessages(['to' => 'تاریخ پایان نباید قبل از تاریخ شروع باشد.']);
+        }
+
         return [
-            'from' => JalaliDate::parse($request->query('from'))?->startOfDay(),
-            'to' => JalaliDate::parse($request->query('to'))?->endOfDay(),
+            'from' => $from?->startOfDay(),
+            'to' => $to?->endOfDay(),
             'from_input' => (string) $request->query('from', ''),
             'to_input' => (string) $request->query('to', ''),
             'status' => (string) $request->query('status', ''),
