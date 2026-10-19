@@ -4,6 +4,9 @@ namespace App\Services\Operations;
 
 use App\Models\BackupRun;
 use App\Models\OperationsSetting;
+use App\Models\SmsLog;
+use App\Models\SmsProvider;
+use App\Services\Sms\HttpSmsGateway;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Symfony\Component\Process\Process;
@@ -79,6 +82,7 @@ class BackupService
                 'message' => mb_substr($exception->getMessage(), 0, 1500),
                 'finished_at' => now(),
             ]);
+            $this->notifyBackupFailure($exception->getMessage());
         } finally {
             if (is_dir($tempDir)) {
                 $this->removeDirectory($tempDir);
@@ -240,21 +244,56 @@ class BackupService
         if (trim((string) ($settings['drive_folder_id'] ?? '')) !== '') {
             $metadata['parents'] = [trim($settings['drive_folder_id'])];
         }
-        $boundary = 'borjik_'.bin2hex(random_bytes(12));
+        $size = filesize($path);
+        $session = Http::withToken($tokenResponse->json('access_token'))
+            ->withHeaders([
+                'X-Upload-Content-Type' => 'application/zip',
+                'X-Upload-Content-Length' => (string) $size,
+            ])->timeout(30)->post('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,size', $metadata);
+        $location = $session->header('Location');
+        if (! $session->successful() || ! $location) {
+            throw new RuntimeException('شروع نشست بارگذاری Google Drive ناموفق بود (HTTP '.$session->status().').');
+        }
         $contents = file_get_contents($path);
         if ($contents === false) {
             throw new RuntimeException('خواندن فایل بکاپ برای ارسال ابری ناموفق بود.');
         }
-        $body = '--'.$boundary."\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n".json_encode($metadata, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
-            ."\r\n--".$boundary."\r\nContent-Type: application/zip\r\nContent-Transfer-Encoding: binary\r\n\r\n".$contents."\r\n--".$boundary."--";
-        $upload = Http::withToken($tokenResponse->json('access_token'))->timeout(300)
-            ->withBody($body, 'multipart/related; boundary='.$boundary)
-            ->post('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size');
+        $upload = Http::withToken($tokenResponse->json('access_token'))->timeout(900)
+            ->withBody($contents, 'application/zip')
+            ->withHeaders(['Content-Length' => (string) strlen($contents)])
+            ->put($location);
         if (! $upload->successful() || ! $upload->json('id')) {
             throw new RuntimeException('ارسال فایل به Google Drive ناموفق بود (HTTP '.$upload->status().').');
         }
 
         return (string) $upload->json('id');
+    }
+
+    private function notifyBackupFailure(string $reason): void
+    {
+        try {
+            $settings = OperationsSetting::current()->values();
+            if (! $settings['alert_enabled'] || ! $settings['alert_mobile']) {
+                return;
+            }
+            $provider = SmsProvider::current();
+            $message = 'هشدار برجیک: ایجاد یا ارسال بکاپ ناموفق بود. مرکز عملیات را بررسی کنید.';
+            $log = SmsLog::create([
+                'mobile' => $settings['alert_mobile'],
+                'template_key' => 'backup_failure',
+                'body' => $message,
+                'status' => 'queued',
+                'gateway' => $provider?->name ?? config('sms.driver', 'log'),
+            ]);
+            if (! $provider) {
+                $log->update(['status' => 'failed', 'error' => 'اتصال پیامکی پیش‌فرض فعال نیست.']);
+                return;
+            }
+            $result = (new HttpSmsGateway($provider))->sendWithResponse((string) $settings['alert_mobile'], $message);
+            $log->update(['status' => 'sent', 'provider_ref' => $result['ref'], 'sent_at' => now()]);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     private function prune(string $directory, int $keep): void
