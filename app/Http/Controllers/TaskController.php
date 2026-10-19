@@ -554,6 +554,10 @@ class TaskController extends Controller
         });
 
         if (! $changed) {
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => true, 'status' => $newStatus, 'label' => self::STATUSES[$newStatus]]);
+            }
+
             return back()->with('status', 'وضعیت تغییری نکرد.');
         }
         $item->refresh();
@@ -576,6 +580,10 @@ class TaskController extends Controller
             } catch (\InvalidArgumentException) {
                 // SMS is optional; missing template must not break the workflow.
             }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'status' => $newStatus, 'label' => self::STATUSES[$newStatus]]);
         }
 
         return back()->with('status', 'وضعیت تسک به‌روزرسانی شد.');

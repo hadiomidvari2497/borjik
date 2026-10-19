@@ -92,6 +92,51 @@
 <script src="{{ asset('js/jdate.js') }}"></script>
 <script src="{{ asset('js/ui.js') }}"></script>
 <script src="{{ asset('js/admin.js') }}"></script>
+<script>
+(() => {
+  if (window.__borjikLivePagination) return;
+  window.__borjikLivePagination = true;
+  const load = async (url, pushState) => {
+    const current = document.querySelector('.scroll');
+    if (!current) return;
+    current.setAttribute('aria-busy', 'true');
+    try {
+      const response = await fetch(url, {credentials:'same-origin', headers:{'Accept':'text/html','X-Requested-With':'XMLHttpRequest'}});
+      if (!response.ok) throw new Error('بارگذاری صفحه انجام نشد.');
+      const html = await response.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const next = doc.querySelector('.scroll');
+      if (!next) { window.location.href = url; return; }
+      current.innerHTML = next.innerHTML;
+      current.removeAttribute('aria-busy');
+      document.title = doc.title || document.title;
+      if (pushState) history.pushState({livePagination:true}, '', url);
+      current.querySelectorAll('script').forEach(oldScript => {
+        const script = document.createElement('script');
+        for (const attr of oldScript.attributes) script.setAttribute(attr.name, attr.value);
+        script.textContent = oldScript.textContent;
+        oldScript.replaceWith(script);
+      });
+      current.scrollTop = 0;
+      window.dispatchEvent(new CustomEvent('borjik:content-updated'));
+    } catch (error) {
+      current.removeAttribute('aria-busy');
+      window.location.href = url;
+    }
+  };
+  document.addEventListener('click', event => {
+    const link = event.target.closest('.scroll .pagination a[href], .scroll nav[role="navigation"] a[href*="page="]');
+    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target === '_blank') return;
+    const url = new URL(link.href, window.location.href);
+    if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+    event.preventDefault();
+    load(url.href, true);
+  });
+  window.addEventListener('popstate', event => {
+    if (event.state && event.state.livePagination) load(window.location.href, false);
+  });
+})();
+</script>
 @stack('scripts')
 </body>
 </html>

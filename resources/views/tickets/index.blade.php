@@ -67,9 +67,11 @@
 <script>
 (() => {
   const board = document.getElementById('task-kanban');
-  if (!board) return;
+  if (!board || board.dataset.bound === '1') return;
+  board.dataset.bound = '1';
   const message = document.getElementById('task-kanban-message');
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]')?.value;
+  const faNumber = value => Number(value).toLocaleString('fa-IR');
   let dragged = null;
   board.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
     card.addEventListener('dragstart', event => {
@@ -90,39 +92,37 @@
     col.addEventListener('drop', async event => {
       event.preventDefault();
       col.classList.remove('drag-over');
-      if (!dragged || !csrf) return;
+      if (!dragged || !csrf || dragged.dataset.busy === '1') return;
       const nextStatus = col.dataset.status;
       if (nextStatus === dragged.dataset.currentStatus) return;
-      const oldColumn = dragged.closest('.kanban-col');
-      const oldStack = dragged.parentElement;
+      const card = dragged;
+      const oldColumn = card.closest('.kanban-col');
       const oldCount = oldColumn.querySelector('.kanban-count');
       const newCount = col.querySelector('.kanban-count');
-      const oldValue = Number(oldCount.dataset.count || 0);
-      const newValue = Number(newCount.dataset.count || 0);
+      card.dataset.busy = '1';
       message.textContent = 'در حال ثبت وضعیت...';
       try {
-        const response = await fetch(dragged.dataset.statusUrl, {
+        const response = await fetch(card.dataset.statusUrl, {
           method: 'POST',
           headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':csrf,'X-Requested-With':'XMLHttpRequest'},
           body: JSON.stringify({_token:csrf,status:nextStatus})
         });
-        if (!response.ok) throw new Error('ثبت وضعیت انجام نشد.');
-        col.querySelector('.kanban-stack').appendChild(dragged);
-        dragged.dataset.currentStatus = nextStatus;
-        oldCount.dataset.count = String(Math.max(0,oldValue-1));
-        newCount.dataset.count = String(newValue+1);
-        oldCount.textContent = oldCount.dataset.count;
-        newCount.textContent = newCount.dataset.count;
-        const statusPill = dragged.querySelector('.kanban-status');
-        if (statusPill) statusPill.textContent = nextStatus;
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload.ok !== true) throw new Error(payload.message || 'ثبت وضعیت انجام نشد.');
+        col.querySelector('.kanban-stack').appendChild(card);
+        card.dataset.currentStatus = payload.status || nextStatus;
+        oldCount.dataset.count = String(Math.max(0,Number(oldCount.dataset.count || 0)-1));
+        newCount.dataset.count = String(Number(newCount.dataset.count || 0)+1);
+        oldCount.textContent = faNumber(oldCount.dataset.count);
+        newCount.textContent = faNumber(newCount.dataset.count);
         message.textContent = 'وضعیت با موفقیت ثبت شد.';
       } catch (error) {
-        oldStack.appendChild(dragged);
-        message.textContent = 'ثبت وضعیت ناموفق بود؛ مجوز و اتصال را بررسی کنید.';
+        message.textContent = error.message || 'تغییر وضعیت ثبت نشد؛ این جابه‌جایی ممکن است با روند تأیید تسک سازگار نباشد.';
+      } finally {
+        delete card.dataset.busy;
+        card.removeAttribute('aria-busy');
       }
     });
-  });
-})();
-</script>
+  });</script>
 @endif
 @endsection

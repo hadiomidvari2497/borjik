@@ -71,7 +71,7 @@ class UnitController extends Controller
         return view('units.bulk', ['blocks' => Block::orderBy('number')->get()]);
     }
 
-    /** ساخت گروهی واحدها (مثلاً ۲۰ واحد با شماره‌گذاری پشت‌سرهم و ۴ واحد در هر طبقه). */
+    /** ساخت گروهی واحدها با شماره‌گذاری پشت‌سرهم یا ترکیبیِ بلوک، طبقه و واحد. */
     public function bulkStore(Request $request, UnitService $service)
     {
         $buildingId = app(CurrentBuilding::class)->id();
@@ -79,25 +79,66 @@ class UnitController extends Controller
 
         $v = $request->validate([
             'block_id' => ['required', Rule::exists('blocks', 'id')->where('building_id', $buildingId)],
+            'numbering_mode' => ['required', Rule::in(['sequential', 'structured'])],
             'count' => ['required', 'integer', 'between:1,500'],
-            'start_number' => ['required', 'integer', 'between:1,99999'],
-            'units_per_floor' => ['required', 'integer', 'between:1,50'],
+            'start_number' => ['required_if:numbering_mode,sequential', 'nullable', 'integer', 'between:1,99999999999999999999'],
+            'units_per_floor' => ['required', 'integer', 'between:1,99'],
             'start_floor' => ['required', 'integer', 'between:-5,200'],
             'area_m2' => ['required', 'numeric', 'between:1,99999'],
             'bedrooms' => ['nullable', 'integer', 'between:0,20'],
         ]);
 
-        $numbers = range((int) $v['start_number'], (int) $v['start_number'] + (int) $v['count'] - 1);
-        $taken = Unit::where('block_id', $v['block_id'])->whereIn('number', array_map('strval', $numbers))->pluck('number')->all();
+        $block = Block::where('building_id', $buildingId)->findOrFail((int) $v['block_id']);
+        $count = (int) $v['count'];
+        $unitsPerFloor = (int) $v['units_per_floor'];
+        $startFloor = (int) $v['start_floor'];
+        $numbers = [];
+        $floors = [];
+
+        if ($v['numbering_mode'] === 'sequential') {
+            $first = (int) $v['start_number'];
+            if ($first + $count - 1 > 99999999999999999999) {
+                return back()->withErrors(['start_number' => 'بازه شماره‌ها بیش از حد مجاز است.'])->withInput();
+            }
+            $numbers = array_map('strval', range($first, $first + $count - 1));
+            foreach (range(0, $count - 1) as $i) {
+                $floors[] = $startFloor + intdiv($i, $unitsPerFloor);
+            }
+        } else {
+            $floorCount = (int) $block->floors_count;
+            if ($startFloor < 1 || $startFloor > $floorCount) {
+                return back()->withErrors(['start_floor' => 'در شماره‌گذاری ترکیبی، طبقه شروع باید بین ۱ و تعداد طبقات همین بلوک باشد.'])->withInput();
+            }
+            $capacity = $unitsPerFloor * ($floorCount - $startFloor + 1);
+            if ($count > $capacity) {
+                return back()->withErrors(['count' => "با توجه به تعداد طبقات بلوک، حداکثر {$capacity} واحد با این تنظیمات قابل ساخت است."])->withInput();
+            }
+
+            // Segment widths are derived from the building dimensions so two-digit block/floor/unit
+            // values remain unambiguous (e.g. block 01, floor 02, unit 04 => 010204).
+            $blockWidth = max(1, strlen((string) Block::where('building_id', $buildingId)->max('number')));
+            $floorWidth = max(1, strlen((string) $floorCount));
+            $unitWidth = max(1, strlen((string) $unitsPerFloor));
+            foreach (range(0, $count - 1) as $i) {
+                $floor = $startFloor + intdiv($i, $unitsPerFloor);
+                $unitInFloor = ($i % $unitsPerFloor) + 1;
+                $numbers[] = str_pad((string) $block->number, $blockWidth, '0', STR_PAD_LEFT)
+                    .str_pad((string) $floor, $floorWidth, '0', STR_PAD_LEFT)
+                    .str_pad((string) $unitInFloor, $unitWidth, '0', STR_PAD_LEFT);
+                $floors[] = $floor;
+            }
+        }
+
+        $taken = Unit::where('block_id', $block->id)->whereIn('number', $numbers)->pluck('number')->all();
         if ($taken) {
             return back()->withErrors(['general' => 'این شماره‌ها در بلوک قبلاً ثبت شده‌اند: '.implode('، ', array_slice($taken, 0, 8))])->withInput();
         }
 
         $rows = [];
-        foreach ($numbers as $i => $n) {
+        foreach ($numbers as $i => $number) {
             $rows[] = [
-                'block_id' => (int) $v['block_id'], 'number' => (string) $n,
-                'floor' => (int) $v['start_floor'] + intdiv($i, (int) $v['units_per_floor']),
+                'block_id' => (int) $block->id, 'number' => (string) $number,
+                'floor' => $floors[$i],
                 'area_m2' => $v['area_m2'], 'bedrooms' => $v['bedrooms'] ?? null, 'status' => 'vacant',
             ];
         }
