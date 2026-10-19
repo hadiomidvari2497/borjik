@@ -11,7 +11,7 @@
 <form method="POST" action="{{ route('admin.articles.import') }}" enctype="multipart/form-data" style="margin-top:14px">@csrf
 <label for="article-archive" style="display:block;margin-bottom:7px">فایل ZIP مقاله‌ها</label><input id="article-archive" type="file" name="archive" accept=".zip,application/zip" required style="max-width:100%">
 @error('archive')<div class="e" style="margin-top:8px">{{ $message }}</div>@enderror
-<button class="btn" type="submit" style="margin-top:12px" onclick="return confirm('مقاله‌های داخل ZIP وارد شوند؟ مقاله‌هایی که slug یکسان دارند به‌روزرسانی می‌شوند.')">آپلود و ایمپورت همه</button>
+<button class="btn" type="submit" style="margin-top:12px" data-confirm="مقاله‌های داخل ZIP وارد شوند؟ مقاله‌هایی که slug یکسان دارند به‌روزرسانی می‌شوند.">آپلود و ایمپورت همه</button>
 </form></section>
 <section style="padding:18px;border:1px solid var(--line);border-radius:16px">
 <h3 style="margin:0 0 6px">راهنمای سریع</h3><ul style="color:var(--muted);font-size:13px;line-height:2;margin:0;padding-right:18px"><li>فایل ZIP باید شامل articles.json باشد.</li><li>قالب آماده با ۵ مقاله نمونه ارائه می‌شود.</li><li>تصاویر JPG، PNG و WebP پذیرفته می‌شوند.</li><li>حداکثر ۱۰۰ مقاله و حجم ZIP تا ۱۰ مگابایت.</li><li>slug تکراری باعث به‌روزرسانی مقاله موجود می‌شود.</li></ul></section>
