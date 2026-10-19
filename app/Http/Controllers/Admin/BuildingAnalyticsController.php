@@ -17,14 +17,14 @@ class BuildingAnalyticsController extends Controller
         $filters = $request->validate(['period' => ['nullable', Rule::in(['7', '30', '90'])]]);
         $days = (int) ($filters['period'] ?? 30);
         $since = now()->subDays($days)->startOfDay();
-        $buildings = Building::query()->withCount(['units', 'members'])->orderBy('name')->get();
+        $buildings = Building::query()->withCount(['units', 'members as memberships_count' => fn ($query) => $query->where('status', 'active')])->orderBy('name')->get();
         $rows = $buildings->map(function (Building $building) use ($since) {
             $id = $building->getKey();
             $row = [
                 'id' => $id,
                 'name' => (string) ($building->name ?? ('ساختمان #'.$id)),
                 'units' => (int) ($building->units_count ?? 0),
-                'memberships' => (int) ($building->members_count ?? 0),
+                'memberships' => (int) ($building->memberships_count ?? 0),
                 'new_memberships' => $this->countByBuilding('building_user_roles', $id, $since),
                 'tickets' => $this->countByBuilding('tickets', $id),
                 'new_tickets' => $this->countByBuilding('tickets', $id, $since),
