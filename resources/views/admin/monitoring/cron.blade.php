@@ -5,6 +5,14 @@
 <style>
 .cm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.cm-stat,.cm-panel{border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.cm-stat small{display:block;color:var(--muted);font-size:12px;margin-bottom:7px}.cm-stat strong{font-size:23px}.cm-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}.cm-filters label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.cm-filters input,.cm-filters select{width:100%;min-width:0}.cm-copy{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:transparent;color:inherit;cursor:pointer;font:inherit;font-size:12px;white-space:nowrap}.cm-ok{color:#16804a;font-weight:800}.cm-fail{color:#c0392b;font-weight:800}.cm-muted{font-size:12px;color:var(--muted);line-height:1.8}.cm-code{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;font-size:11px;padding:10px;border:1px solid var(--line);border-radius:8px;max-width:560px}.cm-date{white-space:nowrap;font-size:12px}.cm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 @media(max-width:900px){.cm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cm-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.cm-grid,.cm-filters{grid-template-columns:1fr}.cm-stat strong{font-size:20px}}
+
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) .cm-ok{color:#91e0ae}
+ :root:not([data-theme="light"]) .cm-fail{color:#ffaaa3}
+}
+:root[data-theme="dark"] .cm-ok{color:#91e0ae}
+:root[data-theme="dark"] .cm-fail{color:#ffaaa3}
+
 </style>
 <div class="card">
  <div class="cm-head"><div><h2 style="margin:0">پایش اجرای Cron</h2><p class="cm-muted">زمان شروع و پایان هر اجرای زمان‌بندی‌شده، مدت اجرا، خروجی و خطاها را بررسی و کپی کن.</p><p class="cm-muted">آخرین بررسی صفحه: {{ $F::date($checkedAt, 'j F Y - H:i:s') }}</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sec" onclick="location.reload()">↻ تازه‌سازی</button><button type="button" class="cm-copy" id="cm-copy-all">کپی همهٔ لاگ‌های این صفحه</button></div></div>
