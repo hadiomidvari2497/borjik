@@ -360,6 +360,30 @@ class TaskFlowTest extends TestCase
         $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'status' => 'closed']);
     }
 
+    public function test_kanban_status_updates_return_json_without_redirecting(): void
+    {
+        $ticket = app(CurrentBuilding::class)->actingAs($this->building->id, function () {
+            return Ticket::create([
+                'building_id' => $this->building->id,
+                'number' => 'TSK-TEST-LIVE',
+                'kind' => 'task',
+                'title' => 'تسک زنده',
+                'description' => 'تست تغییر وضعیت بدون بارگذاری مجدد',
+                'category' => 'maintenance',
+                'priority' => 'medium',
+                'status' => 'new',
+                'created_by' => $this->manager->id,
+            ]);
+        });
+
+        $this->actingAs($this->manager)->withSession($this->sessionFor($this->managerMembership))
+            ->postJson(route('tickets.status', $ticket->id), ['status' => 'review'])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'status' => 'review', 'label' => 'در حال بررسی']);
+
+        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'status' => 'review']);
+    }
+
     private function makeUser(string $mobile, string $name): User
     {
         return User::create([

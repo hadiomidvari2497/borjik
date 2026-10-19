@@ -242,9 +242,8 @@
     event.preventDefault();
     load(url.href, true);
   });
-  window.addEventListener('popstate', event => {
-    if (event.state && event.state.livePagination) load(window.location.href, false);
-  });
+  history.replaceState({livePagination:true}, '', window.location.href);
+  window.addEventListener('popstate', () => load(window.location.href, false));
 })();
 </script>
 <script>

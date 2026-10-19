@@ -81,7 +81,7 @@ class UnitController extends Controller
             'block_id' => ['required', Rule::exists('blocks', 'id')->where('building_id', $buildingId)],
             'numbering_mode' => ['required', Rule::in(['sequential', 'structured'])],
             'count' => ['required', 'integer', 'between:1,500'],
-            'start_number' => ['required_if:numbering_mode,sequential', 'nullable', 'integer', 'between:1,99999999999999999999'],
+            'start_number' => ['required_if:numbering_mode,sequential', 'nullable', 'integer', 'between:1,999999999'],
             'units_per_floor' => ['required', 'integer', 'between:1,99'],
             'start_floor' => ['required', 'integer', 'between:-5,200'],
             'area_m2' => ['required', 'numeric', 'between:1,99999'],
@@ -97,8 +97,8 @@ class UnitController extends Controller
 
         if ($v['numbering_mode'] === 'sequential') {
             $first = (int) $v['start_number'];
-            if ($first + $count - 1 > 99999999999999999999) {
-                return back()->withErrors(['start_number' => 'بازه شماره‌ها بیش از حد مجاز است.'])->withInput();
+            if ($first + $count - 1 > 999999999) {
+                return back()->withErrors(['start_number' => 'بازه شماره‌ها نمی‌تواند از ۹ رقمی بیشتر شود.'])->withInput();
             }
             $numbers = array_map('strval', range($first, $first + $count - 1));
             foreach (range(0, $count - 1) as $i) {
