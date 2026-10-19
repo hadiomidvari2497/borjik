@@ -34,7 +34,7 @@ class BackupService
             }
             $zip->addFile($sqlOrDb, basename($sqlOrDb));
             $this->addDirectory($zip, storage_path('app/public'), 'storage/public');
-            $this->addDirectory($zip, storage_path('app/private'), 'storage/private', [$tempDir]);
+            $this->addDirectory($zip, storage_path('app/private'), 'storage/private', [$tempDir, $destination]);
             $zip->addFromString('backup-manifest.json', json_encode([
                 'application' => config('app.name'),
                 'created_at' => now()->toIso8601String(),
