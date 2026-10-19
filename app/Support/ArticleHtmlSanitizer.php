@@ -65,7 +65,7 @@ class ArticleHtmlSanitizer
                 continue;
             }
 
-            $allowedAttributes = $tag === 'a' ? ['href', 'title'] : (in_array($tag, ['th', 'td'], true) ? ['colspan', 'rowspan'] : ['dir']);
+            $allowedAttributes = $tag === 'a' ? ['href', 'title'] : (in_array($tag, ['th', 'td'], true) ? ['colspan', 'rowspan', 'dir', 'style'] : ['dir', 'style']);
             foreach (iterator_to_array($node->attributes) as $attribute) {
                 $name = strtolower($attribute->name);
                 $value = trim($attribute->value);
@@ -73,7 +73,7 @@ class ArticleHtmlSanitizer
                     $node->removeAttributeNode($attribute);
                     continue;
                 }
-                if ($name === 'href' && !self::safeHref($value)) {
+                if ($name === 'style') {\n                    if (!in_array($tag, ['p', 'div', 'h2', 'h3', 'h4', 'blockquote', 'li', 'td', 'th'], true) || !preg_match('~^text-align\\s*:\\s*(left|right|center|justify)\\s*;?$~i', $value, $matches)) {\n                        $node->removeAttribute('style');\n                    } else {\n                        $node->setAttribute('style', 'text-align: '.strtolower($matches[1]).';');\n                    }\n                }\n                if ($name === 'href' && !self::safeHref($value)) {
                     $node->removeAttribute('href');
                 }
                 if (in_array($name, ['colspan', 'rowspan'], true) && (!ctype_digit($value) || (int) $value < 1 || (int) $value > 20)) {
