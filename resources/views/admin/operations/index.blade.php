@@ -46,7 +46,7 @@
     </form>
     <div class="oc-actions">
       <form method="POST" action="{{ route('admin.operations.check') }}">@csrf<button class="btn sec" type="submit">بررسی سلامت همین حالا</button></form>
-      <form method="POST" action="{{ route('admin.operations.backup') }}" onsubmit="return confirm('بکاپ جدید ایجاد شود؟ در صورت فعال بودن Google Drive، فایل به مقصد ابری هم ارسال می‌شود.')">@csrf<button class="btn sec" type="submit">اجرای بکاپ همین حالا</button></form>
+      <form method="POST" action="{{ route('admin.operations.backup') }}">@csrf<button class="btn sec" type="submit">اجرای بکاپ همین حالا</button></form>
       <form method="POST" action="{{ route('admin.operations.test-sms') }}">@csrf<div style="display:flex;gap:6px;flex-wrap:wrap"><input name="mobile" value="{{ $settings['alert_mobile'] }}" placeholder="شماره تست" required style="max-width:190px"><button class="btn sec" type="submit">تست پیامک</button></div></form>
     </div>
   </section>
