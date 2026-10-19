@@ -155,7 +155,90 @@
     var c = pop.querySelector('.jd-c'); if (c) c.onclick = function () { self.set(null); };
   };
 
-  function init() { [].forEach.call(document.querySelectorAll('input.jdate'), function (el) { if (!el.__jd) { el.__jd = new Picker(el); } }); }
+  function isoToJalali(value) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(value || ''));
+    if (!m) return '';
+    var j = toJalali(+m[1], +m[2], +m[3]);
+    return format({ y: j.jy, m: j.jm, d: j.jd });
+  }
+
+  function jalaliToIso(value) {
+    var j = parse(value);
+    if (!j) return '';
+    var g = toGregorian(j.y, j.m, j.d);
+    return g.gy + '-' + pad(g.gm) + '-' + pad(g.gd);
+  }
+
+  // Keep the server-facing field in ISO/Gregorian format while users see a Jalali picker.
+  function adaptNativeDateInputs() {
+    [].forEach.call(document.querySelectorAll('input[type="date"], input[type="datetime-local"]'), function (el) {
+      if (el.getAttribute('data-jdate-adapted') === '1' || !el.name) return;
+
+      var kind = el.type;
+      var name = el.name;
+      var initial = el.value || '';
+      var min = el.getAttribute('min') || '';
+      var max = el.getAttribute('max') || '';
+      var disabled = el.disabled;
+      var hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = name;
+      hidden.value = '';
+      hidden.disabled = disabled;
+      hidden.setAttribute('data-jdate-value-for', name);
+      el.removeAttribute('name');
+      el.type = 'text';
+      el.classList.add('jdate');
+      el.setAttribute('data-jdate-adapted', '1');
+      el.setAttribute('autocomplete', 'off');
+      el.setAttribute('placeholder', 'انتخاب تاریخ شمسی');
+      if (min) el.setAttribute('data-min', isoToJalali(min));
+      if (max) el.setAttribute('data-max', isoToJalali(max));
+      el.removeAttribute('min');
+      el.removeAttribute('max');
+
+      var time = null;
+      if (kind === 'datetime-local') {
+        time = document.createElement('input');
+        time.type = 'time';
+        time.className = 'jd-native-time';
+        time.setAttribute('aria-label', 'ساعت');
+        time.value = initial.length >= 16 ? initial.slice(11, 16) : '';
+        time.disabled = disabled;
+        el.insertAdjacentElement('afterend', time);
+      }
+      if (time) time.insertAdjacentElement('afterend', hidden);
+      else el.insertAdjacentElement('afterend', hidden);
+
+      el.value = isoToJalali(initial);
+      var sync = function () {
+        var iso = jalaliToIso(el.value);
+        hidden.value = iso ? iso + (time ? 'T' + (time.value || '00:00') : '') : '';
+      };
+      el.addEventListener('change', sync);
+      if (time) {
+        time.addEventListener('change', sync);
+        time.addEventListener('input', sync);
+      }
+      if (el.form) {
+        el.form.addEventListener('reset', function () {
+          window.setTimeout(function () {
+            el.value = isoToJalali(initial);
+            if (time) time.value = initial.length >= 16 ? initial.slice(11, 16) : '';
+            sync();
+          }, 0);
+        });
+      }
+      sync();
+    });
+  }
+
+  function init() {
+    adaptNativeDateInputs();
+    [].forEach.call(document.querySelectorAll('input.jdate'), function (el) {
+      if (!el.__jd) el.__jd = new Picker(el);
+    });
+  }
   if (typeof document !== 'undefined') {
     document.addEventListener('click', function (e) { if (openPicker && !openPicker.wrap.contains(e.target)) openPicker.close(); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && openPicker) openPicker.close(); });
