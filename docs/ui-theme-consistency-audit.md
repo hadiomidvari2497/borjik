@@ -26,6 +26,12 @@ Date: 2026-10-19
 - `resources/views/sms-templates/index.blade.php` uses theme variables for the main card/form/preview surfaces; the red disabled-state text is a semantic status color, so no broad override was added.
 - `resources/views/layouts/app.blade.php` already centralizes the common workspace hero treatment. Its specialized hero selectors are deliberate to keep calendar, SMS, task, role, and phone-book headers visually aligned.
 
+### 6. Additional high-contrast views checked in the follow-up pass
+- `resources/views/polls/index.blade.php`: fixed light-only form fields, option states, count chips, result surfaces, empty state, and validation errors received dark-theme variants.
+- `resources/views/staff-roles/index.blade.php`: role cards, permission checkboxes, editable role fields, empty states, and success/error alerts received dark-theme variants.
+- `resources/views/requests/index.blade.php`: request status and priority chips now use brighter semantic colors in dark mode.
+- `resources/views/notifications/index.blade.php` and `resources/views/sms-templates/index.blade.php`: warning/info and disabled-state labels now retain readable contrast in dark mode.
+
 ## Verification notes
 - Changes are limited to presentation/CSS; routes, controllers, permissions, data handling, and JavaScript behavior were not intentionally changed.
 - CSS brace balance and key selector presence should be checked in CI, and the rendered pages should still be checked at desktop/mobile widths and in both explicit light/dark modes. A source review alone cannot guarantee pixel-perfect rendering across browsers.
