@@ -18,7 +18,8 @@ use App\Http\Controllers\Admin\PaymentGatewayController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SmsLogController;
 use App\Http\Controllers\Admin\SmsProviderController;
-use App\\Http\\Controllers\\Admin\\SubscriptionManagementController;\nuse App\\Http\\Controllers\\Admin\\SubscriptionPaymentReportController;
+use App\Http\Controllers\Admin\SubscriptionManagementController;
+use App\Http\Controllers\Admin\SubscriptionPaymentReportController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use Illuminate\Support\Facades\Route;
 
