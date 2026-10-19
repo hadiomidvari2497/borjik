@@ -55,12 +55,21 @@ class CheckOperationsHealth extends Command
         ]);
 
         $previous = OperationsHealthCheck::query()->where('id', '<', $record->id)->latest('id')->first();
-        if ($settings['alert_enabled'] && $settings['alert_mobile'] && $previous && $previous->status !== $status) {
-            $this->sendAlert((string) $settings['alert_mobile'], $status === 'warning'
-                ? 'هشدار برجیک: یکی از بررسی‌های سلامت سایت نیازمند رسیدگی است. پنل مدیریت > مرکز عملیات را بررسی کنید.'
-                : 'برجیک: بررسی سلامت سایت دوباره به وضعیت عادی برگشت.');
-        } elseif ($settings['alert_enabled'] && $settings['alert_mobile'] && ! $previous && $failed) {
-            $this->sendAlert((string) $settings['alert_mobile'], 'هشدار برجیک: در اولین بررسی سلامت، یک مورد نیازمند رسیدگی شناسایی شد.');
+        $issueState = collect($checks)->filter(fn ($check) => in_array($check['status'], ['fail', 'warning'], true))
+            ->map(fn ($check) => $check['status'])->all();
+        $previousIssueState = collect($previous?->checks ?? [])
+            ->filter(fn ($check) => in_array($check['status'] ?? 'unknown', ['fail', 'warning'], true))
+            ->map(fn ($check) => $check['status'])->all();
+        $issuesChanged = $previous && $issueState !== $previousIssueState;
+        if ($settings['alert_enabled'] && $settings['alert_mobile'] && (($issuesChanged) || (! $previous && $failed))) {
+            if ($failed) {
+                $issueNames = collect($checks)->filter(fn ($check) => in_array($check['status'], ['fail', 'warning'], true))
+                    ->pluck('name')->implode('، ');
+                $message = 'هشدار برجیک: نیازمند بررسی: '.$issueNames.'؛ پنل مدیریت > مرکز عملیات را بررسی کنید.';
+            } else {
+                $message = 'برجیک: بررسی سلامت سایت دوباره به وضعیت عادی برگشت.';
+            }
+            $this->sendAlert((string) $settings['alert_mobile'], $message);
         }
 
         $this->info('Health check '.$status.'; record #'.$record->id);
