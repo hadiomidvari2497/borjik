@@ -54,7 +54,7 @@ return [
         'items' => [
             ['label' => 'تحلیل رفتار کاربران', 'icon' => 'activity', 'route' => 'admin.analytics.index', 'active' => 'admin.analytics.*', 'perm' => 'stats.view',
                 'desc' => 'کاربران آنلاین، بازدید صفحات، منابع ورودی و مشخصات دستگاه‌ها'],
-            ['label' => 'تحلیل ساختمان‌ها', 'icon' => 'chart', 'route' => 'admin.building-analytics.index', 'active' => 'admin.building-analytics.*', 'perm' => 'stats.view',
+            ['label' => 'تحلیل ساختمان‌ها', 'icon' => 'activity', 'route' => 'admin.building-analytics.index', 'active' => 'admin.building-analytics.*', 'perm' => 'stats.view',
                 'desc' => 'مقایسه واحدها، عضویت‌ها، تیکت‌ها و فعالیت ساختمان‌ها'],
             ['label' => 'مرکز عملیات و بکاپ', 'icon' => 'shield', 'route' => 'admin.operations.index', 'active' => 'admin.operations.*', 'perm' => 'site.settings',
                 'desc' => 'سلامت سرویس، هشدار پیامکی، بکاپ محلی و Google Drive'],
