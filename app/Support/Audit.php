@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 final class Audit
 {
     /** ستون‌هایی که هرگز ثبت نمی‌شوند (اسرار و ستون‌های پرنوسانِ بی‌اهمیت). */
-    private const EXCLUDED = ['created_at', 'updated_at', 'password', 'remember_token', 'two_factor_secret', 'token_hash', 'last_login_at'];
+    private const EXCLUDED = ['created_at', 'updated_at', 'password', 'remember_token', 'two_factor_secret', 'token_hash', 'last_login_at', 'api_token', 'access_token', 'refresh_token', 'client_secret', 'private_key', 'secret', 'authorization', 'otp', 'verification_code'];
 
     /** @param array<string,mixed> $attributes @return array<string,mixed> */
     public static function filter(Model $model, array $attributes): array
@@ -21,7 +21,14 @@ final class Audit
             $excluded = array_merge($excluded, $model->auditExcluded());
         }
 
-        return array_diff_key($attributes, array_flip($excluded));
+        $filtered = array_diff_key($attributes, array_flip($excluded));
+        foreach (array_keys($filtered) as $key) {
+            if (preg_match('/(?:password|secret|token|private.?key|authorization|otp|verification.?code|api.?key)/i', (string) $key)) {
+                unset($filtered[$key]);
+            }
+        }
+
+        return $filtered;
     }
 
     public static function record(Model $model, string $event, array $old, array $new): void
