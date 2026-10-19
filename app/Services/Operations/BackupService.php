@@ -28,6 +28,9 @@ class BackupService
             $stamp = now()->format('Ymd-His');
             $sqlOrDb = $this->exportDatabase($tempDir);
             $archive = $tempDir.DIRECTORY_SEPARATOR.'borjik-'.$stamp.'.zip';
+            if (! class_exists(ZipArchive::class)) {
+                throw new RuntimeException('افزونه PHP zip فعال نیست؛ پیش از اجرای بکاپ آن را نصب یا فعال کن.');
+            }
             $zip = new ZipArchive();
             if ($zip->open($archive, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
                 throw new RuntimeException('ساخت فایل ZIP بکاپ ناموفق بود.');
@@ -227,9 +230,15 @@ class BackupService
         if (trim((string) ($settings['drive_folder_id'] ?? '')) !== '') {
             $metadata['parents'] = [trim($settings['drive_folder_id'])];
         }
+        $boundary = 'borjik_'.bin2hex(random_bytes(12));
+        $contents = file_get_contents($path);
+        if ($contents === false) {
+            throw new RuntimeException('خواندن فایل بکاپ برای ارسال ابری ناموفق بود.');
+        }
+        $body = '--'.$boundary."\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n".json_encode($metadata, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+            ."\\r\\n--".$boundary."\\r\\nContent-Type: application/zip\\r\\nContent-Transfer-Encoding: binary\\r\\n\\r\\n".$contents."\\r\\n--".$boundary."--";
         $upload = Http::withToken($tokenResponse->json('access_token'))->timeout(300)
-            ->attach('metadata', json_encode($metadata, JSON_THROW_ON_ERROR), 'metadata.json', ['Content-Type' => 'application/json'])
-            ->attach('file', file_get_contents($path), basename($path), ['Content-Type' => 'application/zip'])
+            ->withBody($body, 'multipart/related; boundary='.$boundary)
             ->post('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size');
         if (! $upload->successful() || ! $upload->json('id')) {
             throw new RuntimeException('ارسال فایل به Google Drive ناموفق بود (HTTP '.$upload->status().').');
