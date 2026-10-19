@@ -64,6 +64,8 @@ return [
                 'desc' => 'بررسی منابع سرور، دیسک، حافظه و سرویس‌های ضروری'],
             ['label' => 'پایش Cron', 'icon' => 'history', 'route' => 'admin.monitoring.cron', 'active' => 'admin.monitoring.cron', 'perm' => 'logs.view',
                 'desc' => 'زمان اجرا، مدت، خروجی و خطاهای دستورات زمان‌بندی‌شده'],
+            ['label' => 'پایش عملکرد', 'icon' => 'activity', 'route' => 'admin.monitoring.performance', 'active' => 'admin.monitoring.performance*', 'perm' => 'logs.view',
+                'desc' => 'خط مبنای زمان پاسخ دیتابیس، کش، فایل و منابع قابل‌مشاهده'],
             ['label' => 'تاریخچه فعالیت مدیران', 'icon' => 'history', 'route' => 'admin.activity-logs.index', 'active' => 'admin.activity-logs.*', 'perm' => 'logs.view',
                 'desc' => 'ردیابی عملیات موفق مدیران همراه با زمان، مسیر و IP'],
         ],
