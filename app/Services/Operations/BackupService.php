@@ -52,6 +52,12 @@ class BackupService
                 throw new RuntimeException('ذخیرهٔ بکاپ در مسیر محلی ناموفق بود.');
             }
             @chmod($localPath, 0600);
+            $run->update([
+                'filename' => $filename,
+                'local_path' => $localPath,
+                'size_bytes' => filesize($localPath) ?: null,
+                'message' => 'نسخهٔ محلی ساخته شد؛ ارسال ابری در حال انجام است.',
+            ]);
             $cloudId = null;
             if ($settings['cloud_enabled']) {
                 $cloudId = $this->uploadToDrive($localPath, $settings);
