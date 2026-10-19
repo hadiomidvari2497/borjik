@@ -436,6 +436,8 @@
       });
       renderValue();
       syncOptions();
+      var optionObserver = new MutationObserver(function () { renderValue(); syncOptions(); });
+      optionObserver.observe(select, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled', 'label', 'selected', 'hidden'] });
     });
   }
 
