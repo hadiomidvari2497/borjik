@@ -28,6 +28,7 @@ class ArticleController extends Controller
     public function store(Request $request)
     {
         $data = $this->validated($request);
+        unset($data['remove_cover']);
         $data['slug'] = $this->uniqueSlug($data['slug'] ?: $data['title']);
         $data['admin_id'] = $request->user('admin')->id;
         $data['body'] = ArticleHtmlSanitizer::sanitize($data['body']);
@@ -47,9 +48,11 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
         $data = $this->validated($request, $article);
+        $removeCover = $request->boolean('remove_cover');
+        unset($data['remove_cover']);
         $data['slug'] = $this->uniqueSlug($data['slug'] ?: $data['title'], $article->id);
         $data['body'] = ArticleHtmlSanitizer::sanitize($data['body']);
-        if ($request->boolean('remove_cover')) {
+        if ($removeCover) {
             $this->deleteStoredCover($article->cover_image);
             $data['cover_image'] = null;
         } elseif ($request->hasFile('cover_image')) {
