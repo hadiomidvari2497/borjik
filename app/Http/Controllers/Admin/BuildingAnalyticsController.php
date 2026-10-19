@@ -30,6 +30,9 @@ class BuildingAnalyticsController extends Controller
                 'new_tickets' => $this->countByBuilding('tickets', $id, $since),
                 'invoices' => $this->countByBuilding('invoices', $id),
                 'new_invoices' => $this->countByBuilding('invoices', $id, $since),
+                'receipts' => $this->countByBuilding('payment_receipts', $id),
+                'pending_receipts' => $this->countByBuilding('payment_receipts', $id, null, 'pending'),
+                'new_receipts' => $this->countByBuilding('payment_receipts', $id, $since),
             ];
             return $row;
         });
@@ -45,6 +48,8 @@ class BuildingAnalyticsController extends Controller
                 'tickets' => $sum('tickets'),
                 'new_tickets' => $sum('new_tickets'),
                 'invoices' => $sum('invoices'),
+                'receipts' => $sum('receipts'),
+                'pending_receipts' => $sum('pending_receipts'),
                 'new_buildings' => Building::query()->where('created_at', '>=', $since)->count(),
                 'new_users' => User::query()->where('created_at', '>=', $since)->count(),
             ],
@@ -52,7 +57,7 @@ class BuildingAnalyticsController extends Controller
         ]);
     }
 
-    private function countByBuilding(string $table, int $buildingId, $since = null): int
+    private function countByBuilding(string $table, int $buildingId, $since = null, ?string $status = null): int
     {
         if (! Schema::hasTable($table) || ! Schema::hasColumn($table, 'building_id')) {
             return 0;
@@ -63,6 +68,9 @@ class BuildingAnalyticsController extends Controller
         }
         if ($since && Schema::hasColumn($table, 'created_at')) {
             $query->where('created_at', '>=', $since);
+        }
+        if ($status !== null && Schema::hasColumn($table, 'status')) {
+            $query->where('status', $status);
         }
         if ($table === 'building_user_roles' && Schema::hasColumn($table, 'status')) {
             $query->where('status', 'active');
