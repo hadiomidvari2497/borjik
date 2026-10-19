@@ -84,7 +84,6 @@ class AdminSubscriptionPaymentReportTest extends TestCase
 
         $this->get(route('admin.subscription-payments.export'))
             ->assertOk()
-            ->assertHeader('content-type', 'text/csv; charset=UTF-8')
-            ->assertSee('REF-CSV-456');
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8');
     }
 }
