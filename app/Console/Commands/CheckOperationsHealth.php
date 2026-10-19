@@ -56,10 +56,10 @@ class CheckOperationsHealth extends Command
 
         $previous = OperationsHealthCheck::query()->where('id', '<', $record->id)->latest('id')->first();
         $issueState = collect($checks)->filter(fn ($check) => in_array($check['status'], ['fail', 'warning'], true))
-            ->map(fn ($check) => $check['status'])->all();
+            ->map(fn ($check, $key) => $key.':'.$check['status'])->all();
         $previousIssueState = collect($previous?->checks ?? [])
             ->filter(fn ($check) => in_array($check['status'] ?? 'unknown', ['fail', 'warning'], true))
-            ->map(fn ($check) => $check['status'])->all();
+            ->map(fn ($check, $key) => $key.':'.$check['status'])->all();
         $issuesChanged = $previous && $issueState !== $previousIssueState;
         if ($settings['alert_enabled'] && $settings['alert_mobile'] && (($issuesChanged) || (! $previous && $failed))) {
             if ($failed) {
