@@ -93,7 +93,7 @@ class ArticleController extends Controller
                 'body' => '<h2>عنوان بخش</h2><p>متن مقاله را اینجا بنویسید. می‌توانید از HTML ساده مانند تیتر، پاراگراف، فهرست و لینک استفاده کنید.</p><ul><li>نکته اول</li><li>نکته دوم</li></ul>',
                 'status' => 'draft',
                 'published_at' => null,
-                'cover_image' => 'images/cover-1.jpg',
+                'cover_image' => null,
             ];
         }
         $zip->addFromString('articles.json', json_encode($examples, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -193,9 +193,6 @@ class ArticleController extends Controller
                         }
                         $stored = 'article-covers/'.Str::uuid().'.'.$extension;
                         Storage::disk('public')->put($stored, $bytes);
-                        if ($existing) {
-                            $this->deleteStoredCover($existing->cover_image);
-                        }
                         $data['cover_image'] = $stored;
                     } else {
                         $data['cover_image'] = $existing?->cover_image;
