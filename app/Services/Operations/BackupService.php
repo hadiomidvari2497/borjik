@@ -82,7 +82,7 @@ class BackupService
                 'message' => mb_substr($exception->getMessage(), 0, 1500),
                 'finished_at' => now(),
             ]);
-            $this->notifyBackupFailure($exception->getMessage());
+            $this->notifyBackupFailure();
         } finally {
             if (is_dir($tempDir)) {
                 $this->removeDirectory($tempDir);
@@ -269,7 +269,7 @@ class BackupService
         return (string) $upload->json('id');
     }
 
-    private function notifyBackupFailure(string $reason): void
+    private function notifyBackupFailure(): void
     {
         try {
             $settings = OperationsSetting::current()->values();
