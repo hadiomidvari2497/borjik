@@ -74,7 +74,12 @@ class SubscriptionPaymentReportController extends Controller
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, ['شناسه تراکنش', 'تاریخ ثبت', 'تاریخ پرداخت', 'کاربر', 'موبایل', 'پلن', 'مبلغ (تومان)', 'درگاه', 'وضعیت', 'شماره پیگیری']);
 
+            $exported = 0;
             foreach ($query->lazyById(500) as $payment) {
+                if ($exported >= self::EXPORT_LIMIT) {
+                    break;
+                }
+                $exported++;
                 fputcsv($out, array_map([self::class, 'csvSafe'], [
                     (string) $payment->id,
                     $payment->created_at ? JalaliDate::format($payment->created_at).' '.$payment->created_at->format('H:i') : '',
