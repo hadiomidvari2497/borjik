@@ -43,7 +43,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/building-analytics', [BuildingAnalyticsController::class, 'index'])->middleware('admin.can:stats.view')->name('building-analytics.index');
         Route::get('/operations', [OperationsCenterController::class, 'index'])->middleware('admin.can:site.settings')->name('operations.index');
         Route::put('/operations', [OperationsCenterController::class, 'update'])->middleware('admin.can:site.settings')->name('operations.update');
-        Route::post('/operations/backup', [OperationsCenterController::class, 'runBackup'])->middleware('admin.can:site.settings')->name('operations.backup');
+        Route::post('/operations/backup', [OperationsCenterController::class, 'runBackup'])->middleware('admin.can:site.settings')->middleware('throttle:2,1')->name('operations.backup');
         Route::post('/operations/health-check', [OperationsCenterController::class, 'checkNow'])->middleware('admin.can:site.settings')->name('operations.check');
         Route::post('/operations/test-sms', [OperationsCenterController::class, 'testSms'])->middleware('admin.can:site.settings')->middleware('throttle:5,1')->name('operations.test-sms');
         Route::get('/monitoring/host', [HostMonitoringController::class, 'host'])->middleware('admin.can:logs.view')->name('monitoring.host');
