@@ -20,10 +20,10 @@ class RunBorjikBackup extends Command
             return self::SUCCESS;
         }
 
-        $last = BackupRun::query()->where('status', 'success')->latest('finished_at')->first();
+        $last = BackupRun::query()->latest('id')->first();
         $frequency = $settings['backup_frequency'] ?? 'daily';
         $hours = $frequency === 'weekly' ? 168 : ($frequency === 'twice_daily' ? 12 : 24);
-        if (! $this->option('force') && $last && $last->finished_at && $last->finished_at->gt(now()->subHours($hours))) {
+        if (! $this->option('force') && $last && $last->status === 'success' && $last->finished_at && $last->finished_at->gt(now()->subHours($hours))) {
             $this->info('A successful backup already exists in the configured period.');
             return self::SUCCESS;
         }
