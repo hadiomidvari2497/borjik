@@ -88,22 +88,26 @@ class BackupService
         if ($path === '' || ! $this->isAbsolutePath($path)) {
             throw new RuntimeException('مسیر بکاپ باید یک مسیر مطلق و معتبر باشد.');
         }
-        $public = realpath(public_path());
         $parent = dirname($path);
-        if ($public && (str_starts_with(strtolower($path), strtolower($public.DIRECTORY_SEPARATOR)) || strtolower($path) === strtolower($public))) {
-            throw new RuntimeException('ذخیرهٔ بکاپ داخل پوشهٔ عمومی سایت مجاز نیست.');
-        }
         if (! is_dir($parent) && ! mkdir($parent, 0700, true) && ! is_dir($parent)) {
             throw new RuntimeException('ساخت پوشهٔ مقصد بکاپ ممکن نشد.');
         }
         if (! is_dir($path) && ! mkdir($path, 0700, true) && ! is_dir($path)) {
             throw new RuntimeException('ساخت مسیر بکاپ ناموفق بود.');
         }
-        if (! is_writable($path)) {
+        $canonicalPath = realpath($path);
+        $public = realpath(public_path());
+        if (! $canonicalPath) {
+            throw new RuntimeException('مسیر محلی بکاپ قابل تشخیص نیست.');
+        }
+        if ($public && (str_starts_with(strtolower($canonicalPath), strtolower(rtrim($public, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR)) || strtolower($canonicalPath) === strtolower($public))) {
+            throw new RuntimeException('ذخیرهٔ بکاپ داخل پوشهٔ عمومی سایت مجاز نیست.');
+        }
+        if (! is_writable($canonicalPath)) {
             throw new RuntimeException('مسیر محلی بکاپ قابل نوشتن نیست.');
         }
 
-        return rtrim($path, DIRECTORY_SEPARATOR);
+        return $canonicalPath;
     }
 
     private function isAbsolutePath(string $path): bool
