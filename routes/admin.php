@@ -18,7 +18,7 @@ use App\Http\Controllers\Admin\PaymentGatewayController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SmsLogController;
 use App\Http\Controllers\Admin\SmsProviderController;
-use App\Http\Controllers\Admin\SubscriptionManagementController;
+use App\\Http\\Controllers\\Admin\\SubscriptionManagementController;\nuse App\\Http\\Controllers\\Admin\\SubscriptionPaymentReportController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,6 +80,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');
+        });
+
+        Route::prefix('subscription-payments')->name('subscription-payments.')->middleware('admin.can:subscriptions.manage')->controller(SubscriptionPaymentReportController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/export', 'export')->name('export');
         });
 
         Route::prefix('sms')->name('sms.')->group(function () {
