@@ -95,7 +95,7 @@ class CrudTest extends TestCase
     public function test_bulk_units_respect_the_subscription_limit_atomically(): void
     {
         [$owner, $b, $block] = $this->building(limit: 5);
-        $payload = ['block_id' => $block->id, 'count' => 6, 'start_number' => 1, 'units_per_floor' => 2, 'start_floor' => 1, 'area_m2' => 80];
+        $payload = ['block_id' => $block->id, 'numbering_mode' => 'sequential', 'count' => 6, 'start_number' => 1, 'units_per_floor' => 2, 'start_floor' => 1, 'area_m2' => 80];
 
         $this->as($owner, $b)->post(route('units.bulk.store'), $payload)->assertSessionHasErrors('general');
         $this->assertSame(0, app(CurrentBuilding::class)->actingAs($b->id, fn () => Unit::count()));
@@ -104,6 +104,47 @@ class CrudTest extends TestCase
         $units = app(CurrentBuilding::class)->actingAs($b->id, fn () => Unit::orderBy('number')->get());
         $this->assertCount(5, $units);
         $this->assertSame([1, 1, 2, 2, 3], $units->pluck('floor')->all());
+    }
+
+    public function test_bulk_units_can_use_block_floor_unit_numbering(): void
+    {
+        [$owner, $building, $block] = $this->building(limit: 20);
+        $this->as($owner, $building)->post(route('units.bulk.store'), [
+            'block_id' => $block->id,
+            'numbering_mode' => 'structured',
+            'count' => 4,
+            'units_per_floor' => 4,
+            'start_floor' => 2,
+            'area_m2' => 80,
+        ])->assertRedirect(route('units.index'));
+
+        $units = app(CurrentBuilding::class)->actingAs($building->id, fn () => Unit::orderBy('number')->get());
+        $this->assertSame(['121', '122', '123', '124'], $units->pluck('number')->all());
+        $this->assertSame([2, 2, 2, 2], $units->pluck('floor')->all());
+    }
+
+    public function test_bulk_structured_numbers_support_two_digit_block_floor_and_unit_parts(): void
+    {
+        [$owner, $building] = $this->building(limit: 20);
+        $block = app(CurrentBuilding::class)->actingAs($building->id, fn () => Block::create([
+            'number' => 12,
+            'name' => 'بلوک دوازده',
+            'floors_count' => 12,
+        ]));
+
+        $this->as($owner, $building)->post(route('units.bulk.store'), [
+            'block_id' => $block->id,
+            'numbering_mode' => 'structured',
+            'count' => 10,
+            'units_per_floor' => 10,
+            'start_floor' => 10,
+            'area_m2' => 80,
+        ])->assertRedirect(route('units.index'));
+
+        $units = app(CurrentBuilding::class)->actingAs($building->id, fn () => Unit::where('block_id', $block->id)->orderBy('number')->get());
+        $this->assertSame('121001', $units->first()->number);
+        $this->assertSame('121010', $units->last()->number);
+        $this->assertSame([10], $units->pluck('floor')->unique()->values()->all());
     }
 
     public function test_expired_subscription_blocks_adding_units_but_not_viewing(): void
