@@ -25,7 +25,7 @@
 @if($article->exists && $article->cover_image)<label style="display:flex;align-items:center;gap:8px;margin-top:10px"><input style="width:auto" type="checkbox" name="remove_cover" value="1"> حذف تصویر جلد فعلی</label>@endif
 </div>
 <div class="fld wide"><label for="body">متن کامل مقاله *</label>
-<textarea id="body" name="body" required hidden>{{ old('body',$article->body) }}</textarea>
+<textarea id="body" name="body" required hidden>{{ old('body', $article->body ? \\App\\Support\\ArticleHtmlSanitizer::sanitize($article->body) : '') }}</textarea>
 <div class="article-editor" id="article-editor">
 <div class="article-editor-toolbar" role="toolbar" aria-label="ابزارهای ویرایش متن">
 <button type="button" data-command="bold" title="ضخیم"><strong>B</strong></button><button type="button" data-command="italic" title="مورب"><em>I</em></button><button type="button" data-command="underline" title="زیرخط">U̲</button><button type="button" data-command="strikeThrough" title="خط‌خورده">S̶</button><span class="tool-sep"></span>
