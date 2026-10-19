@@ -27,12 +27,17 @@
                 } else if (button.dataset.block) {
                     run('formatBlock', button.dataset.block);
                 } else if (button.dataset.action === 'link') {
-                    const url = window.prompt('نشانی لینک (https://...) را وارد کنید:');
-                    if (url && /^(https?:\/\/|mailto:|\/|#)/i.test(url.trim())) {
-                        run('createLink', url.trim());
-                    } else if (url) {
-                        window.alert('لطفاً یک نشانی معتبر با https://، mailto:، / یا # وارد کنید.');
-                    }
+                    const ask = window.Borjik && typeof window.Borjik.prompt === 'function'
+                        ? window.Borjik.prompt({ title: 'افزودن لینک', text: 'نشانی لینک را وارد کنید', placeholder: 'https://example.com', maxlength: 1000 })
+                        : Promise.resolve(null);
+                    ask.then((url) => {
+                        if (!url) return;
+                        if (/^(https?:\\/\\/|mailto:|\\/|#)/i.test(url.trim())) {
+                            run('createLink', url.trim());
+                        } else if (window.Borjik?.toastError) {
+                            window.Borjik.toastError('نشانی لینک معتبر نیست.');
+                        }
+                    });
                 } else if (button.dataset.action === 'clear') {
                     run('removeFormat');
                     run('unlink');
