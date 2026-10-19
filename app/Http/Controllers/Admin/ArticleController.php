@@ -252,7 +252,7 @@ class ArticleController extends Controller
 
     private function deleteStoredCover(?string $value): void
     {
-        if ($value && !preg_match('~^https?://~i', $value)) {
+        if ($value && !preg_match('~^(https?://|/)~i', $value)) {
             Storage::disk('public')->delete($value);
         }
     }
