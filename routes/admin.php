@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\BuildingAnalyticsController;
 use App\Http\Controllers\Admin\OperationsCenterController;
 use App\Http\Controllers\Admin\HostMonitoringController;
+use App\Http\Controllers\Admin\PerformanceMonitoringController;
 use App\Http\Middleware\RecordAdminActivity;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -48,6 +49,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/operations/test-sms', [OperationsCenterController::class, 'testSms'])->middleware('admin.can:site.settings')->middleware('throttle:5,1')->name('operations.test-sms');
         Route::get('/monitoring/host', [HostMonitoringController::class, 'host'])->middleware('admin.can:logs.view')->name('monitoring.host');
         Route::get('/monitoring/cron', [HostMonitoringController::class, 'cron'])->middleware('admin.can:logs.view')->name('monitoring.cron');
+        Route::get('/monitoring/performance', [PerformanceMonitoringController::class, 'index'])->middleware('admin.can:logs.view')->name('monitoring.performance');
+        Route::post('/monitoring/performance/sample', [PerformanceMonitoringController::class, 'sampleNow'])->middleware('admin.can:logs.view')->middleware('throttle:6,1')->name('monitoring.performance.sample');
 
         Route::prefix('account')->name('account')->controller(AccountController::class)->group(function () {
             Route::get('/', 'show');
