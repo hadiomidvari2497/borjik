@@ -225,14 +225,15 @@
     if (scope.querySelectorAll) selects = selects.concat(Array.prototype.slice.call(scope.querySelectorAll(selector)));
 
     selects.forEach(function (select) {
-      if (select.dataset.searchSelectReady === '1' || select.multiple || select.closest('.b-select')) return;
+      if (select.dataset.searchSelectReady === '1' || select.closest('.b-select')) return;
       select.dataset.searchSelectReady = '1';
 
       var wrap = document.createElement('div');
       wrap.className = 'b-select';
       wrap.dir = select.dir || document.documentElement.dir || 'rtl';
       var computed = window.getComputedStyle(select);
-      wrap.style.width = computed.width === 'auto' ? '' : computed.width;
+      var parentWidth = select.parentElement ? select.parentElement.getBoundingClientRect().width : 0;
+      wrap.style.width = select.style.width || (computed.width !== 'auto' && parentWidth && Math.abs(parseFloat(computed.width) - parentWidth) < 3 ? '100%' : '');
       if (computed.display === 'none') wrap.style.display = 'none';
       select.parentNode.insertBefore(wrap, select);
       wrap.appendChild(select);
@@ -290,9 +291,9 @@
 
       function labelFor(option) { return (option.textContent || '').trim(); }
       function renderValue() {
-        var selected = select.selectedOptions && select.selectedOptions.length ? select.selectedOptions[0] : null;
-        var hasValue = !!selected && !(selected.value === '' && !selected.hasAttribute('data-allow-empty-label'));
-        value.textContent = hasValue ? labelFor(selected) : placeholder;
+        var selected = select.selectedOptions ? Array.prototype.slice.call(select.selectedOptions) : [];
+        var hasValue = selected.length > 0 && !(selected.length === 1 && selected[0].value === '' && !selected[0].hasAttribute('data-allow-empty-label'));
+        value.textContent = hasValue ? selected.map(labelFor).join('، ') : placeholder;
         value.classList.toggle('is-placeholder', !hasValue);
         trigger.classList.toggle('has-value', hasValue);
         trigger.disabled = select.disabled;
@@ -329,7 +330,8 @@
           item._option = option;
           item.addEventListener('click', function () {
             if (item.disabled) return;
-            select.value = option.value;
+            if (select.multiple) option.selected = !option.selected;
+            else select.value = option.value;
             select.dispatchEvent(new Event('input', { bubbles: true }));
             select.dispatchEvent(new Event('change', { bubbles: true }));
             renderValue();
