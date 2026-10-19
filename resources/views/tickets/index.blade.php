@@ -66,63 +66,117 @@
 @if($kanban)
 <script>
 (() => {
-  const board = document.getElementById('task-kanban');
-  if (!board || board.dataset.bound === '1') return;
-  board.dataset.bound = '1';
+  let board = document.getElementById('task-kanban');
   const message = document.getElementById('task-kanban-message');
   const csrf = document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]')?.value;
   const faNumber = value => Number(value).toLocaleString('fa-IR');
   let dragged = null;
-  board.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
-    card.addEventListener('dragstart', event => {
-      dragged = card;
-      card.setAttribute('aria-busy', 'true');
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', card.dataset.id);
-    });
-    card.addEventListener('dragend', () => {
-      card.removeAttribute('aria-busy');
-      board.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('drag-over'));
-      dragged = null;
-    });
-  });
-  board.querySelectorAll('.kanban-col').forEach(col => {
-    col.addEventListener('dragover', event => { event.preventDefault(); col.classList.add('drag-over'); });
-    col.addEventListener('dragleave', event => { if (!col.contains(event.relatedTarget)) col.classList.remove('drag-over'); });
-    col.addEventListener('drop', async event => {
-      event.preventDefault();
-      col.classList.remove('drag-over');
-      if (!dragged || !csrf || dragged.dataset.busy === '1') return;
-      const nextStatus = col.dataset.status;
-      if (nextStatus === dragged.dataset.currentStatus) return;
-      const card = dragged;
-      const oldColumn = card.closest('.kanban-col');
-      const oldCount = oldColumn.querySelector('.kanban-count');
-      const newCount = col.querySelector('.kanban-count');
-      card.dataset.busy = '1';
-      message.textContent = 'در حال ثبت وضعیت...';
-      try {
-        const response = await fetch(card.dataset.statusUrl, {
-          method: 'POST',
-          headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':csrf,'X-Requested-With':'XMLHttpRequest'},
-          body: JSON.stringify({_token:csrf,status:nextStatus})
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || payload.ok !== true) throw new Error(payload.message || 'ثبت وضعیت انجام نشد.');
-        col.querySelector('.kanban-stack').appendChild(card);
-        card.dataset.currentStatus = payload.status || nextStatus;
-        oldCount.dataset.count = String(Math.max(0,Number(oldCount.dataset.count || 0)-1));
-        newCount.dataset.count = String(Number(newCount.dataset.count || 0)+1);
-        oldCount.textContent = faNumber(oldCount.dataset.count);
-        newCount.textContent = faNumber(newCount.dataset.count);
-        message.textContent = 'وضعیت با موفقیت ثبت شد.';
-      } catch (error) {
-        message.textContent = error.message || 'تغییر وضعیت ثبت نشد؛ این جابه‌جایی ممکن است با روند تأیید تسک سازگار نباشد.';
-      } finally {
-        delete card.dataset.busy;
+  let refreshing = false;
+
+  const bindBoard = currentBoard => {
+    if (!currentBoard || currentBoard.dataset.bound === '1') return;
+    currentBoard.dataset.bound = '1';
+
+    currentBoard.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
+      card.addEventListener('dragstart', event => {
+        dragged = card;
+        card.setAttribute('aria-busy', 'true');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', card.dataset.id);
+      });
+      card.addEventListener('dragend', () => {
         card.removeAttribute('aria-busy');
-      }
+        currentBoard.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('drag-over'));
+        dragged = null;
+      });
     });
-  });</script>
+
+    currentBoard.querySelectorAll('.kanban-col').forEach(col => {
+      col.addEventListener('dragover', event => {
+        event.preventDefault();
+        col.classList.add('drag-over');
+      });
+      col.addEventListener('dragleave', event => {
+        if (!col.contains(event.relatedTarget)) col.classList.remove('drag-over');
+      });
+      col.addEventListener('drop', async event => {
+        event.preventDefault();
+        col.classList.remove('drag-over');
+        if (!dragged || !csrf || dragged.dataset.busy === '1') return;
+        const nextStatus = col.dataset.status;
+        if (nextStatus === dragged.dataset.currentStatus) return;
+
+        const card = dragged;
+        const oldColumn = card.closest('.kanban-col');
+        const oldCount = oldColumn.querySelector('.kanban-count');
+        const newCount = col.querySelector('.kanban-count');
+        card.dataset.busy = '1';
+        if (message) message.textContent = 'در حال ثبت وضعیت...';
+
+        try {
+          const response = await fetch(card.dataset.statusUrl, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':csrf,'X-Requested-With':'XMLHttpRequest'},
+            body: JSON.stringify({_token:csrf,status:nextStatus})
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || payload.ok !== true) {
+            throw new Error(payload.message || (response.status === 422
+              ? 'این جابه‌جایی با روند مجاز تغییر وضعیت تسک سازگار نیست.'
+              : 'ثبت وضعیت انجام نشد.'));
+          }
+
+          col.querySelector('.kanban-stack').appendChild(card);
+          card.dataset.currentStatus = payload.status || nextStatus;
+          oldCount.dataset.count = String(Math.max(0,Number(oldCount.dataset.count || 0)-1));
+          newCount.dataset.count = String(Number(newCount.dataset.count || 0)+1);
+          oldCount.textContent = faNumber(oldCount.dataset.count);
+          newCount.textContent = faNumber(newCount.dataset.count);
+          if (message) message.textContent = 'وضعیت با موفقیت ثبت شد.';
+        } catch (error) {
+          if (message) message.textContent = error.message || 'تغییر وضعیت ثبت نشد.';
+        } finally {
+          delete card.dataset.busy;
+          card.removeAttribute('aria-busy');
+        }
+      });
+    });
+  };
+
+  bindBoard(board);
+
+  // Keep the board synchronized with changes made by other users without reloading the page.
+  window.setInterval(async () => {
+    if (!board || document.hidden || refreshing || dragged ||
+        board.querySelector('.kanban-card[data-busy="1"], .kanban-card[aria-busy="true"]')) return;
+
+    refreshing = true;
+    try {
+      const response = await fetch(window.location.href, {
+        method: 'GET',
+        headers: {'Accept':'text/html','X-Requested-With':'XMLHttpRequest'},
+        cache: 'no-store'
+      });
+      if (!response.ok) return;
+      const html = await response.text();
+      const parsed = new DOMParser().parseFromString(html, 'text/html');
+      const freshBoard = parsed.getElementById('task-kanban');
+      if (!freshBoard || !board.isConnected) return;
+
+      // Avoid replacing the board when its rendered state has not changed.
+      if (freshBoard.innerHTML !== board.innerHTML) {
+        const replacement = document.importNode(freshBoard, true);
+        board.replaceWith(replacement);
+        board = replacement;
+        bindBoard(board);
+      }
+    } catch (_) {
+      // Temporary network failures should not interrupt local drag-and-drop interactions.
+    } finally {
+      refreshing = false;
+    }
+  }, 15000);
+})();
+</script>
 @endif
 @endsection
