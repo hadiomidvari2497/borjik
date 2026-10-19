@@ -73,6 +73,45 @@
 .role-empty strong{display:block;color:#34415c;margin:10px 0 5px;font-size:14px}.role-empty p{font-size:12px;line-height:1.9;margin:0}
 @media(min-width:1120px){.role-layout{grid-template-columns:minmax(0,1fr)}.role-create{align-self:stretch;position:static}.role-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.role-list{grid-template-columns:1fr;padding:12px}.role-panel-head,.role-panel-body{padding:18px}.role-permissions{grid-template-columns:1fr}.role-hero{border-radius:19px}.role-stat{min-width:100px;padding:12px 16px}.role-stat strong{font-size:26px}.role-card-content{padding:15px}}
+
+/* Dark-theme correction: role editor cards, permissions and alerts follow shared tokens. */
+:root[data-theme="dark"] .role-alert.success{background:rgba(47,160,96,.16);color:#91e0ae;border-color:rgba(47,160,96,.3)}
+:root[data-theme="dark"] .role-alert.error{background:rgba(224,69,58,.15);color:#ffaaa3;border-color:rgba(255,130,120,.3)}
+:root[data-theme="dark"] .role-number,
+:root[data-theme="dark"] .role-card-icon{background:var(--brand-soft);color:var(--brand)}
+:root[data-theme="dark"] .role-name-field span,
+:root[data-theme="dark"] .role-permission-title{color:var(--text)}
+:root[data-theme="dark"] .role-group-label{color:var(--muted)}
+:root[data-theme="dark"] .role-name-field input,
+:root[data-theme="dark"] .role-permission,
+:root[data-theme="dark"] .role-card{background:var(--card);color:var(--text);border-color:var(--line)}
+:root[data-theme="dark"] .role-permission:hover,
+:root[data-theme="dark"] .role-permission:has(input:checked){background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+:root[data-theme="dark"] .role-delete{background:rgba(224,69,58,.14);border-color:rgba(255,130,120,.3);color:#ffaaa3}
+:root[data-theme="dark"] .role-default{background:rgba(47,160,96,.16);color:#91e0ae}
+:root[data-theme="dark"] .role-empty{background:var(--panel);border-color:var(--line);color:var(--muted)}
+:root[data-theme="dark"] .role-empty strong{color:var(--text)}
+:root[data-theme="dark"] .role-name-field input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) .role-alert.success{background:rgba(47,160,96,.16);color:#91e0ae;border-color:rgba(47,160,96,.3)}
+ :root:not([data-theme="light"]) .role-alert.error{background:rgba(224,69,58,.15);color:#ffaaa3;border-color:rgba(255,130,120,.3)}
+ :root:not([data-theme="light"]) .role-number,
+ :root:not([data-theme="light"]) .role-card-icon{background:var(--brand-soft);color:var(--brand)}
+ :root:not([data-theme="light"]) .role-name-field span,
+ :root:not([data-theme="light"]) .role-permission-title{color:var(--text)}
+ :root:not([data-theme="light"]) .role-group-label{color:var(--muted)}
+ :root:not([data-theme="light"]) .role-name-field input,
+ :root:not([data-theme="light"]) .role-permission,
+ :root:not([data-theme="light"]) .role-card{background:var(--card);color:var(--text);border-color:var(--line)}
+ :root:not([data-theme="light"]) .role-permission:hover,
+ :root:not([data-theme="light"]) .role-permission:has(input:checked){background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+ :root:not([data-theme="light"]) .role-delete{background:rgba(224,69,58,.14);border-color:rgba(255,130,120,.3);color:#ffaaa3}
+ :root:not([data-theme="light"]) .role-default{background:rgba(47,160,96,.16);color:#91e0ae}
+ :root:not([data-theme="light"]) .role-empty{background:var(--panel);border-color:var(--line);color:var(--muted)}
+ :root:not([data-theme="light"]) .role-empty strong{color:var(--text)}
+ :root:not([data-theme="light"]) .role-name-field input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+}
+
 </style>
 <div class="role-page">
   <section class="role-hero">
