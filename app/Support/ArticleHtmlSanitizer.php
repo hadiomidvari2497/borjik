@@ -19,7 +19,6 @@ class ArticleHtmlSanitizer
     public static function sanitize(string $html): string
     {
         if (!class_exists(DOMDocument::class)) {
-            // Fail closed if the DOM extension is missing rather than rendering unsanitized markup.
             return nl2br(e(strip_tags($html)));
         }
 
@@ -65,7 +64,10 @@ class ArticleHtmlSanitizer
                 continue;
             }
 
-            $allowedAttributes = $tag === 'a' ? ['href', 'title'] : (in_array($tag, ['th', 'td'], true) ? ['colspan', 'rowspan', 'dir', 'style'] : ['dir', 'style']);
+            $allowedAttributes = $tag === 'a'
+                ? ['href', 'title']
+                : (in_array($tag, ['th', 'td'], true) ? ['colspan', 'rowspan', 'dir', 'style'] : ['dir', 'style']);
+
             foreach (iterator_to_array($node->attributes) as $attribute) {
                 $name = strtolower($attribute->name);
                 $value = trim($attribute->value);
@@ -73,7 +75,17 @@ class ArticleHtmlSanitizer
                     $node->removeAttributeNode($attribute);
                     continue;
                 }
-                if ($name === 'style') {\n                    if (!in_array($tag, ['p', 'div', 'h2', 'h3', 'h4', 'blockquote', 'li', 'td', 'th'], true) || !preg_match('~^text-align\\s*:\\s*(left|right|center|justify)\\s*;?$~i', $value, $matches)) {\n                        $node->removeAttribute('style');\n                    } else {\n                        $node->setAttribute('style', 'text-align: '.strtolower($matches[1]).';');\n                    }\n                }\n                if ($name === 'href' && !self::safeHref($value)) {
+
+                if ($name === 'style') {
+                    if (!in_array($tag, ['p', 'div', 'h2', 'h3', 'h4', 'blockquote', 'li', 'td', 'th'], true)
+                        || !preg_match('~^text-align\s*:\s*(left|right|center|justify)\s*;?$~i', $value, $matches)) {
+                        $node->removeAttribute('style');
+                    } else {
+                        $node->setAttribute('style', 'text-align: '.strtolower($matches[1]).';');
+                    }
+                }
+
+                if ($name === 'href' && !self::safeHref($value)) {
                     $node->removeAttribute('href');
                 }
                 if (in_array($name, ['colspan', 'rowspan'], true) && (!ctype_digit($value) || (int) $value < 1 || (int) $value > 20)) {
@@ -101,6 +113,7 @@ class ArticleHtmlSanitizer
         while ($element->firstChild) {
             $fragment->appendChild($element->firstChild);
         }
+
         return $fragment;
     }
 }
