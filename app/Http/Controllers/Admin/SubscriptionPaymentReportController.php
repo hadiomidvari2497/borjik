@@ -1,14 +1,14 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Subscription;
-use App\\Models\\SubscriptionPayment;
-use App\\Support\\JalaliDate;
-use App\\Support\\MobileNumber;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Http\\Request;
+use App\Http\Controllers\Controller;
+use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
+use App\Support\JalaliDate;
+use App\Support\MobileNumber;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 class SubscriptionPaymentReportController extends Controller
 {
@@ -46,7 +46,7 @@ class SubscriptionPaymentReportController extends Controller
             ->when($filters['from'], fn (Builder $query) => $query->where('created_at', '>=', $filters['from']))
             ->when($filters['to'], fn (Builder $query) => $query->where('created_at', '<=', $filters['to']))
             ->when($filters['q'] !== '', function (Builder $query) use ($filters) {
-                $like = '%'.addcslashes($filters['q'], '%_\\\\').'%';
+                $like = '%'.addcslashes($filters['q'], '%_\\').'%';
                 $query->whereHas('user', fn (Builder $user) => $user
                     ->where('mobile', 'like', $like)
                     ->orWhere('first_name', 'like', $like)
@@ -71,7 +71,7 @@ class SubscriptionPaymentReportController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
-            fwrite($out, "\\xEF\\xBB\\xBF");
+            fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, ['شناسه تراکنش', 'تاریخ ثبت', 'تاریخ پرداخت', 'کاربر', 'موبایل', 'پلن', 'مبلغ (تومان)', 'درگاه', 'وضعیت', 'شماره پیگیری']);
 
             foreach ($query->lazyById(500) as $payment) {
@@ -95,7 +95,7 @@ class SubscriptionPaymentReportController extends Controller
 
     public static function csvSafe(string $value): string
     {
-        return $value !== '' && in_array($value[0], ['=', '+', '-', '@', "\\t", "\\r"], true) ? "'".$value : $value;
+        return $value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true) ? "'".$value : $value;
     }
 
     public function statusLabel(?string $status): string
@@ -110,8 +110,8 @@ class SubscriptionPaymentReportController extends Controller
     private function filters(Request $request): array
     {
         $request->validate([
-            'from' => ['nullable', 'string', 'max:20', 'regex:/^\\d{4}\\/\\d{1,2}\\/\\d{1,2}$/'],
-            'to' => ['nullable', 'string', 'max:20', 'regex:/^\\d{4}\\/\\d{1,2}\\/\\d{1,2}$/'],
+            'from' => ['nullable', 'string', 'max:20', 'regex:/^\d{4}\/\d{1,2}\/\d{1,2}$/'],
+            'to' => ['nullable', 'string', 'max:20', 'regex:/^\d{4}\/\d{1,2}\/\d{1,2}$/'],
             'status' => ['nullable', 'in:paid,pending,failed'],
             'gateway' => ['nullable', 'string', 'max:30'],
             'q' => ['nullable', 'string', 'max:100'],
@@ -130,7 +130,7 @@ class SubscriptionPaymentReportController extends Controller
 
     private function paymentsQuery(array $filters): Builder
     {
-        $like = '%'.addcslashes($filters['q'], '%_\\\\').'%';
+        $like = '%'.addcslashes($filters['q'], '%_\\').'%';
 
         return SubscriptionPayment::query()
             ->when($filters['from'], fn (Builder $query) => $query->where('created_at', '>=', $filters['from']))
