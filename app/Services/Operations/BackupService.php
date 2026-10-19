@@ -239,8 +239,8 @@ class BackupService
         if ($contents === false) {
             throw new RuntimeException('خواندن فایل بکاپ برای ارسال ابری ناموفق بود.');
         }
-        $body = '--'.$boundary."\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n".json_encode($metadata, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
-            ."\\r\\n--".$boundary."\\r\\nContent-Type: application/zip\\r\\nContent-Transfer-Encoding: binary\\r\\n\\r\\n".$contents."\\r\\n--".$boundary."--";
+        $body = '--'.$boundary."\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n".json_encode($metadata, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE)
+            ."\r\n--".$boundary."\r\nContent-Type: application/zip\r\nContent-Transfer-Encoding: binary\r\n\r\n".$contents."\r\n--".$boundary."--";
         $upload = Http::withToken($tokenResponse->json('access_token'))->timeout(300)
             ->withBody($body, 'multipart/related; boundary='.$boundary)
             ->post('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size');
