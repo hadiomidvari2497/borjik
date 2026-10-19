@@ -32,7 +32,7 @@
                         : Promise.resolve(null);
                     ask.then((url) => {
                         if (!url) return;
-                        if (/^(https?:\\/\\/|mailto:|\\/|#)/i.test(url.trim())) {
+                        if (/^(https?:\/\/|mailto:|\/|#)/i.test(url.trim())) {
                             run('createLink', url.trim());
                         } else if (window.Borjik?.toastError) {
                             window.Borjik.toastError('نشانی لینک معتبر نیست.');
