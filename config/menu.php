@@ -30,6 +30,7 @@ return [
     [
         'title' => 'مالی',
         'items' => [
+            ['label' => 'خزانه‌داری و گردش مالی', 'icon' => 'usd', 'route' => 'treasury.index', 'perm' => 'building.manage', 'badge' => null],
             ['label' => 'هزینه‌های ماهانه', 'icon' => 'usd', 'route' => 'expenses.index', 'perm' => 'expense.manage', 'badge' => null],
             ['label' => 'محاسبه شارژ', 'icon' => 'coin', 'route' => 'charges.index', 'perm' => 'charge.calculate', 'badge' => null],
             ['label' => 'پرداخت‌ها', 'icon' => 'card', 'route' => 'payments.index', 'perm' => 'payment.review', 'badge' => 'payments'],
@@ -41,6 +42,8 @@ return [
     [
         'title' => 'عملیات',
         'items' => [
+            ['label' => 'مرکز عملیات ساختمان', 'icon' => 'grid', 'route' => 'operations-center.index', 'perm' => 'building.manage', 'badge' => null],
+            ['label' => 'نگهداری و تعمیرات', 'icon' => 'set', 'route' => 'maintenance.index', 'perm' => 'building.manage', 'badge' => null],
             ['label' => 'تیکت و تسک', 'icon' => 'kan', 'route' => 'tickets.index', 'perm' => ['ticket.view.all', 'ticket.view.assigned'], 'badge' => 'tickets'],
             ['label' => 'درخواست‌های ساکنین', 'icon' => 'inbox', 'route' => 'requests.index', 'perm' => ['request.view.all', 'request.view.domain'], 'badge' => 'requests'],
             ['label' => 'گزارش عملکرد درخواست‌ها', 'icon' => 'poll', 'route' => 'requests.reports', 'perm' => 'request.view.all', 'badge' => null],
