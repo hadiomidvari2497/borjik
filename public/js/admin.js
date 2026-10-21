@@ -19,4 +19,44 @@
     root.setAttribute('data-theme', next);
     try { localStorage.setItem('borjik-theme', next); } catch (e) {}
   });
+
+  // جست‌وجوی زنده در منوی مدیریت، با حفظ گروه‌بندی و دسترسی‌های مجاز
+  var menuSearch = $('admin-menu-search');
+  var nav = document.querySelector('#side .nav');
+  if (menuSearch && nav) {
+    var emptyResult = document.createElement('div');
+    emptyResult.className = 'nav-empty';
+    emptyResult.hidden = true;
+    emptyResult.textContent = 'موردی با این عبارت پیدا نشد.';
+    nav.appendChild(emptyResult);
+    function filterMenu() {
+      var query = menuSearch.value.trim().toLocaleLowerCase('fa');
+      var children = Array.prototype.slice.call(nav.children);
+      var group = null, groupHasMatch = false, total = 0;
+      children.forEach(function (item) {
+        if (item === emptyResult) return;
+        if (item.classList.contains('grp')) {
+          if (group) group.hidden = !groupHasMatch;
+          group = item; groupHasMatch = false; return;
+        }
+        if (item.tagName !== 'A') return;
+        var matches = !query || item.textContent.toLocaleLowerCase('fa').indexOf(query) !== -1;
+        item.hidden = !matches;
+        if (matches) { groupHasMatch = true; total += 1; }
+      });
+      if (group) group.hidden = !groupHasMatch;
+      emptyResult.hidden = total > 0;
+    }
+    menuSearch.addEventListener('input', filterMenu);
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+      var target = event.target;
+      if (target && (/INPUT|TEXTAREA|SELECT/.test(target.tagName) || target.isContentEditable)) return;
+      event.preventDefault(); menuSearch.focus();
+    });
+    menuSearch.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && menuSearch.value) { menuSearch.value = ''; filterMenu(); menuSearch.blur(); }
+    });
+  }
+
 })();

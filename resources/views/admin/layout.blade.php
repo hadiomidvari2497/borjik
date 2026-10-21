@@ -36,8 +36,10 @@
   <div class="scrim" id="scrim"></div>
 
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">ب</div><div><b>برجیک</b><span>پنل مدیریت سیستم</span></div></div>
+    <div class="brand"><div class="logo">ب</div><div class="brand-copy"><b>برجیک</b><span>پنل مدیریت سیستم</span></div><span class="brand-signal" aria-label="پنل فعال"></span></div>
 
+    <label class="side-search" for="admin-menu-search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><input id="admin-menu-search" type="search" autocomplete="off" placeholder="جست‌وجو در منو..." aria-label="جست‌وجو در منوی مدیریت"><kbd>/</kbd></label>
+    <div class="side-caption"><span>دسترسی‌ها</span><span class="side-caption-line"></span></div>
     <nav class="nav" aria-label="منوی مدیریت">
       @foreach($menu as $group)
         <div class="grp">{{ $group['title'] }}</div>
@@ -49,11 +51,11 @@
       @endforeach
     </nav>
 
-    <div class="grp">حساب کاربری</div>
+    <div class="grp account-group">حساب کاربری</div>
     <div class="me">
       <div class="row">
         <div class="av">{{ $initials }}</div>
-        <div><b>{{ $adm->name ?: $adm->username }}</b><span>{{ $roleLabel }}</span></div>
+        <div class="me-copy"><b>{{ $adm->name ?: $adm->username }}</b><span>{{ $roleLabel }}</span></div>
       </div>
       <form method="POST" action="{{ route('admin.logout') }}">@csrf<button class="out" type="submit">خروج از پنل مدیریت</button></form>
     </div>
