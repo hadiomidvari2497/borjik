@@ -97,7 +97,7 @@ class SystemDiagnosticsController extends Controller
         if (Schema::hasTable('system_error_logs')) {
             foreach (DB::table('system_error_logs')->where('created_at', '>=', now()->subDays(7))->orderByDesc('created_at')->limit(12)->get(['id', 'created_at', 'severity', 'category', 'exception_class', 'message', 'status_code']) as $row) {
                 $critical = (int) $row->status_code >= 500 || ($row->severity ?? '') === 'error';
-                $add('خطای ثبت‌شده: '.class_basename((string) $row->exception_class), \\Illuminate\\Support\\Str::limit((string) $row->message, 180), 'مرکز خطا', $row->created_at, $critical ? 'بالا' : 'متوسط', $critical ? 0 : 2, route('admin.system-diagnostics.index', ['q' => (string) $row->id]));
+                $add('خطای ثبت‌شده: '.class_basename((string) $row->exception_class), \\Illuminate\\Support\\Str::limit((string) $row->message, 180), 'مرکز خطا', $row->created_at, $critical ? 'بالا' : 'متوسط', $critical ? 0 : 2, route('admin.system-diagnostics.index', ['q' => (string) $row->exception_class]));
             }
         }
 
