@@ -57,7 +57,7 @@
         <div class="av">{{ $initials }}</div>
         <div class="me-copy"><b>{{ $adm->name ?: $adm->username }}</b><span>{{ $roleLabel }}</span></div>
       </div>
-      <form method="POST" action="{{ route('admin.logout') }}">@csrf<button class="out" type="submit">خروج از پنل مدیریت</button></form>
+      <form method="POST" action="{{ route('admin.logout') }}">@csrf<button class="out" type="submit"><svg class="i" aria-hidden="true"><use href="#logout"/></svg><span>خروج از پنل مدیریت</span></button></form>
     </div>
   </aside>
 
