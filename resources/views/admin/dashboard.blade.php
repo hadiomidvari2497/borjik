@@ -18,9 +18,12 @@
     ['title' => 'ساختمان‌های بدون اشتراک معتبر', 'count' => $buildingsWithoutValidSubscription, 'detail' => 'بدون اشتراک یا دارای اشتراک نامعتبر', 'icon' => 'building-2', 'url' => $adm->hasPermission('buildings.view') ? route('admin.buildings.index') : null],
     ['title' => 'ارسال‌های ناموفق پیامک در ۲۴ ساعت', 'count' => $failedSmsLast24Hours, 'detail' => 'بررسی علت خطا در آرشیو پیامک', 'icon' => 'inbox', 'url' => $adm->hasPermission('sms.logs') ? route('admin.sms.logs.index', ['status' => 'failed']) : null],
     ['title' => 'اشتراک‌های فعال در آستانه انقضا', 'count' => $expiringSoon, 'detail' => 'انقضا در ۷ روز آینده', 'icon' => 'clock', 'url' => $adm->hasPermission('subscriptions.manage') ? route('admin.subscriptions.index') : null],
+    ['title' => 'خطاهای ثبت‌شده در ۲۴ ساعت', 'count' => $errorsLast24Hours, 'detail' => 'مشاهده گزارش و جزئیات فنی خطاها', 'icon' => 'activity', 'url' => $adm->hasPermission('logs.view') ? route('admin.system-diagnostics.index') : null],
+    ['title' => 'بکاپ‌های ناموفق در ۷ روز', 'count' => $failedBackupsLast7Days, 'detail' => 'بررسی علت شکست نسخهٔ پشتیبان', 'icon' => 'shield', 'url' => $adm->hasPermission('site.settings') ? route('admin.operations.index') : null],
+    ['title' => 'بررسی‌های سلامت ناموفق در ۷ روز', 'count' => $failedHealthChecksLast7Days, 'detail' => 'بازبینی تاریخچهٔ سلامت سرویس', 'icon' => 'activity', 'url' => $adm->hasPermission('site.settings') ? route('admin.operations.index') : null],
   ])->filter(fn ($item) => $item['count'] > 0)->values();
 @endphp
-<style>.trend-wrap{margin:18px 0}.trend-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.trend-controls{display:flex;gap:6px;flex-wrap:wrap}.trend-controls a{padding:7px 11px;border:1px solid var(--line);border-radius:9px;text-decoration:none;font-size:12px;color:var(--text)}.trend-controls a.active{background:var(--brand,#1c4f4a);border-color:var(--brand,#1c4f4a);color:#fff}.trend-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:14px 0}.trend-dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-left:5px}.trend-chart{display:grid;grid-template-columns:repeat(var(--trend-count),minmax(0,1fr));gap:5px;align-items:end;height:190px;padding-top:8px}.trend-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;min-width:0}.trend-bars{height:155px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px;border-bottom:1px solid var(--line);padding:0 2px}.trend-bar{width:44%;min-width:2px;max-width:16px;border-radius:4px 4px 0 0;min-height:3px}.trend-label{font-size:9px;color:var(--muted);white-space:nowrap;direction:ltr}.trend-foot{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.8}@media(max-width:650px){.trend-chart{gap:2px;height:160px}.trend-bars{height:125px;gap:2px}.trend-label{font-size:8px;transform:rotate(-35deg);transform-origin:top center;margin-top:4px}.trend-col{gap:3px}}</style>
+<style>.trend-wrap{margin:18px 0}.trend-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.trend-controls{display:flex;gap:6px;flex-wrap:wrap}.trend-controls a{padding:7px 11px;border:1px solid var(--line);border-radius:9px;text-decoration:none;font-size:12px;color:var(--text)}.trend-controls a.active{background:var(--brand,#1c4f4a);border-color:var(--brand,#1c4f4a);color:#fff}.trend-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:14px 0}.trend-dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-left:5px}.trend-chart{display:grid;grid-template-columns:repeat(var(--trend-count),minmax(0,1fr));gap:5px;align-items:end;height:190px;padding-top:8px}.trend-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;min-width:0}.trend-bars{height:155px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px;border-bottom:1px solid var(--line);padding:0 2px}.trend-bar{width:44%;min-width:2px;max-width:16px;border-radius:4px 4px 0 0;min-height:3px}.trend-label{font-size:9px;color:var(--muted);white-space:nowrap;direction:ltr}.trend-foot{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.8}@media(max-width:650px){.trend-chart{gap:2px;height:160px}.trend-bars{height:125px;gap:2px}.trend-label{font-size:8px;transform:rotate(-35deg);transform-origin:top center;margin-top:4px}.trend-col{gap:3px}}.ops-pulse{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.ops-pulse-card{border:1px solid var(--line);border-radius:14px;padding:15px;min-width:0;background:var(--surface,transparent)}.ops-pulse-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.ops-pulse-label{font-size:12px;color:var(--muted);line-height:1.7}.ops-pulse-value{font-size:19px;font-weight:850;margin:8px 0 4px;overflow-wrap:anywhere}.ops-pulse-meta{font-size:11px;color:var(--muted);line-height:1.8;overflow-wrap:anywhere}.ops-pulse-link{display:inline-block;margin-top:8px;font-size:12px;text-decoration:none;font-weight:750}.ops-pulse-state{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;border-radius:999px;padding:4px 8px}.ops-pulse-state.good{background:#e8f7ee;color:#17683a}.ops-pulse-state.bad{background:#fff0ef;color:#a52b24}.ops-pulse-state.warn{background:#fff5df;color:#8a5a08}@media(max-width:850px){.ops-pulse{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.ops-pulse{grid-template-columns:1fr}.ops-pulse-card{padding:13px}}:root[data-theme="dark"] .ops-pulse-state.good{background:rgba(47,160,96,.18);color:#91e0ae}:root[data-theme="dark"] .ops-pulse-state.bad{background:rgba(224,69,58,.18);color:#ffaaa3}:root[data-theme="dark"] .ops-pulse-state.warn{background:rgba(232,163,61,.18);color:#f4c775}</style>
 
 @if($alerts->isNotEmpty())
   <section class="card" style="padding:18px;margin-bottom:18px">
@@ -65,6 +68,32 @@
   @endforeach
 </div>
 
+<section class="card" style="padding:18px;margin:18px 0">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+    <div><h2 style="font-size:16px;font-weight:800;margin:0 0 4px">نبض عملیاتی سامانه</h2><div style="font-size:12px;color:var(--muted,#64748b)">خلاصه‌ای زنده از همان لاگ‌های بکاپ، سلامت و خطای موجود در برجیک</div></div>
+    @if($adm->hasPermission('site.settings'))<a href="{{ route('admin.operations.index') }}" style="font-size:12px;text-decoration:none;font-weight:750">مرکز عملیات <span aria-hidden="true">←</span></a>@endif
+  </div>
+  <div class="ops-pulse">
+    <article class="ops-pulse-card">
+      <div class="ops-pulse-top"><span class="ops-pulse-label">آخرین نسخهٔ پشتیبان</span><span class="ops-pulse-state {{ !$lastBackup ? 'warn' : ($lastBackup->status === 'success' ? 'good' : ($lastBackup->status === 'failed' ? 'bad' : 'warn')) }}">{{ !$lastBackup ? 'ثبت نشده' : (['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$lastBackup->status] ?? $lastBackup->status) }}</span></div>
+      <div class="ops-pulse-value">{{ $lastBackup?->finished_at ? $F::date($lastBackup->finished_at, 'j F H:i') : ($lastBackup?->started_at ? $F::date($lastBackup->started_at, 'j F H:i') : 'هنوز اجرا نشده') }}</div>
+      <div class="ops-pulse-meta">ناموفق در ۷ روز اخیر: {{ $F::num($failedBackupsLast7Days) }} · {{ $lastBackup?->size_bytes ? number_format($lastBackup->size_bytes / 1048576, 1).' MB' : 'حجم نامشخص' }}</div>
+      @if($adm->hasPermission('site.settings'))<a class="ops-pulse-link" href="{{ route('admin.operations.index') }}">مدیریت بکاپ‌ها ←</a>@endif
+    </article>
+    <article class="ops-pulse-card">
+      <div class="ops-pulse-top"><span class="ops-pulse-label">آخرین بررسی سلامت</span><span class="ops-pulse-state {{ !$lastHealth ? 'warn' : ($lastHealth->status === 'ok' ? 'good' : 'bad') }}">{{ !$lastHealth ? 'نامشخص' : ($lastHealth->status === 'ok' ? 'سالم' : 'هشدار') }}</span></div>
+      <div class="ops-pulse-value">{{ $lastHealth?->created_at ? $F::date($lastHealth->created_at, 'j F H:i') : 'هنوز بررسی نشده' }}</div>
+      <div class="ops-pulse-meta">بررسی‌های ناموفق در ۷ روز اخیر: {{ $F::num($failedHealthChecksLast7Days) }}</div>
+      @if($adm->hasPermission('site.settings'))<a class="ops-pulse-link" href="{{ route('admin.operations.index') }}">مشاهده سلامت و اجراها ←</a>@endif
+    </article>
+    <article class="ops-pulse-card">
+      <div class="ops-pulse-top"><span class="ops-pulse-label">خطاهای برنامه</span><span class="ops-pulse-state {{ $errorsLast24Hours > 0 ? 'bad' : 'good' }}">{{ $errorsLast24Hours > 0 ? 'نیازمند بررسی' : 'بدون خطای جدید' }}</span></div>
+      <div class="ops-pulse-value">{{ $F::num($errorsLast24Hours) }} <span style="font-size:12px;font-weight:600;color:var(--muted)">در ۲۴ ساعت</span></div>
+      <div class="ops-pulse-meta">امروز: {{ $F::num($errorsToday) }} خطا · بر اساس تاریخچهٔ ثبت‌شده</div>
+      @if($adm->hasPermission('logs.view'))<a class="ops-pulse-link" href="{{ route('admin.system-diagnostics.index') }}">بررسی خطاها ←</a>@endif
+    </article>
+  </div>
+</section>
 
 <section class="card trend-wrap" style="padding:18px">
   <div class="trend-head">
