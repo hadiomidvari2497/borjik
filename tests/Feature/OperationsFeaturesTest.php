@@ -28,16 +28,16 @@ class OperationsFeaturesTest extends TestCase {
  public function test_maintenance_asset_and_plan_accept_jalali_dates(): void {
   $this->open('post',route('maintenance.assets.store'),['name'=>'آسانسور اصلی','category'=>'آسانسور','installed_at'=>'۱۴۰۵/۰۷/۲۹'])->assertRedirect()->assertSessionHasNoErrors();
   $assetId=(int)\Illuminate\Support\Facades\DB::table('maintenance_assets')->value('id');
-  $this->assertDatabaseHas('maintenance_assets',['id'=>$assetId,'building_id'=>$this->building->id,'name'=>'آسانسور اصلی','installed_at'=>'2026-10-21']);
+  $this->assertDatabaseHas('maintenance_assets',['id'=>$assetId,'building_id'=>$this->building->id,'name'=>'آسانسور اصلی','installed_at'=>'2026-10-21 00:00:00']);
   $this->open('post',route('maintenance.plans.store'),['asset_id'=>$assetId,'title'=>'بازدید ایمنی','frequency'=>'monthly','next_due_at'=>'۱۴۰۵/۰۸/۱۰'])->assertRedirect()->assertSessionHasNoErrors();
   $planId=(int)\Illuminate\Support\Facades\DB::table('maintenance_plans')->value('id');
-  $this->assertDatabaseHas('maintenance_plans',['id'=>$planId,'building_id'=>$this->building->id,'next_due_at'=>'2026-11-01']);
+  $this->assertDatabaseHas('maintenance_plans',['id'=>$planId,'building_id'=>$this->building->id,'next_due_at'=>'2026-11-01 00:00:00']);
   $this->open('post',route('maintenance.plans.complete',$planId),['performed_at'=>'۱۴۰۵/۰۷/۲۹','cost'=>'250000','notes'=>'سرویس دوره‌ای'])->assertRedirect()->assertSessionHasNoErrors();
-  $this->assertDatabaseHas('maintenance_records',['plan_id'=>$planId,'building_id'=>$this->building->id,'performed_at'=>'2026-10-21','cost'=>250000]);
+  $this->assertDatabaseHas('maintenance_records',['plan_id'=>$planId,'building_id'=>$this->building->id,'performed_at'=>'2026-10-21 00:00:00','cost'=>250000]);
  }
  public function test_treasury_accepts_jalali_date_and_is_building_scoped(): void {
   $this->open('post',route('treasury.store'),['type'=>'expense','category'=>'تعمیرات','title'=>'تعمیر پمپ','amount'=>'125000','transaction_date'=>'۱۴۰۵/۰۷/۲۹','payment_method'=>'transfer'])->assertRedirect()->assertSessionHasNoErrors();
-  $this->assertDatabaseHas('treasury_transactions',['building_id'=>$this->building->id,'type'=>'expense','title'=>'تعمیر پمپ','amount'=>125000,'transaction_date'=>'2026-10-21']);
+  $this->assertDatabaseHas('treasury_transactions',['building_id'=>$this->building->id,'type'=>'expense','title'=>'تعمیر پمپ','amount'=>125000,'transaction_date'=>'2026-10-21 00:00:00']);
   $other=Building::create(['name'=>'ساختمان دیگر','code'=>'90992','created_by'=>$this->owner->id]);
   app(CurrentBuilding::class)->actingAs($other->id,function(){\App\Models\TreasuryTransaction::create(['type'=>'income','category'=>'سایر','title'=>'رکورد خصوصی','amount'=>1,'transaction_date'=>'2026-10-21','payment_method'=>'cash']);});
   $this->open('get',route('treasury.index'))->assertOk()->assertSee('تعمیر پمپ')->assertDontSee('رکورد خصوصی');
