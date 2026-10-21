@@ -62,7 +62,7 @@
             <td style="min-width:190px">
               <div style="font-weight:800;font-size:12px">{{ $subscriptionLabels[$u->latest_subscription_status ?? ''] ?? 'بدون سابقه اشتراک' }}</div>
               @if($u->active_subscription_expires_at)
-                <div class="bu-muted" style="margin-top:4px">اعتبار تا {{ $F::date(\\Illuminate\\Support\\Carbon::parse($u->active_subscription_expires_at), 'j F Y') }}</div>
+                <div class="bu-muted" style="margin-top:4px">اعتبار تا {{ $F::date(\Illuminate\Support\Carbon::parse($u->active_subscription_expires_at), 'j F Y') }}</div>
               @endif
               <div class="bu-muted" style="margin-top:5px">پرداخت موفق: {{ $F::num(number_format((float)($u->paid_total ?? 0))) }} تومان</div>
               @if($u->latest_payment_status)
