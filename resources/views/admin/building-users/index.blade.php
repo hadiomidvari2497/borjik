@@ -42,7 +42,7 @@
     <div class="empty">با این مشخصات کاربری پیدا نشد. فیلترها را تغییر بده و دوباره جست‌وجو کن.</div>
   @else
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>کاربر</th><th>وضعیت حساب</th><th>ساختمان‌ها و نقش‌ها</th><th>تأیید موبایل</th><th>آخرین ورود</th></tr></thead>
+      <thead><tr><th>کاربر</th><th>وضعیت حساب</th><th>ساختمان‌ها و نقش‌ها</th>@if($canViewFinance)<th>اشتراک و پرداخت</th>@endif<th>تأیید موبایل</th><th>آخرین ورود</th></tr></thead>
       <tbody>
       @foreach($users as $u)
         @php $name = trim((string)$u->display_name) ?: 'کاربر بدون نام'; @endphp
@@ -54,6 +54,23 @@
               <span class="pill" title="{{ $m->role?->name_fa ?: 'بدون نقش' }} — {{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }}">{{ $m->building?->name ?: 'ساختمان حذف‌شده' }} · {{ $m->role?->name_fa ?: 'بدون نقش' }} <span class="bu-muted">({{ $membershipLabels[$m->status?->value ?? $m->status] ?? 'نامشخص' }})</span></span>
             @endforeach
           </div>@endif</td>
+          @if($canViewFinance)
+            @php
+              $paymentLabels = ['paid' => 'آخرین پرداخت موفق', 'pending' => 'پرداخت در انتظار', 'failed' => 'آخرین پرداخت ناموفق'];
+              $subscriptionLabels = ['active' => 'اشتراک فعال', 'pending' => 'اشتراک در انتظار', 'expired' => 'اشتراک منقضی', 'failed' => 'اشتراک ناموفق'];
+            @endphp
+            <td style="min-width:190px">
+              <div style="font-weight:800;font-size:12px">{{ $subscriptionLabels[$u->latest_subscription_status ?? ''] ?? 'بدون سابقه اشتراک' }}</div>
+              @if($u->active_subscription_expires_at)
+                <div class="bu-muted" style="margin-top:4px">اعتبار تا {{ $F::date(\\Illuminate\\Support\\Carbon::parse($u->active_subscription_expires_at), 'j F Y') }}</div>
+              @endif
+              <div class="bu-muted" style="margin-top:5px">پرداخت موفق: {{ $F::num(number_format((float)($u->paid_total ?? 0))) }} تومان</div>
+              @if($u->latest_payment_status)
+                <div class="bu-muted" style="margin-top:3px">{{ $paymentLabels[$u->latest_payment_status] ?? 'وضعیت پرداخت: '.$u->latest_payment_status }}</div>
+              @endif
+              <a href="{{ route('admin.subscription-payments.index', ['q' => $u->mobile]) }}" style="display:inline-block;margin-top:6px;font-size:11px;font-weight:800;text-decoration:none">تاریخچه مالی ←</a>
+            </td>
+          @endif
           <td>@if($u->mobile_verified_at)<span class="bu-status active">تأییدشده</span>@else<span class="bu-muted">تأیید نشده</span>@endif</td>
           <td>@if($u->last_login_at){{ $F::date(\Illuminate\Support\Carbon::parse($u->last_login_at), 'j F Y - H:i') }}@else<span class="bu-muted">هنوز وارد نشده</span>@endif</td>
         </tr>
