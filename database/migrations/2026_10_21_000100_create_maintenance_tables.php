@@ -28,4 +28,7 @@ return new class extends Migration {
    $table->timestamps(); $table->index(['building_id','performed_at']);
   });
  }
+ public function down(): void {
+  foreach (['maintenance_records', 'maintenance_plans', 'maintenance_assets'] as $table) { Schema::dropIfExists($table); }
+ }
 };
