@@ -46,3 +46,49 @@ body.adm .top a.av{text-decoration:none}
 .row-pair .chk{display:flex;gap:6px;align-items:center;font-size:12.5px;white-space:nowrap}
 .fld code,.hdr-sub code{background:var(--track);padding:1px 6px;border-radius:6px;font-size:12px}
 @media (max-width:860px){.row-pair,.row-pair.row-param{grid-template-columns:1fr}}
+
+/* Premium admin sidebar: polished, calm, RTL and theme-aware */
+body.adm .side{
+  --side-muted:rgba(226,244,241,.58);
+  background:radial-gradient(ellipse at 12% 2%,rgba(80,210,190,.19),transparent 34%),radial-gradient(ellipse at 100% 58%,rgba(64,140,157,.13),transparent 42%),linear-gradient(155deg,#123d3d 0%,#102f38 52%,#102832 100%);
+  border:1px solid rgba(219,255,250,.14);box-shadow:0 24px 65px rgba(9,35,39,.34),inset 0 1px 0 rgba(255,255,255,.08);padding:18px 12px 12px;isolation:isolate
+}
+body.adm .side:before{width:300px;height:300px;inset-inline-start:-170px;bottom:8%;background:radial-gradient(circle,rgba(85,217,196,.12),transparent 68%)}
+body.adm .brand{gap:12px;padding:5px 9px 17px;min-height:68px}
+body.adm .side .logo{width:46px;height:46px;border-radius:16px;background:linear-gradient(145deg,#53cdbb,#269b91 54%,#19766f);border:1px solid rgba(255,255,255,.34);box-shadow:0 8px 20px rgba(25,160,145,.24),inset 0 1px 0 rgba(255,255,255,.3);font-size:22px}
+body.adm .brand-copy{min-width:0;flex:1}
+body.adm .brand b{font-size:17px;letter-spacing:-.35px;color:#fff;line-height:1.7}
+body.adm .brand span{display:block;color:var(--side-muted);font-size:10.5px;line-height:1.7}
+body.adm .brand-signal{width:8px;height:8px;border-radius:50%;background:#62dfb4;box-shadow:0 0 0 4px rgba(98,223,180,.12),0 0 14px rgba(98,223,180,.45);align-self:flex-start;margin:9px 0 0 2px;flex:none}
+body.adm .side-search{min-height:43px;display:flex;align-items:center;gap:9px;padding:0 11px;margin:0 2px 12px;border:1px solid rgba(223,255,249,.13);border-radius:14px;background:rgba(4,22,28,.25);color:rgba(234,255,251,.68);transition:border-color .18s,background .18s,box-shadow .18s}
+body.adm .side-search:focus-within{border-color:rgba(111,214,201,.65);background:rgba(4,22,28,.4);box-shadow:0 0 0 3px rgba(111,214,201,.09)}
+body.adm .side-search .i{width:17px;height:17px;opacity:.8}
+body.adm .side-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#fff;font:inherit;font-size:12px;box-shadow:none}
+body.adm .side-search input::placeholder{color:rgba(226,244,241,.52)}
+body.adm .side-search kbd{font-family:inherit;font-size:10px;line-height:19px;min-width:20px;text-align:center;border:1px solid rgba(255,255,255,.16);border-radius:6px;color:rgba(226,244,241,.5);background:rgba(255,255,255,.04)}
+body.adm .side-caption{display:flex;align-items:center;gap:10px;padding:0 11px 8px;color:rgba(226,244,241,.45);font-size:10px;font-weight:700;letter-spacing:.25px}
+body.adm .side-caption-line{height:1px;flex:1;background:linear-gradient(90deg,transparent,rgba(226,244,241,.15))}
+body.adm .nav{padding:0 1px 8px;scroll-padding-block:8px}
+body.adm .nav .grp{padding:13px 12px 7px;color:rgba(226,244,241,.48);font-size:10px;font-weight:700;letter-spacing:.15px}
+body.adm .nav a{min-height:43px;gap:11px;padding:10px 12px;margin:3px 0;border:1px solid transparent;border-radius:13px;color:rgba(241,251,249,.78);font-size:12.8px;font-weight:500;line-height:1.65;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+body.adm .nav a svg.i{width:18px;height:18px;opacity:.8;transition:opacity .18s,transform .18s}
+body.adm .nav a:hover{background:rgba(231,255,250,.075);border-color:rgba(231,255,250,.06);color:#fff;transform:translateX(-2px)}
+body.adm .nav a:hover svg.i{opacity:1}
+body.adm .nav a.on{background:linear-gradient(100deg,rgba(85,210,190,.18),rgba(85,210,190,.075));color:#f5fffd;border:1px solid rgba(111,214,201,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 5px 14px rgba(3,22,27,.12);font-weight:700}
+body.adm .nav a.on:before{content:"";position:absolute;inset-inline-start:-1px;top:10px;bottom:10px;width:3px;border-radius:4px;background:#71e0cd;box-shadow:0 0 10px rgba(113,224,205,.42)}
+body.adm .nav a.on svg.i{color:#7de3d2;opacity:1}
+body.adm .nav a.on:hover{transform:none;background:linear-gradient(100deg,rgba(85,210,190,.22),rgba(85,210,190,.09))}
+body.adm .nav a[hidden],body.adm .nav .grp[hidden]{display:none!important}
+body.adm .nav-empty{padding:18px 12px;margin:4px 0;color:rgba(226,244,241,.56);font-size:12px;line-height:1.9;text-align:center;border:1px dashed rgba(226,244,241,.14);border-radius:13px}
+body.adm .account-group{padding:10px 12px 7px;margin-top:2px;border-top:1px solid rgba(226,244,241,.09)}
+body.adm .me{margin-top:0;padding:12px;border-radius:17px;background:linear-gradient(145deg,rgba(255,255,255,.095),rgba(255,255,255,.045));border:1px solid rgba(232,255,251,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
+body.adm .me .row{gap:10px;min-width:0}
+body.adm .side .av{width:38px;height:38px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(145deg,#4bbdad,#287e7b);box-shadow:0 4px 12px rgba(0,0,0,.13);flex:none}
+body.adm .me-copy{min-width:0;flex:1}
+body.adm .me b{color:#fff;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px}
+body.adm .me span{display:block;color:rgba(226,244,241,.59);font-size:10.5px;line-height:1.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:155px}
+body.adm .out{display:flex;align-items:center;justify-content:center;gap:8px;min-height:38px;margin-top:11px;padding:8px 10px;border:1px solid rgba(255,153,151,.14);border-radius:11px;background:rgba(244,104,103,.075);color:#ffc2bd;font-size:11.5px;font-weight:600;transition:background .18s,border-color .18s,color .18s}
+body.adm .out:hover{background:rgba(244,104,103,.14);border-color:rgba(255,153,151,.25);color:#ffe1dd}
+body.adm .side .nav a:focus-visible,body.adm .side .out:focus-visible{outline:2px solid #7de3d2;outline-offset:2px}
+@media(max-width:860px){body.adm .side{padding-inline:12px}body.adm .side-search{min-height:44px}body.adm .nav a{min-height:44px}}
+@media(prefers-reduced-motion:reduce){body.adm .nav a,body.adm .nav a svg.i,body.adm .side-search,body.adm .out{transition:none}}
