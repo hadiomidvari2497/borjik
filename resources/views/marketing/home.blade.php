@@ -142,6 +142,88 @@
         @media(max-width:700px){.hero-highlights{margin-top:20px;gap:7px}.hero-highlights span{font-size:.7rem}.hero-grid>div:first-child{animation:none}.dashboard-art{animation:none}}
         @media(prefers-reduced-motion:reduce){.hero:before,.hero-grid>div:first-child,.dashboard-art{animation:none!important}.hero-highlights span{transition:none!important}}
 
+    
+        /* Bold, high-contrast homepage hero refresh */
+        .hero{
+            isolation:isolate;
+            padding:clamp(62px,7vw,104px) 0 clamp(58px,6vw,88px);
+            color:#f3fbfa;
+            background:
+                radial-gradient(ellipse at 78% 28%,rgba(37,204,169,.22),transparent 35%),
+                radial-gradient(ellipse at 8% 92%,rgba(47,116,174,.19),transparent 36%),
+                linear-gradient(128deg,#071b2a 0%,#0a2b3b 48%,#0b4546 100%);
+        }
+        .hero:before{
+            width:590px;height:590px;left:-210px;top:-270px;
+            border-color:rgba(132,239,211,.16);
+            box-shadow:0 0 0 48px rgba(132,239,211,.035),0 0 0 100px rgba(132,239,211,.025),0 0 0 155px rgba(132,239,211,.016);
+            pointer-events:none;
+        }
+        .hero:after{
+            content:"";position:absolute;z-index:-1;width:440px;height:440px;right:24%;bottom:-350px;
+            border-radius:50%;background:#22c9a5;filter:blur(100px);opacity:.13;pointer-events:none;
+        }
+        .hero-grid{gap:clamp(34px,5vw,72px)}
+        .hero-grid>div:first-child{position:relative;z-index:2}
+        .eyebrow{padding:8px 14px;background:rgba(101,228,194,.1);border:1px solid rgba(129,239,209,.22);color:#a8f2db;box-shadow:inset 0 1px rgba(255,255,255,.04)}
+        .eyebrow i{box-shadow:0 0 0 5px rgba(44,218,173,.12),0 0 16px rgba(44,218,173,.55)}
+        .hero h1{font-size:clamp(2.55rem,4.5vw,4.55rem);line-height:1.35;letter-spacing:-1.8px;margin:24px 0 22px;color:#fff}
+        .hero h1 span{color:#7ce8c8;text-shadow:0 5px 35px rgba(65,223,181,.13)}
+        .hero h1 span:after{content:"";position:absolute;right:0;left:0;bottom:-5px;height:5px;border-radius:8px;background:linear-gradient(90deg,rgba(124,232,200,0),rgba(124,232,200,.8),rgba(124,232,200,.1));opacity:.8}
+        .hero-copy{max-width:560px;font-size:clamp(1rem,1.2vw,1.13rem);line-height:2.15;color:#c0d4da}
+        .hero-actions{gap:13px}
+        .hero-actions .btn{min-height:52px;padding:13px 21px;border-radius:15px}
+        .hero-actions .btn-primary{background:linear-gradient(135deg,#4be0b6,#16ae99);color:#062b2d;box-shadow:0 12px 30px rgba(28,201,162,.25),inset 0 1px rgba(255,255,255,.38)}
+        .hero-actions .btn-primary:hover{background:linear-gradient(135deg,#75edc9,#24c5a7);box-shadow:0 16px 38px rgba(28,201,162,.32)}
+        .hero-actions .btn-light{background:rgba(255,255,255,.055);border-color:rgba(220,246,241,.2);color:#f0faf8;backdrop-filter:blur(12px)}
+        .hero-actions .btn-light:hover{background:rgba(255,255,255,.1);border-color:rgba(132,239,211,.42)}
+        .hero-proof{color:#b5cbd1}
+        .hero-proof strong{color:#f3fbfa}
+        .proof-avatars span{border-color:#0a2b3b;background:linear-gradient(145deg,#d5fff1,#73d9c0);color:#075347}
+        .hero-highlights{margin-top:24px}
+        .hero-highlights span{background:rgba(255,255,255,.055);border-color:rgba(195,235,227,.17);color:#d8e9e8}
+        .dashboard-art{min-height:455px;isolation:isolate}
+        .dashboard-art:before{content:"پیش‌نمایش محیط برجیک";position:absolute;z-index:3;top:4px;right:8px;padding:8px 13px;border:1px solid rgba(153,238,215,.2);border-radius:12px;background:rgba(7,29,42,.7);color:#c6f8e7;font-size:.72rem;font-weight:800;letter-spacing:.1px;backdrop-filter:blur(12px)}
+        .dashboard-art:after{content:"";position:absolute;z-index:-1;inset:8% 5% 4%;border-radius:45%;background:radial-gradient(ellipse,rgba(38,210,170,.2),rgba(38,210,170,0) 68%);filter:blur(20px)}
+        .dashboard-art .orb{width:clamp(270px,31vw,365px);height:clamp(270px,31vw,365px);right:10%;top:8%;background:radial-gradient(circle at 30% 24%,#d9fff4 0,#9af0d9 25%,#42bca9 57%,#176d70 100%);box-shadow:inset -25px -28px 60px rgba(4,69,67,.2),0 0 0 22px rgba(105,229,196,.055),0 0 0 48px rgba(105,229,196,.03),0 0 85px rgba(42,210,175,.2)}
+        .mock-window{transform:rotate(-2.2deg) perspective(1200px) rotateY(-3deg);border:1px solid rgba(255,255,255,.85);box-shadow:0 42px 100px rgba(0,8,18,.46),0 0 0 8px rgba(255,255,255,.045),0 0 55px rgba(49,215,180,.12);transition:transform .35s ease,box-shadow .35s ease}
+        .dashboard-art:hover .mock-window{transform:rotate(0) perspective(1200px) rotateY(0);box-shadow:0 48px 110px rgba(0,8,18,.5),0 0 0 8px rgba(255,255,255,.06),0 0 70px rgba(49,215,180,.17)}
+        .floating-note{left:-12px;bottom:33px;border-color:rgba(220,255,245,.78);box-shadow:0 22px 55px rgba(0,12,24,.28);animation:borjik-note-float 5s ease-in-out infinite}
+        .trust-strip{position:relative;z-index:1}
+        @keyframes borjik-note-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+        @media(max-width:900px){
+            .hero{padding:58px 0 64px}
+            .hero-grid{gap:30px}
+            .hero h1{font-size:clamp(2.3rem,5.2vw,3.6rem)}
+            .dashboard-art{min-height:390px}
+            .dashboard-art:before{right:2px;top:0}
+            .floating-note{left:0;bottom:22px}
+        }
+        @media(max-width:700px){
+            .hero{padding:47px 0 48px}
+            .hero-grid{grid-template-columns:1fr;gap:24px}
+            .hero h1{font-size:clamp(2.35rem,9vw,3.25rem);letter-spacing:-1px;margin:20px 0 16px}
+            .hero-copy{font-size:.98rem;line-height:2}
+            .hero-actions{display:grid;grid-template-columns:1fr 1fr}
+            .hero-actions .btn{padding:11px 10px;font-size:.82rem}
+            .hero-proof{margin-top:23px}
+            .hero-highlights{margin-top:19px}
+            .hero-highlights span{font-size:.69rem;padding:6px 8px}
+            .dashboard-art{min-height:340px;margin-top:4px}
+            .dashboard-art .orb{width:250px;height:250px;right:14%;top:10%}
+            .mock-window{width:94%;padding:16px;transform:rotate(-1deg)}
+            .mock-stats{gap:8px}
+            .stat{padding:10px}
+            .dashboard-art:before{font-size:.65rem;padding:6px 9px}
+            .floating-note{bottom:9px;padding:10px 12px;font-size:.74rem}
+            .floating-icon{width:31px;height:31px}
+        }
+        @media(prefers-reduced-motion:reduce){
+            .floating-note{animation:none!important}
+            .mock-window,.hero-actions .btn{transition:none!important}
+            .dashboard-art:hover .mock-window{transform:rotate(-2deg)}
+        }
+
     </style>
 </head>
 <body>
