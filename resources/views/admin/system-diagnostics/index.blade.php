@@ -13,7 +13,7 @@
 .sd-muted{font-size:12px;color:var(--muted)}.sd-message{max-width:360px;white-space:normal;overflow-wrap:anywhere;font-size:12px}.sd-path{direction:ltr;text-align:right;overflow-wrap:anywhere;font-size:12px}.sd-date{white-space:nowrap;font-size:12px}.sd-copy{border:1px solid var(--line);background:transparent;border-radius:8px;padding:6px 9px;cursor:pointer;font:inherit;font-size:12px;white-space:nowrap}
 .sd-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.sd-health-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 @media(max-width:950px){.sd-health{grid-template-columns:repeat(2,minmax(0,1fr))}.sd-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.sd-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.sd-health,.sd-filters{grid-template-columns:1fr}.sd-stats{gap:7px}.sd-stat{padding:10px}.sd-stat strong{font-size:20px}}
-</style>
+.sd-incident-list{display:grid;gap:9px;margin-top:12px}.sd-incident{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px;border:1px solid var(--line);border-radius:12px}.sd-incident-title{font-size:13px;font-weight:800;line-height:1.7}.sd-incident-detail{font-size:12px;color:var(--muted);line-height:1.8;overflow-wrap:anywhere;margin-top:3px}.sd-incident-meta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:7px;font-size:11px;color:var(--muted)}.sd-priority{display:inline-flex;border-radius:999px;padding:3px 8px;font-size:11px;font-weight:800;background:rgba(220,38,38,.1);color:#b42318}.sd-priority.medium{background:rgba(217,119,6,.12);color:#9a5b08}.sd-incident-link{white-space:nowrap;text-decoration:none;font-size:12px;font-weight:800}.sd-incident-empty{border:1px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--muted);font-size:13px}@media(max-width:650px){.sd-incident{grid-template-columns:1fr}.sd-incident-link{justify-self:start}}</style>
 <div class="card">
   <div class="page-h">
     <div><h2>مرکز خطا و عیب‌یابی</h2><p style="color:var(--muted);font-size:13px;line-height:1.8;margin:7px 0 0">نمایش خطاهای ثبت‌شده و بررسی سلامت اجزای اصلی سامانه. اطلاعات حساس و محتوای فرم‌ها در گزارش ذخیره نمی‌شود.</p></div>
@@ -25,6 +25,33 @@
     <div class="sd-stat"><small>کل تاریخچه خطاها</small><strong>{{ $F::num($stats['total']) }}</strong></div>
     <div class="sd-stat"><small>پیامک ناموفق در ۲۴ ساعت</small><strong>{{ $F::num($stats['failed_sms']) }}</strong></div>
   </div>
+
+  <section class="sd-incidents" style="margin-top:8px">
+    <div class="sd-health-head">
+      <div><h3 style="margin:0;font-size:16px">صف رسیدگی به رخدادها</h3><p class="sd-muted" style="margin:6px 0 0">خطا، بکاپ، Cron، پیامک و پرداخت ناموفق از تاریخچه‌های فعلی در یک نمای اولویت‌بندی‌شده جمع شده‌اند.</p></div>
+      <span class="sd-muted">{{ $F::num(count($incidents)) }} مورد اخیر</span>
+    </div>
+    @if(count($incidents))
+      <div class="sd-incident-list">
+        @foreach($incidents as $incident)
+          <article class="sd-incident">
+            <div>
+              <div class="sd-incident-title">{{ $incident['title'] }}</div>
+              <div class="sd-incident-detail">{{ $incident['detail'] }}</div>
+              <div class="sd-incident-meta">
+                <span class="sd-priority {{ $incident['priority'] === 'متوسط' ? 'medium' : '' }}">{{ $incident['priority'] === 'بالا' ? 'اولویت بالا' : 'اولویت متوسط' }}</span>
+                <span>{{ $incident['source'] }}</span>
+                <span>{{ $F::date($incident['occurred_at'], 'j F Y · H:i') }}</span>
+              </div>
+            </div>
+            <a class="sd-incident-link" href="{{ $incident['url'] }}">بررسی رخداد ←</a>
+          </article>
+        @endforeach
+      </div>
+    @else
+      <div class="sd-incident-empty">در تاریخچه‌های قابل‌دسترسی، رخداد ناموفق اخیر پیدا نشد. این به معنی اجرای آزمایش واقعی تمام سرویس‌ها نیست.</div>
+    @endif
+  </section>
 
   <section style="margin-top:22px">
     <div class="sd-health-head"><h3 style="margin:0;font-size:16px">سلامت اجزای سامانه</h3><span class="sd-muted">سالم: {{ $F::num($okCount) }} · نیازمند بررسی: {{ $F::num($badCount) }}</span></div>

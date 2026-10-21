@@ -31,7 +31,7 @@ class SystemDiagnosticsController extends Controller
         $errors = SystemErrorLog::query()
             ->with(['user:id,first_name,last_name,company_name,person_type', 'admin:id,name,username'])
             ->when($queryText !== '', fn ($query) => $query->where(function ($search) use ($queryText) {
-                $like = '%'.addcslashes($queryText, '%_\\\\').'%';
+                $like = '%'.addcslashes($queryText, '%_\\').'%';
                 $search->where('exception_class', 'like', $like)
                     ->orWhere('message', 'like', $like)
                     ->orWhere('path', 'like', $like)
@@ -55,6 +55,7 @@ class SystemDiagnosticsController extends Controller
             'errors' => $errors->paginate(20)->withQueryString(),
             'filters' => array_merge(['q' => '', 'status' => '', 'from' => '', 'to' => ''], $filters),
             'health' => $this->healthChecks(),
+            'incidents' => $this->recentIncidents(),
             'stats' => [
                 'today' => SystemErrorLog::whereDate('created_at', today())->count(),
                 'week' => SystemErrorLog::where('created_at', '>=', now()->subDays(7))->count(),
@@ -62,6 +63,78 @@ class SystemDiagnosticsController extends Controller
                 'failed_sms' => SmsLog::where('status', 'failed')->where('created_at', '>=', now()->subDay())->count(),
             ],
         ]);
+    }
+
+    /**
+     * صف رخدادهای قابل اقدام را از لاگ‌های موجود می‌سازد؛ هیچ جدول یا سامانهٔ موازی ایجاد نمی‌کند.
+     *
+     * @return list<array{title:string, detail:string, source:string, occurred_at:mixed, priority:string, priority_rank:int, url:string}>
+     */
+    private function recentIncidents(): array
+    {
+        $incidents = [];
+        $add = function (string $title, string $detail, string $source, mixed $time, string $priority, int $rank, string $url) use (&$incidents): void {
+            if (! $time) {
+                return;
+            }
+            try {
+                $occurredAt = $time instanceof \DateTimeInterface ? $time : \Illuminate\Support\Carbon::parse($time);
+            } catch (Throwable) {
+                return;
+            }
+            $incidents[] = [
+                'title' => $title,
+                'detail' => $detail,
+                'source' => $source,
+                'occurred_at' => $occurredAt,
+                'timestamp' => $occurredAt->getTimestamp(),
+                'priority' => $priority,
+                'priority_rank' => $rank,
+                'url' => $url,
+            ];
+        };
+
+        if (Schema::hasTable('system_error_logs')) {
+            foreach (DB::table('system_error_logs')->where('created_at', '>=', now()->subDays(7))->orderByDesc('created_at')->limit(12)->get(['id', 'created_at', 'severity', 'category', 'exception_class', 'message', 'status_code']) as $row) {
+                $critical = (int) $row->status_code >= 500 || ($row->severity ?? '') === 'error';
+                $add('خطای ثبت‌شده: '.class_basename((string) $row->exception_class), \Illuminate\Support\Str::limit((string) $row->message, 180), 'مرکز خطا', $row->created_at, $critical ? 'بالا' : 'متوسط', $critical ? 0 : 2, route('admin.system-diagnostics.index', ['q' => (string) $row->exception_class]));
+            }
+        }
+
+        if (Schema::hasTable('backup_runs')) {
+            foreach (DB::table('backup_runs')->where('status', 'failed')->orderByDesc('id')->limit(10)->get(['id', 'started_at', 'finished_at', 'filename', 'message']) as $row) {
+                $add('بکاپ ناموفق', trim((string) ($row->filename ?: 'نسخهٔ پشتیبان')).' — '.\Illuminate\Support\Str::limit((string) ($row->message ?? 'علت در مرکز عملیات بررسی شود.'), 150), 'مرکز عملیات', $row->finished_at ?: $row->started_at, 'بالا', 0, route('admin.operations.index'));
+            }
+        }
+
+        if (Schema::hasTable('operations_health_checks')) {
+            foreach (DB::table('operations_health_checks')->where('status', '!=', 'ok')->orderByDesc('id')->limit(8)->get(['id', 'created_at', 'status']) as $row) {
+                $add('بررسی سلامت ناموفق', 'نتیجهٔ بررسی سلامت شماره '.$row->id.' نیازمند بازبینی است.', 'مرکز عملیات', $row->created_at, 'بالا', 1, route('admin.operations.index'));
+            }
+        }
+
+        if (Schema::hasTable('cron_execution_logs')) {
+            foreach (DB::table('cron_execution_logs')->where('status', 'failed')->orderByDesc('id')->limit(10)->get(['id', 'started_at', 'task_name', 'status']) as $row) {
+                $add('اجرای Cron ناموفق', 'وظیفه: '.(string) $row->task_name, 'پایش Cron', $row->started_at, 'بالا', 1, route('admin.monitoring.cron', ['status' => 'failed', 'task' => (string) $row->task_name]));
+            }
+        }
+
+        if (Schema::hasTable('sms_logs')) {
+            foreach (DB::table('sms_logs')->where('status', 'failed')->orderByDesc('id')->limit(8)->get(['id', 'created_at', 'template_key', 'error']) as $row) {
+                $add('ارسال پیامک ناموفق', (string) ($row->template_key ?: 'پیامک').' — '.\Illuminate\Support\Str::limit((string) ($row->error ?? 'جزئیات در آرشیو پیامک'), 130), 'آرشیو پیامک', $row->created_at, 'متوسط', 2, route('admin.sms.logs.index', ['status' => 'failed']));
+            }
+        }
+
+        if (Schema::hasTable('subscription_payments')) {
+            foreach (DB::table('subscription_payments')->where('status', 'failed')->orderByDesc('id')->limit(8)->get(['id', 'created_at', 'amount', 'gateway', 'ref_id']) as $row) {
+                $detail = 'تراکنش #'.$row->id.' · '.number_format((float) $row->amount).' تومان · '.(string) ($row->gateway ?: 'درگاه نامشخص');
+                $add('پرداخت اشتراک ناموفق', $detail, 'گزارش پرداخت‌ها', $row->created_at, 'بالا', 1, route('admin.subscription-payments.index', ['status' => 'failed']));
+            }
+        }
+
+        usort($incidents, fn (array $left, array $right) => ($left['priority_rank'] <=> $right['priority_rank']) ?: ($right['timestamp'] <=> $left['timestamp']));
+
+        return array_slice($incidents, 0, 30);
     }
 
     private function healthChecks(): array

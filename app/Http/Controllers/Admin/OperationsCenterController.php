@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\ValidationException;
 use Throwable;
+use ZipArchive;
 
 class OperationsCenterController extends Controller
 {
@@ -87,6 +88,89 @@ class OperationsCenterController extends Controller
             $run->status === 'success' ? 'status' : 'error',
             $run->status === 'success' ? 'بکاپ با موفقیت ثبت شد.' : 'بکاپ ناموفق بود: '.($run->message ?? 'خطای نامشخص')
         );
+    }
+
+    /**
+     * Rehearsal غیرمخرب: یکپارچگی ZIP و وجود manifest و dump دیتابیس را می‌سنجد.
+     * هیچ فایلی استخراج نمی‌شود و دیتابیس فعال هرگز بازنویسی نمی‌شود.
+     */
+    public function verifyBackup(int $backupRun)
+    {
+        $run = BackupRun::query()->findOrFail($backupRun);
+        $path = (string) $run->local_path;
+
+        try {
+            if (! class_exists(ZipArchive::class)) {
+                throw new \RuntimeException('افزونه PHP zip فعال نیست.');
+            }
+            if ($run->status !== 'success' || $path === '' || ! is_file($path) || ! is_readable($path)) {
+                throw new \RuntimeException('فایل محلی بکاپ موفق پیدا نشد یا قابل خواندن نیست.');
+            }
+            $public = realpath(public_path());
+            $archivePath = realpath($path);
+            if (! $archivePath || ($public && ($archivePath === $public || str_starts_with(strtolower($archivePath), strtolower(rtrim($public, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR))))) {
+                throw new \RuntimeException('مسیر فایل بکاپ معتبر یا امن نیست.');
+            }
+            if ($run->size_bytes && filesize($archivePath) !== (int) $run->size_bytes) {
+                throw new \RuntimeException('اندازه فایل با اندازه ثبت‌شده هنگام ساخت بکاپ یکسان نیست.');
+            }
+
+            $zip = new ZipArchive();
+            $opened = $zip->open($archivePath, ZipArchive::CHECKCONS);
+            if ($opened !== true) {
+                throw new \RuntimeException('ساختار آرشیو ZIP معتبر نیست یا فایل آسیب دیده است.');
+            }
+
+            try {
+                $manifestJson = $zip->getFromName('backup-manifest.json');
+                if ($manifestJson === false) {
+                    throw new \RuntimeException('فایل manifest در بکاپ وجود ندارد.');
+                }
+                $manifest = json_decode($manifestJson, true, 512, JSON_THROW_ON_ERROR);
+                if (! is_array($manifest) || empty($manifest['created_at']) || empty($manifest['database_driver'])) {
+                    throw new \RuntimeException('اطلاعات manifest ناقص یا نامعتبر است.');
+                }
+
+                $hasDatabase = $zip->locateName('database.sqlite') !== false || $zip->locateName('database.sql') !== false;
+                if (! $hasDatabase) {
+                    throw new \RuntimeException('فایل بکاپ دیتابیس در آرشیو پیدا نشد.');
+                }
+
+                $verifiedFiles = 0;
+                for ($index = 0; $index < $zip->numFiles; $index++) {
+                    $stat = $zip->statIndex($index);
+                    $name = $stat['name'] ?? '';
+                    if ($name === '' || str_ends_with($name, '/')) {
+                        continue;
+                    }
+                    $stream = $zip->getStream($name);
+                    if (! is_resource($stream)) {
+                        throw new \RuntimeException('خواندن یکی از فایل‌های آرشیو ناموفق بود.');
+                    }
+                    $hash = hash_init('sha256');
+                    while (! feof($stream)) {
+                        $chunk = fread($stream, 1024 * 1024);
+                        if ($chunk === false) {
+                            fclose($stream);
+                            throw new \RuntimeException('خواندن محتوای یکی از فایل‌های آرشیو ناقص ماند.');
+                        }
+                        if ($chunk !== '') {
+                            hash_update($hash, $chunk);
+                        }
+                    }
+                    fclose($stream);
+                    hash_final($hash);
+                    $verifiedFiles++;
+                }
+            } finally {
+                $zip->close();
+            }
+
+            return back()->with('status', 'آزمایش غیرمخرب بکاپ شماره '.$run->id.' موفق بود: ساختار ZIP، manifest و فایل دیتابیس بررسی شدند و محتوای '.$verifiedFiles.' فایل خوانده شد. هیچ داده‌ای بازیابی یا بازنویسی نشد؛ برای اطمینان نهایی، بازیابی واقعی را در محیط جداگانه انجام بده.');
+        } catch (Throwable $exception) {
+            report($exception);
+            return back()->with('error', 'آزمایش سلامت بکاپ شماره '.$run->id.' ناموفق بود: '.$exception->getMessage());
+        }
     }
 
     public function checkNow()
