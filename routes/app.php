@@ -16,6 +16,9 @@ use App\Http\Controllers\MyInvoiceController;
 use App\Http\Controllers\MyPaymentController;
 use App\Http\Controllers\MyUnitController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OperationsCenterController;
+use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\TreasuryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PhonebookController;
 use App\Http\Controllers\RequestController;
@@ -45,6 +48,18 @@ Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
     Route::post('/subscription/plans/{id}', [SubscriptionController::class, 'subscribe'])->whereNumber('id')->name('subscription.subscribe');
 
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/operations-center', [OperationsCenterController::class, 'index'])->middleware('can:building.manage')->name('operations-center.index');
+    Route::middleware('can:building.manage')->prefix('maintenance')->name('maintenance.')->controller(MaintenanceController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/assets', 'storeAsset')->name('assets.store');
+        Route::post('/plans', 'storePlan')->name('plans.store');
+        Route::post('/plans/{plan}/complete', 'complete')->whereNumber('plan')->name('plans.complete');
+    });
+    Route::middleware('can:building.manage')->prefix('treasury')->name('treasury.')->controller(TreasuryController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
+    });
     Route::post('/buildings/{building}/switch', BuildingSwitchController::class)->name('building.switch');
 
     Route::get('/buildings', [BuildingController::class, 'index'])->middleware('can:building.view')->name('buildings.index');
