@@ -141,7 +141,7 @@
     </header>
 
     <div class="scroll">
-      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'events.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index', 'sms-templates.*', 'phonebook.*'))
+      @if(!request()->routeIs('dashboard*', 'admin.*', 'staff-roles.*', 'documents.*', 'my.units', 'polls.index', 'polls.show', 'events.index', 'my.requests*', 'requests.*', 'tickets.*', 'shifts.index', 'notifications.index', 'sms-templates.*', 'phonebook.*', 'operations-center.index', 'maintenance.*', 'treasury.*'))
         <section class="panel workspace-panel">
           <header class="workspace-hero" aria-label="معرفی بخش">
             <div class="workspace-hero-copy">
