@@ -122,6 +122,26 @@
         @media(max-width:700px){.dashboard-art:before{top:-2px;left:0;font-size:.67rem;padding:7px 10px}.hero h1 span:after{bottom:-2px}.hero-actions .btn{min-height:47px;padding-inline:15px}.article-art{height:145px}.feature-card{padding:23px}}
         @media(prefers-reduced-motion:reduce){.dashboard-art .orb{animation:none!important}.hero .btn-primary:after{display:none}.mock-stats .stat{transition:none!important}}
 
+
+        /* Final hero pass: clearer value cues and subtle premium motion. */
+        .hero{overflow:hidden}
+        .hero:before{animation:borjik-ring-drift 22s ease-in-out infinite}
+        .hero-grid>div:first-child{animation:borjik-copy-enter .75s cubic-bezier(.2,.7,.2,1) both}
+        .dashboard-art{animation:borjik-art-enter .9s .08s cubic-bezier(.2,.7,.2,1) both}
+        .hero-highlights{display:flex;flex-wrap:wrap;gap:9px;margin-top:23px;max-width:620px}
+        .hero-highlights span{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(193,244,227,.16);border-radius:12px;background:rgba(255,255,255,.045);color:#d0e5e4;font-size:.76rem;font-weight:750;backdrop-filter:blur(9px);transition:background .2s ease,border-color .2s ease,transform .2s ease}
+        .hero-highlights span:hover{transform:translateY(-2px);background:rgba(255,255,255,.09);border-color:rgba(117,231,199,.36)}
+        .hero-highlights i{font-style:normal;display:grid;place-items:center;width:20px;height:20px;border-radius:7px;background:rgba(79,221,184,.14);color:#79e7c8;font-size:.76rem}
+        .dashboard-art .orb{background:radial-gradient(circle at 32% 25%,#d6fff3 0,#9af0d9 25%,#42bca9 57%,#176d70 100%);box-shadow:inset -25px -28px 60px rgba(4,69,67,.2),0 0 0 22px rgba(105,229,196,.045),0 0 0 48px rgba(105,229,196,.028),0 0 70px rgba(42,210,175,.12)}
+        .mock-window{backdrop-filter:blur(14px);box-shadow:0 42px 100px rgba(0,13,22,.42),0 0 0 8px rgba(255,255,255,.045),0 0 50px rgba(49,215,180,.08)}
+        .floating-note{border-radius:18px}
+        @keyframes borjik-ring-drift{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(18px,12px,0)}}
+        @keyframes borjik-copy-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes borjik-art-enter{from{opacity:0;transform:translateY(15px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @media(max-width:900px){.hero-highlights{gap:7px}.hero-highlights span{font-size:.72rem;padding:6px 8px}}
+        @media(max-width:700px){.hero-highlights{margin-top:20px;gap:7px}.hero-highlights span{font-size:.7rem}.hero-grid>div:first-child{animation:none}.dashboard-art{animation:none}}
+        @media(prefers-reduced-motion:reduce){.hero:before,.hero-grid>div:first-child,.dashboard-art{animation:none!important}.hero-highlights span{transition:none!important}}
+
     </style>
 </head>
 <body>
@@ -155,6 +175,11 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                 <p class="hero-copy">{{ data_get($content ?? [], 'hero.description', 'برجیک کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.') }}</p>
                 <div class="hero-actions"><a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از برجیک') }} <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
                 <div class="hero-proof"><div class="proof-avatars" aria-hidden="true"><span>م</span><span>س</span><span>ب</span></div><div><strong>همه‌چیز شفاف‌تر</strong><br>برای مدیران، ساکنان و پرسنل ساختمان</div></div>
+                <div class="hero-highlights" aria-label="مزیت‌های برجیک">
+                    <span><i aria-hidden="true">✓</i> امور مالی شفاف</span>
+                    <span><i aria-hidden="true">↗</i> پیگیری مرحله‌به‌مرحله</span>
+                    <span><i aria-hidden="true">⌘</i> دسترسی متناسب با نقش</span>
+                </div>
             </div>
             <div class="dashboard-art" aria-label="پیش‌نمایش تصویری داشبورد برجیک">
                 <div class="orb"></div>
