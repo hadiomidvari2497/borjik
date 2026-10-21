@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BackupRun;
 use App\Models\Building;
+use App\Models\OperationsHealthCheck;
+use App\Models\SystemErrorLog;
 use App\Models\SmsLog;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -91,6 +94,24 @@ class DashboardController extends Controller
             ->where('created_at', '>=', $now->copy()->subDay())
             ->count();
 
+        // نمای عملیاتی داشبورد از لاگ‌های موجود استفاده می‌کند و سامانهٔ موازی جدیدی نمی‌سازد.
+        $lastBackup = BackupRun::query()->latest('id')->first();
+        $failedBackupsLast7Days = BackupRun::query()
+            ->where('status', 'failed')
+            ->where('created_at', '>=', $now->copy()->subDays(7))
+            ->count();
+        $lastHealth = OperationsHealthCheck::query()->latest('id')->first();
+        $failedHealthChecksLast7Days = OperationsHealthCheck::query()
+            ->where('status', '!=', 'ok')
+            ->where('created_at', '>=', $now->copy()->subDays(7))
+            ->count();
+        $errorsLast24Hours = SystemErrorLog::query()
+            ->where('created_at', '>=', $now->copy()->subDay())
+            ->count();
+        $errorsToday = SystemErrorLog::query()
+            ->whereDate('created_at', $now->toDateString())
+            ->count();
+
         return view('admin.dashboard', [
             'usersCount' => User::count(),
             'newUsers' => User::where('created_at', '>=', $since)->where('created_at', '<=', $now)->count(),
@@ -103,6 +124,12 @@ class DashboardController extends Controller
             'expiredSubscriptions' => $expiredSubscriptions,
             'buildingsWithoutValidSubscription' => $buildingsWithoutValidSubscription,
             'failedSmsLast24Hours' => $failedSmsLast24Hours,
+            'lastBackup' => $lastBackup,
+            'failedBackupsLast7Days' => $failedBackupsLast7Days,
+            'lastHealth' => $lastHealth,
+            'failedHealthChecksLast7Days' => $failedHealthChecksLast7Days,
+            'errorsLast24Hours' => $errorsLast24Hours,
+            'errorsToday' => $errorsToday,
             'trendDays' => $days,
             'trend' => $trend,
             'trendMax' => $trendMax,
