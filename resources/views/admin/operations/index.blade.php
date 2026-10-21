@@ -62,8 +62,13 @@
   </section>
 
   <section class="oc-section"><div class="oc-head"><h3 style="margin:0">تاریخچه بکاپ‌ها</h3><span class="oc-muted">آخرین اجراها</span></div>
-    <div class="oc-table-wrap"><table class="oc-table"><thead><tr><th>زمان</th><th>وضعیت</th><th>فایل</th><th>حجم</th><th>مسیر محلی</th><th>Google Drive</th><th>جزئیات</th></tr></thead><tbody>
-    @forelse($backups as $run)<tr><td>{{ $run->started_at ? $F::date($run->started_at, 'j F Y H:i:s') : '—' }}</td><td><span class="oc-pill {{ $run->status==='success'?'oc-good':($run->status==='failed'?'oc-bad':'oc-warn') }}">{{ ['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$run->status] ?? $run->status }}</span></td><td>{{ $run->filename ?: '—' }}</td><td>{{ $bytes($run->size_bytes) }}</td><td style="direction:ltr;text-align:left;overflow-wrap:anywhere">{{ $run->local_path ?: '—' }}</td><td>{{ $run->cloud_file_id ? 'ارسال شد · '.$run->cloud_file_id : ($settings['cloud_enabled'] ? 'ارسال نشده' : 'غیرفعال') }}</td><td>{{ $run->message ?: '—' }}</td></tr>@empty<tr><td colspan="7">هنوز بکاپی ثبت نشده است.</td></tr>@endforelse
+    <div class="oc-table-wrap"><table class="oc-table"><thead><tr><th>زمان</th><th>وضعیت</th><th>فایل</th><th>حجم</th><th>مسیر محلی</th><th>Google Drive</th><th>جزئیات</th><th>آزمایش بازیابی</th></tr></thead><tbody>
+    @forelse($backups as $run)<tr><td>{{ $run->started_at ? $F::date($run->started_at, 'j F Y H:i:s') : '—' }}</td><td><span class="oc-pill {{ $run->status==='success'?'oc-good':($run->status==='failed'?'oc-bad':'oc-warn') }}">{{ ['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$run->status] ?? $run->status }}</span></td><td>{{ $run->filename ?: '—' }}</td><td>{{ $bytes($run->size_bytes) }}</td><td style="direction:ltr;text-align:left;overflow-wrap:anywhere">{{ $run->local_path ?: '—' }}</td><td>{{ $run->cloud_file_id ? 'ارسال شد · '.$run->cloud_file_id : ($settings['cloud_enabled'] ? 'ارسال نشده' : 'غیرفعال') }}</td><td>{{ $run->message ?: '—' }}</td><td>
+      @if($run->status === 'success' && $run->local_path)
+        <form method="POST" action="{{ route('admin.operations.backups.verify', $run->id) }}" onsubmit="return confirm('آرشیو بدون استخراج و بدون تغییر دیتابیس بررسی می‌شود. ادامه می‌دهی؟')">@csrf<button class="btn sec" type="submit" style="white-space:nowrap">بررسی سلامت فایل</button></form>
+        <div class="oc-muted" style="margin-top:5px">بدون بازنویسی دیتابیس</div>
+      @else<span class="oc-muted">فایل محلی قابل آزمایش نیست</span>@endif
+    </td></tr>@empty<tr><td colspan="8">هنوز بکاپی ثبت نشده است.</td></tr>@endforelse
     </tbody></table></div><div style="margin-top:12px">{{ $backups->links() }}</div>
   </section>
   <section class="oc-section"><div class="oc-head"><h3 style="margin:0">تاریخچه سلامت</h3><span class="oc-muted">آخرین بررسی‌های زمان‌بندی‌شده</span></div>
@@ -71,6 +76,6 @@
     @forelse($health as $record)<tr><td>{{ $F::date($record->created_at, 'j F Y H:i:s') }}</td><td><span class="oc-pill {{ $record->status==='ok'?'oc-good':'oc-bad' }}">{{ $record->status==='ok'?'سالم':'هشدار' }}</span></td><td>@foreach($record->checks as $check)<div><strong>{{ $check['name'] ?? '' }}:</strong> {{ $check['detail'] ?? '' }} <span class="oc-muted">({{ $check['status'] ?? 'unknown' }})</span></div>@endforeach</td></tr>@empty<tr><td colspan="3">هنوز بررسی‌ای ثبت نشده است.</td></tr>@endforelse
     </tbody></table></div><div style="margin-top:12px">{{ $health->links() }}</div>
   </section>
-  <p class="oc-muted" style="margin-top:18px">نکته امنیتی: بکاپ شامل داده‌های خصوصی و فایل‌های بارگذاری‌شده است. مسیر محلی را خارج از public انتخاب کن، پوشهٔ Drive را فقط با حساب‌های مورداعتماد به اشتراک بگذار و پیش از اتکا به بکاپ، بازیابی را در محیط جداگانه آزمایش کن. بکاپ ابری و محلی جایگزین آزمایش بازیابی نیستند.</p>
+  <p class="oc-muted" style="margin-top:18px">نکته امنیتی: بکاپ شامل داده‌های خصوصی و فایل‌های بارگذاری‌شده است. مسیر محلی را خارج از public انتخاب کن، پوشهٔ Drive را فقط با حساب‌های مورداعتماد به اشتراک بگذار و دکمهٔ «بررسی سلامت فایل» یک تمرین غیرمخرب است: ساختار ZIP، manifest و خواندن فایل‌های آرشیو را می‌سنجد و دیتابیس فعال را تغییر نمی‌دهد. برای اثبات بازیابی کامل، فایل را در محیط ایزوله جداگانه بازیابی و برنامه را روی نسخهٔ آزمایشی بررسی کن.</p>
 </div>
 @endsection
