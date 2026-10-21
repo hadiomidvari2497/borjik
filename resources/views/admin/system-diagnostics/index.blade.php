@@ -39,7 +39,7 @@
               <div class="sd-incident-title">{{ $incident['title'] }}</div>
               <div class="sd-incident-detail">{{ $incident['detail'] }}</div>
               <div class="sd-incident-meta">
-                <span class="sd-priority {{ $incident['priority'] === 'متوسط' ? 'medium' : '' }}">{{ $incident['priority'] }} priority</span>
+                <span class="sd-priority {{ $incident['priority'] === 'متوسط' ? 'medium' : '' }}">{{ $incident['priority'] === 'بالا' ? 'اولویت بالا' : 'اولویت متوسط' }}</span>
                 <span>{{ $incident['source'] }}</span>
                 <span>{{ $F::date($incident['occurred_at'], 'j F Y · H:i') }}</span>
               </div>
