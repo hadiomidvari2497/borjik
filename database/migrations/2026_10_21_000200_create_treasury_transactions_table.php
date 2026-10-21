@@ -13,4 +13,5 @@ return new class extends Migration {
    $table->softDeletes(); $table->timestamps(); $table->index(['building_id','transaction_date','type']);
   });
  }
+ public function down(): void { Schema::dropIfExists('treasury_transactions'); }
 };
