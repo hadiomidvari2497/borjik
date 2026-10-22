@@ -24,7 +24,7 @@
 @if($errors->has('general'))<div data-borjik-flash="error" hidden>{{ $errors->first('general') }}</div>@endif
 <div class="shell">
   <aside class="brand-panel">
-    <div class="bp-top"><div class="logo"><img src="{{ asset('images/sabkhoneh-mark-white.svg') }}" alt="" width="40" height="40"><b>صابخونه</b></div>
+    <div class="bp-top"><div class="logo">ص</div><b>صابخونه</b></div>
     <div class="bp-mid">
       <h2>مدیریت ساختمان،<br>ساده و شفاف</h2>
       <p>شارژ، پرداخت، درخواست‌ها و اطلاع‌رسانی ساختمان شما در یک سامانه‌ی فارسی.</p>
