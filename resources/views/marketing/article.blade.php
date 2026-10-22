@@ -10,7 +10,16 @@ $seoTitle = $article->title.' | برجیک';
 $seoImage = null;
 if ($article->cover_image) {
     $cover = $article->cover_image;
-    $seoImage = preg_match('~^https?://~i', $cover) ? $cover : (str_starts_with($cover, '/') ? url($cover) : url(\Illuminate\Support\Facades\Storage::disk('public')->url($cover)));
+    if (preg_match('~^https?://~i', $cover)) {
+        $seoImage = $cover;
+    } elseif (str_starts_with($cover, '/')) {
+        $seoImage = $seoBase.$cover;
+    } else {
+        $storageUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($cover);
+        $seoImage = preg_match('~^https?://~i', $storageUrl)
+            ? $storageUrl
+            : $seoBase.'/'.ltrim($storageUrl, '/');
+    }
 }
 $seoArticleSchema = [
     '@context' => 'https://schema.org',
