@@ -8,7 +8,7 @@ class AiAccessToken extends Model
 {
     protected $table = 'ai_access_tokens';
 
-    protected $guarded = ['id', 'token_hash'];
+    protected $guarded = ['id'];
 
     protected function casts(): array
     {
