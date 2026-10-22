@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
             'admin' => \App\Http\Middleware\EnsureAdminAuth::class,
             'admin.can' => \App\Http\Middleware\EnsureAdminPermission::class,
+            'ai.token' => \\App\\Http\\Middleware\\AuthenticateAiToken::class,
         ]);
 
         // برای ریدایرکت مهمان ادمین به صفحهٔ ورود ادمین
