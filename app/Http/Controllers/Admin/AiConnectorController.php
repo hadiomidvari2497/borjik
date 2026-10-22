@@ -8,7 +8,6 @@ use App\Models\AiActionRequest;
 use App\Services\Operations\BackupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Throwable;
 
