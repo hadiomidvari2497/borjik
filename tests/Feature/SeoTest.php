@@ -38,7 +38,7 @@ class SeoTest extends TestCase
             ->assertSee('name="robots" content="noindex, nofollow"', false);
     }
 
-    public function test_configured_production_robots_and_sitemap_exclude_private_pages(): void
+    public function test_configured_production_robots_and_sitemap_include_only_public_entry_points(): void
     {
         $this->app['env'] = 'production';
         SiteSetting::set('seo.site_url', 'https://borjik.example');
@@ -47,13 +47,27 @@ class SeoTest extends TestCase
         $this->get('/robots.txt')
             ->assertOk()
             ->assertSee('Allow: /')
-            ->assertSee('Disallow: /profile')
-            ->assertSee('Disallow: /invite/')
+            ->assertDontSee('Disallow: /profile')
+            ->assertDontSee('Disallow: /invite/')
             ->assertSee('Sitemap: https://borjik.example/sitemap.xml');
 
         $this->get('/sitemap.xml')
             ->assertOk()
             ->assertSee('https://borjik.example/')
             ->assertSee('https://borjik.example/articles');
+    }
+
+    public function test_http_or_non_root_site_urls_cannot_enable_public_indexing(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'http://borjik.example');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /');
+        $this->get('/sitemap.xml')->assertOk()->assertDontSee('<url><loc>', false);
+
+        SiteSetting::set('seo.site_url', 'https://borjik.example/subdirectory');
+        $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /');
+        $this->get('/sitemap.xml')->assertOk()->assertDontSee('<url><loc>', false);
     }
 }
