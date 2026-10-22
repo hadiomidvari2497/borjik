@@ -36,7 +36,7 @@ class AdminSettingsTest extends TestCase
 
     private function payload(array $over = []): array
     {
-        return $over + ['otp_enabled' => 1, 'password_enabled' => 1, 'site_name' => 'برجیک', 'support_phone' => '', 'support_email' => ''];
+        return $over + ['otp_enabled' => 1, 'password_enabled' => 1, 'site_name' => 'صابخونه', 'support_phone' => '', 'support_email' => ''];
     }
 
     // ---------- تنظیمات سایت

@@ -211,7 +211,7 @@ class SmsGatewayTest extends TestCase
         $this->assertSame('[محرمانه]', $log->fresh()->body);
         $this->assertSame('ref-123', $log->fresh()->provider_ref);
         $this->assertNotNull($log->fresh()->sent_at);
-        Http::assertSent(fn (Request $request) => $request['text'] === 'برجیک: کد ورود شما 123456 است. اعتبار ۲ دقیقه.');
+        Http::assertSent(fn (Request $request) => $request['text'] === 'صابخونه: کد ورود شما 123456 است. اعتبار ۲ دقیقه.');
     }
 
     public function test_sms_sender_marks_delivery_failed_when_no_real_provider_is_configured(): void
