@@ -38,12 +38,13 @@ class SeoController extends Controller
         $enabled = (bool) SiteSetting::get('seo.indexing_enabled', false)
             && app()->environment('production')
             && filter_var($base, FILTER_VALIDATE_URL)
+            && in_array(strtolower((string) parse_url($base, PHP_URL_SCHEME)), ['http', 'https'], true)
             && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true);
 
         $urls = [];
         if ($enabled) {
-            $urls[] = ['loc' => $base.'/', 'lastmod' => now()->toAtomString()];
-            $urls[] = ['loc' => $base.'/articles', 'lastmod' => now()->toAtomString()];
+            $urls[] = ['loc' => $base.'/', 'lastmod' => null];
+            $urls[] = ['loc' => $base.'/articles', 'lastmod' => null];
             Article::query()->where('status', 'published')
                 ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
                 ->orderBy('id')
