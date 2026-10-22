@@ -6,8 +6,9 @@
     <meta name="theme-color" content="#0b2434">
     @php
         $seoBase = rtrim((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), '/');
+        $seoScheme = strtolower((string) parse_url($seoBase, PHP_URL_SCHEME));
         $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
-        $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true);
+        $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && in_array($seoScheme, ['http', 'https'], true) && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true);
         $seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false);
         $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'برجیک | مدیریت ساختمان، با آرامش بیشتر');
         $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'برجیک؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
@@ -19,6 +20,10 @@
     <meta property="og:site_name" content="برجیک">
     <meta property="og:title" content="{{ $seoTitle }}">
     <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:url" content="{{ $seoBase }}/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
     @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoBase }}/">@endif
     @if($seoVerification !== '')<meta name="google-site-verification" content="{{ $seoVerification }}">@endif
     @if($seoPublic && app()->environment('production'))
