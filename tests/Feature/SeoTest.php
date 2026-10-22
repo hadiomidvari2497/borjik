@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\SiteSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -40,8 +41,8 @@ class SeoTest extends TestCase
     public function test_configured_production_robots_and_sitemap_exclude_private_pages(): void
     {
         $this->app['env'] = 'production';
-        \\App\\Models\\SiteSetting::set('seo.site_url', 'https://borjik.example');
-        \\App\\Models\\SiteSetting::set('seo.indexing_enabled', true);
+        SiteSetting::set('seo.site_url', 'https://borjik.example');
+        SiteSetting::set('seo.indexing_enabled', true);
 
         $this->get('/robots.txt')
             ->assertOk()
