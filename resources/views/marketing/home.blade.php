@@ -22,7 +22,17 @@
     @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoBase }}/">@endif
     @if($seoVerification !== '')<meta name="google-site-verification" content="{{ $seoVerification }}">@endif
     @if($seoPublic && app()->environment('production'))
-    <script type="application/ld+json">@json(['@context' => 'https://schema.org', '@type' => 'Organization', 'name' => 'برجیک', 'url' => $seoBase.'/', 'description' => $seoDescription], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)</script>
+    <script type="application/ld+json">
+        @php
+            echo json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'Organization',
+                'name' => 'برجیک',
+                'url' => $seoBase.'/',
+                'description' => $seoDescription,
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        @endphp
+    </script>
     @endif
     <title>{{ $seoTitle }}</title>
     <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
