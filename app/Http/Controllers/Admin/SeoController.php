@@ -85,7 +85,7 @@ class SeoController extends Controller
             && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true);
 
         $body = $enabled
-            ? "User-agent: *\\nAllow: /\\nSitemap: ".$base."/sitemap.xml\\n"
+            ? "User-agent: *\nAllow: /\nSitemap: ".$base."/sitemap.xml\n"
             : "User-agent: *\nDisallow: /\n";
         return response($body, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
     }
