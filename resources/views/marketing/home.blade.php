@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b2434">
     @php
-        $seoBase = rtrim((string) \\App\\Models\\SiteSetting::get('seo.site_url', config('app.url')), '/');
+        $seoBase = rtrim((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), '/');
         $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
         $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true);
-        $seoIndexable = $seoPublic && app()->environment('production') && (bool) \\App\\Models\\SiteSetting::get('seo.indexing_enabled', false);
-        $seoTitle = (string) \\App\\Models\\SiteSetting::get('seo.title', 'برجیک | مدیریت ساختمان، با آرامش بیشتر');
-        $seoDescription = (string) \\App\\Models\\SiteSetting::get('seo.description', 'برجیک؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
-        $seoVerification = (string) \\App\\Models\\SiteSetting::get('seo.google_verification', '');
+        $seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false);
+        $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'برجیک | مدیریت ساختمان، با آرامش بیشتر');
+        $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'برجیک؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
+        $seoVerification = (string) \App\Models\SiteSetting::get('seo.google_verification', '');
     @endphp
     <meta name="description" content="{{ $seoDescription }}">
     <meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
