@@ -32,6 +32,52 @@ class SeoController extends Controller
         return view('admin.seo.index', compact('settings', 'publishedArticles', 'configuredUrl', 'isPublicUrl'));
     }
 
+    public function sitemap()
+    {
+        $base = rtrim((string) SiteSetting::get('seo.site_url', config('app.url')), '/');
+        $enabled = (bool) SiteSetting::get('seo.indexing_enabled', false)
+            && app()->environment('production')
+            && filter_var($base, FILTER_VALIDATE_URL)
+            && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true);
+
+        $urls = [];
+        if ($enabled) {
+            $urls[] = ['loc' => $base.'/', 'lastmod' => now()->toAtomString()];
+            $urls[] = ['loc' => $base.'/articles', 'lastmod' => now()->toAtomString()];
+            Article::query()->where('status', 'published')
+                ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
+                ->orderBy('id')
+                ->get(['slug', 'updated_at'])
+                ->each(function ($article) use (&$urls, $base) {
+                    $urls[] = ['loc' => $base.'/articles/'.rawurlencode($article->slug), 'lastmod' => optional($article->updated_at)->toAtomString()];
+                });
+        }
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'. "\n".'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        foreach ($urls as $url) {
+            $xml .= '<url><loc>'.e($url['loc']).'</loc>';
+            if ($url['lastmod']) $xml .= '<lastmod>'.e($url['lastmod']).'</lastmod>';
+            $xml .= '</url>';
+        }
+        $xml .= '</urlset>';
+
+        return response($xml, 200)->header('Content-Type', 'application/xml; charset=UTF-8');
+    }
+
+    public function robots()
+    {
+        $base = rtrim((string) SiteSetting::get('seo.site_url', config('app.url')), '/');
+        $enabled = (bool) SiteSetting::get('seo.indexing_enabled', false)
+            && app()->environment('production')
+            && filter_var($base, FILTER_VALIDATE_URL)
+            && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true);
+
+        $body = $enabled
+            ? "User-agent: *\\nAllow: /\\nDisallow: /admin/\\nDisallow: /dashboard\\nDisallow: /my/\\nDisallow: /login\\nDisallow: /register\\nSitemap: ".$base."/sitemap.xml\\n"
+            : "User-agent: *\\nDisallow: /\\n";
+        return response($body, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+    }
+
     public function update(Request $request)
     {
         $data = $request->validate([
