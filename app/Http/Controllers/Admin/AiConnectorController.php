@@ -110,8 +110,12 @@ class AiConnectorController extends Controller
     private function runHealthCheck(): array
     {
         $exit = Artisan::call('borjik:health-check');
+        $output = mb_substr(trim(Artisan::output()), 0, 1500);
+        if ($exit !== 0) {
+            throw new \\RuntimeException('بررسی سلامت با کد خطا پایان یافت: '.$output);
+        }
 
-        return ['exit_code' => $exit, 'output' => mb_substr(trim(Artisan::output()), 0, 1500)];
+        return ['exit_code' => $exit, 'output' => $output];
     }
 
     private function runBackup(): array
