@@ -58,6 +58,8 @@ return [
                 'desc' => 'مقایسه واحدها، عضویت‌ها، تیکت‌ها و فعالیت ساختمان‌ها'],
             ['label' => 'مرکز عملیات و بکاپ', 'icon' => 'shield', 'route' => 'admin.operations.index', 'active' => 'admin.operations.*', 'perm' => 'site.settings',
                 'desc' => 'سلامت سرویس، هشدار پیامکی، بکاپ محلی و Google Drive'],
+            ['label' => 'اتصال هوش مصنوعی', 'icon' => 'shield', 'route' => 'admin.ai-connector.index', 'active' => 'admin.ai-connector.*', 'perm' => 'site.settings',
+                'desc' => 'توکن‌های محدود API و تأیید دستی عملیات هوش مصنوعی'],
             ['label' => 'مرکز خطا و عیب‌یابی', 'icon' => 'activity', 'route' => 'admin.system-diagnostics.index', 'active' => 'admin.system-diagnostics.*', 'perm' => 'logs.view',
                 'desc' => 'تاریخچه خطاها، شناسایی کاربر و بررسی سلامت اجزای اصلی سامانه'],
             ['label' => 'سلامت هاست', 'icon' => 'activity', 'route' => 'admin.monitoring.host', 'active' => 'admin.monitoring.host', 'perm' => 'logs.view',
