@@ -26,8 +26,14 @@ class SeoController extends Controller
 
         $configuredUrl = $settings['site_url'] ?: (string) config('app.url');
         $isPublicUrl = filter_var($configuredUrl, FILTER_VALIDATE_URL)
-            && in_array(parse_url($configuredUrl, PHP_URL_SCHEME), ['https', 'http'], true)
-            && ! in_array(strtolower((string) parse_url($configuredUrl, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true);
+            && strtolower((string) parse_url($configuredUrl, PHP_URL_SCHEME)) === 'https'
+            && in_array(strtolower((string) parse_url($configuredUrl, PHP_URL_HOST)), array_filter([strtolower((string) parse_url($configuredUrl, PHP_URL_HOST))]), true)
+            && ! in_array(strtolower((string) parse_url($configuredUrl, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true)
+            && empty(parse_url($configuredUrl, PHP_URL_USER))
+            && empty(parse_url($configuredUrl, PHP_URL_PASS))
+            && in_array((string) parse_url($configuredUrl, PHP_URL_PATH), ['', '/'], true)
+            && parse_url($configuredUrl, PHP_URL_QUERY) === null
+            && parse_url($configuredUrl, PHP_URL_FRAGMENT) === null;
 
         return view('admin.seo.index', compact('settings', 'publishedArticles', 'configuredUrl', 'isPublicUrl'));
     }
@@ -38,8 +44,13 @@ class SeoController extends Controller
         $enabled = (bool) SiteSetting::get('seo.indexing_enabled', false)
             && app()->environment('production')
             && filter_var($base, FILTER_VALIDATE_URL)
-            && in_array(strtolower((string) parse_url($base, PHP_URL_SCHEME)), ['http', 'https'], true)
-            && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true);
+            && strtolower((string) parse_url($base, PHP_URL_SCHEME)) === 'https'
+            && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true)
+            && empty(parse_url($base, PHP_URL_USER))
+            && empty(parse_url($base, PHP_URL_PASS))
+            && in_array((string) parse_url($base, PHP_URL_PATH), ['', '/'], true)
+            && parse_url($base, PHP_URL_QUERY) === null
+            && parse_url($base, PHP_URL_FRAGMENT) === null;
 
         $urls = [];
         if ($enabled) {
@@ -89,16 +100,20 @@ class SeoController extends Controller
             'google_verification' => ['nullable', 'string', 'max:200'],
             'indexing_enabled' => ['nullable', Rule::in(['1'])],
         ], [
-            'site_url.url' => 'آدرس سایت باید یک URL معتبر و شامل http یا https باشد.',
+            'site_url.url' => 'آدرس سایت باید یک URL معتبر باشد.',
             'title.max' => 'عنوان پیش‌فرض حداکثر ۷۰ نویسه باشد.',
             'description.max' => 'توضیحات پیش‌فرض حداکثر ۳۲۰ نویسه باشد.',
         ]);
 
         $url = trim((string) ($data['site_url'] ?? ''));
         if ($url !== '') {
+            $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
             $host = strtolower((string) parse_url($url, PHP_URL_HOST));
-            if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
-                return back()->withErrors(['site_url' => 'آدرس لوکال قابل استفاده برای سئوی عمومی نیست؛ دامنهٔ واقعی سایت را وارد کن.'])->withInput();
+            $path = (string) parse_url($url, PHP_URL_PATH);
+            if ($scheme !== 'https' || in_array($host, ['localhost', '127.0.0.1', '::1'], true)
+                || empty($host) || ! empty(parse_url($url, PHP_URL_USER)) || ! empty(parse_url($url, PHP_URL_PASS))
+                || ! in_array($path, ['', '/'], true) || parse_url($url, PHP_URL_QUERY) !== null || parse_url($url, PHP_URL_FRAGMENT) !== null) {
+                return back()->withErrors(['site_url' => 'آدرس اصلی باید دامنهٔ عمومی با HTTPS باشد؛ مسیر، پارامتر یا اطلاعات ورود در آدرس وارد نکن.'])->withInput();
             }
             $url = rtrim($url, '/');
         }
