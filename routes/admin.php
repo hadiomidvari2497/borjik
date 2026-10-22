@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\AiConnectorController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\MarketingContentController;
 use App\Http\Controllers\Admin\AdminRoleController;
