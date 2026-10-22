@@ -70,4 +70,51 @@ class SeoTest extends TestCase
         $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /');
         $this->get('/sitemap.xml')->assertOk()->assertDontSee('<url><loc>', false);
     }
+
+    public function test_published_article_has_canonical_open_graph_and_structured_data_on_https_production_domain(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://borjik.example');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $article = Article::query()->where('slug', 'transparent-building-charges')->firstOrFail();
+
+        $this->get(route('marketing.articles.show', $article->slug))
+            ->assertOk()
+            ->assertSee('name="robots" content="index,follow"', false)
+            ->assertSee('rel="canonical" href="https://borjik.example/articles/transparent-building-charges"', false)
+            ->assertSee('property="og:type" content="article"', false)
+            ->assertSee('property="og:url" content="https://borjik.example/articles/transparent-building-charges"', false)
+            ->assertSee('application/ld+json', false)
+            ->assertSee('"@type":"Article"', false)
+            ->assertSee('"headline":"چطور محاسبهٔ شارژ را شفاف‌تر کنیم؟"', false);
+    }
+
+    public function test_sitemap_includes_published_articles_but_not_drafts_or_future_articles(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://borjik.example');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        Article::create([
+            'title' => 'پیش‌نویس خصوصی',
+            'slug' => 'private-draft-for-seo-test',
+            'body' => 'این محتوا نباید در نقشه سایت باشد.',
+            'status' => 'draft',
+        ]);
+        Article::create([
+            'title' => 'مقاله آینده',
+            'slug' => 'future-article-for-seo-test',
+            'body' => 'این محتوا هنوز منتشر نشده است.',
+            'status' => 'published',
+            'published_at' => now()->addDay(),
+        ]);
+
+        $this->get('/sitemap.xml')
+            ->assertOk()
+            ->assertSee('https://borjik.example/articles/transparent-building-charges')
+            ->assertDontSee('private-draft-for-seo-test')
+            ->assertDontSee('future-article-for-seo-test');
+    }
+
 }
