@@ -4,8 +4,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b2434">
-    <meta name="description" content="برجیک؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.">
-    <title>برجیک | مدیریت ساختمان، با آرامش بیشتر</title>
+    @php
+        $seoBase = rtrim((string) \\App\\Models\\SiteSetting::get('seo.site_url', config('app.url')), '/');
+        $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
+        $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true);
+        $seoIndexable = $seoPublic && app()->environment('production') && (bool) \\App\\Models\\SiteSetting::get('seo.indexing_enabled', false);
+        $seoTitle = (string) \\App\\Models\\SiteSetting::get('seo.title', 'برجیک | مدیریت ساختمان، با آرامش بیشتر');
+        $seoDescription = (string) \\App\\Models\\SiteSetting::get('seo.description', 'برجیک؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
+        $seoVerification = (string) \\App\\Models\\SiteSetting::get('seo.google_verification', '');
+    @endphp
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="برجیک">
+    <meta property="og:title" content="{{ $seoTitle }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
+    @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoBase }}/">@endif
+    @if($seoVerification !== '')<meta name="google-site-verification" content="{{ $seoVerification }}">@endif
+    <title>{{ $seoTitle }}</title>
     <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
