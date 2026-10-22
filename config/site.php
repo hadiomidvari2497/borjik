@@ -5,7 +5,7 @@ return [
     'defaults' => [
         'auth.otp_enabled' => true,
         'auth.password_enabled' => true,
-        'site.name' => 'برجیک',
+        'site.name' => 'صابخونه',
         'support.phone' => '',
         'support.email' => '',
     ],
