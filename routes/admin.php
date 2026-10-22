@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\AiConnectorController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\MarketingContentController;
 use App\Http\Controllers\Admin\AdminRoleController;
@@ -43,6 +44,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/analytics/export', [AnalyticsController::class, 'export'])->middleware('admin.can:stats.view')->name('analytics.export');
         Route::get('/building-analytics', [BuildingAnalyticsController::class, 'index'])->middleware('admin.can:stats.view')->name('building-analytics.index');
         Route::get('/operations', [OperationsCenterController::class, 'index'])->middleware('admin.can:site.settings')->name('operations.index');
+        Route::prefix('ai-connector')->name('ai-connector.')->middleware('admin.can:site.settings')->controller(AiConnectorController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/tokens', 'storeToken')->middleware('throttle:6,1')->name('tokens.store');
+            Route::delete('/tokens/{token}', 'revokeToken')->whereNumber('token')->name('tokens.revoke');
+            Route::post('/actions/{action}/approve', 'approveAction')->whereNumber('action')->middleware('throttle:6,1')->name('actions.approve');
+            Route::delete('/actions/{action}', 'rejectAction')->whereNumber('action')->name('actions.reject');
+        });
         Route::put('/operations', [OperationsCenterController::class, 'update'])->middleware('admin.can:site.settings')->name('operations.update');
         Route::post('/operations/backup', [OperationsCenterController::class, 'runBackup'])->middleware('admin.can:site.settings')->middleware('throttle:2,1')->name('operations.backup');
         Route::post('/operations/backups/{backupRun}/verify', [OperationsCenterController::class, 'verifyBackup'])->whereNumber('backupRun')->middleware('admin.can:site.settings')->middleware('throttle:6,1')->name('operations.backups.verify');

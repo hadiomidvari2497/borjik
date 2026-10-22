@@ -10,6 +10,7 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
             'admin' => \App\Http\Middleware\EnsureAdminAuth::class,
             'admin.can' => \App\Http\Middleware\EnsureAdminPermission::class,
+            'ai.token' => \App\Http\Middleware\AuthenticateAiToken::class,
         ]);
 
         // برای ریدایرکت مهمان ادمین به صفحهٔ ورود ادمین
