@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AiActionRequest;
 use App\Models\AiAccessToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
