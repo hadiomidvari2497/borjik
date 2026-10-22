@@ -81,8 +81,13 @@ class SeoController extends Controller
         $enabled = (bool) SiteSetting::get('seo.indexing_enabled', false)
             && app()->environment('production')
             && filter_var($base, FILTER_VALIDATE_URL)
-            && in_array(strtolower((string) parse_url($base, PHP_URL_SCHEME)), ['http', 'https'], true)
-            && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true);
+            && strtolower((string) parse_url($base, PHP_URL_SCHEME)) === 'https'
+            && ! in_array(strtolower((string) parse_url($base, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true)
+            && empty(parse_url($base, PHP_URL_USER))
+            && empty(parse_url($base, PHP_URL_PASS))
+            && in_array((string) parse_url($base, PHP_URL_PATH), ['', '/'], true)
+            && parse_url($base, PHP_URL_QUERY) === null
+            && parse_url($base, PHP_URL_FRAGMENT) === null;
 
         $body = $enabled
             ? "User-agent: *\nAllow: /\nSitemap: ".$base."/sitemap.xml\n"
