@@ -36,7 +36,7 @@
   <div class="scrim" id="scrim"></div>
 
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">ص</div><div class="brand-copy"><b>صابخونه</b><span>پنل مدیریت سیستم</span></div><span class="brand-signal" aria-label="پنل فعال"></span></div>
+    <div class="brand"><div class="logo"><img src="{{ asset('images/sabkhoneh-mark-white.svg') }}" alt="" width="34" height="34"><div class="brand-copy"><b>صابخونه</b><span>پنل مدیریت سیستم</span></div><span class="brand-signal" aria-label="پنل فعال"></span></div>
 
     <label class="side-search" for="admin-menu-search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><input id="admin-menu-search" type="search" autocomplete="off" placeholder="جست‌وجو در منو..." aria-label="جست‌وجو در منوی مدیریت"><kbd>/</kbd></label>
     <div class="side-caption"><span>دسترسی‌ها</span><span class="side-caption-line"></span></div>
