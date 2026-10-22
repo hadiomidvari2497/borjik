@@ -20,10 +20,10 @@
     <meta property="og:site_name" content="برجیک">
     <meta property="og:title" content="{{ $seoTitle }}">
     <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:image" content="{{ url('/pwa/icon-512.png') }}">
+    <meta property="og:image" content="{{ $seoBase.'/pwa/icon-512.png' }}">
     <meta property="og:url" content="{{ $seoBase }}/">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="{{ url('/pwa/icon-512.png') }}">
+    <meta name="twitter:image" content="{{ $seoBase.'/pwa/icon-512.png' }}">
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoBase }}/">@endif
@@ -36,7 +36,7 @@
                 '@type' => 'Organization',
                 'name' => 'برجیک',
                 'url' => $seoBase.'/',
-                'logo' => url('/pwa/icon-512.png'),
+                'logo' => $seoBase.'/pwa/icon-512.png',
                 'description' => $seoDescription,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
         @endphp
