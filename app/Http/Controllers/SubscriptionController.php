@@ -68,7 +68,7 @@ class SubscriptionController extends Controller
                 422,
             );
 
-            return back()->with('error', 'برای خرید این پلن، ابتدا در پنل مدیریت قالب زرین‌پال را انتخاب و درگاه را با شناسه پذیرنده معتبر فعال کنید.');
+            return back()->with('error', 'امکان پرداخت آنلاین در حال حاضر فراهم نیست. لطفاً کمی بعد دوباره تلاش کنید.');
         }
 
         try {
