@@ -3,7 +3,7 @@
 @section('title', 'اشتراک')
 @section('content')
 <div class="card">
-  <div class="page-h"><h2>اشتراک برجیک</h2></div>
+  <div class="page-h"><h2>اشتراک صابخونه</h2></div>
   @if(session('error'))<div class="warnbox" style="margin:10px 0">{{ session('error') }}</div>@endif
   @if(session('status'))<div class="warnbox" style="margin:10px 0">{{ session('status') }}</div>@endif
   @if($subscription)
