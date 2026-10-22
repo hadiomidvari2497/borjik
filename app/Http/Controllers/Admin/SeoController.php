@@ -27,7 +27,6 @@ class SeoController extends Controller
         $configuredUrl = $settings['site_url'] ?: (string) config('app.url');
         $isPublicUrl = filter_var($configuredUrl, FILTER_VALIDATE_URL)
             && strtolower((string) parse_url($configuredUrl, PHP_URL_SCHEME)) === 'https'
-            && in_array(strtolower((string) parse_url($configuredUrl, PHP_URL_HOST)), array_filter([strtolower((string) parse_url($configuredUrl, PHP_URL_HOST))]), true)
             && ! in_array(strtolower((string) parse_url($configuredUrl, PHP_URL_HOST)), ['localhost', '127.0.0.1', '::1'], true)
             && empty(parse_url($configuredUrl, PHP_URL_USER))
             && empty(parse_url($configuredUrl, PHP_URL_PASS))
