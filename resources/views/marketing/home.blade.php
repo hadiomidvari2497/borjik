@@ -10,14 +10,14 @@
         $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
         $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && $seoScheme === 'https' && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true) && empty(parse_url($seoBase, PHP_URL_USER)) && empty(parse_url($seoBase, PHP_URL_PASS)) && in_array((string) parse_url($seoBase, PHP_URL_PATH), ['', '/'], true) && parse_url($seoBase, PHP_URL_QUERY) === null && parse_url($seoBase, PHP_URL_FRAGMENT) === null;
         $seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false);
-        $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'برجیک | مدیریت ساختمان، با آرامش بیشتر');
-        $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'برجیک؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
+        $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'صابخونه | مدیریت ساختمان، با آرامش بیشتر');
+        $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'صابخونه؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
         $seoVerification = (string) \App\Models\SiteSetting::get('seo.google_verification', '');
     @endphp
     <meta name="description" content="{{ $seoDescription }}">
     <meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="برجیک">
+    <meta property="og:site_name" content="صابخونه">
     <meta property="og:title" content="{{ $seoTitle }}">
     <meta property="og:description" content="{{ $seoDescription }}">
     <meta property="og:image" content="{{ $seoBase.'/pwa/icon-512.png' }}">
@@ -34,7 +34,7 @@
             echo json_encode([
                 '@context' => 'https://schema.org',
                 '@type' => 'Organization',
-                'name' => 'برجیک',
+                'name' => 'صابخونه',
                 'url' => $seoBase.'/',
                 'logo' => $seoBase.'/pwa/icon-512.png',
                 'description' => $seoDescription,
@@ -220,7 +220,7 @@
         .hero-highlights{margin-top:24px}
         .hero-highlights span{background:rgba(255,255,255,.055);border-color:rgba(195,235,227,.17);color:#d8e9e8}
         .dashboard-art{min-height:455px;isolation:isolate}
-        .dashboard-art:before{content:"پیش‌نمایش محیط برجیک";position:absolute;z-index:3;top:4px;right:8px;padding:8px 13px;border:1px solid rgba(153,238,215,.2);border-radius:12px;background:rgba(7,29,42,.7);color:#c6f8e7;font-size:.72rem;font-weight:800;letter-spacing:.1px;backdrop-filter:blur(12px)}
+        .dashboard-art:before{content:"پیش‌نمایش محیط صابخونه";position:absolute;z-index:3;top:4px;right:8px;padding:8px 13px;border:1px solid rgba(153,238,215,.2);border-radius:12px;background:rgba(7,29,42,.7);color:#c6f8e7;font-size:.72rem;font-weight:800;letter-spacing:.1px;backdrop-filter:blur(12px)}
         .dashboard-art:after{content:"";position:absolute;z-index:-1;inset:8% 5% 4%;border-radius:45%;background:radial-gradient(ellipse,rgba(38,210,170,.2),rgba(38,210,170,0) 68%);filter:blur(20px)}
         .dashboard-art .orb{width:clamp(270px,31vw,365px);height:clamp(270px,31vw,365px);right:10%;top:8%;background:radial-gradient(circle at 30% 24%,#d9fff4 0,#9af0d9 25%,#42bca9 57%,#176d70 100%);box-shadow:inset -25px -28px 60px rgba(4,69,67,.2),0 0 0 22px rgba(105,229,196,.055),0 0 0 48px rgba(105,229,196,.03),0 0 85px rgba(42,210,175,.2)}
         .mock-window{transform:rotate(-2.2deg) perspective(1200px) rotateY(-3deg);border:1px solid rgba(255,255,255,.85);box-shadow:0 42px 100px rgba(0,8,18,.46),0 0 0 8px rgba(255,255,255,.045),0 0 55px rgba(49,215,180,.12);transition:transform .35s ease,box-shadow .35s ease}
@@ -423,11 +423,11 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 @endphp
 <header class="site-header">
     <div class="wrap nav">
-        <a class="brand" href="#home" aria-label="برجیک، صفحه اصلی"><span class="brand-mark">ب</span><span>برجیک</span></a>
+        <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark">ص</span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
             <a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
-        <div class="nav-actions"><a class="btn btn-ghost" href="#features">آشنایی با برجیک</a><a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a></div>
+        <div class="nav-actions"><a class="btn btn-ghost" href="#features">آشنایی با صابخونه</a><a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a></div>
     </div>
 </header>
 
@@ -437,16 +437,16 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
             <div>
                 <span class="eyebrow"><i></i> {{ data_get($content ?? [], 'hero.badge', 'مدیریت نوین ساختمان، در یک جا') }}</span>
                 <h1>{{ data_get($content ?? [], 'hero.title', 'مدیریت ساختمان،') }}<br><span>{{ data_get($content ?? [], 'hero.highlight', 'با آرامش بیشتر') }}</span></h1>
-                <p class="hero-copy">{{ data_get($content ?? [], 'hero.description', 'برجیک کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.') }}</p>
-                <div class="hero-actions"><a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از برجیک') }} <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
+                <p class="hero-copy">{{ data_get($content ?? [], 'hero.description', 'صابخونه کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.') }}</p>
+                <div class="hero-actions"><a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از صابخونه') }} <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
                 <div class="hero-proof"><div class="proof-avatars" aria-hidden="true"><span>م</span><span>س</span><span>ب</span></div><div><strong>همه‌چیز شفاف‌تر</strong><br>برای مدیران، ساکنان و پرسنل ساختمان</div></div>
-                <div class="hero-highlights" aria-label="مزیت‌های برجیک">
+                <div class="hero-highlights" aria-label="مزیت‌های صابخونه">
                     <span><i aria-hidden="true">✓</i> امور مالی شفاف</span>
                     <span><i aria-hidden="true">↗</i> پیگیری مرحله‌به‌مرحله</span>
                     <span><i aria-hidden="true">⌘</i> دسترسی متناسب با نقش</span>
                 </div>
             </div>
-            <div class="dashboard-art" aria-label="پیش‌نمایش تصویری داشبورد برجیک">
+            <div class="dashboard-art" aria-label="پیش‌نمایش تصویری داشبورد صابخونه">
                 <div class="orb"></div>
                 <div class="mock-window">
                     <div class="mock-top"><div><div class="mock-title">نمای کلی ساختمان</div><div class="mock-sub">یک نگاه؛ تصویر روشن‌تر</div></div><span class="live-dot">● منظم و شفاف</span></div>
@@ -469,7 +469,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
     <section class="content-section" id="features">
         <div class="wrap">
-            <div class="section-head"><span class="section-kicker">امکانات برجیک</span><h2>{{ data_get($content ?? [], 'features_title', 'همه‌ی کارهای ساختمان، در یک تجربه‌ی یکپارچه') }}</h2><p>{{ data_get($content ?? [], 'features_description', 'ابزارهایی برای کمتر شدن کارهای تکراری، روشن‌تر شدن وضعیت‌ها و ارتباط بهتر میان اعضای ساختمان.') }}</p></div>
+            <div class="section-head"><span class="section-kicker">امکانات صابخونه</span><h2>{{ data_get($content ?? [], 'features_title', 'همه‌ی کارهای ساختمان، در یک تجربه‌ی یکپارچه') }}</h2><p>{{ data_get($content ?? [], 'features_description', 'ابزارهایی برای کمتر شدن کارهای تکراری، روشن‌تر شدن وضعیت‌ها و ارتباط بهتر میان اعضای ساختمان.') }}</p></div>
             <div class="feature-grid">
                 @foreach($features as $feature)
                 <article class="feature-card"><div class="feature-icon">{{ $feature['icon'] ?? '✦' }}</div><h3>{{ $feature['title'] ?? '' }}</h3><p>{{ $feature['description'] ?? '' }}</p></article>
@@ -480,7 +480,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
     <section class="content-section how">
         <div class="wrap">
-            <div class="section-head"><span class="section-kicker">شروعی ساده</span><h2>از آشفتگی روزمره تا مدیریت منظم</h2><p>برجیک برای آن طراحی شده که مسیر مدیریت ساختمان روشن و قابل پیگیری باشد.</p></div>
+            <div class="section-head"><span class="section-kicker">شروعی ساده</span><h2>از آشفتگی روزمره تا مدیریت منظم</h2><p>صابخونه برای آن طراحی شده که مسیر مدیریت ساختمان روشن و قابل پیگیری باشد.</p></div>
             <div class="steps">
                 @foreach(data_get($content ?? [], 'steps', [['title'=>'حساب خود را بسازید','description'=>'با شماره موبایل وارد شوید و اطلاعات اولیه‌ی حساب خود را تکمیل کنید.'],['title'=>'ساختمان را راه‌اندازی کنید','description'=>'ساختمان، بلوک‌ها و واحدها را تعریف کنید و اعضا و مسئولیت‌ها را مشخص کنید.'],['title'=>'همه‌چیز را یکپارچه پیگیری کنید','description'=>'شارژ، پرداخت‌ها، درخواست‌ها و برنامه‌های ساختمان را از یک سامانه مدیریت کنید.']]) as $i=>$step)<article class="step"><div class="step-number">{{ $i+1 }}</div><h3>{{ $step['title'] ?? '' }}</h3><p>{{ $step['description'] ?? '' }}</p></article>@endforeach
             </div>
@@ -490,15 +490,15 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <section class="content-section" id="about">
         <div class="wrap about-grid">
             <div class="about-visual"><div class="about-note"><strong>{{ data_get($content ?? [], 'about.note_title', 'مدیریت بهتر، با اطلاعات روشن‌تر') }}</strong><p>{{ data_get($content ?? [], 'about.note_description', 'وقتی وضعیت‌ها مشخص باشند، تصمیم‌گیری و همکاری هم ساده‌تر می‌شود.') }}</p></div></div>
-            <div class="about-copy"><span class="section-kicker">{{ data_get($content ?? [], 'about.eyebrow', 'درباره برجیک') }}</span><h2>{{ data_get($content ?? [], 'about.title', 'ساختمان بهتر، با همکاری شفاف‌تر') }}</h2><p>{{ data_get($content ?? [], 'about.paragraph1', 'برجیک یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.') }}</p><p>{{ data_get($content ?? [], 'about.paragraph2', 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.') }}</p><ul class="check-list">@foreach(data_get($content ?? [], 'about.points', ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری','تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان','دسترسی متناسب با نقش هر کاربر در ساختمان']) as $point)<li><span class="check">✓</span><span>{{ $point }}</span></li>@endforeach</ul></div>
+            <div class="about-copy"><span class="section-kicker">{{ data_get($content ?? [], 'about.eyebrow', 'درباره صابخونه') }}</span><h2>{{ data_get($content ?? [], 'about.title', 'ساختمان بهتر، با همکاری شفاف‌تر') }}</h2><p>{{ data_get($content ?? [], 'about.paragraph1', 'صابخونه یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.') }}</p><p>{{ data_get($content ?? [], 'about.paragraph2', 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.') }}</p><ul class="check-list">@foreach(data_get($content ?? [], 'about.points', ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری','تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان','دسترسی متناسب با نقش هر کاربر در ساختمان']) as $point)<li><span class="check">✓</span><span>{{ $point }}</span></li>@endforeach</ul></div>
         </div>
     </section>
 
     <section class="content-section" id="articles" style="background:#f0f6f4">
-        <div class="wrap"><div class="section-head"><span class="section-kicker">دانش‌نامه‌ی برجیک</span><h2>{{ data_get($content ?? [], 'articles_title', 'مطالبی برای مدیریت بهتر ساختمان') }}</h2><p>{{ data_get($content ?? [], 'articles_description', 'راهنماهای کوتاه درباره‌ی موضوعاتی که هر مدیر و ساکن ساختمان با آن‌ها روبه‌رو می‌شود.') }}</p></div>
+        <div class="wrap"><div class="section-head"><span class="section-kicker">دانش‌نامه‌ی صابخونه</span><h2>{{ data_get($content ?? [], 'articles_title', 'مطالبی برای مدیریت بهتر ساختمان') }}</h2><p>{{ data_get($content ?? [], 'articles_description', 'راهنماهای کوتاه درباره‌ی موضوعاتی که هر مدیر و ساکن ساختمان با آن‌ها روبه‌رو می‌شود.') }}</p></div>
             <div class="article-grid">
                 @forelse($articles as $article)
-                <article class="article-card"><a href="{{ route('marketing.articles.show', $article->slug) }}" aria-label="مطالعهٔ {{ $article->title }}"><div class="article-art" aria-hidden="true">@if($article->cover_image)<img src="{{ preg_match('~^https?://|^/~i', $article->cover_image) ? $article->cover_image : \Illuminate\Support\Facades\Storage::disk('public')->url($article->cover_image) }}" alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">@else 📚 @endif</div></a><div class="article-body"><span class="article-tag">دانش‌نامهٔ برجیک</span><h3><a href="{{ route('marketing.articles.show', $article->slug) }}">{{ $article->title }}</a></h3><p>{{ $article->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($article->body), 140) }}</p><a class="article-tag" href="{{ route('marketing.articles.show', $article->slug) }}">ادامهٔ مطلب ←</a></div></article>
+                <article class="article-card"><a href="{{ route('marketing.articles.show', $article->slug) }}" aria-label="مطالعهٔ {{ $article->title }}"><div class="article-art" aria-hidden="true">@if($article->cover_image)<img src="{{ preg_match('~^https?://|^/~i', $article->cover_image) ? $article->cover_image : \Illuminate\Support\Facades\Storage::disk('public')->url($article->cover_image) }}" alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;position:relative;z-index:1">@else 📚 @endif</div></a><div class="article-body"><span class="article-tag">دانش‌نامهٔ صابخونه</span><h3><a href="{{ route('marketing.articles.show', $article->slug) }}">{{ $article->title }}</a></h3><p>{{ $article->excerpt ?: \Illuminate\Support\Str::limit(strip_tags($article->body), 140) }}</p><a class="article-tag" href="{{ route('marketing.articles.show', $article->slug) }}">ادامهٔ مطلب ←</a></div></article>
                 @empty
                 <p>مقالات جدید به‌زودی در این بخش منتشر می‌شوند.</p>
                 @endforelse
@@ -512,19 +512,19 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     </section>
 
     <section class="content-section" id="partners" style="padding-top:0">
-        <div class="wrap"><div class="partner-panel"><div><span class="mini-label">{{ data_get($content ?? [], 'partners.eyebrow', 'همکاران ما') }}</span><h2>{{ data_get($content ?? [], 'partners.title', 'با همکاری هم، مدیریت ساختمان را بهتر می‌کنیم') }}</h2><p>{{ data_get($content ?? [], 'partners.description', 'از شرکت‌های خدمات ساختمانی و تعمیر و نگهداری تا کسب‌وکارهای مرتبط؛ این بخش برای معرفی همکاران و راهکارهای مکمل برجیک آماده شده است.') }}</p></div><div class="partner-actions"><a class="btn btn-light" href="#contact">{{ data_get($content ?? [], 'partners.button', 'پیشنهاد همکاری') }} <span aria-hidden="true">←</span></a></div></div></div>
+        <div class="wrap"><div class="partner-panel"><div><span class="mini-label">{{ data_get($content ?? [], 'partners.eyebrow', 'همکاران ما') }}</span><h2>{{ data_get($content ?? [], 'partners.title', 'با همکاری هم، مدیریت ساختمان را بهتر می‌کنیم') }}</h2><p>{{ data_get($content ?? [], 'partners.description', 'از شرکت‌های خدمات ساختمانی و تعمیر و نگهداری تا کسب‌وکارهای مرتبط؛ این بخش برای معرفی همکاران و راهکارهای مکمل صابخونه آماده شده است.') }}</p></div><div class="partner-actions"><a class="btn btn-light" href="#contact">{{ data_get($content ?? [], 'partners.button', 'پیشنهاد همکاری') }} <span aria-hidden="true">←</span></a></div></div></div>
     </section>
 
     <section class="content-section contact-section" id="contact">
         <div class="wrap contact-grid">
-            <div><span class="section-kicker">{{ data_get($content ?? [], 'contact.eyebrow', 'تماس با ما') }}</span><h2>{{ data_get($content ?? [], 'contact.title', 'برای شروع همکاری، در ارتباط باشیم') }}</h2><p>{{ data_get($content ?? [], 'contact.description', 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به برجیک شروع کنید.') }}</p><a class="btn btn-primary" href="{{ route('login') }}">ورود به برجیک <span aria-hidden="true">←</span></a></div>
+            <div><span class="section-kicker">{{ data_get($content ?? [], 'contact.eyebrow', 'تماس با ما') }}</span><h2>{{ data_get($content ?? [], 'contact.title', 'برای شروع همکاری، در ارتباط باشیم') }}</h2><p>{{ data_get($content ?? [], 'contact.description', 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به صابخونه شروع کنید.') }}</p><a class="btn btn-primary" href="{{ route('login') }}">ورود به صابخونه <span aria-hidden="true">←</span></a></div>
             <div class="contact-card">
-                <div class="contact-row"><span class="contact-symbol">✉</span><div><strong>ارتباط با تیم برجیک</strong>
+                <div class="contact-row"><span class="contact-symbol">✉</span><div><strong>ارتباط با تیم صابخونه</strong>
                     @if(data_get($content ?? [], 'contact.email'))<a class="contact-email" href="mailto:{{ data_get($content, 'contact.email') }}">{{ data_get($content, 'contact.email') }}</a>@else<small>راه ارتباطی عمومی هنوز در پنل مدیریت ثبت نشده است.</small>@endif
                 </div></div>
                 @if(data_get($content ?? [], 'contact.phone'))<div class="contact-row"><span class="contact-symbol">☎</span><div><strong>شماره تماس</strong><a href="tel:{{ data_get($content, 'contact.phone') }}" dir="ltr">{{ data_get($content, 'contact.phone') }}</a></div></div>@endif
                 <div class="contact-row"><span class="contact-symbol">◎</span><div><strong>{{ data_get($content ?? [], 'contact.support_title', 'پشتیبانی حساب کاربری') }}</strong><small>{{ data_get($content ?? [], 'contact.support_description', 'برای شروع، وارد سامانه شوید و از امکانات حساب خود استفاده کنید.') }}</small></div></div>
-                <div class="contact-row"><span class="contact-symbol">↗</span><div><strong>همکاری و تبلیغات</strong><small>{{ data_get($content ?? [], 'partners.description', 'برای پیشنهاد همکاری از راه ارتباطی عمومی برجیک استفاده کنید.') }}</small></div></div>
+                <div class="contact-row"><span class="contact-symbol">↗</span><div><strong>همکاری و تبلیغات</strong><small>{{ data_get($content ?? [], 'partners.description', 'برای پیشنهاد همکاری از راه ارتباطی عمومی صابخونه استفاده کنید.') }}</small></div></div>
             </div>
         </div>
     </section>
@@ -532,9 +532,9 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
 <footer>
     <div class="wrap"><div class="footer-main">
-        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark">ب</span><span>برجیک</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
+        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark">ص</span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
         <nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav>
-    </div><div class="footer-bottom"><span>© {{ date('Y') }} برجیک — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
+    </div><div class="footer-bottom"><span>© {{ date('Y') }} صابخونه — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>
 </body>
 </html>

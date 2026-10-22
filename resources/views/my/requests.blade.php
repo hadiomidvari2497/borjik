@@ -11,7 +11,7 @@
 <div class="myreq-page">
   <section class="myreq-hero">
     <div class="myreq-hero-inner">
-      <div><div class="myreq-kicker">BORJIK · MY REQUESTS</div><h2>پیگیری تا رسیدن به نتیجه</h2><p>درخواست جدیدت را ثبت کن و وضعیت رسیدگی، مسئول پیگیری، گفت‌وگوها و تاریخچه را از همین‌جا دنبال کن.</p></div>
+      <div><div class="myreq-kicker">SABKHONEH · MY REQUESTS</div><h2>پیگیری تا رسیدن به نتیجه</h2><p>درخواست جدیدت را ثبت کن و وضعیت رسیدگی، مسئول پیگیری، گفت‌وگوها و تاریخچه را از همین‌جا دنبال کن.</p></div>
       <div class="myreq-hero-stat"><b>{{ \App\Support\Fa::num($tickets->total()) }}</b><span>درخواست ثبت‌شده</span></div>
     </div>
   </section>

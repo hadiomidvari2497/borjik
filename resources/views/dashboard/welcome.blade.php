@@ -15,7 +15,7 @@
 @endphp
 
 <div class="card hero">
-  <h2>به برجیک خوش آمدید{{ auth()->user()->display_name ? '، '.auth()->user()->display_name : '' }}</h2>
+  <h2>به صابخونه خوش آمدید{{ auth()->user()->display_name ? '، '.auth()->user()->display_name : '' }}</h2>
   <p>
     @if($pendingInvites)
       دعوت‌نامه‌ی یک ساختمان برای شما ثبت شده است. از صفحه‌ی دعوت‌نامه‌ها می‌توانید آن را بپذیرید یا رد کنید.
@@ -37,7 +37,7 @@
 </div>
 
 <div id="features">
-  <div class="page-h" style="margin:4px 0 12px"><h2>امکانات برجیک</h2><span class="pill">با اشتراک فعال می‌شود</span></div>
+  <div class="page-h" style="margin:4px 0 12px"><h2>امکانات صابخونه</h2><span class="pill">با اشتراک فعال می‌شود</span></div>
   <div class="feat">
     @foreach($features as [$icon, $title, $text])
       <div class="card"><div class="ic"><svg class="i"><use href="#{{ $icon }}"/></svg></div><b>{{ $title }}</b><p>{{ $text }}</p></div>
