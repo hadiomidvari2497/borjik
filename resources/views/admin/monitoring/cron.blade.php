@@ -39,7 +39,7 @@
 (function(){
  const toast=document.getElementById('cm-toast');
  async function copy(value){try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(value)}else{const a=document.createElement('textarea');a.value=value;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();if(!document.execCommand('copy'))throw new Error('copy failed');a.remove()}toast.textContent='متن در کلیپ‌بورد کپی شد.';toast.style.display='block'}catch(e){toast.textContent='کپی خودکار ناموفق بود؛ مجوز مرورگر را بررسی کن.';toast.style.display='block'}}
- document.getElementById('cm-copy-health').addEventListener('click',()=>copy('وضعیت Scheduler برجیک\nآخرین heartbeat موفق: {{ $lastHeartbeat ?: 'ثبت نشده' }}\nوضعیت: {{ $schedulerHealthy ? 'فعال' : 'هشدار؛ heartbeat تازه ثبت نشده' }}'));
+ document.getElementById('cm-copy-health').addEventListener('click',()=>copy('وضعیت Scheduler صابخونه\nآخرین heartbeat موفق: {{ $lastHeartbeat ?: 'ثبت نشده' }}\nوضعیت: {{ $schedulerHealthy ? 'فعال' : 'هشدار؛ heartbeat تازه ثبت نشده' }}'));
  document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>{try{copy(decodeURIComponent(escape(atob(b.dataset.copy))))}catch(e){copy(atob(b.dataset.copy))}}));
  document.getElementById('cm-copy-all').addEventListener('click',()=>copy(Array.from(document.querySelectorAll('[data-copy]')).map(b=>{try{return decodeURIComponent(escape(atob(b.dataset.copy)))}catch(e){return atob(b.dataset.copy)}}).join('\n\n--------------------\n\n')||'در این صفحه لاگی وجود ندارد.'));
 })();

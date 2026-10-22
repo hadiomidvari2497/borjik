@@ -1,6 +1,6 @@
 @php($done = false)
 @extends('layouts.guest')
-@section('title', 'تکمیل پروفایل | برجیک')
+@section('title', 'تکمیل پروفایل | صابخونه')
 @section('wide', 'wide')
 @section('content')
   <div class="steps" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></div>

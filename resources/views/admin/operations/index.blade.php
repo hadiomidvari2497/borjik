@@ -20,7 +20,7 @@
 
 </style>
 <div class="card">
-  <div class="oc-head"><div><h2 style="margin:0">مرکز عملیات برجیک</h2><p class="oc-muted">سلامت سرویس، هشدار پیامکی و نسخه‌های پشتیبان را از یکجا مدیریت کن.</p></div><span class="oc-pill {{ $smsReady ? 'oc-good' : 'oc-warn' }}">{{ $smsReady ? 'اتصال پیامکی آماده است' : 'اتصال پیامکی تنظیم نشده' }}</span></div>
+  <div class="oc-head"><div><h2 style="margin:0">مرکز عملیات صابخونه</h2><p class="oc-muted">سلامت سرویس، هشدار پیامکی و نسخه‌های پشتیبان را از یکجا مدیریت کن.</p></div><span class="oc-pill {{ $smsReady ? 'oc-good' : 'oc-warn' }}">{{ $smsReady ? 'اتصال پیامکی آماده است' : 'اتصال پیامکی تنظیم نشده' }}</span></div>
   <div class="oc-grid">
     <div class="oc-card"><span class="oc-muted">آخرین بررسی سلامت</span><h3 style="margin:8px 0">{{ $lastHealth ? ($lastHealth->status === 'ok' ? 'سالم' : 'نیازمند رسیدگی') : 'هنوز بررسی نشده' }}</h3><span class="oc-muted">{{ $lastHealth ? $F::date($lastHealth->created_at, 'j F Y - H:i:s') : 'برای شروع «بررسی سلامت» را اجرا کن.' }}</span></div>
     <div class="oc-card"><span class="oc-muted">آخرین بکاپ</span><h3 style="margin:8px 0">{{ $lastBackup ? (['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$lastBackup->status] ?? $lastBackup->status) : 'هنوز بکاپی ثبت نشده' }}</h3><span class="oc-muted">{{ $lastBackup?->size_bytes ? $bytes($lastBackup->size_bytes) : 'حجم نامشخص' }} @if($lastBackup?->finished_at) · {{ $F::date($lastBackup->finished_at, 'j F Y - H:i:s') }} @endif</span></div>
