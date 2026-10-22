@@ -119,7 +119,7 @@ class AiConnectorController extends Controller
         $run = app(BackupService::class)->run();
 
         if ($run->status !== 'success') {
-            throw new \\RuntimeException('ساخت بکاپ ناموفق بود: '.(string) ($run->message ?? 'خطای نامشخص'));
+            throw new \RuntimeException('ساخت بکاپ ناموفق بود: '.(string) ($run->message ?? 'خطای نامشخص'));
         }
 
         return [
