@@ -205,46 +205,202 @@
 <script src="{{ asset('js/app.js') }}"></script>
 <script>
 (() => {
-  if (window.__borjikLivePagination) return;
-  window.__borjikLivePagination = true;
-  const load = async (url, pushState) => {
-    const current = document.querySelector('.scroll');
-    if (!current) return;
+  if (window.__borjikLiveInteractions) return;
+  window.__borjikLiveInteractions = true;
+
+  const rootSelector = '.scroll';
+  const getRoot = () => document.querySelector(rootSelector);
+  const safeUrl = value => {
+    const url = new URL(value, window.location.href);
+    return url.origin === window.location.origin ? url : null;
+  };
+  const runScripts = root => {
+    root.querySelectorAll('script').forEach(oldScript => {
+      const script = document.createElement('script');
+      for (const attr of oldScript.attributes) script.setAttribute(attr.name, attr.value);
+      script.textContent = oldScript.textContent;
+      oldScript.replaceWith(script);
+    });
+  };
+  const announce = (message, isError = false) => {
+    let toast = document.getElementById('borjik-live-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'borjik-live-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      Object.assign(toast.style, {
+        position:'fixed', zIndex:'99999', bottom:'22px', insetInlineStart:'22px',
+        maxWidth:'min(420px, calc(100vw - 32px))', padding:'11px 15px',
+        borderRadius:'12px', background:'var(--panel, #163b39)', color:'#fff',
+        boxShadow:'0 10px 30px rgba(0,0,0,.18)', fontSize:'12px',
+        lineHeight:'1.8', opacity:'0', transform:'translateY(8px)',
+        transition:'opacity .18s ease, transform .18s ease', pointerEvents:'none'
+      });
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.background = isError ? '#a83232' : 'var(--brand-d, #176b60)';
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(8px)';
+    }, 2600);
+  };
+
+  const load = async (urlValue, pushState = false, options = {}) => {
+    const url = safeUrl(urlValue);
+    const current = getRoot();
+    if (!url || !current) return false;
     current.setAttribute('aria-busy', 'true');
+    current.classList.add('borjik-live-loading');
     try {
-      const response = await fetch(url, {credentials:'same-origin', headers:{'Accept':'text/html','X-Requested-With':'XMLHttpRequest'}});
-      if (!response.ok) throw new Error('بارگذاری صفحه انجام نشد.');
+      const response = await fetch(url.href, {
+        credentials:'same-origin',
+        headers:{'Accept':'text/html','X-Requested-With':'XMLHttpRequest'},
+        cache:'no-store'
+      });
+      if (response.redirected && new URL(response.url).pathname.includes('/login')) {
+        window.location.href = response.url;
+        return false;
+      }
+      if (!response.ok) throw new Error('بارگذاری اطلاعات انجام نشد.');
       const html = await response.text();
       const doc = new DOMParser().parseFromString(html, 'text/html');
-      const next = doc.querySelector('.scroll');
-      if (!next) { window.location.href = url; return; }
+      const next = doc.querySelector(rootSelector);
+      if (!next) {
+        window.location.href = url.href;
+        return false;
+      }
       current.innerHTML = next.innerHTML;
       current.removeAttribute('aria-busy');
+      current.classList.remove('borjik-live-loading');
       document.title = doc.title || document.title;
-      if (pushState) history.pushState({livePagination:true}, '', url);
-      current.querySelectorAll('script').forEach(oldScript => {
-        const script = document.createElement('script');
-        for (const attr of oldScript.attributes) script.setAttribute(attr.name, attr.value);
-        script.textContent = oldScript.textContent;
-        oldScript.replaceWith(script);
-      });
-      current.scrollTop = 0;
-      window.dispatchEvent(new CustomEvent('borjik:content-updated'));
+      if (pushState) history.pushState({borjikLive:true}, '', url.href);
+      runScripts(current);
+      if (options.keepScroll) {
+        window.scrollTo({top:options.scrollY || 0,behavior:'instant'});
+      } else {
+        window.scrollTo({top:0,behavior:'instant'});
+      }
+      window.dispatchEvent(new CustomEvent('borjik:content-updated', {detail:{url:url.href}}));
+      return true;
     } catch (error) {
       current.removeAttribute('aria-busy');
-      window.location.href = url;
+      current.classList.remove('borjik-live-loading');
+      if (options.fallback !== false) window.location.href = url.href;
+      else announce(error.message || 'ارتباط موقتاً برقرار نشد؛ دوباره تلاش کن.', true);
+      return false;
     }
   };
+
   document.addEventListener('click', event => {
     const link = event.target.closest('.scroll .pagination a[href], .scroll nav[role="navigation"] a[href*="page="]');
-    if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target === '_blank') return;
-    const url = new URL(link.href, window.location.href);
-    if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+    if (!link || event.defaultPrevented || event.button !== 0 ||
+        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey ||
+        link.target === '_blank' || link.hasAttribute('download')) return;
+    const url = safeUrl(link.href);
+    if (!url || url.pathname !== window.location.pathname) return;
     event.preventDefault();
     load(url.href, true);
   });
-  history.replaceState({livePagination:true}, '', window.location.href);
-  window.addEventListener('popstate', () => load(window.location.href, false));
+
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.closest(rootSelector) ||
+        (form.method || 'get').toLowerCase() !== 'get' ||
+        form.target === '_blank' || form.hasAttribute('data-native-submit')) return;
+    const action = safeUrl(form.action || window.location.href);
+    if (!action || action.pathname !== window.location.pathname) return;
+    event.preventDefault();
+    const data = new FormData(form);
+    const params = new URLSearchParams();
+    for (const [key, value] of data.entries()) {
+      if (typeof value === 'string' && value !== '') params.append(key, value);
+    }
+    const next = new URL(action.href);
+    next.search = params.toString();
+    load(next.href, true);
+  });
+
+  const searchTimers = new WeakMap();
+  document.addEventListener('input', event => {
+    const field = event.target;
+    if (!(field instanceof HTMLInputElement) || !field.form?.matches('form[data-live-filter]') ||
+        !['text','search'].includes(field.type)) return;
+    clearTimeout(searchTimers.get(field));
+    searchTimers.set(field, window.setTimeout(() => {
+      if (field.isConnected && field.form) field.form.requestSubmit();
+    }, 350));
+  });
+
+  document.addEventListener('change', event => {
+    const control = event.target;
+    if (!(control instanceof HTMLSelectElement) || !control.closest('form[data-live-filter]')) return;
+    const form = control.form;
+    if (form && typeof form.requestSubmit === 'function') form.requestSubmit();
+  });
+
+  history.replaceState({borjikLive:true}, '', window.location.href);
+  window.addEventListener('popstate', () => load(window.location.href, false, {fallback:false}));
+
+  // Refresh read-only tables in place. Interactive tables and pages with unsaved edits are left alone.
+  let polling = false;
+  const hasUnsavedEdits = root => {
+    if (root.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return true;
+    const active = document.activeElement;
+    if (active && root.contains(active) && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(active.tagName)) return true;
+    for (const form of root.querySelectorAll('form')) {
+      if (form.closest('table')) return true;
+      for (const field of form.elements) {
+        if (field.disabled || field.type === 'hidden' || field.type === 'submit' || field.type === 'button' || field.type === 'file') continue;
+        if (field.type === 'checkbox' || field.type === 'radio') {
+          if (field.checked !== field.defaultChecked) return true;
+        } else if (field.tagName === 'SELECT') {
+          if ([...field.options].some(option => option.selected !== option.defaultSelected)) return true;
+        } else if ('defaultValue' in field && field.value !== field.defaultValue) return true;
+      }
+    }
+    return false;
+  };
+  const refreshTables = async () => {
+    const root = getRoot();
+    if (!root || document.hidden || polling || !root.querySelector('table') || hasUnsavedEdits(root)) return;
+    polling = true;
+    try {
+      const response = await fetch(window.location.href, {
+        credentials:'same-origin',
+        headers:{'Accept':'text/html','X-Requested-With':'XMLHttpRequest'},
+        cache:'no-store'
+      });
+      if (!response.ok) return;
+      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const freshRoot = doc.querySelector(rootSelector);
+      if (!freshRoot || hasUnsavedEdits(root)) return;
+      const oldTables = [...root.querySelectorAll('table')];
+      const newTables = [...freshRoot.querySelectorAll('table')];
+      if (oldTables.length !== newTables.length) return;
+      oldTables.forEach((table, index) => {
+        const fresh = newTables[index];
+        if (table.outerHTML !== fresh.outerHTML) table.replaceWith(document.importNode(fresh, true));
+      });
+      const oldPages = [...root.querySelectorAll('.pagination, nav[role="navigation"]')];
+      const newPages = [...freshRoot.querySelectorAll('.pagination, nav[role="navigation"]')];
+      if (oldPages.length === newPages.length) {
+        oldPages.forEach((node, index) => {
+          if (node.outerHTML !== newPages[index].outerHTML) node.replaceWith(document.importNode(newPages[index], true));
+        });
+      }
+      window.dispatchEvent(new CustomEvent('borjik:live-data-refreshed'));
+    } catch (_) {
+      // Live refresh is best-effort; preserve the page and current user work on network errors.
+    } finally {
+      polling = false;
+    }
+  };
+  window.setInterval(refreshTables, 25000);
 })();
 </script>
 <script>
