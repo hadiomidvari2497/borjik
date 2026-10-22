@@ -109,13 +109,21 @@ class SubscriptionCheckoutTest extends TestCase
         Http::assertNotSent(fn ($request) => str_ends_with($request->url(), '/payment/verify.json'));
     }
 
-    public function test_paid_plan_cannot_activate_when_gateway_is_not_configured(): void
+    public function test_gateway_configuration_details_are_hidden_from_customers_when_gateway_is_not_configured(): void
     {
+        $this->actingAs($this->user)
+            ->get(route('subscription.show'))
+            ->assertOk()
+            ->assertDontSee('پنل مدیریت')
+            ->assertDontSee('شناسه پذیرنده')
+            ->assertDontSee('فعال‌سازی قالب زرین‌پال');
+
         $this->actingAs($this->user)
             ->from(route('subscription.show'))
             ->post(route('subscription.subscribe', $this->paidPlan->id))
             ->assertRedirect(route('subscription.show'))
-            ->assertSessionHas('error');
+            ->assertSessionHas('error', 'امکان پرداخت آنلاین در حال حاضر فراهم نیست. لطفاً کمی بعد دوباره تلاش کنید.')
+            ->assertSessionMissing('gateway_error');
 
         $this->assertDatabaseMissing('subscriptions', ['user_id' => $this->user->id, 'status' => 'active']);
         $this->assertDatabaseMissing('subscription_payments', ['user_id' => $this->user->id]);
