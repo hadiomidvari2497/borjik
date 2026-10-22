@@ -8,7 +8,7 @@
         $seoBase = rtrim((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), '/');
         $seoScheme = strtolower((string) parse_url($seoBase, PHP_URL_SCHEME));
         $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
-        $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && in_array($seoScheme, ['http', 'https'], true) && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true);
+        $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && $seoScheme === 'https' && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true) && empty(parse_url($seoBase, PHP_URL_USER)) && empty(parse_url($seoBase, PHP_URL_PASS)) && in_array((string) parse_url($seoBase, PHP_URL_PATH), ['', '/'], true) && parse_url($seoBase, PHP_URL_QUERY) === null && parse_url($seoBase, PHP_URL_FRAGMENT) === null;
         $seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false);
         $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'برجیک | مدیریت ساختمان، با آرامش بیشتر');
         $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'برجیک؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
@@ -20,8 +20,10 @@
     <meta property="og:site_name" content="برجیک">
     <meta property="og:title" content="{{ $seoTitle }}">
     <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:image" content="{{ url('/pwa/icon-512.png') }}">
     <meta property="og:url" content="{{ $seoBase }}/">
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="{{ url('/pwa/icon-512.png') }}">
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoBase }}/">@endif
@@ -34,6 +36,7 @@
                 '@type' => 'Organization',
                 'name' => 'برجیک',
                 'url' => $seoBase.'/',
+                'logo' => url('/pwa/icon-512.png'),
                 'description' => $seoDescription,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
         @endphp
