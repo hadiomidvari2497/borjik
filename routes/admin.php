@@ -87,7 +87,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/{id}', 'destroy')->whereNumber('id')->name('destroy');
         });
 
-        Route::get('/settings', [SiteSettingController::class, 'edit'])->middleware('admin.can:site.settings')->name('settings.edit');
+        Route::get('/seo', [SeoController::class, 'index'])->middleware('admin.can:site.settings')->name('seo.index');\n        Route::put('/seo', [SeoController::class, 'update'])->middleware('admin.can:site.settings')->name('seo.update');\n\n        Route::get('/settings', [SiteSettingController::class, 'edit'])->middleware('admin.can:site.settings')->name('settings.edit');
         Route::put('/settings', [SiteSettingController::class, 'update'])->middleware('admin.can:site.settings')->name('settings.update');
 
         Route::prefix('plans')->name('plans.')->middleware('admin.can:plans.manage')->controller(SubscriptionPlanController::class)->group(function () {
