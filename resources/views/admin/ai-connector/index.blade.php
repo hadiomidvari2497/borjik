@@ -50,7 +50,7 @@
     <div class="ai-head"><h3 style="margin:0">توکن‌های صادرشده</h3><span class="ai-muted">مقدار کامل هیچ‌وقت در دیتابیس ذخیره نمی‌شود.</span></div>
     <div class="ai-table-wrap"><table class="ai-table"><thead><tr><th>نام</th><th>پیشوند</th><th>دسترسی</th><th>وضعیت</th><th>آخرین استفاده</th><th>اقدام</th></tr></thead><tbody>
     @forelse($tokens as $token)
-      <tr><td>{{ $token->name }}</td><td><code>{{ $token->token_prefix }}…</code></td><td>{{ collect($token->abilities)->map(fn($a) => $labels[$a] ?? $a)->join('، ') }}</td><td><span class="ai-pill">{{ $token->revoked_at ? 'باطل‌شده' : (($token->expires_at && $token->expires_at->isPast()) ? 'منقضی' : 'فعال') }}</span><br><span class="ai-muted">انقضا: {{ $token->expires_at?->format('Y-m-d H:i') ?? 'بدون انقضا' }}</span></td><td>{{ $token->last_used_at?->format('Y-m-d H:i:s') ?? 'هنوز استفاده نشده' }}</td><td>@if(!$token->revoked_at)<form method="POST" action="{{ route('admin.ai-connector.tokens.revoke', $token) }}" onsubmit="return confirm('این توکن فوراً باطل شود؟')">@csrf @method('DELETE')<button class="ai-btn ai-btn-danger" type="submit">ابطال</button></form>@else — @endif</td></tr>
+      <tr><td>{{ $token->name }}</td><td><code>{{ $token->token_prefix }}…</code></td><td>{{ collect($token->abilities)->map(fn($a) => $labels[$a] ?? $a)->join('، ') }}</td><td><span class="ai-pill">{{ $token->revoked_at ? 'باطل‌شده' : (($token->expires_at && $token->expires_at->isPast()) ? 'منقضی' : 'فعال') }}</span><br><span class="ai-muted">انقضا: {{ $token->expires_at?->format('Y-m-d H:i') ?? 'بدون انقضا' }}</span></td><td>{{ $token->last_used_at?->format('Y-m-d H:i:s') ?? 'هنوز استفاده نشده' }}</td><td>@if(!$token->revoked_at)<form method="POST" action="{{ route('admin.ai-connector.tokens.revoke', $token) }}" data-confirm="این توکن فوراً باطل شود؟" data-confirm-title="ابطال توکن" data-confirm-icon="warning">@csrf @method('DELETE')<button class="ai-btn ai-btn-danger" type="submit">ابطال</button></form>@else — @endif</td></tr>
     @empty<tr><td colspan="6">هنوز توکنی صادر نشده است.</td></tr>@endforelse
     </tbody></table></div>
     {{ $tokens->links() }}
@@ -64,7 +64,7 @@
         @if($action->status === 'pending')
           <div class="ai-actions">
             <form method="POST" action="{{ route('admin.ai-connector.actions.approve', $action) }}">@csrf<label class="ai-check"><input type="checkbox" name="confirm_execution" value="1" required> اجرای این عملیات را تأیید می‌کنم</label><button class="ai-btn" type="submit">تأیید و اجرا</button></form>
-            <form method="POST" action="{{ route('admin.ai-connector.actions.reject', $action) }}">@csrf @method('DELETE')<button class="ai-btn ai-btn-danger" type="submit">رد درخواست</button></form>
+            <form method="POST" action="{{ route('admin.ai-connector.actions.reject', $action) }}" data-confirm="درخواست عملیات رد شود؟" data-confirm-title="رد درخواست" data-confirm-icon="warning">@csrf @method('DELETE')<button class="ai-btn ai-btn-danger" type="submit">رد درخواست</button></form>
           </div>
         @elseif($action->result)
           <details><summary>مشاهده نتیجه</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere">{{ json_encode($action->result, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE) }}</pre></details>
