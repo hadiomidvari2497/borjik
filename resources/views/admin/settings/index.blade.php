@@ -2,7 +2,7 @@
 @section('title', 'تنظیمات سایت')
 @section('content')
 <div class="card">
-  <div class="page-h"><h2>تنظیمات کلی سایت</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn secondary" href="{{ route('admin.marketing-content.edit') }}">محتوای صفحهٔ اصلی</a><a class="btn secondary" href="{{ route('admin.articles.index') }}">مدیریت مقالات</a></div></div>
+  <div class="page-h"><h2>تنظیمات کلی سایت</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn secondary" href="{{ route('admin.seo.index') }}">مرکز سئو</a><a class="btn secondary" href="{{ route('admin.marketing-content.edit') }}">محتوای صفحهٔ اصلی</a><a class="btn secondary" href="{{ route('admin.articles.index') }}">مدیریت مقالات</a></div></div>
   <form method="POST" action="{{ route('admin.settings.update') }}" style="margin-top:12px">
     @csrf @method('PUT')
 
