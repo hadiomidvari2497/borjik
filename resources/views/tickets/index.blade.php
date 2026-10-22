@@ -17,7 +17,7 @@
     <div class="task-stat"><b>{{ \App\Support\Fa::num($stats['done']) }}</b><span>انجام‌شده یا بسته</span></div>
   </section>
   <section class="card" style="padding:0;overflow:hidden">
-    <form class="task-filters" method="GET" action="{{ route('tickets.index') }}">
+    <form class="task-filters" method="GET" action="{{ route('tickets.index') }}" data-live-filter>
       <div><label for="task-q">جست‌وجو</label><input id="task-q" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="عنوان، شماره، شرح یا محل"></div>
       <div><label for="task-status">وضعیت</label><select id="task-status" name="status"><option value="">همه وضعیت‌ها</option>@foreach($statuses as $key=>$label)<option value="{{ $key }}" @selected(($filters['status'] ?? '')===$key)>{{ $label }}</option>@endforeach</select></div>
       <div><label for="task-priority">اولویت</label><select id="task-priority" name="priority"><option value="">همه اولویت‌ها</option>@foreach($priorities as $key=>$label)<option value="{{ $key }}" @selected(($filters['priority'] ?? '')===$key)>{{ $label }}</option>@endforeach</select></div>
