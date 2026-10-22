@@ -112,7 +112,7 @@ class AiConnectorController extends Controller
         $exit = Artisan::call('borjik:health-check');
         $output = mb_substr(trim(Artisan::output()), 0, 1500);
         if ($exit !== 0) {
-            throw new \\RuntimeException('بررسی سلامت با کد خطا پایان یافت: '.$output);
+            throw new \RuntimeException('بررسی سلامت با کد خطا پایان یافت: '.$output);
         }
 
         return ['exit_code' => $exit, 'output' => $output];
