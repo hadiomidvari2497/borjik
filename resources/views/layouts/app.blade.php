@@ -78,7 +78,7 @@
   <div class="scrim" id="scrim"></div>
 
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">ص</div><div><b>صابخونه</b><span>سامانه مدیریت ساختمان</span></div></div>
+    <div class="brand"><div class="logo"><img src="{{ asset('images/sabkhoneh-mark-white.svg') }}" alt="" width="34" height="34"></div><div><b>صابخونه</b><span>سامانه مدیریت ساختمان</span></div></div>
 
     <div class="sw" id="sw">
       <button type="button" id="swb" aria-haspopup="true" aria-expanded="false">

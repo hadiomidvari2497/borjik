@@ -28,7 +28,7 @@
 @if(session('error'))<div data-borjik-flash="error" hidden>{{ session('error') }}</div>@endif
 <div class="shell">
   <aside class="brand-panel">
-    <div class="bp-top"><div class="logo">ص</div><b>صابخونه</b></div>
+    <div class="bp-top"><div class="logo"><img src="{{ asset('images/sabkhoneh-mark-white.svg') }}" alt="" width="40" height="40"><b>صابخونه</b></div>
     <div class="bp-mid">
       <span class="badge-admin">ویژه‌ی مدیران سامانه</span>
       <h2>پنل مدیریت سیستم</h2>
