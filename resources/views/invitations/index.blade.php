@@ -12,7 +12,7 @@
     <div class="empty" style="padding:34px 16px">
       <h3 style="margin:0 0 8px;color:var(--text)">دعوت‌نامه‌ی فعالی ندارید</h3>
       <p style="margin:0 0 18px;color:var(--muted)">اگر مدیری شما را به ساختمانی دعوت کند، دعوت‌نامه در این صفحه نمایش داده می‌شود.</p>
-      <a class="btn" href="{{ route('dashboard') }}">بازگشت به برجیک</a>
+      <a class="btn" href="{{ route('dashboard') }}">بازگشت به صابخونه</a>
     </div>
   @else
     <div style="display:grid;gap:14px;margin-top:18px">

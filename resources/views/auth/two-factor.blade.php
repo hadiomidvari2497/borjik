@@ -1,5 +1,5 @@
 @extends('layouts.guest')
-@section('title', 'تأیید دومرحله‌ای | برجیک')
+@section('title', 'تأیید دومرحله‌ای | صابخونه')
 @section('content')
 @if($mode === 'challenge')
   <h1 class="h1">تأیید دومرحله‌ای</h1>

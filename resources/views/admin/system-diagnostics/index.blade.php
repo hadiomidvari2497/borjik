@@ -142,7 +142,7 @@
     const lines = Array.from(document.querySelectorAll('[data-check-name]')).map((item) =>
       item.dataset.checkName + ' — ' + (item.dataset.checkStatus === 'ok' ? 'سالم' : 'نیازمند بررسی') + '\n' + item.dataset.checkDetail + '\n' + item.dataset.checkMessage
     );
-    copyText('گزارش سلامت برجیک\n' + lines.join('\n\n'));
+    copyText('گزارش سلامت صابخونه\n' + lines.join('\n\n'));
   });
   document.querySelectorAll('[data-copy-details]').forEach(function (button) {
     button.addEventListener('click', function () {

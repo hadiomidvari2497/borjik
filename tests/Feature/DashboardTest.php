@@ -56,8 +56,8 @@ class DashboardTest extends TestCase
     {
         $this->get('/')->assertOk()
             ->assertSeeText('مدیریت ساختمان، با آرامش بیشتر')
-            ->assertSee('امکانات برجیک')
-            ->assertSee('درباره برجیک')
+            ->assertSee('امکانات صابخونه')
+            ->assertSee('درباره صابخونه')
             ->assertSee('مقالات')
             ->assertSee('تبلیغات')
             ->assertSee('همکاران ما')
@@ -128,7 +128,7 @@ class DashboardTest extends TestCase
         $newcomer = $this->user('09120000006', 'tenant');
 
         $this->actingAs($newcomer)->get(route('dashboard'))->assertOk()
-            ->assertSee('امکانات برجیک')
+            ->assertSee('امکانات صابخونه')
             ->assertSee('تهیه‌ی اشتراک')
             ->assertSee('محاسبه شارژ'); // آیتم قفل‌شده‌ی منوی پیش‌نمایش
     }

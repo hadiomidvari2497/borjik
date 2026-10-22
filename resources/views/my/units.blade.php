@@ -130,7 +130,7 @@
   <section class="mui-hero">
     <div class="mui-hero-grid">
       <div>
-        <div class="mui-eyebrow"><span class="mui-live-dot"></span> فضای شخصی شما در برجیک</div>
+        <div class="mui-eyebrow"><span class="mui-live-dot"></span> فضای شخصی شما در صابخونه</div>
         <h2>خانه‌ات، یک نگاه تا مدیریت. <span style="color:#a8e4c9">✦</span></h2>
         <p>اطلاعات واحد، وضعیت شارژ، اعضای ساکن و امکانات اختصاصی را یک‌جا ببین؛ شفاف، مرتب و همیشه در دسترس.</p>
         <div class="mui-hero-actions">

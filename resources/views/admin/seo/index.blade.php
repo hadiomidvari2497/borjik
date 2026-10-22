@@ -3,7 +3,7 @@
 @section('content')
 <div class="card">
   <div class="page-h"><h2>مرکز سئو و آمادگی انتشار</h2><a class="btn secondary" href="{{ route('admin.settings.edit') }}">تنظیمات سایت</a></div>
-  <p style="color:var(--muted);line-height:1.9">این بخش تنظیمات پایهٔ سئوی صفحات عمومی برجیک را مدیریت می‌کند. تا زمانی که دامنهٔ واقعی و HTTPS آماده نشده‌اند، ایندکس عمومی را فعال نکن.</p>
+  <p style="color:var(--muted);line-height:1.9">این بخش تنظیمات پایهٔ سئوی صفحات عمومی صابخونه را مدیریت می‌کند. تا زمانی که دامنهٔ واقعی و HTTPS آماده نشده‌اند، ایندکس عمومی را فعال نکن.</p>
   <div class="fgrid" style="margin:18px 0">
     <div class="card"><strong>دامنهٔ عمومی</strong><p style="margin-top:8px;overflow-wrap:anywhere">{{ $configuredUrl }}</p><span class="badge {{ $isPublicUrl ? 'success' : 'warning' }}">{{ $isPublicUrl ? 'آدرس عمومی شناسایی شد' : 'هنوز دامنهٔ عمومی تنظیم نشده' }}</span></div>
     <div class="card"><strong>مقالات منتشرشده</strong><p style="font-size:28px;font-weight:800;margin-top:8px">{{ \App\Support\Fa::num($publishedArticles) }}</p><small style="color:var(--muted)">مقاله در نقشهٔ سایت عمومی</small></div>

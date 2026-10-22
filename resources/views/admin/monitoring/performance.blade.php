@@ -19,7 +19,7 @@
 :root[data-theme="dark"] .pm-fail{background:rgba(224,69,58,.18);color:#ffaaa3}
 </style>
 <div class="card">
-  <div class="pm-head"><div><h2 style="margin:0">پایش عملکرد برجیک</h2><p class="pm-muted">خط مبنای دیتابیس، کش، خواندن/نوشتن فایل و منابع قابل‌مشاهده از PHP؛ این صفحه فعلاً ابزار اندازه‌گیری است، نه ادعای بهینه‌سازی.</p></div>
+  <div class="pm-head"><div><h2 style="margin:0">پایش عملکرد صابخونه</h2><p class="pm-muted">خط مبنای دیتابیس، کش، خواندن/نوشتن فایل و منابع قابل‌مشاهده از PHP؛ این صفحه فعلاً ابزار اندازه‌گیری است، نه ادعای بهینه‌سازی.</p></div>
     <form method="POST" action="{{ route('admin.monitoring.performance.sample') }}">@csrf<button class="btn btn-primary" type="submit">اندازه‌گیری همین حالا</button></form>
   </div>
   <p class="pm-muted">آخرین نمونه: {{ $latest ? $F::date($latest->sampled_at, 'j F Y - H:i:s') : 'هنوز نمونه‌ای ثبت نشده' }} · نمونه‌های ۲۴ ساعت اخیر: {{ $F::num($sampleCount) }} · میانگین فقط از نمونه‌های دارای عدد محاسبه می‌شود.</p>

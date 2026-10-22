@@ -70,7 +70,7 @@
 
 <section class="card" style="padding:18px;margin:18px 0">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-    <div><h2 style="font-size:16px;font-weight:800;margin:0 0 4px">نبض عملیاتی سامانه</h2><div style="font-size:12px;color:var(--muted,#64748b)">خلاصه‌ای زنده از همان لاگ‌های بکاپ، سلامت و خطای موجود در برجیک</div></div>
+    <div><h2 style="font-size:16px;font-weight:800;margin:0 0 4px">نبض عملیاتی سامانه</h2><div style="font-size:12px;color:var(--muted,#64748b)">خلاصه‌ای زنده از همان لاگ‌های بکاپ، سلامت و خطای موجود در صابخونه</div></div>
     @if($adm->hasPermission('site.settings'))<a href="{{ route('admin.operations.index') }}" style="font-size:12px;text-decoration:none;font-weight:750">مرکز عملیات <span aria-hidden="true">←</span></a>@endif
   </div>
   <div class="ops-pulse">

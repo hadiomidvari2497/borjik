@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#2a9b8f">
 <meta name="color-scheme" content="light">
-<title>@yield('title', 'برجیک')</title>
+<title>@yield('title', 'صابخونه')</title>
 <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
@@ -24,7 +24,7 @@
 @if($errors->has('general'))<div data-borjik-flash="error" hidden>{{ $errors->first('general') }}</div>@endif
 <div class="shell">
   <aside class="brand-panel">
-    <div class="bp-top"><div class="logo">ب</div><b>برجیک</b></div>
+    <div class="bp-top"><div class="logo">ص</div><b>صابخونه</b></div>
     <div class="bp-mid">
       <h2>مدیریت ساختمان،<br>ساده و شفاف</h2>
       <p>شارژ، پرداخت، درخواست‌ها و اطلاع‌رسانی ساختمان شما در یک سامانه‌ی فارسی.</p>
@@ -34,7 +34,7 @@
         <li><i>✓</i><div><b>برای مدیران و ساکنین</b><span>هر کس فقط چیزی را می‌بیند که به او مربوط است</span></div></li>
       </ul>
     </div>
-    <div class="bp-foot">© برجیک — سامانه‌ی مدیریت ساختمان</div>
+    <div class="bp-foot">© صابخونه — سامانه‌ی مدیریت ساختمان</div>
   </aside>
 
   <main class="form-panel">

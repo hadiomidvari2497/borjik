@@ -39,7 +39,7 @@
   <section class="req-hero">
     <div class="req-hero-inner">
       <div>
-        <div class="req-kicker">BORJIK · REQUEST CENTER</div>
+        <div class="req-kicker">SABKHONEH · REQUEST CENTER</div>
         <h2>{{ $canManage ? 'همه‌چیز زیر نظر شماست.' : 'درخواست‌هایی که منتظر رسیدگی شما هستند.' }}</h2>
         <p>{{ $canManage ? 'درخواست‌های ساکنین را یک‌جا ببینید، مسئول رسیدگی را مشخص کنید و روند انجام کار را پیگیری کنید.' : 'درخواست را باز کنید، جزئیات و گفت‌وگو را ببینید و اگر هنوز مسئول ندارد، رسیدگی به آن را بپذیرید.' }}</p>
       </div>

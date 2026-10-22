@@ -10,11 +10,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="برجیک">
+<meta name="apple-mobile-web-app-title" content="صابخونه">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png">
 <link rel="apple-touch-icon" href="/pwa/icon-192.png">
-<title>@yield('title', 'داشبورد') | برجیک</title>
+<title>@yield('title', 'داشبورد') | صابخونه</title>
 <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/jdate.css') }}">
@@ -78,7 +78,7 @@
   <div class="scrim" id="scrim"></div>
 
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">ب</div><div><b>برجیک</b><span>سامانه مدیریت ساختمان</span></div></div>
+    <div class="brand"><div class="logo">ص</div><div><b>صابخونه</b><span>سامانه مدیریت ساختمان</span></div></div>
 
     <div class="sw" id="sw">
       <button type="button" id="swb" aria-haspopup="true" aria-expanded="false">
@@ -146,7 +146,7 @@
         <section class="panel workspace-panel">
           <header class="workspace-hero" aria-label="معرفی بخش">
             <div class="workspace-hero-copy">
-              <div class="workspace-hero-kicker">برجیک <span aria-hidden="true">·</span> مدیریت هوشمند ساختمان</div>
+              <div class="workspace-hero-kicker">صابخونه <span aria-hidden="true">·</span> مدیریت هوشمند ساختمان</div>
               <h2>@yield('title', 'فضای کاری')</h2>
               <p>
                 @if(request()->routeIs('buildings.*', 'building.*'))

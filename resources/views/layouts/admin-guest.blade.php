@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#143a37">
 <meta name="color-scheme" content="light">
-<title>@yield('title', 'پنل مدیریت سیستم') | برجیک</title>
+<title>@yield('title', 'پنل مدیریت سیستم') | صابخونه</title>
 <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
@@ -28,18 +28,18 @@
 @if(session('error'))<div data-borjik-flash="error" hidden>{{ session('error') }}</div>@endif
 <div class="shell">
   <aside class="brand-panel">
-    <div class="bp-top"><div class="logo">ب</div><b>برجیک</b></div>
+    <div class="bp-top"><div class="logo">ص</div><b>صابخونه</b></div>
     <div class="bp-mid">
       <span class="badge-admin">ویژه‌ی مدیران سامانه</span>
       <h2>پنل مدیریت سیستم</h2>
-      <p>مدیریت سراسری سامانه‌ی برجیک؛ جدا از پنل ساختمان‌ها و فقط برای کاربران ادمین.</p>
+      <p>مدیریت سراسری سامانه‌ی صابخونه؛ جدا از پنل ساختمان‌ها و فقط برای کاربران ادمین.</p>
       <ul class="bp-list">
         <li><i>✓</i><div><b>اشتراک و تعرفه‌ها</b><span>پلن‌ها، قیمت و اشتراک کاربران</span></div></li>
         <li><i>✓</i><div><b>پیامک و تنظیمات سایت</b><span>روش‌های ورود، پنل پیامکی و اطلاعات پشتیبانی</span></div></li>
         <li><i>✓</i><div><b>نظارت و دسترسی‌ها</b><span>کاربران ادمین، نقش‌ها و مجوزها</span></div></li>
       </ul>
     </div>
-    <div class="bp-foot">© برجیک — پنل مدیریت سیستم</div>
+    <div class="bp-foot">© صابخونه — پنل مدیریت سیستم</div>
   </aside>
 
   <main class="form-panel">

@@ -1,5 +1,5 @@
 @extends('layouts.guest')
-@section('title', 'ورود | برجیک')
+@section('title', 'ورود | صابخونه')
 @section('content')
 @if($step === 'code')
   <h1 class="h1">کد تأیید را وارد کنید</h1>
@@ -20,7 +20,7 @@
   </div>
   @error('mobile')<div class="alert err" style="margin-top:14px">{{ $message }}</div>@enderror
 @else
-  <h1 class="h1">ورود به برجیک</h1>
+  <h1 class="h1">ورود به صابخونه</h1>
   @if($otpEnabled)
   <p class="lead">با شماره‌ی موبایل وارد شوید یا ثبت‌نام کنید؛ نیازی به رمز عبور نیست.</p>
   @else
@@ -63,6 +63,6 @@
   </form>
   @endif
 
-  <p class="fine">با ورود، قوانین و حریم خصوصی برجیک را می‌پذیرید.</p>
+  <p class="fine">با ورود، قوانین و حریم خصوصی صابخونه را می‌پذیرید.</p>
 @endif
 @endsection

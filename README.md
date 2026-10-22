@@ -1,4 +1,4 @@
-# برجیک (Borjik)
+# صابخونه (Sabkhoneh)
 
 سامانه‌ی مدیریت ساختمان به زبان فارسی — مبتنی بر **Laravel 12** و **PHP 8.2+**.
 
@@ -110,7 +110,7 @@ php artisan key:generate
 3. فایل `.env` را با Notepad یا VS Code باز کنید و این مقادیر را بگذارید:
 
 ```env
-APP_NAME=برجیک
+APP_NAME=صابخونه
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
@@ -443,7 +443,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
   - برای موجودیت جدید: `use Auditable;` در مدل + برچسب فارسی در `config/audit.php`؛ ستون‌های اسرار/حجیم: `protected array $auditExclude = [...]`
   - فقط تغییرِ انجام‌شده از طریق مدل ثبت می‌شود؛ به‌جای `Model::where()->update()/delete()` از `->get()->each(fn ($m) => $m->update(...))` استفاده کنید
 - زمان‌بندی (Scheduler): `rent:issue-invoices` (صدور خودکار اجاره‌ی ماهانه، ۰۶:۰۰ UTC) و `charges:remind-expenses` هر روز اجرا می‌شوند؛ به شرط اینکه هر دقیقه `php artisan schedule:run` اجرا شود:
-  - لینوکس (cron): `* * * * * cd /مسیر/برجیک && php artisan schedule:run >> /dev/null 2>&1`
+  - لینوکس (cron): `* * * * * cd /مسیر/صابخونه && php artisan schedule:run >> /dev/null 2>&1`
   - ویندوز/XAMPP (Task Scheduler، تکرار هر ۱ دقیقه): `C:\xampp\php\php.exe C:\xampp\htdocs\borjik\artisan schedule:run`
   - اجرای دستی و تکرارناپذیر: `php artisan rent:issue-invoices` — لیست زمان‌بندی‌ها: `php artisan schedule:list`
   - اجاره‌ی ماهانه هر ماه شمسی در همان روز ماهِ تاریخ عقد صادر می‌شود (نخستین بار هنگام ثبت قرارداد)، تا قبل از تاریخ پایان؛ مهلت پرداخت = «مهلت پرداخت» تنظیمات شارژ؛ قرارداد با تاریخ عقد گذشته صورت‌حساب عقب‌افتاده نمی‌سازد
@@ -453,6 +453,6 @@ GitHub Actions (`.github/workflows/ci.yml`):
 
 ## لایسنس
 
-اسکلت Laravel تحت [MIT](https://opensource.org/licenses/MIT). منطق کسب‌وکار برجیک متعلق به مالک پروژه است.
+اسکلت Laravel تحت [MIT](https://opensource.org/licenses/MIT). منطق کسب‌وکار صابخونه متعلق به مالک پروژه است.
 
 **ریپو:** [github.com/hadiomidvari2497/borjik](https://github.com/hadiomidvari2497/borjik)

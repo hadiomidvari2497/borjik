@@ -1,5 +1,5 @@
 @extends('layouts.guest')
-@section('title', 'دعوت به ساختمان | برجیک')
+@section('title', 'دعوت به ساختمان | صابخونه')
 @section('content')
 <div class="invite-page">
   <div class="invite-mark" aria-hidden="true">ب</div>
