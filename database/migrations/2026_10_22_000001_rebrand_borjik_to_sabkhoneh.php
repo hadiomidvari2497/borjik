@@ -26,6 +26,12 @@ return new class extends Migration
             }
         }
 
+        if (Schema::hasTable('sms_templates') && Schema::hasColumn('sms_templates', 'body')) {
+            DB::table('sms_templates')
+                ->where('body', 'like', '%برجیک%')
+                ->update(['body' => DB::raw("REPLACE(body, 'برجیک', 'صابخونه')")]);
+        }
+
         if (Schema::hasTable('articles')) {
             $columns = array_values(array_filter(
                 ['title', 'excerpt', 'body'],
