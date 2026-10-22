@@ -325,6 +325,17 @@
     load(next.href, true);
   });
 
+  const searchTimers = new WeakMap();
+  document.addEventListener('input', event => {
+    const field = event.target;
+    if (!(field instanceof HTMLInputElement) || !field.form?.matches('form[data-live-filter]') ||
+        !['text','search'].includes(field.type)) return;
+    clearTimeout(searchTimers.get(field));
+    searchTimers.set(field, window.setTimeout(() => {
+      if (field.isConnected && field.form) field.form.requestSubmit();
+    }, 350));
+  });
+
   document.addEventListener('change', event => {
     const control = event.target;
     if (!(control instanceof HTMLSelectElement) || !control.closest('form[data-live-filter]')) return;
