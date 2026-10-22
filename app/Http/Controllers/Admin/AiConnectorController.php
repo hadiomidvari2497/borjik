@@ -19,7 +19,7 @@ class AiConnectorController extends Controller
     public function index()
     {
         return view('admin.ai-connector.index', [
-            'tokens' => AiAccessToken::query()->with('unused')->orderByDesc('id')->paginate(15),
+            'tokens' => AiAccessToken::query()->orderByDesc('id')->paginate(15),
             'actions' => AiActionRequest::query()->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")->orderByDesc('id')->paginate(15, ['*'], 'actions_page'),
             'abilities' => self::ABILITIES,
         ]);
