@@ -82,4 +82,48 @@ class AiConnectorTest extends TestCase
 
         $this->withToken($plain)->getJson('/api/ai/v1/overview')->assertUnauthorized();
     }
+
+    public function test_admin_can_issue_a_token_that_is_only_stored_as_a_hash(): void
+    {
+        $admin = AdminUser::query()->create([
+            'username' => 'ai-token-owner',
+            'password' => 'secret-pass-1',
+            'status' => 'active',
+            'is_super' => true,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->post(route('admin.ai-connector.tokens.store'), [
+            'name' => 'Test integration',
+            'abilities' => ['read:overview'],
+            'expires_in_days' => 30,
+        ]);
+
+        $response->assertRedirect(route('admin.ai-connector.index'));
+        $plain = session('issued_token');
+        $this->assertIsString($plain);
+        $this->assertStringStartsWith('bj_ai_', $plain);
+        $this->assertDatabaseHas('ai_access_tokens', [
+            'name' => 'Test integration',
+            'token_hash' => hash('sha256', $plain),
+        ]);
+        $this->assertDatabaseMissing('ai_access_tokens', ['token_hash' => $plain]);
+    }
+
+    public function test_admin_can_revoke_a_token_and_it_stops_working(): void
+    {
+        $plain = $this->token();
+        $token = AiAccessToken::query()->firstOrFail();
+        $admin = AdminUser::query()->create([
+            'username' => 'ai-token-revoker',
+            'password' => 'secret-pass-1',
+            'status' => 'active',
+            'is_super' => true,
+        ]);
+
+        $this->actingAs($admin, 'admin')
+            ->delete(route('admin.ai-connector.tokens.revoke', $token))
+            ->assertRedirect(route('admin.ai-connector.index'));
+
+        $this->withToken($plain)->getJson('/api/ai/v1/overview')->assertUnauthorized();
+    }
 }
