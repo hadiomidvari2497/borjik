@@ -246,3 +246,4 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 @keyframes bSelectIn{from{opacity:0;transform:translateY(-3px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:600px){.b-select-trigger{min-height:44px}.b-select-menu{max-height:min(65vh,340px);border-radius:13px;padding:8px}}
 @media(prefers-reduced-motion:reduce){.b-select-trigger,.b-select-arrow{transition:none}.b-select-menu{animation:none}}
+.logo.logo-img{background:#fff;padding:5px;overflow:hidden;font-size:0}.logo.logo-img img{display:block;width:100%;height:100%;object-fit:contain}

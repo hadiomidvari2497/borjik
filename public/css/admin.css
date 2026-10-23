@@ -92,3 +92,5 @@ body.adm .out:hover{background:rgba(244,104,103,.14);border-color:rgba(255,153,1
 body.adm .side .nav a:focus-visible,body.adm .side .out:focus-visible{outline:2px solid #7de3d2;outline-offset:2px}
 @media(max-width:860px){body.adm .side{padding-inline:12px}body.adm .side-search{min-height:44px}body.adm .nav a{min-height:44px}}
 @media(prefers-reduced-motion:reduce){body.adm .nav a,body.adm .nav a svg.i,body.adm .side-search,body.adm .out{transition:none}}
+.logo.logo-img{background:#fff;padding:5px;overflow:hidden;font-size:0}.logo.logo-img img{display:block;width:100%;height:100%;object-fit:contain}
+body.adm .side .logo.logo-img{background:#fff;border-color:rgba(255,255,255,.5)}

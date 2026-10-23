@@ -12,8 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="صابخونه">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png">
-<link rel="apple-touch-icon" href="/pwa/icon-192.png">
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
 <title>@yield('title', 'داشبورد') | صابخونه</title>
 <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
@@ -78,7 +77,7 @@
   <div class="scrim" id="scrim"></div>
 
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">ص</div><div><b>صابخونه</b><span>سامانه مدیریت ساختمان</span></div></div>
+    <div class="brand"><div class="logo logo-img"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" width="40" height="40"></div><div><b>صابخونه</b><span>سامانه مدیریت ساختمان</span></div></div>
 
     <div class="sw" id="sw">
       <button type="button" id="swb" aria-haspopup="true" aria-expanded="false">
