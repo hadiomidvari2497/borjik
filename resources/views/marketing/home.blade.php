@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b2434">
@@ -423,7 +424,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 @endphp
 <header class="site-header">
     <div class="wrap nav">
-        <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark">ص</span><span>صابخونه</span></a>
+        <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
             <a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
@@ -532,7 +533,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
 <footer>
     <div class="wrap"><div class="footer-main">
-        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark">ص</span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
+        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
         <nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav>
     </div><div class="footer-bottom"><span>© {{ date('Y') }} صابخونه — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>

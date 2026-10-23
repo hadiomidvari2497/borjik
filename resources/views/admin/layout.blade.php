@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -36,7 +37,7 @@
   <div class="scrim" id="scrim"></div>
 
   <aside class="side" id="side">
-    <div class="brand"><div class="logo">ص</div><div class="brand-copy"><b>صابخونه</b><span>پنل مدیریت سیستم</span></div><span class="brand-signal" aria-label="پنل فعال"></span></div>
+    <div class="brand"><div class="logo logo-img"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" width="40" height="40"></div><div class="brand-copy"><b>صابخونه</b><span>پنل مدیریت سیستم</span></div><span class="brand-signal" aria-label="پنل فعال"></span></div>
 
     <label class="side-search" for="admin-menu-search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><input id="admin-menu-search" type="search" autocomplete="off" placeholder="جست‌وجو در منو..." aria-label="جست‌وجو در منوی مدیریت"><kbd>/</kbd></label>
     <div class="side-caption"><span>دسترسی‌ها</span><span class="side-caption-line"></span></div>

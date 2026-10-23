@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png"><link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -24,7 +25,7 @@
 @if($errors->has('general'))<div data-borjik-flash="error" hidden>{{ $errors->first('general') }}</div>@endif
 <div class="shell">
   <aside class="brand-panel">
-    <div class="bp-top"><div class="logo">ص</div><b>صابخونه</b></div>
+    <div class="bp-top"><div class="logo logo-img"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" width="40" height="40"></div><b>صابخونه</b></div>
     <div class="bp-mid">
       <h2>مدیریت ساختمان،<br>ساده و شفاف</h2>
       <p>شارژ، پرداخت، درخواست‌ها و اطلاع‌رسانی ساختمان شما در یک سامانه‌ی فارسی.</p>

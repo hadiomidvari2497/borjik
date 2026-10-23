@@ -95,3 +95,4 @@ details.more[open]{padding-bottom:12px}
 .invite-page .fine{line-height:1.9}
 .invite-page .btn{min-height:50px;text-align:center;text-decoration:none}
 @media(max-width:480px){.invite-mark{width:42px;height:42px;border-radius:13px;margin-bottom:14px}.invite-page .h1{font-size:20px}.invite-page .invite-card{padding:14px}}
+.logo.logo-img{background:#fff;padding:5px;overflow:hidden;font-size:0}.logo.logo-img img{display:block;width:100%;height:100%;object-fit:contain}
