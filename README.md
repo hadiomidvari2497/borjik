@@ -106,7 +106,7 @@ php artisan key:generate
 ### مرحله ۵ — ساخت دیتابیس MySQL
 
 1. باز کردن [http://localhost/phpmyadmin](http://localhost/phpmyadmin)
-2. تب **Databases** → نام: `borjik` → Collation: `utf8mb4_unicode_ci` → Create
+2. تب **Databases** → نام: `sabkhoneh` → Collation: `utf8mb4_unicode_ci` → Create
 3. فایل `.env` را با Notepad یا VS Code باز کنید و این مقادیر را بگذارید:
 
 ```env
@@ -118,7 +118,7 @@ APP_URL=http://localhost:8000
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=borjik
+DB_DATABASE=sabkhoneh
 DB_USERNAME=root
 DB_PASSWORD=
 

@@ -40,7 +40,7 @@ class OperationsFeaturesTest extends TestCase {
   $this->assertDatabaseHas('treasury_transactions',['building_id'=>$this->building->id,'type'=>'expense','title'=>'تعمیر پمپ','amount'=>125000,'transaction_date'=>'2026-10-21 00:00:00']);
   $other=Building::create(['name'=>'ساختمان دیگر','code'=>'90992','created_by'=>$this->owner->id]);
   app(CurrentBuilding::class)->actingAs($other->id,function(){\App\Models\TreasuryTransaction::create(['type'=>'income','category'=>'سایر','title'=>'رکورد خصوصی','amount'=>1,'transaction_date'=>'2026-10-21','payment_method'=>'cash']);});
-  $this->open('get',route('treasury.index'))->assertOk()->assertSee('تعمیر پمپ')->assertDontSee('رکورد خصوصی');
+  $this->open('get',route('treasury.index',['year'=>1405,'month'=>7]))->assertOk()->assertSee('تعمیر پمپ')->assertDontSee('رکورد خصوصی');
  }
  public function test_tenants_cannot_open_management_modules(): void {
   $tenant=User::create(['mobile'=>'09120000992','first_name'=>'ساکن','last_name'=>'تست','status'=>'active','profile_completed_at'=>now()]);
