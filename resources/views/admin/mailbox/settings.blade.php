@@ -39,7 +39,7 @@
     <h2>صندوق‌های ثبت‌شده</h2>
     <div class="mail-table-wrap"><table class="mail-table"><thead><tr><th>آدرس</th><th>نام نمایشی</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>
     @forelse($accounts as $account)
-      <tr><td><strong>{{ $account->email }}</strong></td><td>{{ $account->display_name ?: '—' }}</td><td>{{ $account->is_active ? 'فعال' : 'غیرفعال' }}</td><td><div class="mail-actions"><span class="mail-hint">ورود با آدرس و رمز صندوق</span><a class="btn btn-outline-secondary" href="{{ route('admin.mailbox.index') }}">بازکردن صندوق</a><form method="POST" action="{{ route('admin.mailbox.accounts.destroy',$account) }}" data-confirm="حذف صندوق واقعی {{ $account->email }}؟ محتویات آن به پوشهٔ پشتیبان سرور منتقل می‌شود.">@csrf @method('DELETE')<button class="btn btn-outline-danger" type="submit">حذف صندوق</button></form></div></td></tr>
+      <tr><td><strong>{{ $account->email }}</strong></td><td>{{ $account->display_name ?: '—' }}</td><td>{{ $account->is_active ? 'فعال' : 'غیرفعال' }}</td><td><div class="mail-actions"><span class="mail-hint">ورود با آدرس و رمز صندوق</span><a class="btn btn-outline-secondary" href="{{ route('admin.mailbox.index') }}">رفتن به ورود صندوق</a><form method="POST" action="{{ route('admin.mailbox.accounts.destroy',$account) }}" data-confirm="حذف صندوق واقعی {{ $account->email }}؟ محتویات آن به پوشهٔ پشتیبان سرور منتقل می‌شود.">@csrf @method('DELETE')<button class="btn btn-outline-danger" type="submit">حذف صندوق</button></form></div></td></tr>
     @empty<tr><td colspan="4" style="padding:24px;text-align:center">هنوز صندوقی ثبت نشده است.</td></tr>@endforelse
     </tbody></table></div>
   </section>
