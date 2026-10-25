@@ -14,7 +14,6 @@
   <div class="card">
     <div class="page-h"><h2>{{ $provider ? 'ویرایش «'.$provider->name.'»' : 'اتصال جدید' }}</h2><a class="btn sec sm" href="{{ route('admin.sms.providers.index') }}">بازگشت</a></div>
 
-    @if(! $editing)
     <div class="fld" style="margin:6px 0 14px">
       <label for="preset">شروع سریع با نمونهٔ آماده</label>
       <select id="preset">
@@ -23,7 +22,6 @@
       </select>
       <div class="h" id="preset-note" style="line-height:1.8">با انتخاب نمونه، فرم زیر پر می‌شود؛ فقط کلید و شمارهٔ خط خودتان را وارد کنید. مشخصات همهٔ اپراتورها را می‌توانید خودتان هم بنویسید.</div>
     </div>
-    @endif
 
     <div class="fgrid">
       <div class="fld">
