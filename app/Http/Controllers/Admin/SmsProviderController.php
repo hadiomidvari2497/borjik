@@ -139,12 +139,15 @@ class SmsProviderController extends Controller
     /** انواع پیامک شناخته‌شده از قالب‌های پیش‌فرض و قالب‌های تعریف‌شده در پنل. */
     private function messageTypes(): array
     {
-        $types = collect(array_keys(config('sms.templates', [])))->merge(
-            \App\Models\SmsTemplate::query()->distinct()->pluck('key')
-        )->filter()->unique()->sort()->values();
+        $types = collect(array_keys(config('sms.templates', [])))
+            ->merge(\\App\\Models\\SmsTemplate::query()->distinct()->pluck('key'))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
-        return $types->mapWithKeys(fn ($key) => [$key => [
-            'label' => match ($key) {
+        return $types->mapWithKeys(function ($key): array {
+            $label = match ($key) {
                 'otp' => 'کد ورود',
                 'expense_reminder' => 'یادآوری ثبت هزینه',
                 'receipt_approved' => 'تأیید فیش پرداخت',
@@ -154,8 +157,10 @@ class SmsProviderController extends Controller
                 'task_created', 'task_assigned' => 'ارجاع تسک',
                 'task_status_changed' => 'تغییر وضعیت تسک',
                 default => str_replace('_', ' ', $key),
-            ],
-        ]])->all();
+            };
+
+            return [$key => ['label' => $label]];
+        })->all();
     }
 
     /** فقط یک اتصال پیش‌فرض می‌ماند. */
