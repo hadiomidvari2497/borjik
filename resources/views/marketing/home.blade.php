@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b2434">
+    <meta name="enamad" content="48504387">
     @php
         $seoBase = rtrim((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), '/');
         $seoScheme = strtolower((string) parse_url($seoBase, PHP_URL_SCHEME));
