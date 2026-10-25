@@ -25,14 +25,14 @@ class SmsSender
         ]);
 
         if (config('sms.queue', false)) {
-            SendSmsJob::dispatch($log->id, $mobile, $body);
+            SendSmsJob::dispatch($log->id, $mobile, $body, $key, $vars);
 
             return $log;
         }
 
         // ارسال هم‌زمان باعث می‌شود کارکرد ارسال به اجرای Queue Worker وابسته نباشد.
         try {
-            SendSmsJob::dispatchSync($log->id, $mobile, $body);
+            SendSmsJob::dispatchSync($log->id, $mobile, $body, $key, $vars);
         } catch (Throwable $e) {
             // خطا باید در آرشیو دیده شود، اما ارسال پیامک نباید کل درخواست برنامه را با 500 متوقف کند.
             $log->refresh();
