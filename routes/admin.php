@@ -134,8 +134,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             });
         });
 
-        Route::prefix('mailbox')->name('mailbox.')->middleware('admin.can:site.settings')->controller(MailboxController::class)->group(function () {
+        Route::prefix('mailbox')->name('mailbox.')->controller(MailboxController::class)->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::get('/settings', 'settings')->name('settings');
+            Route::put('/settings', 'updateSettings')->name('settings.update');
+            Route::post('/accounts', 'storeAccount')->middleware('throttle:8,1')->name('accounts.store');
+            Route::put('/accounts/{account}/assign', 'assignAccount')->whereNumber('account')->name('accounts.assign');
+            Route::delete('/accounts/{account}', 'destroyAccount')->whereNumber('account')->name('accounts.destroy');
+            Route::get('/compose', 'compose')->name('compose');
+            Route::post('/{account}/send', 'send')->whereNumber('account')->middleware('throttle:10,1')->name('send');
             Route::get('/{uid}', 'show')->whereNumber('uid')->name('show');
         });
 
