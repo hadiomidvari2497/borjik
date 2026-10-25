@@ -25,6 +25,8 @@ class SendSmsJob implements ShouldQueue
         private readonly int $logId,
         private readonly string $mobile,
         private readonly string $body,
+        private readonly ?string $templateKey = null,
+        private readonly array $templateVars = [],
     ) {
     }
 
@@ -35,7 +37,7 @@ class SendSmsJob implements ShouldQueue
         $label = method_exists($gateway, 'label') ? $gateway->label() : class_basename($gateway);
 
         try {
-            $ref = $gateway->send($this->mobile, $this->body);
+            $ref = $gateway->send($this->mobile, $this->body, $log->template_key ?: $this->templateKey, $this->templateVars);
             $log->update(['status' => 'sent', 'provider_ref' => $ref, 'gateway' => $label, 'error' => null, 'sent_at' => now()]);
         } catch (Throwable $e) {
             $log->update(['status' => 'failed', 'gateway' => $label, 'error' => Str::limit($e->getMessage(), 250, '…')]);
