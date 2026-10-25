@@ -25,9 +25,9 @@ class HttpSmsGateway implements SmsGateway
         return $this->provider->name;
     }
 
-    public function send(string $mobile, string $text): string
+    public function send(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): string
     {
-        return $this->sendWithResponse($mobile, $text)['ref'];
+        return $this->sendWithResponse($mobile, $text, $templateKey, $templateVars)['ref'];
     }
 
     /**
@@ -35,16 +35,28 @@ class HttpSmsGateway implements SmsGateway
      *
      * @return array{ref:string, status:int, body:string}
      */
-    public function sendWithResponse(string $mobile, string $text): array
+    public function sendWithResponse(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): array
     {
         $secrets = $this->provider->secretValues();
 
         try {
             $vars = $this->variables($mobile, $text);
+            $templateBodyId = trim((string) (($this->s['template_body_ids'] ?? [])[$templateKey ?? ''] ?? ''));
+            $bodyIdParams = [];
+            if ($templateBodyId !== '') {
+                $vars['body_id'] = $templateBodyId;
+                $values = array_values($templateVars);
+                if ($values === []) {
+                    $values = [$text];
+                }
+                foreach ($values as $index => $value) {
+                    $bodyIdParams['text['.$index.']'] = is_scalar($value) ? (string) $value : '';
+                }
+            }
             $url = SmsProviderConfig::render((string) $this->s['url'], $vars, 'url');
             $this->assertAllowedUrl($url);
 
-            $response = $this->request($url, $vars);
+            $response = $this->request($url, $vars, $bodyIdParams);
         } catch (SmsException $e) {
             throw new SmsException($this->mask($e->getMessage(), $secrets), 0, $e);
         } catch (Throwable $e) {
@@ -81,7 +93,7 @@ class HttpSmsGateway implements SmsGateway
         return $vars;
     }
 
-    private function request(string $url, array $vars)
+    private function request(string $url, array $vars, array $bodyIdParams = [])
     {
         $timeout = max(1, min(60, (int) $this->s['timeout']));
         $headers = [];
@@ -97,7 +109,7 @@ class HttpSmsGateway implements SmsGateway
         $body = (string) $this->s['body'];
 
         if (strtoupper((string) $this->s['method']) === 'GET') {
-            $query = $type === 'form' ? SmsProviderConfig::parseFormLines($body, $vars) : [];
+            $query = $type === 'form' ? array_merge(SmsProviderConfig::parseFormLines($body, $vars), $bodyIdParams) : [];
 
             // گزینهٔ query در Guzzle کوئری خود آدرس را حذف می‌کند؛ پس دستی به انتهای آدرس اضافه می‌کنیم.
             return $http->get($this->appendQuery($url, $query));
@@ -105,7 +117,7 @@ class HttpSmsGateway implements SmsGateway
 
         return match ($type) {
             'json' => $http->withBody(SmsProviderConfig::render($body, $vars, 'json'), 'application/json')->post($url),
-            'form' => $http->asForm()->post($url, SmsProviderConfig::parseFormLines($body, $vars)),
+            'form' => $http->asForm()->post($url, array_merge(SmsProviderConfig::parseFormLines($body, $vars), $bodyIdParams)),
             'raw' => $http->withBody(SmsProviderConfig::render($body, $vars, 'raw'), $this->contentType($headers))->post($url),
             default => $http->post($url),
         };
