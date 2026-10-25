@@ -45,13 +45,14 @@ class HttpSmsGateway implements SmsGateway
             $bodyIdParams = [];
             if ($templateBodyId !== '') {
                 $vars['body_id'] = $templateBodyId;
+                // SendByBaseNumber2 expects pattern arguments in one semicolon-separated text value.
                 $values = array_values($templateVars);
                 if ($values === []) {
                     $values = [$text];
                 }
-                foreach ($values as $index => $value) {
-                    $bodyIdParams['text['.$index.']'] = is_scalar($value) ? (string) $value : '';
-                }
+                $values = array_map(static fn ($value): string => is_scalar($value) ? (string) $value : '', $values);
+                $vars['pattern_args'] = implode(';', $values);
+                $bodyIdParams = ['text' => $vars['pattern_args'], 'bodyId' => $templateBodyId];
             }
             $url = SmsProviderConfig::render((string) $this->s['url'], $vars, 'url');
             $this->assertAllowedUrl($url);
@@ -68,6 +69,10 @@ class HttpSmsGateway implements SmsGateway
 
         if (! $response->successful()) {
             throw new SmsException("اپراتور خطا برگرداند (HTTP {$response->status()}): {$snippet}");
+        }
+
+        if ($templateBodyId !== '') {
+            $this->assertMeliPayamakPatternSuccess($body, $snippet);
         }
 
         $this->assertSuccessRule($response->json(), $body, $snippet);
@@ -147,6 +152,33 @@ class HttpSmsGateway implements SmsGateway
         }
 
         return 'text/plain';
+    }
+
+    /**
+     * الگوی ملی‌پیامک ممکن است حتی با HTTP 200 کد خطا برگرداند.
+     * شناسهٔ پیگیری موفق معمولاً عددی با بیش از ۱۵ رقم است؛ کدهای کوتاه/منفی خطا هستند.
+     */
+    private function assertMeliPayamakPatternSuccess(string $body, string $snippet): void
+    {
+        $value = trim(html_entity_decode(strip_tags($body), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+        if (preg_match('/^-?\\d+$/', $value) !== 1 || strlen(ltrim($value, '-')) > 15) {
+            return;
+        }
+
+        $messages = [
+            '-7' => 'خطای شماره فرستنده', '-6' => 'خطای داخلی اپراتور',
+            '-5' => 'متغیرهای الگو با قالب تأییدشده مطابقت ندارند',
+            '-4' => 'Body ID نامعتبر یا تأییدنشده است', '-3' => 'خط فرستنده تعریف نشده است',
+            '-2' => 'در هر درخواست فقط یک گیرنده مجاز است', '-1' => 'دسترسی وب‌سرویس غیرفعال است',
+            '0' => 'نام کاربری یا رمز عبور نادرست است', '2' => 'اعتبار حساب کافی نیست',
+            '6' => 'سامانه در حال به‌روزرسانی است', '7' => 'متن پیامک شامل عبارت فیلترشده است',
+            '10' => 'حساب کاربری فعال نیست', '11' => 'پیامک ارسال نشده است',
+            '12' => 'مدارک حساب کامل نیست', '16' => 'شماره گیرنده یافت نشد',
+            '17' => 'متن پیامک خالی است', '18' => 'شماره گیرنده نامعتبر است',
+            '19' => 'محدودیت زمانی ارسال رعایت نشده است',
+        ];
+        $message = $messages[$value] ?? 'کد پاسخ ناموفق از ملی‌پیامک';
+        throw new SmsException("ارسال الگوی ملی‌پیامک ناموفق بود ({$value}): {$message}. پاسخ: {$snippet}");
     }
 
     /** علاوه بر HTTP 2xx، در صورت تعریف، مقدار فیلد JSON یا وجود متن در پاسخ هم باید با انتظار بخواند. */
