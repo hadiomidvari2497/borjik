@@ -99,7 +99,7 @@ class MailboxController extends Controller
     {
         $this->requireSuperAdmin();
         $data = $request->validate([
-            'local_part' => ['required', 'string', 'max:64', 'regex:/^[a-zA-Z0-9._+-]+$/'],
+            'local_part' => ['required', 'string', 'max:64', 'regex:/^[a-zA-Z0-9](?:[a-zA-Z0-9._+-]{0,62}[a-zA-Z0-9])?$/'],
             'display_name' => ['nullable', 'string', 'max:120'],
             'password' => ['required', 'string', 'min:12', 'max:200'],
             'admin_user_id' => ['nullable', 'integer', 'exists:admin_users,id'],
@@ -164,7 +164,7 @@ class MailboxController extends Controller
             'mail.mailers.smtp.transport' => 'smtp',
             'mail.mailers.smtp.host' => $settings->smtp_host,
             'mail.mailers.smtp.port' => $settings->smtp_port,
-            'mail.mailers.smtp.encryption' => $settings->smtp_encryption,
+            'mail.mailers.smtp.scheme' => $settings->smtp_encryption === 'ssl' ? 'smtps' : 'smtp',
             'mail.mailers.smtp.username' => $account->email,
             'mail.mailers.smtp.password' => $account->password,
             'mail.mailers.smtp.timeout' => 15,
