@@ -32,7 +32,7 @@ class SmsProviderController extends Controller
 
     public function create()
     {
-        return view('admin.sms.providers.form', ['provider' => null, 'presets' => config('sms_presets'), 's' => (new SmsProvider)->settings()]);
+        return view('admin.sms.providers.form', ['provider' => null, 'presets' => config('sms_presets'), 's' => (new SmsProvider)->settings(), 'messageTypes' => $this->messageTypes()]);
     }
 
     public function store(Request $request)
@@ -54,7 +54,7 @@ class SmsProviderController extends Controller
     {
         $provider = SmsProvider::findOrFail($id);
 
-        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => config('sms_presets'), 's' => $provider->settings()]);
+        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => config('sms_presets'), 's' => $provider->settings(), 'messageTypes' => $this->messageTypes()]);
     }
 
     public function update(Request $request, int $id)
@@ -135,6 +135,29 @@ class SmsProviderController extends Controller
         }
     }
 
+
+    /** انواع پیامک شناخته‌شده از قالب‌های پیش‌فرض و قالب‌های تعریف‌شده در پنل. */
+    private function messageTypes(): array
+    {
+        $types = collect(array_keys(config('sms.templates', [])))->merge(
+            \App\Models\SmsTemplate::query()->distinct()->pluck('key')
+        )->filter()->unique()->sort()->values();
+
+        return $types->mapWithKeys(fn ($key) => [$key => [
+            'label' => match ($key) {
+                'otp' => 'کد ورود',
+                'expense_reminder' => 'یادآوری ثبت هزینه',
+                'receipt_approved' => 'تأیید فیش پرداخت',
+                'receipt_rejected' => 'رد فیش پرداخت',
+                'rent_invoice_issued' => 'صدور صورت‌حساب اجاره',
+                'invitation' => 'دعوت به ساختمان',
+                'task_created', 'task_assigned' => 'ارجاع تسک',
+                'task_status_changed' => 'تغییر وضعیت تسک',
+                default => str_replace('_', ' ', $key),
+            ],
+        ]])->all();
+    }
+
     /** فقط یک اتصال پیش‌فرض می‌ماند. */
     private function applyDefault(SmsProvider $provider, bool $wantDefault): void
     {
@@ -154,6 +177,8 @@ class SmsProviderController extends Controller
             'number_format' => ['required', Rule::in(['local', 'intl', 'plus'])],
             'body_type' => ['required', Rule::in(['none', 'json', 'form', 'raw'])],
             'body' => ['nullable', 'string', 'max:5000'],
+            'template_body_ids' => ['nullable', 'array', 'max:100'],
+            'template_body_ids.*' => ['nullable', 'string', 'max:40'],
             'headers' => ['nullable', 'array', 'max:15'],
             'headers.*.name' => ['nullable', 'string', 'max:60', 'regex:/^[A-Za-z0-9\-]+$/'],
             'headers.*.value' => ['nullable', 'string', 'max:500'],
@@ -197,6 +222,7 @@ class SmsProviderController extends Controller
         $config = [
             'method' => $r['method'], 'url' => trim($r['url']), 'number_format' => $r['number_format'], 'headers' => $headers,
             'body_type' => $r['body_type'], 'body' => (string) ($r['body'] ?? ''), 'params' => $params,
+            'template_body_ids' => collect($r['template_body_ids'] ?? [])->map(fn ($id) => trim((string) $id))->filter(fn ($id) => $id !== '')->all(),
             'success' => [
                 'json_path' => trim((string) ($r['success_json_path'] ?? '')),
                 'expected' => (string) ($r['success_expected'] ?? ''),
