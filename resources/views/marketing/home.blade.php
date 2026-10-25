@@ -429,7 +429,18 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <nav class="nav-links" aria-label="ناوبری اصلی">
             <a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
-        <div class="nav-actions"><a class="btn btn-ghost" href="#features">آشنایی با صابخونه</a><a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a></div>
+        <div class="nav-actions">
+            <a class="btn btn-ghost" href="#features">آشنایی با صابخونه</a>
+            @auth
+                <a class="btn btn-primary" href="{{ route('dashboard') }}">
+                    <span aria-hidden="true">👋</span>
+                    {{ trim((string) (auth()->user()->first_name ?? '')) !== '' ? 'سلام، '.auth()->user()->first_name : (auth()->user()->display_name ?: 'حساب کاربری') }}
+                    <span aria-hidden="true">←</span>
+                </a>
+            @else
+                <a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a>
+            @endauth
+        </div>
     </div>
 </header>
 
