@@ -193,7 +193,7 @@ class MailboxController extends Controller
             return null;
         }
         $account = new MailAccount();
-        $account->setRawAttributes(['email' => $credentials['email'], 'password' => $password, 'display_name' => $credentials['email'], 'is_active' => true]);
+        $account->forceFill(['email' => $credentials['email'], 'password' => $password, 'display_name' => $credentials['email'], 'is_active' => true]);
         return $account;
     }
 
