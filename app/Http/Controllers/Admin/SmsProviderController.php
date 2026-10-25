@@ -140,7 +140,7 @@ class SmsProviderController extends Controller
     private function messageTypes(): array
     {
         $types = collect(array_keys(config('sms.templates', [])))
-            ->merge(\\App\\Models\\SmsTemplate::query()->distinct()->pluck('key'))
+            ->merge(\App\Models\SmsTemplate::query()->distinct()->pluck('key'))
             ->filter()
             ->unique()
             ->sort()
