@@ -11,5 +11,12 @@ class MailboxRoutesTest extends TestCase
     {
         $this->assertTrue(Route::has('admin.mailbox.index'));
         $this->assertTrue(Route::has('admin.mailbox.show'));
+        $this->assertTrue(Route::has('admin.mailbox.settings'));
+        $this->assertTrue(Route::has('admin.mailbox.settings.update'));
+        $this->assertTrue(Route::has('admin.mailbox.accounts.store'));
+        $this->assertTrue(Route::has('admin.mailbox.accounts.assign'));
+        $this->assertTrue(Route::has('admin.mailbox.accounts.destroy'));
+        $this->assertTrue(Route::has('admin.mailbox.compose'));
+        $this->assertTrue(Route::has('admin.mailbox.send'));
     }
 }
