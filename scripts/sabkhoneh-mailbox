@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""Narrow root-owned Postfix/Dovecot mailbox provisioner. JSON input is read from stdin."""
+import fcntl
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+DOMAIN = "sabkhoneh.ir"
+POSTFIX_MAP = Path("/etc/postfix/vmailbox")
+DOVECOT_USERS = Path("/etc/dovecot/users")
+MAIL_ROOT = Path("/var/vmail") / DOMAIN
+BACKUP_ROOT = Path("/var/backups/sabkhoneh-mailboxes")
+LOCAL_RE = re.compile(r"^[a-zA-Z0-9._+-]{1,64}$")
+
+
+def atomic_write(path: Path, lines: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write("\n".join(lines).rstrip("\n") + "\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.chmod(tmp_name, 0o640)
+        os.replace(tmp_name, path)
+    finally:
+        if os.path.exists(tmp_name):
+            os.unlink(tmp_name)
+
+
+def main() -> int:
+    if os.geteuid() != 0:
+        print("must run as root", file=sys.stderr)
+        return 1
+    payload = json.load(sys.stdin)
+    action = payload.get("action")
+    email = str(payload.get("email", "")).lower()
+    if not email.endswith("@" + DOMAIN):
+        raise ValueError("only sabkhoneh.ir accounts are allowed")
+    local = email.split("@", 1)[0]
+    if not LOCAL_RE.fullmatch(local):
+        raise ValueError("invalid mailbox local part")
+    if not POSTFIX_MAP.is_file() or not DOVECOT_USERS.is_file():
+        raise RuntimeError("expected Postfix/Dovecot virtual mailbox files are missing")
+
+    lock_path = Path("/run/lock/sabkhoneh-mailbox.lock")
+    with lock_path.open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        postfix_lines = [x for x in POSTFIX_MAP.read_text().splitlines() if x.strip() and not x.lstrip().startswith("#")]
+        dovecot_lines = [x for x in DOVECOT_USERS.read_text().splitlines() if x.strip() and not x.lstrip().startswith("#")]
+        if action == "provision":
+            password = payload.get("password")
+            if not isinstance(password, str) or len(password) < 12 or "\n" in password or "\r" in password:
+                raise ValueError("password must contain at least 12 characters")
+            encoded = subprocess.run(["doveadm", "pw", "-s", "SHA512-CRYPT", "-p", password], check=True, text=True, capture_output=True).stdout.strip()
+            mailbox_path = f"{DOMAIN}/{local}/"
+            existing_map = any(line.split(None, 1)[0] == email for line in postfix_lines)
+            existing_user = any(line.split(":", 1)[0] == email for line in dovecot_lines)
+            map_lines = [line for line in postfix_lines if line.split(None, 1)[0] != email]
+            map_lines.append(f"{email} {mailbox_path}")
+            user_lines = [line for line in dovecot_lines if line.split(":", 1)[0] != email]
+            user_lines.append(f"{email}:{encoded}:5000:5000::{MAIL_ROOT / local}::")
+            folder = MAIL_ROOT / local
+            for child in ("cur", "new", "tmp"):
+                (folder / child).mkdir(parents=True, exist_ok=True)
+            subprocess.run(["chown", "-R", "vmail:vmail", str(folder)], check=True)
+            atomic_write(POSTFIX_MAP, map_lines)
+            atomic_write(DOVECOT_USERS, user_lines)
+            subprocess.run(["postmap", str(POSTFIX_MAP)], check=True)
+        elif action == "delete":
+            map_lines = [line for line in postfix_lines if line.split(None, 1)[0] != email]
+            user_lines = [line for line in dovecot_lines if line.split(":", 1)[0] != email]
+            folder = MAIL_ROOT / local
+            if folder.exists():
+                BACKUP_ROOT.mkdir(parents=True, exist_ok=True)
+                target = BACKUP_ROOT / f"{local}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+                shutil.move(str(folder), str(target))
+            atomic_write(POSTFIX_MAP, map_lines)
+            atomic_write(DOVECOT_USERS, user_lines)
+            subprocess.run(["postmap", str(POSTFIX_MAP)], check=True)
+        else:
+            raise ValueError("unsupported action")
+        subprocess.run(["systemctl", "reload", "postfix"], check=True)
+        subprocess.run(["systemctl", "reload", "dovecot"], check=True)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except Exception as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(1)
