@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MailAccount extends Model
 {
@@ -16,10 +15,6 @@ class MailAccount extends Model
         return ['password' => 'encrypted', 'is_active' => 'boolean'];
     }
 
-    public function adminUser(): BelongsTo
-    {
-        return $this->belongsTo(AdminUser::class, 'admin_user_id');
-    }
 
     public function localPart(): string
     {

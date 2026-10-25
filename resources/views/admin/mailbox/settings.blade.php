@@ -29,17 +29,17 @@
         <div class="mail-field"><label for="local_part">آدرس ایمیل (نام قبل از @)</label><div style="display:flex;align-items:center;gap:8px"><input id="local_part" class="form-control" name="local_part" placeholder="support" pattern="[a-zA-Z0-9._+-]+" maxlength="64" required><span>@sabkhoneh.ir</span></div></div>
         <div class="mail-field"><label for="display_name">نام نمایشی</label><input id="display_name" class="form-control" name="display_name" maxlength="120" placeholder="پشتیبانی صابخونه"></div>
         <div class="mail-field"><label for="password">رمز صندوق ایمیل</label><input id="password" class="form-control" type="password" name="password" minlength="12" autocomplete="new-password" required></div>
-        <div class="mail-field"><label for="admin_user_id">اختصاص به ادمین</label><select id="admin_user_id" class="form-control" name="admin_user_id"><option value="">بدون اختصاص</option>@foreach($admins as $admin)<option value="{{ $admin->id }}">{{ $admin->name ?: $admin->username }} ({{ $admin->username }})</option>@endforeach</select></div>
+        
       </div>
-      <p class="mail-hint">رمز باید حداقل ۱۲ نویسه باشد. ساخت صندوق در سرور ایمیل هم انجام می‌شود؛ اگر ابزار امن سرور نصب نشده باشد، حساب در پنل ثبت نخواهد شد.</p>
+      <p class="mail-hint">رمز باید حداقل ۱۲ نویسه باشد. بعد از ساخت، آدرس و رمز را به مدیر مربوطه بدهید تا خودش وارد صندوق شود. اگر ابزار امن سرور نصب نشده باشد، ساخت صندوق انجام نمی‌شود.</p>
       <div style="margin-top:16px"><button class="btn btn-primary" type="submit">ساخت صندوق</button></div>
     </form>
   </section>
   <section class="mail-card">
     <h2>صندوق‌های ثبت‌شده</h2>
-    <div class="mail-table-wrap"><table class="mail-table"><thead><tr><th>آدرس</th><th>ادمین</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>
+    <div class="mail-table-wrap"><table class="mail-table"><thead><tr><th>آدرس</th><th>نام نمایشی</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>
     @forelse($accounts as $account)
-      <tr><td><strong>{{ $account->email }}</strong>@if($account->display_name)<div class="mail-hint">{{ $account->display_name }}</div>@endif</td><td>{{ $account->adminUser?->name ?: $account->adminUser?->username ?: 'بدون اختصاص' }}</td><td>{{ $account->is_active ? 'فعال' : 'غیرفعال' }}</td><td><div class="mail-actions"><form method="POST" action="{{ route('admin.mailbox.accounts.assign',$account) }}">@csrf @method('PUT')<select class="form-control" name="admin_user_id" aria-label="اختصاص صندوق به ادمین"><option value="">بدون اختصاص</option>@foreach($admins as $admin)<option value="{{ $admin->id }}" @selected($account->admin_user_id===$admin->id)>{{ $admin->name ?: $admin->username }}</option>@endforeach</select><button class="btn btn-outline-secondary" style="margin-top:6px" type="submit">ذخیره اختصاص</button></form><a class="btn btn-outline-secondary" href="{{ route('admin.mailbox.index',['account'=>$account->id]) }}">بازکردن صندوق</a><form method="POST" action="{{ route('admin.mailbox.accounts.destroy',$account) }}" data-confirm="حذف صندوق واقعی {{ $account->email }}؟ محتویات آن به پوشهٔ پشتیبان سرور منتقل می‌شود.">@csrf @method('DELETE')<button class="btn btn-outline-danger" type="submit">حذف صندوق</button></form></div></td></tr>
+      <tr><td><strong>{{ $account->email }}</strong></td><td>{{ $account->display_name ?: '—' }}</td><td>{{ $account->is_active ? 'فعال' : 'غیرفعال' }}</td><td><div class="mail-actions"><span class="mail-hint">ورود با آدرس و رمز صندوق</span><a class="btn btn-outline-secondary" href="{{ route('admin.mailbox.index') }}">رفتن به ورود صندوق</a><form method="POST" action="{{ route('admin.mailbox.accounts.destroy',$account) }}" data-confirm="حذف صندوق واقعی {{ $account->email }}؟ محتویات آن به پوشهٔ پشتیبان سرور منتقل می‌شود.">@csrf @method('DELETE')<button class="btn btn-outline-danger" type="submit">حذف صندوق</button></form></div></td></tr>
     @empty<tr><td colspan="4" style="padding:24px;text-align:center">هنوز صندوقی ثبت نشده است.</td></tr>@endforelse
     </tbody></table></div>
   </section>

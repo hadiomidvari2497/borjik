@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdminUser;
 use App\Models\MailAccount;
 use App\Models\MailServerSetting;
 use App\Services\Mailbox\ImapMailbox;
 use App\Services\Mailbox\MailboxProvisioner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Morilog\Jalali\Jalalian;
 use Throwable;
@@ -21,63 +20,78 @@ class MailboxController extends Controller
 {
     public function index(Request $request)
     {
-        $request->validate(['q' => ['nullable', 'string', 'max:120'], 'account' => ['nullable', 'integer']]);
-        $admin = Auth::guard('admin')->user();
-        $accountQuery = MailAccount::query()->where('is_active', true);
-        if (! $admin->is_super) $accountQuery->where('admin_user_id', $admin->id);
-        elseif ($request->filled('account')) $accountQuery->whereKey($request->integer('account'));
-        $account = $accountQuery->orderBy('id')->first();
-
+        $request->validate(['q' => ['nullable', 'string', 'max:120']]);
+        $account = $this->currentMailbox();
         if (! $account) {
-            return view('admin.mailbox.index', [
-                'account' => null, 'messages' => [], 'query' => (string) $request->query('q', ''),
-                'connectionError' => null, 'settings' => MailServerSetting::current(),
-            ]);
+            return view('admin.mailbox.index', ['account' => null, 'messages' => [], 'query' => (string) $request->query('q', ''), 'connectionError' => null]);
         }
 
         try {
-            $settings = MailServerSetting::current();
-            $messages = $this->client($account, $settings)->listMessages((string) $request->query('q', ''), 50);
+            $messages = $this->client($account)->listMessages((string) $request->query('q', ''), 50);
             foreach ($messages as &$message) {
                 $timestamp = strtotime((string) $message['date']);
                 $message['jalali_date'] = $timestamp ? Jalalian::fromDateTime('@'.$timestamp)->format('Y/m/d H:i') : '—';
             }
             unset($message);
-            return view('admin.mailbox.index', ['account' => $account, 'messages' => $messages, 'query' => (string) $request->query('q', ''), 'connectionError' => null, 'settings' => $settings]);
+            return view('admin.mailbox.index', ['account' => $account, 'messages' => $messages, 'query' => (string) $request->query('q', ''), 'connectionError' => null]);
         } catch (Throwable $e) {
-            Log::warning('Admin mailbox could not load inbox.', ['account_id' => $account->id, 'exception' => $e::class]);
-            return view('admin.mailbox.index', [
-                'account' => $account, 'messages' => [], 'query' => (string) $request->query('q', ''),
-                'connectionError' => app()->hasDebugModeEnabled() ? $e->getMessage() : 'اتصال صندوق ایمیل برقرار نشد؛ میزبان و رمز صندوق را بررسی کنید.',
-                'settings' => MailServerSetting::current(),
-            ]);
+            Log::warning('Admin mailbox could not load inbox.', ['email' => $account->email, 'exception' => $e::class]);
+            return view('admin.mailbox.index', ['account' => $account, 'messages' => [], 'query' => (string) $request->query('q', ''), 'connectionError' => app()->hasDebugModeEnabled() ? $e->getMessage() : 'اتصال صندوق ایمیل برقرار نشد؛ میزبان و رمز را بررسی کنید.']);
         }
+    }
+
+    public function login(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email:rfc', 'max:254', 'regex:/^[^@]+@sabkhoneh\.ir$/i'],
+            'password' => ['required', 'string', 'max:200'],
+        ]);
+        $settings = MailServerSetting::current();
+        try {
+            // Authenticating against IMAP means existing server mailboxes can sign in
+            // even if they were created outside this panel.
+            $client = new ImapMailbox([
+                'host' => $settings->imap_host, 'port' => $settings->imap_port,
+                'username' => strtolower($data['email']), 'password' => $data['password'], 'timeout' => 12,
+            ]);
+            unset($client);
+            $request->session()->put('admin_mailbox', [
+                'email' => strtolower($data['email']),
+                'password' => Crypt::encryptString($data['password']),
+            ]);
+            $request->session()->regenerate();
+            return redirect()->route('admin.mailbox.index')->with('success', 'با موفقیت وارد صندوق ایمیل شدید.');
+        } catch (Throwable $e) {
+            Log::notice('Mailbox sign-in failed.', ['email' => strtolower($data['email']), 'exception' => $e::class]);
+            return back()->withErrors(['mailbox_login' => 'ورود ناموفق بود؛ آدرس و رمز صندوق را بررسی کنید و مطمئن شوید صندوق روی سرور وجود دارد.'])->withInput($request->only('email'));
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        $request->session()->forget('admin_mailbox');
+        return redirect()->route('admin.mailbox.index')->with('success', 'از صندوق ایمیل خارج شدید.');
     }
 
     public function show(Request $request, int $uid)
     {
-        $account = $this->selectedAccount($request);
-        abort_unless($account, 404);
+        $account = $this->currentMailbox();
+        abort_unless($account, 403, 'ابتدا با آدرس و رمز صندوق ایمیل وارد شوید.');
         try {
-            $message = $this->client($account, MailServerSetting::current())->getMessage($uid);
+            $message = $this->client($account)->getMessage($uid);
             $timestamp = strtotime((string) $message['date']);
             $message['jalali_date'] = $timestamp ? Jalalian::fromDateTime('@'.$timestamp)->format('Y/m/d H:i') : '—';
-            $message['account_id'] = $account->id;
             return view('admin.mailbox.show', compact('message', 'account'));
         } catch (Throwable $e) {
-            Log::warning('Admin mailbox message could not be opened.', ['account_id' => $account->id, 'uid' => $uid, 'exception' => $e::class]);
-            return redirect()->route('admin.mailbox.index', ['account' => $account->id])->with('error', 'بازکردن ایمیل ممکن نشد. اتصال سرور یا شناسه ایمیل را بررسی کنید.');
+            Log::warning('Admin mailbox message could not be opened.', ['email' => $account->email, 'uid' => $uid, 'exception' => $e::class]);
+            return redirect()->route('admin.mailbox.index')->withErrors(['mailbox' => 'بازکردن ایمیل ممکن نشد؛ اتصال یا شناسه ایمیل را بررسی کنید.']);
         }
     }
 
     public function settings()
     {
         $this->requireSuperAdmin();
-        return view('admin.mailbox.settings', [
-            'settings' => MailServerSetting::current(),
-            'accounts' => MailAccount::with('adminUser')->orderBy('email')->get(),
-            'admins' => AdminUser::query()->where('status', 'active')->orderBy('name')->get(),
-        ]);
+        return view('admin.mailbox.settings', ['settings' => MailServerSetting::current(), 'accounts' => MailAccount::orderBy('email')->get()]);
     }
 
     public function updateSettings(Request $request)
@@ -90,8 +104,7 @@ class MailboxController extends Controller
             'smtp_port' => ['required', 'integer', 'between:1,65535'],
             'smtp_encryption' => ['required', Rule::in(['tls', 'ssl'])],
         ]);
-        $settings = MailServerSetting::current();
-        $settings->fill($data)->save();
+        MailServerSetting::current()->fill($data)->save();
         return back()->with('success', 'تنظیمات اتصال ایمیل ذخیره شد.');
     }
 
@@ -102,31 +115,17 @@ class MailboxController extends Controller
             'local_part' => ['required', 'string', 'max:64', 'regex:/^[a-zA-Z0-9](?:[a-zA-Z0-9._+-]{0,62}[a-zA-Z0-9])?$/'],
             'display_name' => ['nullable', 'string', 'max:120'],
             'password' => ['required', 'string', 'min:12', 'max:200'],
-            'admin_user_id' => ['nullable', 'integer', 'exists:admin_users,id'],
         ]);
         $email = strtolower($data['local_part']).'@sabkhoneh.ir';
         validator(['email' => $email], ['email' => ['required', 'email:rfc', Rule::unique('mail_accounts', 'email')]])->validate();
-
-        $account = MailAccount::create([
-            'email' => $email, 'display_name' => $data['display_name'] ?? null,
-            'password' => $data['password'], 'admin_user_id' => $data['admin_user_id'] ?? null, 'is_active' => true,
-        ]);
+        $account = MailAccount::create(['email' => $email, 'display_name' => $data['display_name'] ?? null, 'password' => $data['password'], 'is_active' => true]);
         try {
             $provisioner->provision($email, $data['password']);
         } catch (Throwable $e) {
             $account->delete();
             return back()->withErrors(['mailbox' => $e->getMessage()])->withInput($request->except('password'));
         }
-        return back()->with('success', 'صندوق '.$email.' ساخته و در صورت تنظیم ابزار سرور، آمادهٔ استفاده شد.');
-    }
-
-    public function assignAccount(Request $request, MailAccount $account)
-    {
-        $this->requireSuperAdmin();
-        $data = $request->validate(['admin_user_id' => ['nullable', 'integer', 'exists:admin_users,id']]);
-        $account->admin_user_id = $data['admin_user_id'] ?? null;
-        $account->save();
-        return back()->with('success', 'اختصاص صندوق به ادمین ذخیره شد.');
+        return back()->with('success', 'صندوق '.$email.' روی سرور ساخته شد. مدیر می‌تواند با همین آدرس و رمز وارد بخش ایمیل شود.');
     }
 
     public function destroyAccount(MailAccount $account, MailboxProvisioner $provisioner)
@@ -137,27 +136,27 @@ class MailboxController extends Controller
             $account->delete();
             return back()->with('success', 'صندوق حذف شد؛ پوشهٔ پیام‌ها در پشتیبان سرور نگهداری شده است.');
         } catch (Throwable $e) {
-            Log::warning('Mailbox account deletion failed.', ['account_id' => $account->id, 'exception' => $e::class]);
+            Log::warning('Mailbox account deletion failed.', ['email' => $account->email, 'exception' => $e::class]);
             return back()->withErrors(['mailbox' => $e->getMessage()]);
         }
     }
 
-    public function compose(Request $request)
+    public function compose()
     {
-        $account = $this->selectedAccount($request);
-        abort_unless($account, 404);
+        $account = $this->currentMailbox();
+        abort_unless($account, 403, 'ابتدا با آدرس و رمز صندوق ایمیل وارد شوید.');
         return view('admin.mailbox.compose', compact('account'));
     }
 
-    public function send(Request $request, MailAccount $account)
+    public function send(Request $request)
     {
-        $this->assertCanUse($account);
+        $account = $this->currentMailbox();
+        abort_unless($account, 403, 'ابتدا با آدرس و رمز صندوق ایمیل وارد شوید.');
         $data = $request->validate([
             'to' => ['required', 'email:rfc', 'max:254'],
             'subject' => ['required', 'string', 'max:200'],
             'body' => ['required', 'string', 'max:50000'],
         ]);
-
         $settings = MailServerSetting::current();
         config([
             'mail.default' => 'smtp',
@@ -169,7 +168,7 @@ class MailboxController extends Controller
             'mail.mailers.smtp.password' => $account->password,
             'mail.mailers.smtp.timeout' => 15,
             'mail.from.address' => $account->email,
-            'mail.from.name' => $account->display_name ?: 'صابخونه',
+            'mail.from.name' => $account->display_name ?: $account->email,
         ]);
         Mail::purge('smtp');
         try {
@@ -177,37 +176,31 @@ class MailboxController extends Controller
                 $message->to($data['to'])->subject($data['subject']);
             });
         } catch (Throwable $e) {
-            Log::warning('Admin mailbox email send failed.', ['account_id' => $account->id, 'exception' => $e::class]);
-            return back()->withErrors(['send' => 'ارسال ایمیل ناموفق بود؛ تنظیمات SMTP و رمز صندوق را بررسی کنید.'])->withInput();
+            Log::warning('Admin mailbox email send failed.', ['email' => $account->email, 'exception' => $e::class]);
+            return back()->withErrors(['send' => 'ارسال ناموفق بود؛ تنظیمات SMTP و رمز صندوق را بررسی کنید.'])->withInput();
         }
-        return redirect()->route('admin.mailbox.index', ['account' => $account->id])->with('success', 'ایمیل با موفقیت به سرویس SMTP تحویل داده شد.');
+        return redirect()->route('admin.mailbox.index')->with('success', 'ایمیل به سرویس SMTP تحویل داده شد.');
     }
 
-    private function selectedAccount(Request $request): ?MailAccount
+    private function currentMailbox(): ?MailAccount
     {
-        $admin = Auth::guard('admin')->user();
-        $query = MailAccount::query()->where('is_active', true);
-        if ($admin->is_super) {
-            if ($request->filled('account')) $query->whereKey($request->integer('account'));
-            else $query->orderBy('id');
-        } else {
-            $query->where('admin_user_id', $admin->id);
+        $credentials = session('admin_mailbox');
+        if (! is_array($credentials) || empty($credentials['email']) || empty($credentials['password'])) return null;
+        try {
+            $password = Crypt::decryptString($credentials['password']);
+        } catch (Throwable) {
+            session()->forget('admin_mailbox');
+            return null;
         }
-        return $query->first();
+        $account = new MailAccount();
+        $account->forceFill(['email' => $credentials['email'], 'password' => $password, 'display_name' => $credentials['email'], 'is_active' => true]);
+        return $account;
     }
 
-    private function client(MailAccount $account, MailServerSetting $settings): ImapMailbox
+    private function client(MailAccount $account): ImapMailbox
     {
-        return new ImapMailbox([
-            'host' => $settings->imap_host, 'port' => $settings->imap_port,
-            'username' => $account->email, 'password' => $account->password, 'timeout' => 12,
-        ]);
-    }
-
-    private function assertCanUse(MailAccount $account): void
-    {
-        $admin = Auth::guard('admin')->user();
-        abort_unless($account->is_active && ($admin->is_super || $account->admin_user_id === $admin->id), 403);
+        $settings = MailServerSetting::current();
+        return new ImapMailbox(['host' => $settings->imap_host, 'port' => $settings->imap_port, 'username' => $account->email, 'password' => $account->password, 'timeout' => 12]);
     }
 
     private function requireSuperAdmin(): void
