@@ -9,23 +9,28 @@ final class ImapMailbox
     private $stream = null;
     private int $tag = 0;
 
-    public function __construct()
+    private array $credentials;
+
+    public function __construct(?array $credentials = null)
     {
-        $host = (string) config('mailbox.host');
-        if ($host === '' || (string) config('mailbox.username') === '' || (string) config('mailbox.password') === '') {
+        $this->credentials = $credentials ?? [
+            'host' => config('mailbox.host'), 'port' => config('mailbox.port', 993),
+            'username' => config('mailbox.username'), 'password' => config('mailbox.password'),
+            'timeout' => config('mailbox.timeout', 12),
+        ];
+        $host = (string) ($this->credentials['host'] ?? '');
+        if ($host === '' || (string) ($this->credentials['username'] ?? '') === '' || (string) ($this->credentials['password'] ?? '') === '') {
             throw new RuntimeException('تنظیمات اتصال صندوق ایمیل کامل نشده است.');
         }
+        $port = (int) ($this->credentials['port'] ?? 993);
+        $timeout = (int) ($this->credentials['timeout'] ?? 12);
         $context = stream_context_create(['ssl' => ['verify_peer' => true, 'verify_peer_name' => true, 'peer_name' => $host, 'SNI_enabled' => true]]);
-        $this->stream = @stream_socket_client('ssl://'.$host.':'.(int) config('mailbox.port', 993), $errno, $error, (int) config('mailbox.timeout', 12), STREAM_CLIENT_CONNECT, $context);
-        if (! is_resource($this->stream)) {
-            throw new RuntimeException('اتصال امن به سرور ایمیل برقرار نشد.');
-        }
-        stream_set_timeout($this->stream, (int) config('mailbox.timeout', 12));
+        $this->stream = @stream_socket_client('ssl://'.$host.':'.$port, $errno, $error, $timeout, STREAM_CLIENT_CONNECT, $context);
+        if (! is_resource($this->stream)) throw new RuntimeException('اتصال امن به سرور ایمیل برقرار نشد.');
+        stream_set_timeout($this->stream, $timeout);
         $greeting = fgets($this->stream);
-        if (! is_string($greeting) || ! str_starts_with(strtoupper($greeting), '* OK')) {
-            throw new RuntimeException('سرور ایمیل پاسخ معتبر نداد.');
-        }
-        $this->command('LOGIN '.$this->quote((string) config('mailbox.username')).' '.$this->quote((string) config('mailbox.password')));
+        if (! is_string($greeting) || ! str_starts_with(strtoupper($greeting), '* OK')) throw new RuntimeException('سرور ایمیل پاسخ معتبر نداد.');
+        $this->command('LOGIN '.$this->quote((string) $this->credentials['username']).' '.$this->quote((string) $this->credentials['password']));
     }
 
     public function listMessages(string $search = '', int $limit = 50): array
