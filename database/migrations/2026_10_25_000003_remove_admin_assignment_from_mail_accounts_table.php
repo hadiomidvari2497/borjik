@@ -8,7 +8,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('mail_accounts', function (Blueprint $table) {
-            $table->dropIndex('mail_accounts_admin_user_id_is_active_index');
+            // Drop the foreign key and its column first. MySQL will remove
+            // indexes that depend on the dropped column automatically.
             $table->dropConstrainedForeignId('admin_user_id');
         });
     }
