@@ -6,7 +6,7 @@ use RuntimeException;
 
 final class ImapMailbox
 {
-    private $stream;
+    private $stream = null;
     private int $tag = 0;
 
     public function __construct()
