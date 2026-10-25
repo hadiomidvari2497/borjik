@@ -25,9 +25,9 @@ class HttpSmsGateway implements SmsGateway
         return $this->provider->name;
     }
 
-    public function send(string $mobile, string $text): string
+    public function send(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): string
     {
-        return $this->sendWithResponse($mobile, $text)['ref'];
+        return $this->sendWithResponse($mobile, $text, $templateKey, $templateVars)['ref'];
     }
 
     /**
@@ -35,16 +35,29 @@ class HttpSmsGateway implements SmsGateway
      *
      * @return array{ref:string, status:int, body:string}
      */
-    public function sendWithResponse(string $mobile, string $text): array
+    public function sendWithResponse(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): array
     {
         $secrets = $this->provider->secretValues();
 
         try {
             $vars = $this->variables($mobile, $text);
+            $templateBodyId = trim((string) (($this->s['template_body_ids'] ?? [])[$templateKey ?? ''] ?? ''));
+            $bodyIdParams = [];
+            if ($templateBodyId !== '') {
+                $vars['body_id'] = $templateBodyId;
+                // SendByBaseNumber2 expects pattern arguments in one semicolon-separated text value.
+                $values = array_values($templateVars);
+                if ($values === []) {
+                    $values = [$text];
+                }
+                $values = array_map(static fn ($value): string => is_scalar($value) ? (string) $value : '', $values);
+                $vars['pattern_args'] = implode(';', $values);
+                $bodyIdParams = ['text' => $vars['pattern_args'], 'bodyId' => $templateBodyId];
+            }
             $url = SmsProviderConfig::render((string) $this->s['url'], $vars, 'url');
             $this->assertAllowedUrl($url);
 
-            $response = $this->request($url, $vars);
+            $response = $this->request($url, $vars, $bodyIdParams);
         } catch (SmsException $e) {
             throw new SmsException($this->mask($e->getMessage(), $secrets), 0, $e);
         } catch (Throwable $e) {
@@ -56,6 +69,10 @@ class HttpSmsGateway implements SmsGateway
 
         if (! $response->successful()) {
             throw new SmsException("اپراتور خطا برگرداند (HTTP {$response->status()}): {$snippet}");
+        }
+
+        if ($templateBodyId !== '') {
+            $this->assertMeliPayamakPatternSuccess($body, $snippet);
         }
 
         $this->assertSuccessRule($response->json(), $body, $snippet);
@@ -81,7 +98,7 @@ class HttpSmsGateway implements SmsGateway
         return $vars;
     }
 
-    private function request(string $url, array $vars)
+    private function request(string $url, array $vars, array $bodyIdParams = [])
     {
         $timeout = max(1, min(60, (int) $this->s['timeout']));
         $headers = [];
@@ -97,7 +114,7 @@ class HttpSmsGateway implements SmsGateway
         $body = (string) $this->s['body'];
 
         if (strtoupper((string) $this->s['method']) === 'GET') {
-            $query = $type === 'form' ? SmsProviderConfig::parseFormLines($body, $vars) : [];
+            $query = $type === 'form' ? array_merge(SmsProviderConfig::parseFormLines($body, $vars), $bodyIdParams) : [];
 
             // گزینهٔ query در Guzzle کوئری خود آدرس را حذف می‌کند؛ پس دستی به انتهای آدرس اضافه می‌کنیم.
             return $http->get($this->appendQuery($url, $query));
@@ -105,7 +122,7 @@ class HttpSmsGateway implements SmsGateway
 
         return match ($type) {
             'json' => $http->withBody(SmsProviderConfig::render($body, $vars, 'json'), 'application/json')->post($url),
-            'form' => $http->asForm()->post($url, SmsProviderConfig::parseFormLines($body, $vars)),
+            'form' => $http->asForm()->post($url, array_merge(SmsProviderConfig::parseFormLines($body, $vars), $bodyIdParams)),
             'raw' => $http->withBody(SmsProviderConfig::render($body, $vars, 'raw'), $this->contentType($headers))->post($url),
             default => $http->post($url),
         };
@@ -135,6 +152,33 @@ class HttpSmsGateway implements SmsGateway
         }
 
         return 'text/plain';
+    }
+
+    /**
+     * الگوی ملی‌پیامک ممکن است حتی با HTTP 200 کد خطا برگرداند.
+     * شناسهٔ پیگیری موفق معمولاً عددی با بیش از ۱۵ رقم است؛ کدهای کوتاه/منفی خطا هستند.
+     */
+    private function assertMeliPayamakPatternSuccess(string $body, string $snippet): void
+    {
+        $value = trim(html_entity_decode(strip_tags($body), ENT_QUOTES | ENT_XML1, 'UTF-8'));
+        if (preg_match('/^-?\\d+$/', $value) !== 1 || strlen(ltrim($value, '-')) > 15) {
+            return;
+        }
+
+        $messages = [
+            '-7' => 'خطای شماره فرستنده', '-6' => 'خطای داخلی اپراتور',
+            '-5' => 'متغیرهای الگو با قالب تأییدشده مطابقت ندارند',
+            '-4' => 'Body ID نامعتبر یا تأییدنشده است', '-3' => 'خط فرستنده تعریف نشده است',
+            '-2' => 'در هر درخواست فقط یک گیرنده مجاز است', '-1' => 'دسترسی وب‌سرویس غیرفعال است',
+            '0' => 'نام کاربری یا رمز عبور نادرست است', '2' => 'اعتبار حساب کافی نیست',
+            '6' => 'سامانه در حال به‌روزرسانی است', '7' => 'متن پیامک شامل عبارت فیلترشده است',
+            '10' => 'حساب کاربری فعال نیست', '11' => 'پیامک ارسال نشده است',
+            '12' => 'مدارک حساب کامل نیست', '16' => 'شماره گیرنده یافت نشد',
+            '17' => 'متن پیامک خالی است', '18' => 'شماره گیرنده نامعتبر است',
+            '19' => 'محدودیت زمانی ارسال رعایت نشده است',
+        ];
+        $message = $messages[$value] ?? 'کد پاسخ ناموفق از ملی‌پیامک';
+        throw new SmsException("ارسال الگوی ملی‌پیامک ناموفق بود ({$value}): {$message}. پاسخ: {$snippet}");
     }
 
     /** علاوه بر HTTP 2xx، در صورت تعریف، مقدار فیلد JSON یا وجود متن در پاسخ هم باید با انتظار بخواند. */

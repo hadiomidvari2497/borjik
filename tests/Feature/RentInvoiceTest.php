@@ -37,7 +37,7 @@ class RentInvoiceTest extends TestCase
         $this->seed(RolePermissionSeeder::class);
 
         $this->app->instance(SmsGateway::class, new class implements SmsGateway {
-            public function send(string $mobile, string $text): string
+            public function send(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): string
             {
                 return 'fake';
             }

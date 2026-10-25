@@ -122,6 +122,21 @@
     @error('params')<div class="e" style="color:#e0453a;font-size:12.5px;margin-top:8px">{{ $message }}</div>@enderror
   </div>
 
+  @if(!empty($messageTypes))
+  <div class="card" style="margin-top:16px">
+    <div class="page-h"><h2>Body ID جداگانه برای هر نوع پیامک</h2></div>
+    <p class="hdr-sub">برای اتصال «ملی‌پیامک — خط خدماتی اشتراکی»، شناسهٔ الگوی تأییدشده را برای هر پیام وارد کنید. خانهٔ خالی یعنی استفاده از ارسال عادی همین اتصال. پارامترهای الگو باید با متغیرهای همان پیام در پنل ملی‌پیامک هم‌خوان باشند.</p>
+    <div class="fgrid">
+      @foreach($messageTypes as $key => $type)
+        <div class="fld">
+          <label for="template_body_ids_{{ $key }}">{{ $type['label'] }} <code dir="ltr">{{ $key }}</code></label>
+          <input id="template_body_ids_{{ $key }}" name="template_body_ids[{{ $key }}]" dir="ltr" value="{{ $v('template_body_ids.'.$key, $s['template_body_ids'][$key] ?? '') }}" placeholder="Body ID (اختیاری)">
+        </div>
+      @endforeach
+    </div>
+  </div>
+  @endif
+
   <div class="card" style="margin-top:16px">
     <div class="page-h"><h2>تشخیص موفقیت و شناسهٔ پیگیری (اختیاری)</h2></div>
     <p class="hdr-sub">به‌طور پیش‌فرض هر پاسخ HTTP موفق (۲xx) «ارسال موفق» حساب می‌شود. بسیاری از اپراتورها وضعیت واقعی را داخل پاسخ می‌گویند؛ برای دقیق‌ترشدن، بعد از «تست ارسال» نمونهٔ پاسخ را ببینید و این بخش را پر کنید.</p>

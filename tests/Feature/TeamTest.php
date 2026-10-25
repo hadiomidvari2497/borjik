@@ -35,7 +35,7 @@ class TeamTest extends TestCase
         $this->gateway = new class implements SmsGateway {
             public array $sent = [];
 
-            public function send(string $mobile, string $text): string
+            public function send(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): string
             {
                 $this->sent[] = [$mobile, $text];
 
