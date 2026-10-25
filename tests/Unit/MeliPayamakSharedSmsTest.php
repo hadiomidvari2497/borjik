@@ -52,7 +52,7 @@ class MeliPayamakSharedSmsTest extends TestCase
             ['amount' => '250000', 'unit' => '12']
         );
 
-        $this->assertSame('http-'.substr($ref, 5), $ref);
+        $this->assertStringStartsWith('http-', $ref);
         Http::assertSent(function ($request): bool {
             return str_contains($request->url(), 'SendByBaseNumber2')
                 && $request->url() !== ''
