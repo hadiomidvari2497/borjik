@@ -46,7 +46,7 @@ return [
             'number_format' => 'local',
             'url' => 'https://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber',
             'body_type' => 'form',
-            'body' => "username={{username}}\\npassword={{password}}\\ntext[0]={{message}}\\nto={{mobile}}\\nbodyId={{body_id}}",
+            'body' => "username={{username}}\npassword={{password}}\ntext[0]={{message}}\nto={{mobile}}\nbodyId={{body_id}}",
             'headers' => [
                 ['name' => 'Accept', 'value' => 'text/plain'],
             ],
