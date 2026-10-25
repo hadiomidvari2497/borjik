@@ -37,6 +37,30 @@ return [
             'success_json_path' => '', 'success_expected' => '', 'success_contains' => '', 'ref_path' => '',
         ],
     ],
+    'melipayamak_shared' => [
+        'label' => 'ملی‌پیامک — خط خدماتی اشتراکی (الگو)',
+        'note' => 'ارسال از خط خدماتی اشتراکی با الگوی تأییدشده. body_id را از پنل ملی‌پیامک بگیرید و متغیرهای الگو را به ترتیب در text[0]، text[1] و ... تعریف کنید. قبل از فعال‌سازی نهایی حتماً با شماره مجاز تست کنید.',
+        'data' => [
+            'name' => 'ملی‌پیامک خدماتی اشتراکی',
+            'method' => 'GET',
+            'number_format' => 'local',
+            'url' => 'https://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber',
+            'body_type' => 'form',
+            'body' => "username={{username}}\\npassword={{password}}\\ntext[0]={{message}}\\nto={{mobile}}\\nbodyId={{body_id}}",
+            'headers' => [
+                ['name' => 'Accept', 'value' => 'text/plain'],
+            ],
+            'params' => [
+                ['name' => 'username', 'value' => '', 'secret' => false],
+                ['name' => 'password', 'value' => '', 'secret' => true],
+                ['name' => 'body_id', 'value' => '', 'secret' => false],
+            ],
+            'success_json_path' => '',
+            'success_expected' => '',
+            'success_contains' => '',
+            'ref_path' => '',
+        ],
+    ],
     'smsir' => [
         'label' => 'SMS.ir',
         'note' => 'ساختار از SDK رسمی SMS.ir گرفته شده است. شماره خط را فقط با ارقام وارد کنید. شرط موفقیت پاسخ را بعد از «تست ارسال» تنظیم کنید.',
