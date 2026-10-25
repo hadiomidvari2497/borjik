@@ -54,7 +54,7 @@ class SmsProviderController extends Controller
     {
         $provider = SmsProvider::findOrFail($id);
 
-        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => [], 's' => $provider->settings()]);
+        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => config('sms_presets'), 's' => $provider->settings()]);
     }
 
     public function update(Request $request, int $id)
