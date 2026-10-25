@@ -14,7 +14,7 @@
   <div class="mail-view-subject">{{ $message['subject'] }}</div>
   <div class="mail-view-meta">
     <div><span>فرستنده</span><strong>{{ $message['from'] ?: 'نامشخص' }}</strong></div>
-    <div><span>گیرنده</span><strong>{{ $message['to'] ?: 'صندوق انتخاب‌شده' }}</strong></div>
+    <div><span>گیرنده</span><strong>{{ $message['to'] ?: '{{ $account->email }}' }}</strong></div>
     <div><span>تاریخ دریافت</span><strong>{{ $message['jalali_date'] }}</strong></div>
     <div><span>شناسه پیام</span><strong>#{{ $message['uid'] }}</strong></div>
   </div>
