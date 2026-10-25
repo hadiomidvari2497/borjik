@@ -136,7 +136,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::prefix('mailbox')->name('mailbox.')->controller(MailboxController::class)->group(function () {
             Route::get('/', 'index')->name('index');
-            Route::post('/login', 'login')->middleware('throttle:mailbox-login')->name('login');
+            Route::post('/login', 'login')->middleware('throttle:8,1')->name('login');
             Route::post('/logout', 'logout')->name('logout');
             Route::get('/settings', 'settings')->name('settings');
             Route::put('/settings', 'updateSettings')->name('settings.update');
