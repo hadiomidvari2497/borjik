@@ -36,6 +36,13 @@ return [
         ],
     ],
     [
+        'title' => 'ایمیل',
+        'items' => [
+            ['label' => 'صندوق ایمیل', 'icon' => 'inbox', 'route' => 'admin.mailbox.index', 'active' => 'admin.mailbox.*', 'perm' => 'site.settings',
+                'desc' => 'مشاهده امن ایمیل‌های دریافتی صندوق info@sabkhoneh.ir'],
+        ],
+    ],
+    [
         'title' => 'کاربران ساختمان‌ها',
         'items' => [
             ['label' => 'مدیریت کاربران ساختمان‌ها', 'icon' => 'users', 'route' => 'admin.building-users.index', 'active' => 'admin.building-users.*', 'perm' => 'users.view',

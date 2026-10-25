@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\AiConnectorController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\MarketingContentController;
+use App\Http\Controllers\Admin\MailboxController;
 use App\Http\Controllers\Admin\AdminRoleController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminActivityLogController;
@@ -131,6 +132,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/export', 'export')->name('export');
             });
+        });
+
+        Route::prefix('mailbox')->name('mailbox.')->middleware('admin.can:site.settings')->controller(MailboxController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{uid}', 'show')->whereNumber('uid')->name('show');
         });
 
         Route::get('/building-users', [BuildingUserController::class, 'index'])->middleware('admin.can:users.view')->name('building-users.index');
