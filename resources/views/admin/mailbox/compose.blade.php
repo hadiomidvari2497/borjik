@@ -7,13 +7,13 @@
 <div class="compose-card">
   <p>ارسال از صندوق <strong>{{ $account->email }}</strong></p>
   @if($errors->any())<div role="alert" class="alert alert-danger">{{ $errors->first() }}</div>@endif
-  <form method="POST" action="{{ route('admin.mailbox.send',$account) }}">@csrf
+  <form method="POST" action="{{ route('admin.mailbox.send') }}">@csrf
     <div class="compose-grid">
       <label>گیرنده<input class="form-control" type="email" name="to" value="{{ old('to') }}" maxlength="254" required></label>
       <label>موضوع<input class="form-control" name="subject" value="{{ old('subject') }}" maxlength="200" required></label>
       <label>متن پیام<textarea class="form-control" name="body" maxlength="50000" required>{{ old('body') }}</textarea></label>
     </div>
-    <div class="compose-actions"><button class="btn btn-primary" type="submit">ارسال ایمیل</button><a class="btn btn-outline-secondary" href="{{ route('admin.mailbox.index',['account'=>$account->id]) }}">انصراف</a></div>
+    <div class="compose-actions"><button class="btn btn-primary" type="submit">ارسال ایمیل</button><a class="btn btn-outline-secondary" href="{{ route('admin.mailbox.index') }}">انصراف</a></div>
   </form>
 </div>
 @endsection
