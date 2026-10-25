@@ -38,8 +38,8 @@ return [
     [
         'title' => 'ایمیل',
         'items' => [
-            ['label' => 'صندوق ایمیل', 'icon' => 'inbox', 'route' => 'admin.mailbox.index', 'active' => 'admin.mailbox.*', 'perm' => 'site.settings',
-                'desc' => 'مشاهده امن ایمیل‌های دریافتی صندوق info@sabkhoneh.ir'],
+            ['label' => 'صندوق ایمیل', 'icon' => 'inbox', 'route' => 'admin.mailbox.index', 'active' => 'admin.mailbox.*', 'perm' => null,
+                'desc' => 'دریافت و ارسال ایمیل اختصاصی مدیران؛ مدیریت صندوق‌ها برای سوپرادمین'],
         ],
     ],
     [
