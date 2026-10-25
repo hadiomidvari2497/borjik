@@ -39,14 +39,14 @@ return [
     ],
     'melipayamak_shared' => [
         'label' => 'ملی‌پیامک — خط خدماتی اشتراکی (الگو)',
-        'note' => 'ارسال از خط خدماتی اشتراکی با الگوی تأییدشده. body_id را از پنل ملی‌پیامک بگیرید و متغیرهای الگو را به ترتیب در text[0]، text[1] و ... تعریف کنید. قبل از فعال‌سازی نهایی حتماً با شماره مجاز تست کنید.',
+        'note' => 'ارسال از خط خدماتی اشتراکی با الگوی تأییدشده. body_id را از پنل ملی‌پیامک بگیرید و متغیرهای الگو به ترتیب در پارامتر text و با جداکنندهٔ ; ارسال می‌شوند. قبل از فعال‌سازی نهایی حتماً با شماره مجاز تست کنید.',
         'data' => [
             'name' => 'ملی‌پیامک خدماتی اشتراکی',
             'method' => 'GET',
             'number_format' => 'local',
-            'url' => 'https://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber',
+            'url' => 'https://api.payamak-panel.com/post/Send.asmx/SendByBaseNumber2',
             'body_type' => 'form',
-            'body' => "username={{username}}\npassword={{password}}\ntext[0]={{message}}\nto={{mobile}}\nbodyId={{body_id}}",
+            'body' => "username={{username}}\npassword={{password}}\ntext={{pattern_args}}\nto={{mobile}}\nbodyId={{body_id}}",
             'headers' => [
                 ['name' => 'Accept', 'value' => 'text/plain'],
             ],
