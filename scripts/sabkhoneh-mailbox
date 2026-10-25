@@ -16,18 +16,21 @@ POSTFIX_MAP = Path("/etc/postfix/vmailbox")
 DOVECOT_USERS = Path("/etc/dovecot/users")
 MAIL_ROOT = Path("/var/vmail") / DOMAIN
 BACKUP_ROOT = Path("/var/backups/sabkhoneh-mailboxes")
-LOCAL_RE = re.compile(r"^[a-zA-Z0-9._+-]{1,64}$")
+LOCAL_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9._+-]{0,62}[a-zA-Z0-9])?$")
 
 
 def atomic_write(path: Path, lines: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    old_stat = path.stat() if path.exists() else None
     fd, tmp_name = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
             stream.write("\n".join(lines).rstrip("\n") + "\n")
             stream.flush()
             os.fsync(stream.fileno())
-        os.chmod(tmp_name, 0o640)
+        os.chmod(tmp_name, (old_stat.st_mode & 0o777) if old_stat else 0o640)
+        if old_stat:
+            os.chown(tmp_name, old_stat.st_uid, old_stat.st_gid)
         os.replace(tmp_name, path)
     finally:
         if os.path.exists(tmp_name):
@@ -44,7 +47,7 @@ def main() -> int:
     if not email.endswith("@" + DOMAIN):
         raise ValueError("only sabkhoneh.ir accounts are allowed")
     local = email.split("@", 1)[0]
-    if not LOCAL_RE.fullmatch(local):
+    if not LOCAL_RE.fullmatch(local) or ".." in local:
         raise ValueError("invalid mailbox local part")
     if not POSTFIX_MAP.is_file() or not DOVECOT_USERS.is_file():
         raise RuntimeError("expected Postfix/Dovecot virtual mailbox files are missing")
