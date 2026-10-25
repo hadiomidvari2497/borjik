@@ -242,7 +242,7 @@ class ChargeFlowTest extends TestCase
         $gateway = new class implements SmsGateway {
             public array $sent = [];
 
-            public function send(string $mobile, string $text): string
+            public function send(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): string
             {
                 $this->sent[] = [$mobile, $text];
 
@@ -272,7 +272,7 @@ class ChargeFlowTest extends TestCase
     public function test_reminder_is_skipped_when_expenses_exist(): void
     {
         $this->app->instance(SmsGateway::class, new class implements SmsGateway {
-            public function send(string $mobile, string $text): string
+            public function send(string $mobile, string $text, ?string $templateKey = null, array $templateVars = []): string
             {
                 return 'fake';
             }
