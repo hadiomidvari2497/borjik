@@ -13,7 +13,7 @@ class SmsGatewayFactory
         $provider = $this->currentProvider();
 
         if ($provider) {
-            return new HttpSmsGateway($provider);
+            return new SmsRoutingGateway($provider);
         }
 
         return match (config('sms.driver')) {
