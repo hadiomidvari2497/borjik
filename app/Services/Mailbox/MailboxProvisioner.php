@@ -21,7 +21,11 @@ final class MailboxProvisioner
     private function run(array $payload): void
     {
         $binary = '/usr/local/sbin/sabkhoneh-mailbox';
-        if (! is_executable($binary)) {
+
+        // The helper is intentionally root-owned and not executable by www-data
+        // directly. Check that it exists as a regular file, then let the narrowly
+        // scoped sudoers rule authorize its execution as root.
+        if (! is_file($binary) || is_link($binary)) {
             throw new RuntimeException('ابزار امن مدیریت صندوق روی سرور نصب نشده است؛ راهنمای docs/mailbox-server-setup.md را اجرا کنید.');
         }
 
