@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\BuildingUserController;
 use App\Http\Controllers\Admin\BuildingDirectoryController;
+use App\Http\Controllers\Admin\BuildingToolsController;
 use App\Http\Controllers\Admin\PaymentGatewayController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SeoController;
@@ -150,6 +151,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/building-users', [BuildingUserController::class, 'index'])->middleware('admin.can:users.view')->name('building-users.index');
         Route::get('/buildings', [BuildingDirectoryController::class, 'index'])->middleware('admin.can:buildings.view')->name('buildings.index');
+
+        Route::prefix('building-tools')->name('building-tools.')->middleware('admin.can:site.settings')->controller(BuildingToolsController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::put('/', 'update')->name('update');
+        });
 
         Route::prefix('users')->name('users.')->middleware('admin.can:admin.users.manage')->controller(AdminUserController::class)->group(function () {
             Route::get('/', 'index')->name('index');

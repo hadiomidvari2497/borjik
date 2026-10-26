@@ -54,6 +54,8 @@ return [
         'items' => [
             ['label' => 'ساختمان‌های سامانه', 'icon' => 'building-2', 'route' => 'admin.buildings.index', 'active' => 'admin.buildings.*', 'perm' => 'buildings.view',
                 'desc' => 'مشاهده ساختمان‌های ثبت‌شده، سازنده، واحدها و اشتراک'],
+            ['label' => 'مدیریت ابزارهای ساختمان', 'icon' => 'set', 'route' => 'admin.building-tools.index', 'active' => 'admin.building-tools.*', 'perm' => 'site.settings',
+                'desc' => 'فعال یا غیرفعال‌کردن ابزارهای مدیریت ساختمان برای همه کاربران'],
         ],
     ],
     [

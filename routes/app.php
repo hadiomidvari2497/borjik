@@ -39,7 +39,7 @@ use Illuminate\Support\Facades\Route;
 | middleware «building» ساختمان را از session می‌خواند (اگر باشد)؛
 | اگر نباشد فقط این مسیرها مجازند (SetCurrentBuilding).
 */
-Route::middleware(['auth', 'profile.complete', 'building'])->group(function () {
+Route::middleware(['auth', 'profile.complete', 'building', 'building.tool'])->group(function () {
     Route::get('/buildings/create', [BuildingController::class, 'create'])->name('buildings.create');
     Route::post('/buildings', [BuildingController::class, 'store'])->name('buildings.store');
 
