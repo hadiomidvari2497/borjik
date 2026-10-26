@@ -84,7 +84,13 @@
           </td>
           <td><b>{{ $payment->user?->display_name ?: 'کاربر حذف‌شده' }}</b><div dir="ltr" style="text-align:right;color:var(--muted);font-size:11.5px">{{ $payment->user?->mobile ?? '—' }}</div></td>
           <td>{{ $payment->subscription?->plan?->name ?? 'اشتراک نامشخص' }}</td>
-          <td style="white-space:nowrap"><b>{{ $F::money($payment->amount) }}</b></td>
+          <td style="white-space:nowrap"><b>{{ $F::money($payment->amount) }}</b>
+            @if((int) data_get($payment->raw_response, 'discount_amount', 0) > 0)
+              <div style="color:var(--muted);font-size:11px">قبل از تخفیف: {{ $F::money(data_get($payment->raw_response, 'base_amount', $payment->amount)) }}</div>
+            @endif
+          </td>
+          <td>{{ (int) data_get($payment->raw_response, 'discount_amount', 0) > 0 ? $F::money(data_get($payment->raw_response, 'discount_amount')) : '—' }}</td>
+          <td>{{ data_get($payment->raw_response, 'coupon_code') ?: '—' }}</td>
           <td>{{ $gatewayLabels[$payment->gateway] ?? $payment->gateway }}</td>
           <td><span class="pill {{ ['paid' => '', 'pending' => 'h', 'failed' => 'u'][$payment->status] ?? 'h' }}">{{ $statusLabels[$payment->status] ?? $payment->status }}</span></td>
           <td dir="ltr" style="text-align:right;font-size:12px">{{ $payment->ref_id ?: '—' }}</td>
