@@ -522,8 +522,39 @@
         @media(prefers-reduced-motion:reduce){.sp{display:none}}
     </style>
     <script>document.documentElement.classList.add('jt')</script>
+
+    <style>
+        /* v4: stats, testimonials, screenshot, footer layout */
+        .mock-window.shot{padding:8px;overflow:hidden}.mock-window.shot img{display:block;width:100%;height:auto;border-radius:18px}
+        .stats{padding-block:54px;background:#fff}
+        .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px}
+        .stat-card{text-align:center;padding:26px 16px;border-radius:22px;background:linear-gradient(145deg,#fff,#eef8f5);border:1px solid #dcebe6;box-shadow:0 18px 40px #0b6b5c12}
+        .stat-num{display:block;font-size:clamp(2rem,4vw,3rem);line-height:1.3;font-weight:950;background:linear-gradient(110deg,#087f78,#22c5aa 60%,#f0b95a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+        .stat-card>span{color:#5d717b;font-weight:700;font-size:.92rem}
+        .testi{background:#fff}
+        .testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+        .testi-card{padding:26px;border-radius:24px;background:#fff;border:1px solid #dcebe6;box-shadow:0 18px 44px #0b6b5c14;display:flex;flex-direction:column;gap:20px;transition:transform .3s,box-shadow .3s}
+        .testi-card:hover{transform:translateY(-6px);box-shadow:0 28px 56px #0b6b5c22}
+        .testi-card p{margin:0;color:#2c4753;line-height:2}
+        .testi-card p:before{content:"“";display:block;font-size:3rem;line-height:.8;color:#22c5aa;font-weight:900}
+        .testi-who{display:flex;align-items:center;gap:12px;margin-top:auto}
+        .testi-av{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#25cdb1,#087f78);color:#fff;font-weight:900}
+        .testi-who strong{display:block;color:#102b3a}.testi-who small{color:#6b7f87}
+        .footer-main{align-items:stretch}
+        .footer-side{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:26px;margin-inline-start:auto}
+        .footer-side .footer-links{justify-content:flex-end;max-width:680px}
+        .footer-side .footer-logo{margin-top:0;padding:16px 22px}.footer-side .footer-logo img{width:180px}
+        @media(max-width:820px){.footer-side{align-items:flex-start;margin-inline-start:0}.footer-side .footer-links{justify-content:flex-start}.footer-side .footer-logo img{width:170px}}
+    </style>
+    <script>(function(){var d=document.documentElement;if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches)return;d.classList.add('cnt')})()</script>
 </head>
 <body>
+@php
+    $shot = data_get($content ?? [], 'hero.screenshot_url');
+    $shot = is_string($shot) && preg_match('~^https?://~i', $shot) ? $shot : null;
+    $stats = collect(data_get($content ?? [], 'stats', []))->filter(fn ($x) => filled(data_get($x, 'value')) && filled(data_get($x, 'label')))->values();
+    $testimonials = collect(data_get($content ?? [], 'testimonials', []))->filter(fn ($x) => filled(data_get($x, 'name')) && filled(data_get($x, 'text')))->values();
+@endphp
 <div class="sp" id="sp" aria-hidden="true"></div>
 @php
 $defaultFeatures = [
@@ -563,7 +594,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
             </div>
             <div class="dashboard-art" aria-label="پیش‌نمایش تصویری داشبورد صابخونه">
                 <div class="orb"></div>
-                <div class="mock-window">
+                @if($shot)<div class="mock-window shot"><img src="{{ $shot }}" alt="پیش‌نمایش پنل صابخونه" width="460" height="320" decoding="async"></div>@else<div class="mock-window">
                     <div class="mock-top"><div><div class="mock-title">نمای کلی ساختمان</div><div class="mock-sub">یک نگاه؛ تصویر روشن‌تر</div></div><span class="live-dot">● منظم و شفاف</span></div>
                     <div class="mock-stats">
                         <div class="stat"><small>مدیریت هزینه‌ها</small><strong>شفاف</strong><em>✓ قابل پیگیری</em></div>
@@ -573,7 +604,8 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                     </div>
                     <div class="mock-chart"><div class="chart-head"><span>تصویر کلی امور ساختمان</span><span>نمایشی</span></div><div class="bars" aria-hidden="true"><i style="height:40%"></i><i style="height:68%"></i><i style="height:52%"></i><i style="height:83%"></i><i style="height:61%"></i><i style="height:94%"></i><i style="height:73%"></i><i style="height:86%"></i></div></div>
                 </div>
-                <div class="floating-note"><span class="floating-icon">✓</span><div><strong>همه‌چیز سر جای خودش</strong><small>از شارژ تا درخواست و پیگیری</small></div></div>
+                @endif
+            <div class="floating-note"><span class="floating-icon">✓</span><div><strong>همه‌چیز سر جای خودش</strong><small>از شارژ تا درخواست و پیگیری</small></div></div>
             </div>
         </div>
     </section>
@@ -593,7 +625,17 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         </div>
     </section>
 
-        <section class="content-section roles" id="roles">
+        @if($stats->count())
+    <section class="content-section stats" id="stats">
+        <div class="wrap stat-grid">
+            @foreach($stats as $st)
+            <article class="stat-card"><strong class="stat-num"><span class="count" @if(preg_match('/^[0-9۰-۹]+$/u', (string) $st['value'])) data-to="{{ $st['value'] }}" @endif>{{ $st['value'] }}</span>{{ $st['suffix'] ?? '' }}</strong><span>{{ $st['label'] }}</span></article>
+            @endforeach
+        </div>
+    </section>
+    @endif
+
+    <section class="content-section roles" id="roles">
         <div class="wrap">
             <div class="section-head"><span class="section-kicker">برای هر نقش</span><h2>هر کس، همان چیزی را می‌بیند که لازم دارد</h2><p>مدیر، ساکن و پرسنل هرکدام مسیر و دسترسی مخصوص خودشان را دارند.</p></div>
             <div class="role-tabs" role="tablist" aria-label="نقش‌ها">
@@ -656,7 +698,20 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <div class="wrap"><div class="partner-panel"><div><span class="mini-label">{{ data_get($content ?? [], 'partners.eyebrow', 'همکاران ما') }}</span><h2>{{ data_get($content ?? [], 'partners.title', 'با همکاری هم، مدیریت ساختمان را بهتر می‌کنیم') }}</h2><p>{{ data_get($content ?? [], 'partners.description', 'از شرکت‌های خدمات ساختمانی و تعمیر و نگهداری تا کسب‌وکارهای مرتبط؛ این بخش برای معرفی همکاران و راهکارهای مکمل صابخونه آماده شده است.') }}</p></div><div class="partner-actions"><a class="btn btn-light" href="#contact">{{ data_get($content ?? [], 'partners.button', 'پیشنهاد همکاری') }} <span aria-hidden="true">←</span></a></div></div></div>
     </section>
 
-        <section class="content-section faq" id="faq">
+        @if($testimonials->count())
+    <section class="content-section testi" id="testimonials">
+        <div class="wrap">
+            <div class="section-head"><span class="section-kicker">تجربه‌ی کاربران</span><h2>آنچه کاربران صابخونه می‌گویند</h2></div>
+            <div class="testi-grid">
+                @foreach($testimonials as $t)
+                <article class="testi-card"><p>{{ $t['text'] }}</p><div class="testi-who"><span class="testi-av">{{ \Illuminate\Support\Str::substr($t['name'], 0, 1) }}</span><div><strong>{{ $t['name'] }}</strong>@if(filled($t['role'] ?? null))<small>{{ $t['role'] }}</small>@endif</div></div></article>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
+
+    <section class="content-section faq" id="faq">
         <div class="wrap">
             <div class="section-head"><span class="section-kicker">سوالات متداول</span><h2>پاسخ چند پرسش رایج</h2><p>اگر پاسخ خود را پیدا نکردید، از بخش تماس با ما پیگیری کنید.</p></div>
             <div class="faq-list">
@@ -685,13 +740,14 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
 <footer>
     <div class="wrap"><div class="footer-main">
-        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p><span class="footer-logo"><img src="{{ asset('images/sabkhoneh-logo.png') }}" alt="صابخونه" width="170" height="150" loading="lazy"></span>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
-        <nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#faq">سوالات متداول</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav>
+        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
+        <div class="footer-side"><nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#faq">سوالات متداول</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav><span class="footer-logo"><img src="{{ asset('images/sabkhoneh-logo.png') }}" alt="صابخونه" width="170" height="150" loading="lazy"></span></div>
     </div><div class="footer-bottom"><span>© {{ date('Y') }} صابخونه — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>
 <script>(function(){if(!document.documentElement.classList.contains('js'))return;var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');o.unobserve(x.target)}})},{threshold:.12});document.querySelectorAll('.role-tabs,.role-panel.on,.faq-list,.section-head,.feature-grid,.steps,.about-grid,.article-grid,.partner-panel,.contact-grid').forEach(function(n){n.classList.add('rv');o.observe(n)})})();</script>
 <script>(function(){var sp=document.getElementById('sp');function u(){var h=document.documentElement.scrollHeight-innerHeight;sp.style.transform='scaleX('+(h>0?Math.min(scrollY/h,1):0)+')'}addEventListener('scroll',u,{passive:true});u();
 var tabs=[].slice.call(document.querySelectorAll('.role-tab'));function sel(t){tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).classList.toggle('on',on)})}
 tabs.forEach(function(t,i){t.addEventListener('click',function(){sel(t)});t.addEventListener('keydown',function(e){var k=e.key==='ArrowLeft'?1:e.key==='ArrowRight'?-1:0;if(k){var n=tabs[(i+k+tabs.length)%tabs.length];n.focus();sel(n)}})})})();</script>
+<script>(function(){var els=document.querySelectorAll('.count[data-to]');if(!els.length||!document.documentElement.classList.contains('cnt'))return;var fa='۰۱۲۳۴۵۶۷۸۹';function num(v){return parseInt(String(v).replace(/[۰-۹]/g,function(c){return fa.indexOf(c)}),10)}var o=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;o.unobserve(e.target);var el=e.target,to=num(el.getAttribute('data-to')),t0=performance.now();(function f(t){var k=Math.min((t-t0)/1400,1),v=Math.round(to*(1-Math.pow(1-k,3)));el.textContent=v.toLocaleString('fa-IR',{useGrouping:false});if(k<1)requestAnimationFrame(f);else el.textContent=el.getAttribute('data-to')})(t0)})},{threshold:.4});els.forEach(function(n){o.observe(n)})})();</script>
 </body>
 </html>
