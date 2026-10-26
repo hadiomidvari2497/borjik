@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Support\MobileNumber;
+use App\Support\JalaliDate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -83,10 +84,24 @@ class SubscriptionPlanController extends Controller
             'price' => ['required', 'integer', 'min:0'], // 0 = رایگان
             'discount_type' => ['nullable', Rule::in(['percent', 'fixed'])],
             'discount_value' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
-            'discount_starts_at' => ['nullable', 'date'],
-            'discount_ends_at' => ['nullable', 'date', 'after_or_equal:discount_starts_at'],
+            'discount_starts_at' => ['nullable', 'string', 'max:20'],
+            'discount_ends_at' => ['nullable', 'string', 'max:20'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        $discountStart = JalaliDate::parse($request->input('discount_starts_at'));
+        $discountEnd = JalaliDate::parse($request->input('discount_ends_at'));
+        if ($request->filled('discount_starts_at') && ! $discountStart) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_starts_at' => 'تاریخ شروع شمسی معتبر نیست.']);
+        }
+        if ($request->filled('discount_ends_at') && ! $discountEnd) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_ends_at' => 'تاریخ پایان شمسی معتبر نیست.']);
+        }
+        if ($discountStart && $discountEnd && $discountEnd->lt($discountStart)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_ends_at' => 'تاریخ پایان نباید قبل از تاریخ شروع باشد.']);
+        }
+        $data['discount_starts_at'] = $discountStart?->startOfDay();
+        $data['discount_ends_at'] = $discountEnd?->endOfDay();
 
         if (($data['discount_type'] ?? null) === 'percent' && (int) ($data['discount_value'] ?? 0) > 100) {
             throw \\Illuminate\\Validation\\ValidationException::withMessages(['discount_value' => 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰ باشد.']);
