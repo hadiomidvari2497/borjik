@@ -41,6 +41,7 @@ class SendSmsJob implements ShouldQueue
             $label = method_exists($gateway, 'label') ? $gateway->label() : $label;
             $log->update(['status' => 'sent', 'provider_ref' => $ref, 'gateway' => $label, 'error' => null, 'sent_at' => now()]);
         } catch (Throwable $e) {
+            $label = method_exists($gateway, 'label') ? $gateway->label() : $label;
             $log->update(['status' => 'failed', 'gateway' => $label, 'error' => Str::limit($e->getMessage(), 250, '…')]);
             throw $e;
         }
