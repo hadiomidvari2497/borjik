@@ -91,6 +91,23 @@ class SeoTest extends TestCase
             ->assertSee('"headline":"چطور محاسبهٔ شارژ را شفاف‌تر کنیم؟"', false);
     }
 
+    public function test_article_listing_has_unique_metadata_and_collection_structured_data_on_public_production_domain(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/articles')
+            ->assertOk()
+            ->assertSee('<title>مقالات و راهنماها | صابخونه</title>', false)
+            ->assertSee('name="description" content="مقالات و راهنماهای صابخونه دربارهٔ مدیریت ساختمان، شارژ و پرداخت‌ها، رسیدگی به درخواست‌های ساکنان و بهبود ارتباط میان مدیران و ساکنان."', false)
+            ->assertSee('rel="canonical" href="https://sabkhoneh.ir/articles"', false)
+            ->assertSee('application/ld+json', false)
+            ->assertSee('"@type":"CollectionPage"', false)
+            ->assertSee('"@type":"ItemList"', false)
+            ->assertSee('https://sabkhoneh.ir/articles/transparent-building-charges', false);
+    }
+
     public function test_sitemap_includes_published_articles_but_not_drafts_or_future_articles(): void
     {
         $this->app['env'] = 'production';
