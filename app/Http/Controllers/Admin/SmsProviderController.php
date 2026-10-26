@@ -54,7 +54,7 @@ class SmsProviderController extends Controller
     {
         $provider = SmsProvider::findOrFail($id);
 
-        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => config('sms_presets'), 's' => $provider->settings(), 'messageTypes' => $this->messageTypes(), 'fallbackProviders' => SmsProvider::query()->where('is_active', true)->whereKeyNot($provider->id)->orderBy('name')->get()]);
+        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => config('sms_presets'), 's' => $provider->settings(), 'messageTypes' => $this->messageTypes(), 'fallbackProviders' => SmsProvider::query()->where('is_active', true)->where('id', '!=', $provider->id)->orderBy('name')->get()]);
     }
 
     public function update(Request $request, int $id)
