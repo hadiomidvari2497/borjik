@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DiscountCoupon;
 use App\Models\SubscriptionPlan;
 use App\Support\MobileNumber;
+use App\Support\JalaliDate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -80,8 +81,8 @@ class DiscountCouponController extends Controller
             'max_uses_per_user' => ['required', 'integer', 'min:1', 'max:100000'],
             'plan_ids' => ['nullable', 'array'],
             'plan_ids.*' => ['integer', 'exists:subscription_plans,id'],
-            'starts_at' => ['nullable', 'date'],
-            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
+            'starts_at' => ['nullable', 'string', 'max:20'],
+            'ends_at' => ['nullable', 'string', 'max:20'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
@@ -89,6 +90,20 @@ class DiscountCouponController extends Controller
             throw \Illuminate\Validation\ValidationException::withMessages(['discount_value' => 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰ باشد.']);
         }
 
+        $startDate = JalaliDate::parse($request->input('starts_at'));
+        $endDate = JalaliDate::parse($request->input('ends_at'));
+        if ($request->filled('starts_at') && ! $startDate) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['starts_at' => 'تاریخ شروع شمسی معتبر نیست.']);
+        }
+        if ($request->filled('ends_at') && ! $endDate) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['ends_at' => 'تاریخ پایان شمسی معتبر نیست.']);
+        }
+        if ($startDate && $endDate && $endDate->lt($startDate)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['ends_at' => 'تاریخ پایان نباید قبل از تاریخ شروع باشد.']);
+        }
+
+        $data['starts_at'] = $startDate?->startOfDay();
+        $data['ends_at'] = $endDate?->endOfDay();
         $data['min_order_amount'] = (int) ($data['min_order_amount'] ?? 0);
         $data['max_uses'] = ($data['max_uses'] ?? '') === '' ? null : (int) $data['max_uses'];
         $data['plan_ids'] = array_values(array_unique(array_map('intval', $data['plan_ids'] ?? []))) ?: null;
