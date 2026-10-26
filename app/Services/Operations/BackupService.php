@@ -277,7 +277,7 @@ class BackupService
                 return;
             }
             $provider = SmsProvider::current();
-            $message = 'هشدار برجیک: ایجاد یا ارسال بکاپ ناموفق بود. مرکز عملیات را بررسی کنید.';
+            $message = 'هشدار صابخونه: ایجاد یا ارسال بکاپ ناموفق بود. مرکز عملیات را بررسی کنید.';
             $log = SmsLog::create([
                 'mobile' => $settings['alert_mobile'],
                 'template_key' => 'backup_failure',
