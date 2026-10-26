@@ -30,6 +30,11 @@ class FinancialManagementController extends Controller
         return view('admin.finances.index', compact('stats', 'recentAdjustments'));
     }
 
+    public function bulkEdit()
+    {
+        return view('admin.finances.bulk-edit');
+    }
+
     public function bulkAdjust(Request $request)
     {
         $request->merge([
