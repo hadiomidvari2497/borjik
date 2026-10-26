@@ -6,7 +6,7 @@ namespace App\Services\Sms;
 final class SmsProviderConfig
 {
     /** متغیرهای همیشه در دسترس قالب‌ها: {{mobile}} طبق «قالب شماره»، و سه شکل ثابت. */
-    public const BUILTIN = ['mobile', 'mobile_local', 'mobile_intl', 'mobile_plus', 'message'];
+    public const BUILTIN = ['mobile', 'mobile_local', 'mobile_intl', 'mobile_plus', 'message', 'pattern_args'];
 
     /** @return list<string> */
     public static function secretValues(array $settings): array
