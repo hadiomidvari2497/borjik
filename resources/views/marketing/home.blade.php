@@ -410,6 +410,60 @@
         }
 
     </style>
+
+    <style>
+        /* Premium layer: visual redesign on top of the existing palette */
+        body{background:#f3faf8}
+        .site-header{background:rgba(255,255,255,.72);backdrop-filter:blur(22px) saturate(1.7);box-shadow:0 10px 34px #0b4a4212}
+        .btn-primary{background:linear-gradient(135deg,#25cdb1,#087f78);box-shadow:0 14px 30px #13a8954a,inset 0 1px 0 #ffffff55}
+        .btn-primary:hover{background:linear-gradient(135deg,#2ad8bb,#09908a);box-shadow:0 20px 42px #13a89570}
+        .btn-light{background:rgba(255,255,255,.8);backdrop-filter:blur(8px)}
+        .hero{padding:112px 0 100px;background:radial-gradient(55% 55% at 88% 8%,#22c5aa38,transparent 70%),radial-gradient(40% 45% at 4% 95%,#f0b95a26,transparent 70%),linear-gradient(160deg,#f3fcf9,#e1f6ef 58%,#f6fbfa)}
+        .hero:after{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(#13a8951c 1px,transparent 1px),linear-gradient(90deg,#13a8951c 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(65% 70% at 50% 35%,#000,transparent);mask-image:radial-gradient(65% 70% at 50% 35%,#000,transparent)}
+        .hero-grid{z-index:1}
+        .eyebrow{background:rgba(255,255,255,.75);border:1px solid #bfeadf;box-shadow:0 8px 22px #13a8951f}
+        .eyebrow i{box-shadow:0 0 0 0 #13a895aa;animation:pulse 2s infinite}
+        h1 span{background:linear-gradient(110deg,#087f78,#22c5aa 55%,#f0b95a);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .orb{width:380px;height:380px;background:conic-gradient(from 200deg,#22c5aa,#c9f3e8,#f0b95a66,#22c5aa);opacity:.5;filter:blur(3px);animation:spin 26s linear infinite}
+        .mock-window{background:rgba(255,255,255,.84);backdrop-filter:blur(16px);border:1px solid #fff;box-shadow:0 44px 90px #0b6b5c30,0 0 0 1px #13a89522;animation:flt 7s ease-in-out infinite}
+        .stat{background:linear-gradient(145deg,#fff,#f0f9f6);transition:transform .3s,box-shadow .3s}.stat:hover{transform:translateY(-3px);box-shadow:0 12px 26px #13a8952a}
+        .bars i{transform-origin:bottom;animation:grow 1.1s cubic-bezier(.2,.8,.2,1) both}
+        .bars i:nth-child(2){animation-delay:.08s}.bars i:nth-child(3){animation-delay:.16s}.bars i:nth-child(4){animation-delay:.24s}.bars i:nth-child(5){animation-delay:.32s}.bars i:nth-child(6){animation-delay:.4s}.bars i:nth-child(7){animation-delay:.48s}.bars i:nth-child(8){animation-delay:.56s}
+        .floating-note{backdrop-filter:blur(12px);background:rgba(255,255,255,.9);animation:flt2 6s ease-in-out infinite}
+        .floating-note.n2{left:auto;right:-8px;bottom:auto;top:38px;animation-delay:-3s}
+        .trust-strip{background:rgba(255,255,255,.85);backdrop-filter:blur(10px)}
+        .trust-item span{background:linear-gradient(145deg,#25cdb1,#087f78);color:#fff;box-shadow:0 8px 18px #13a89535}
+        .section-kicker{display:inline-block;padding:4px 14px;border-radius:99px;background:linear-gradient(135deg,#dff5ef,#fff4dc);color:#087f78;border:1px solid #c6ebe0}
+        .feature-card{position:relative;overflow:hidden;background:#fff;border:1px solid #e1eae8;transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s,border-color .35s}
+        .feature-card:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;left:-80px;top:-90px;background:radial-gradient(#22c5aa38,transparent 70%);opacity:0;transition:opacity .4s;pointer-events:none}
+        .feature-card:hover{transform:translateY(-9px);border-color:#13a89560;box-shadow:0 34px 64px #0b6b5c24}.feature-card:hover:after{opacity:1}
+        .feature-icon{background:linear-gradient(145deg,#25cdb1,#087f78)!important;color:#fff!important;box-shadow:0 12px 26px #13a8954d}
+        .step-number{background:linear-gradient(145deg,#25cdb1,#087f78)!important;color:#fff!important;box-shadow:0 12px 26px #13a8954d}
+        .step{background:#fff;transition:transform .3s,box-shadow .3s}.step:hover{transform:translateY(-6px);box-shadow:0 26px 54px #0b6b5c1f}
+        .about-visual{background:radial-gradient(70% 70% at 80% 10%,#22c5aa66,transparent 70%),linear-gradient(150deg,#06323a,#087f78)!important;border:0!important;box-shadow:0 44px 90px #06323a45}
+        .about-visual:before{color:#ffffff12!important}
+        .about-note{background:rgba(255,255,255,.14)!important;backdrop-filter:blur(14px);border:1px solid #ffffff38!important;color:#fff!important;box-shadow:none!important}
+        .about-note p,.about-note strong{color:#fff!important}.about-note p{opacity:.85}
+        .article-card{transition:transform .35s,box-shadow .35s}.article-card:hover{transform:translateY(-8px);box-shadow:0 30px 60px #0b6b5c22}
+        .article-art img{transition:transform .6s}.article-card:hover .article-art img{transform:scale(1.07)}
+        .partner-panel{position:relative;overflow:hidden;color:#fff;border:0!important;background:radial-gradient(60% 140% at 0 0,#22c5aa66,transparent 62%),radial-gradient(40% 90% at 100% 100%,#f0b95a33,transparent 70%),linear-gradient(135deg,#06323a,#0a5c5a)!important;box-shadow:0 40px 80px #06323a40}
+        .partner-panel h2{color:#fff!important}.partner-panel p{color:#cdeee6!important}
+        .partner-panel .mini-label{background:#ffffff1f!important;color:#9af2dc!important;border:1px solid #ffffff2e}
+        .contact-card{background:rgba(255,255,255,.88);backdrop-filter:blur(12px);box-shadow:0 34px 70px #0b6b5c1f}
+        .contact-symbol{background:linear-gradient(145deg,#25cdb1,#087f78)!important;color:#fff!important}
+        footer{background:#06232b!important;color:#a9c9c5!important;border:0!important}
+        footer p,footer .footer-links a,footer .footer-bottom span{color:#a9c9c5!important}footer .footer-links a:hover{color:#fff!important}
+        footer .brand,footer .brand span:last-child{color:#fff!important}footer .footer-bottom{border-color:#ffffff1c!important}
+        .js .rv{opacity:0;transform:translateY(30px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}.js .rv.in{opacity:1;transform:none}
+        @keyframes flt{0%,100%{transform:rotate(-2deg) translateY(0)}50%{transform:rotate(-2deg) translateY(-14px)}}
+        @keyframes flt2{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes grow{from{transform:scaleY(.05);opacity:0}}
+        @keyframes pulse{70%{box-shadow:0 0 0 9px #13a89500}100%{box-shadow:0 0 0 0 #13a89500}}
+        @media(max-width:720px){.hero{padding:64px 0 60px}.orb{width:260px;height:260px}.floating-note.n2{display:none}.mock-window{animation:none;transform:rotate(-1deg)}}
+        @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}.js .rv{opacity:1;transform:none}}
+    </style>
+    <script>if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('js')</script>
 </head>
 <body>
 @php
@@ -472,6 +526,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                     <div class="mock-chart"><div class="chart-head"><span>تصویر کلی امور ساختمان</span><span>نمایشی</span></div><div class="bars" aria-hidden="true"><i style="height:40%"></i><i style="height:68%"></i><i style="height:52%"></i><i style="height:83%"></i><i style="height:61%"></i><i style="height:94%"></i><i style="height:73%"></i><i style="height:86%"></i></div></div>
                 </div>
                 <div class="floating-note"><span class="floating-icon">✓</span><div><strong>همه‌چیز سر جای خودش</strong><small>از شارژ تا درخواست و پیگیری</small></div></div>
+            <div class="floating-note n2"><span class="floating-icon" style="background:#dff5ef;color:#087f78">◎</span><div><strong>پیگیری مرحله‌به‌مرحله</strong><small>شفاف و قابل‌اعتماد</small></div></div>
             </div>
         </div>
     </section>
@@ -549,5 +604,6 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav>
     </div><div class="footer-bottom"><span>© {{ date('Y') }} صابخونه — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>
+<script>(function(){if(!document.documentElement.classList.contains('js'))return;var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');o.unobserve(x.target)}})},{threshold:.12});document.querySelectorAll('.section-head,.feature-grid,.steps,.about-grid,.article-grid,.partner-panel,.contact-grid,.trust-items').forEach(function(n){n.classList.add('rv');o.observe(n)})})();</script>
 </body>
 </html>
