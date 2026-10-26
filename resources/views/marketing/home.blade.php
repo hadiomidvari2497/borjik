@@ -487,8 +487,44 @@
         @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important}.js .rv{opacity:1;transform:none}}
     </style>
     <script>if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('js')</script>
+
+    <style>
+        /* v3: roles tabs, FAQ, scroll progress, footer logo */
+        .sp{position:fixed;top:0;right:0;left:0;height:3px;z-index:60;transform-origin:right;transform:scaleX(0);background:linear-gradient(90deg,#22c5aa,#f0b95a);pointer-events:none}
+        .roles{background:#fff}
+        .role-tabs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:0 auto 34px;padding:6px;background:#eef7f4;border:1px solid #dcebe6;border-radius:999px;width:fit-content;max-width:100%}
+        .role-tab{border:0;background:transparent;font:inherit;font-weight:800;font-size:.92rem;color:#4f6570;padding:10px 24px;border-radius:99px;cursor:pointer;transition:background .25s,color .25s,box-shadow .25s}
+        .role-tab:hover{color:#087f78}
+        .role-tab[aria-selected="true"]{background:linear-gradient(135deg,#25cdb1,#087f78);color:#fff;box-shadow:0 10px 24px #13a8954a}
+        .role-panel{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+        .jt .role-panel{display:none}.jt .role-panel.on{display:grid;animation:fadeup .5s both}
+        .role-copy h3{font-size:1.6rem;line-height:1.6;margin:0 0 8px;color:#102b3a}
+        .role-copy>p{color:#5d717b;margin:0 0 18px}
+        .role-list{list-style:none;margin:0;padding:0;display:grid;gap:11px}
+        .role-list li{display:flex;gap:11px;align-items:flex-start;color:#2c4753}
+        .role-list li:before{content:"✓";flex:0 0 24px;height:24px;display:grid;place-items:center;border-radius:8px;background:#dff5ef;color:#087f78;font-weight:900;font-size:.8rem;margin-top:3px}
+        .role-mock{background:radial-gradient(70% 70% at 85% 0%,rgba(34,197,170,.4),transparent 70%),linear-gradient(150deg,#04121b,#0a4a4e);border-radius:28px;padding:26px;color:#fff;box-shadow:0 40px 80px rgba(4,18,27,.3)}
+        .rm-title{font-weight:900;margin-bottom:16px;color:#fff}
+        .rm-row{display:flex;justify-content:space-between;align-items:center;gap:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:13px 16px;margin-bottom:10px;color:#e6f4f3;font-size:.9rem}
+        .rm-chip{flex:none;font-size:.72rem;padding:3px 11px;border-radius:99px;background:rgba(143,240,216,.16);color:#8ff0d8;font-weight:800}
+        .faq{background:#f0f6f4}
+        .faq-list{max-width:820px;margin:0 auto;display:grid;gap:12px}
+        .faq details{background:#fff;border:1px solid #dcebe6;border-radius:18px;transition:box-shadow .3s,border-color .3s}
+        .faq details[open]{border-color:#13a89566;box-shadow:0 18px 40px #0b6b5c1a}
+        .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 22px;font-weight:800;color:#102b3a}
+        .faq summary::-webkit-details-marker{display:none}
+        .faq summary:after{content:"+";flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:10px;background:#dff5ef;color:#087f78;font-size:1.2rem;transition:transform .3s,background .3s}
+        .faq details[open] summary:after{content:"–";background:linear-gradient(135deg,#25cdb1,#087f78);color:#fff}
+        .faq details p{margin:0;padding:0 22px 20px;color:#5d717b}
+        .footer-logo{display:inline-block;margin-top:16px;padding:12px 16px;background:#fff;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.3)}.footer-logo img{display:block;width:170px;height:auto}
+        @keyframes fadeup{from{opacity:0;transform:translateY(14px)}}
+        @media(max-width:820px){.role-panel{grid-template-columns:1fr;gap:24px}.role-copy h3{font-size:1.35rem}.role-tab{padding:9px 16px;font-size:.85rem}.faq summary{padding:15px 16px}.faq details p{padding:0 16px 16px}}
+        @media(prefers-reduced-motion:reduce){.sp{display:none}}
+    </style>
+    <script>document.documentElement.classList.add('jt')</script>
 </head>
 <body>
+<div class="sp" id="sp" aria-hidden="true"></div>
 @php
 $defaultFeatures = [
  ['icon'=>'◉','title'=>'محاسبه و صدور شارژ','description'=>'قواعد شارژ و هزینه‌های ساختمان را مدیریت کنید و سهم هر واحد را با روشی روشن محاسبه کنید.'],
@@ -557,6 +593,32 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         </div>
     </section>
 
+        <section class="content-section roles" id="roles">
+        <div class="wrap">
+            <div class="section-head"><span class="section-kicker">برای هر نقش</span><h2>هر کس، همان چیزی را می‌بیند که لازم دارد</h2><p>مدیر، ساکن و پرسنل هرکدام مسیر و دسترسی مخصوص خودشان را دارند.</p></div>
+            <div class="role-tabs" role="tablist" aria-label="نقش‌ها">
+                <button class="role-tab" role="tab" id="tab-manager" aria-controls="panel-manager" aria-selected="true">مدیر ساختمان</button>
+                <button class="role-tab" role="tab" id="tab-resident" aria-controls="panel-resident" aria-selected="false" tabindex="-1">ساکن</button>
+                <button class="role-tab" role="tab" id="tab-staff" aria-controls="panel-staff" aria-selected="false" tabindex="-1">پرسنل</button>
+            </div>
+            <div class="role-panel on" role="tabpanel" id="panel-manager" aria-labelledby="tab-manager">
+                <div class="role-copy"><h3>کنترل کامل، بدون کاغذبازی</h3><p>همه‌ی امور ساختمان را از یک جا مدیریت و پیگیری کنید.</p>
+                    <ul class="role-list"><li>تعریف قواعد شارژ و صدور صورتحساب برای واحدها</li><li>ثبت پرداخت‌ها و بررسی وضعیت تأیید فیش‌ها</li><li>ثبت و ارجاع درخواست‌ها به پرسنل مرتبط</li><li>اطلاع‌رسانی، تقویم رویدادها و نگهداری اسناد</li></ul></div>
+                <div class="role-mock" aria-hidden="true"><div class="rm-title">نمای مدیر</div><div class="rm-row"><span>صورتحساب شارژ</span><span class="rm-chip">آماده صدور</span></div><div class="rm-row"><span>فیش‌های پرداخت</span><span class="rm-chip">در انتظار تأیید</span></div><div class="rm-row"><span>درخواست‌های ساکنان</span><span class="rm-chip">قابل ارجاع</span></div></div>
+            </div>
+            <div class="role-panel" role="tabpanel" id="panel-resident" aria-labelledby="tab-resident">
+                <div class="role-copy"><h3>همه‌چیز ساختمان، در دست شما</h3><p>وضعیت مالی و درخواست‌هایتان همیشه روشن است.</p>
+                    <ul class="role-list"><li>مشاهده صورتحساب‌ها و سوابق پرداخت</li><li>ثبت درخواست و پیگیری مرحله‌به‌مرحله‌ی آن</li><li>دریافت اطلاعیه‌ها و دیدن برنامه‌های ساختمان</li></ul></div>
+                <div class="role-mock" aria-hidden="true"><div class="rm-title">نمای ساکن</div><div class="rm-row"><span>صورتحساب من</span><span class="rm-chip">قابل پرداخت</span></div><div class="rm-row"><span>درخواست من</span><span class="rm-chip">در حال پیگیری</span></div><div class="rm-row"><span>اطلاعیه‌ها</span><span class="rm-chip">جدید</span></div></div>
+            </div>
+            <div class="role-panel" role="tabpanel" id="panel-staff" aria-labelledby="tab-staff">
+                <div class="role-copy"><h3>وظایف روشن، مسئولیت مشخص</h3><p>هر کار به شخص درست ارجاع می‌شود و گم نمی‌شود.</p>
+                    <ul class="role-list"><li>دریافت درخواست‌ها و وظایف ارجاع‌شده</li><li>به‌روزرسانی وضعیت کار برای مدیر و ساکن</li><li>دسترسی محدود به همان بخش‌هایی که به نقش شما مربوط است</li></ul></div>
+                <div class="role-mock" aria-hidden="true"><div class="rm-title">نمای پرسنل</div><div class="rm-row"><span>وظیفه‌ی ارجاع‌شده</span><span class="rm-chip">جدید</span></div><div class="rm-row"><span>کار در حال انجام</span><span class="rm-chip">در جریان</span></div><div class="rm-row"><span>کار انجام‌شده</span><span class="rm-chip">ثبت شد</span></div></div>
+            </div>
+        </div>
+    </section>
+
     <section class="content-section how">
         <div class="wrap">
             <div class="section-head"><span class="section-kicker">شروعی ساده</span><h2>از آشفتگی روزمره تا مدیریت منظم</h2><p>صابخونه برای آن طراحی شده که مسیر مدیریت ساختمان روشن و قابل پیگیری باشد.</p></div>
@@ -594,6 +656,18 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <div class="wrap"><div class="partner-panel"><div><span class="mini-label">{{ data_get($content ?? [], 'partners.eyebrow', 'همکاران ما') }}</span><h2>{{ data_get($content ?? [], 'partners.title', 'با همکاری هم، مدیریت ساختمان را بهتر می‌کنیم') }}</h2><p>{{ data_get($content ?? [], 'partners.description', 'از شرکت‌های خدمات ساختمانی و تعمیر و نگهداری تا کسب‌وکارهای مرتبط؛ این بخش برای معرفی همکاران و راهکارهای مکمل صابخونه آماده شده است.') }}</p></div><div class="partner-actions"><a class="btn btn-light" href="#contact">{{ data_get($content ?? [], 'partners.button', 'پیشنهاد همکاری') }} <span aria-hidden="true">←</span></a></div></div></div>
     </section>
 
+        <section class="content-section faq" id="faq">
+        <div class="wrap">
+            <div class="section-head"><span class="section-kicker">سوالات متداول</span><h2>پاسخ چند پرسش رایج</h2><p>اگر پاسخ خود را پیدا نکردید، از بخش تماس با ما پیگیری کنید.</p></div>
+            <div class="faq-list">
+                <details><summary>صابخونه چه کاری انجام می‌دهد؟</summary><p>سامانه‌ای فارسی برای مدیریت ساختمان است: شارژ و پرداخت‌ها، درخواست‌ها و وظایف، اطلاع‌رسانی و اسناد، در یک جا و با دسترسی متناسب با نقش هر کاربر.</p></details>
+                <details><summary>چطور شروع کنم؟</summary><p>با شماره موبایل وارد سامانه شوید و اطلاعات حساب را تکمیل کنید. بعد ساختمان، بلوک‌ها و واحدها را تعریف و اعضا و مسئولیت‌ها را مشخص کنید.</p></details>
+                <details><summary>هر نقش به چه بخش‌هایی دسترسی دارد؟</summary><p>دسترسی‌ها بر اساس نقش مدیر، ساکن و پرسنل تنظیم می‌شود تا هر کاربر فقط بخش‌های مربوط به مسئولیت خودش را ببیند.</p></details>
+                <details><summary>چطور با تیم صابخونه در ارتباط باشم؟</summary><p>از بخش «تماس با ما» همین صفحه استفاده کنید. برای پیگیری امور حساب هم می‌توانید وارد سامانه شوید.</p></details>
+            </div>
+        </div>
+    </section>
+
     <section class="content-section contact-section" id="contact">
         <div class="wrap contact-grid">
             <div><span class="section-kicker">{{ data_get($content ?? [], 'contact.eyebrow', 'تماس با ما') }}</span><h2>{{ data_get($content ?? [], 'contact.title', 'برای شروع همکاری، در ارتباط باشیم') }}</h2><p>{{ data_get($content ?? [], 'contact.description', 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به صابخونه شروع کنید.') }}</p><a class="btn btn-primary" href="{{ route('login') }}">ورود به صابخونه <span aria-hidden="true">←</span></a></div>
@@ -611,10 +685,13 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
 <footer>
     <div class="wrap"><div class="footer-main">
-        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
-        <nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav>
+        <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p><span class="footer-logo"><img src="{{ asset('images/sabkhoneh-logo.png') }}" alt="صابخونه" width="170" height="150" loading="lazy"></span>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
+        <nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#faq">سوالات متداول</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav>
     </div><div class="footer-bottom"><span>© {{ date('Y') }} صابخونه — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>
-<script>(function(){if(!document.documentElement.classList.contains('js'))return;var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');o.unobserve(x.target)}})},{threshold:.12});document.querySelectorAll('.section-head,.feature-grid,.steps,.about-grid,.article-grid,.partner-panel,.contact-grid').forEach(function(n){n.classList.add('rv');o.observe(n)})})();</script>
+<script>(function(){if(!document.documentElement.classList.contains('js'))return;var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');o.unobserve(x.target)}})},{threshold:.12});document.querySelectorAll('.role-tabs,.role-panel.on,.faq-list,.section-head,.feature-grid,.steps,.about-grid,.article-grid,.partner-panel,.contact-grid').forEach(function(n){n.classList.add('rv');o.observe(n)})})();</script>
+<script>(function(){var sp=document.getElementById('sp');function u(){var h=document.documentElement.scrollHeight-innerHeight;sp.style.transform='scaleX('+(h>0?Math.min(scrollY/h,1):0)+')'}addEventListener('scroll',u,{passive:true});u();
+var tabs=[].slice.call(document.querySelectorAll('.role-tab'));function sel(t){tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).classList.toggle('on',on)})}
+tabs.forEach(function(t,i){t.addEventListener('click',function(){sel(t)});t.addEventListener('keydown',function(e){var k=e.key==='ArrowLeft'?1:e.key==='ArrowRight'?-1:0;if(k){var n=tabs[(i+k+tabs.length)%tabs.length];n.focus();sel(n)}})})})();</script>
 </body>
 </html>
