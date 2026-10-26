@@ -3,6 +3,7 @@
 @section('content')
 @php
   $v = fn ($key, $default = null) => old($key, $plan?->{$key} ?? $default);
+  $dateValue = fn ($key) => old($key) !== null ? old($key) : \App\Support\JalaliDate::format($plan?->{$key});
 @endphp
 <div class="card">
   <div class="page-h"><h2>{{ $plan ? 'ویرایش پلن اشتراک' : 'ایجاد پلن اشتراک' }}</h2>
