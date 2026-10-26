@@ -33,7 +33,13 @@ class SmsRoutingGateway implements SmsGateway
     private function providerFor(?string $templateKey): SmsProvider
     {
         $settings = $this->current->settings();
+        $url = strtolower((string) ($settings['url'] ?? ''));
         $bodyIds = $settings['template_body_ids'] ?? [];
+
+        // Keep fallback routing scoped to the shared-line pattern endpoint, not regular providers.
+        if (! str_contains($url, 'sendbybasenumber2') && empty($bodyIds)) {
+            return $this->current;
+        }
         $bodyId = trim((string) ($bodyIds[$templateKey ?? ''] ?? ''));
 
         // A configured Body ID always takes precedence; do not route those messages away.
