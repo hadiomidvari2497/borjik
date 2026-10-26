@@ -6,6 +6,7 @@ use App\Models\Ticket;
 use App\Models\PaymentReceipt;
 use App\Models\User;
 use App\Support\CurrentBuilding;
+use App\Support\BuildingTools;
 use Illuminate\Support\Facades\Route;
 
 /** منوی کناری نقش‌محور: فقط آیتم‌هایی که کاربر در ساختمان فعال مجوزشان را دارد؛ گروه خالی نمایش داده نمی‌شود. */
@@ -27,6 +28,9 @@ class MenuBuilder
         foreach (config('menu') as $group) {
             $items = [];
             foreach ($group['items'] as $item) {
+                if (! BuildingTools::enabled($item['route'])) {
+                    continue;
+                }
                 $isOwnerItem = ! str_starts_with($item['route'], 'my.')
                     && ($item['perm'] === null || array_intersect((array) $item['perm'], $ownerPerms));
                 if (! $isOwnerItem) {
