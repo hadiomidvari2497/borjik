@@ -14,6 +14,12 @@
         $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'صابخونه | مدیریت ساختمان، با آرامش بیشتر');
         $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'صابخونه؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
         $seoVerification = (string) \App\Models\SiteSetting::get('seo.google_verification', '');
+        $faqItems = [
+            ['q' => 'صابخونه چه کاری انجام می‌دهد؟', 'a' => 'سامانه‌ای فارسی برای مدیریت ساختمان است: شارژ و پرداخت‌ها، درخواست‌ها و وظایف، اطلاع‌رسانی و اسناد، در یک جا و با دسترسی متناسب با نقش هر کاربر.'],
+            ['q' => 'چطور شروع کنم؟', 'a' => 'با شماره موبایل وارد سامانه شوید و اطلاعات حساب را تکمیل کنید. بعد ساختمان، بلوک‌ها و واحدها را تعریف و اعضا و مسئولیت‌ها را مشخص کنید.'],
+            ['q' => 'هر نقش به چه بخش‌هایی دسترسی دارد؟', 'a' => 'دسترسی‌ها بر اساس نقش مدیر، ساکن و پرسنل تنظیم می‌شود تا هر کاربر فقط بخش‌های مربوط به مسئولیت خودش را ببیند.'],
+            ['q' => 'چطور با تیم صابخونه در ارتباط باشم؟', 'a' => 'از بخش «تماس با ما» همین صفحه استفاده کنید. برای پیگیری امور حساب هم می‌توانید وارد سامانه شوید.'],
+        ];
     @endphp
     <meta name="description" content="{{ $seoDescription }}">
     <meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
@@ -21,10 +27,14 @@
     <meta property="og:site_name" content="صابخونه">
     <meta property="og:title" content="{{ $seoTitle }}">
     <meta property="og:description" content="{{ $seoDescription }}">
-    <meta property="og:image" content="{{ $seoBase.'/pwa/icon-512.png' }}">
+    <meta property="og:image" content="{{ $seoBase.'/images/og-sabkhoneh.png' }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="صابخونه؛ مدیریت ساختمان، با آرامش بیشتر">
+    <meta property="og:locale" content="fa_IR">
     <meta property="og:url" content="{{ $seoBase }}/">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="{{ $seoBase.'/pwa/icon-512.png' }}">
+    <meta name="twitter:image" content="{{ $seoBase.'/images/og-sabkhoneh.png' }}">
     <meta name="twitter:title" content="{{ $seoTitle }}">
     <meta name="twitter:description" content="{{ $seoDescription }}">
     @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoBase }}/">@endif
@@ -39,6 +49,15 @@
                 'url' => $seoBase.'/',
                 'logo' => $seoBase.'/pwa/icon-512.png',
                 'description' => $seoDescription,
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        @endphp
+    </script>
+    <script type="application/ld+json">
+        @php
+            echo json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => array_map(fn ($f) => ['@type' => 'Question', 'name' => $f['q'], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']]], $faqItems),
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
         @endphp
     </script>
@@ -715,10 +734,11 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <div class="wrap">
             <div class="section-head"><span class="section-kicker">سوالات متداول</span><h2>پاسخ چند پرسش رایج</h2><p>اگر پاسخ خود را پیدا نکردید، از بخش تماس با ما پیگیری کنید.</p></div>
             <div class="faq-list">
-                <details><summary>صابخونه چه کاری انجام می‌دهد؟</summary><p>سامانه‌ای فارسی برای مدیریت ساختمان است: شارژ و پرداخت‌ها، درخواست‌ها و وظایف، اطلاع‌رسانی و اسناد، در یک جا و با دسترسی متناسب با نقش هر کاربر.</p></details>
-                <details><summary>چطور شروع کنم؟</summary><p>با شماره موبایل وارد سامانه شوید و اطلاعات حساب را تکمیل کنید. بعد ساختمان، بلوک‌ها و واحدها را تعریف و اعضا و مسئولیت‌ها را مشخص کنید.</p></details>
-                <details><summary>هر نقش به چه بخش‌هایی دسترسی دارد؟</summary><p>دسترسی‌ها بر اساس نقش مدیر، ساکن و پرسنل تنظیم می‌شود تا هر کاربر فقط بخش‌های مربوط به مسئولیت خودش را ببیند.</p></details>
-                <details><summary>چطور با تیم صابخونه در ارتباط باشم؟</summary><p>از بخش «تماس با ما» همین صفحه استفاده کنید. برای پیگیری امور حساب هم می‌توانید وارد سامانه شوید.</p></details>
+                @foreach($faqItems as $faq)<details><summary>{{ $faq['q'] }}</summary><p>{{ $faq['a'] }}</p></details>@endforeach
+                
+                
+                
+                
             </div>
         </div>
     </section>
