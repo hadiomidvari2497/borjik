@@ -93,7 +93,7 @@ class SubscriptionController extends Controller
                     'status' => 'pending',
                 ]);
 
-                return SubscriptionPayment::create([
+                $payment = SubscriptionPayment::create([
                     'subscription_id' => $pending->id,
                     'user_id' => $user->id,
                     'amount' => $amount,
