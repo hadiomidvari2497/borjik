@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'building' => \App\Http\Middleware\SetCurrentBuilding::class,
+            'building.tool' => \App\Http\Middleware\EnsureBuildingToolEnabled::class,
             'subscription.active' => \App\Http\Middleware\RequireActiveSubscription::class,
             'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
             'admin' => \App\Http\Middleware\EnsureAdminAuth::class,
