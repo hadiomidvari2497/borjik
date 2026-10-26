@@ -63,7 +63,7 @@ class BackupService
             ]);
             $cloudId = null;
             if ($settings['cloud_enabled']) {
-                $cloudId = $this->uploadToDrive($localPath, $settings);
+                $cloudId = $this->uploadToOneDrive($localPath, $settings);
             }
             $this->prune($destination, max(1, min(365, (int) $settings['keep_local'])));
             $run->update([
@@ -223,50 +223,95 @@ class BackupService
         }
     }
 
-    private function uploadToDrive(string $path, array $settings): string
+    private function uploadToOneDrive(string $path, array $settings): string
     {
-        foreach (['drive_client_id', 'drive_client_secret', 'drive_refresh_token'] as $key) {
+        foreach (['onedrive_client_id', 'onedrive_client_secret', 'onedrive_refresh_token'] as $key) {
             if (trim((string) ($settings[$key] ?? '')) === '') {
-                throw new RuntimeException('برای ارسال به Google Drive باید Client ID، Client Secret و Refresh Token تنظیم شوند.');
+                throw new RuntimeException('برای ارسال به OneDrive باید Client ID، Client Secret و اتصال حساب Microsoft تکمیل شوند.');
             }
         }
-        $tokenResponse = Http::asForm()->timeout(20)->post('https://oauth2.googleapis.com/token', [
-            'client_id' => $settings['drive_client_id'],
-            'client_secret' => $settings['drive_client_secret'],
-            'refresh_token' => $settings['drive_refresh_token'],
+
+        $tokenResponse = Http::asForm()->timeout(30)->post('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', [
+            'client_id' => $settings['onedrive_client_id'],
+            'client_secret' => $settings['onedrive_client_secret'],
+            'refresh_token' => $settings['onedrive_refresh_token'],
             'grant_type' => 'refresh_token',
+            'scope' => 'offline_access Files.ReadWrite User.Read',
         ]);
         if (! $tokenResponse->successful() || ! $tokenResponse->json('access_token')) {
-            throw new RuntimeException('گرفتن توکن دسترسی Google Drive ناموفق بود؛ اعتبار OAuth را بررسی کن.');
+            throw new RuntimeException('گرفتن توکن OneDrive ناموفق بود؛ اتصال حساب Microsoft را دوباره برقرار کن.');
         }
 
-        $metadata = ['name' => basename($path)];
-        if (trim((string) ($settings['drive_folder_id'] ?? '')) !== '') {
-            $metadata['parents'] = [trim($settings['drive_folder_id'])];
+        $accessToken = (string) $tokenResponse->json('access_token');
+        $rotatedRefreshToken = $tokenResponse->json('refresh_token');
+        if (is_string($rotatedRefreshToken) && $rotatedRefreshToken !== '') {
+            $record = OperationsSetting::current();
+            $values = $record->values();
+            $values['onedrive_refresh_token'] = $rotatedRefreshToken;
+            $record->update(['settings' => $values]);
         }
+
+        $filename = rawurlencode(basename($path));
+        $session = Http::withToken($accessToken)->acceptJson()->timeout(30)->post(
+            'https://graph.microsoft.com/v1.0/me/drive/root:/'.$filename.':/createUploadSession',
+            ['item' => ['@microsoft.graph.conflictBehavior' => 'rename', 'name' => basename($path)]]
+        );
+        $uploadUrl = $session->json('uploadUrl');
+        if (! $session->successful() || ! is_string($uploadUrl) || ! str_starts_with($uploadUrl, 'https://')) {
+            throw new RuntimeException('ایجاد نشست آپلود OneDrive ناموفق بود (HTTP '.$session->status().').');
+        }
+
         $size = filesize($path);
-        $session = Http::withToken($tokenResponse->json('access_token'))
-            ->withHeaders([
-                'X-Upload-Content-Type' => 'application/zip',
-                'X-Upload-Content-Length' => (string) $size,
-            ])->timeout(30)->post('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,size', $metadata);
-        $location = $session->header('Location');
-        if (! $session->successful() || ! $location) {
-            throw new RuntimeException('شروع نشست بارگذاری Google Drive ناموفق بود (HTTP '.$session->status().').');
+        if ($size === false || $size < 1) {
+            throw new RuntimeException('اندازه فایل بکاپ برای ارسال به OneDrive معتبر نیست.');
         }
-        $contents = file_get_contents($path);
-        if ($contents === false) {
-            throw new RuntimeException('خواندن فایل بکاپ برای ارسال ابری ناموفق بود.');
-        }
-        $upload = Http::withToken($tokenResponse->json('access_token'))->timeout(900)
-            ->withBody($contents, 'application/zip')
-            ->withHeaders(['Content-Length' => (string) strlen($contents)])
-            ->put($location);
-        if (! $upload->successful() || ! $upload->json('id')) {
-            throw new RuntimeException('ارسال فایل به Google Drive ناموفق بود (HTTP '.$upload->status().').');
+        $handle = fopen($path, 'rb');
+        if ($handle === false) {
+            throw new RuntimeException('بازکردن فایل بکاپ برای ارسال به OneDrive ناموفق بود.');
         }
 
-        return (string) $upload->json('id');
+        try {
+            $chunkSize = 5 * 1024 * 1024; // Multiple of 320 KiB, as required by Microsoft Graph.
+            $offset = 0;
+            $uploaded = null;
+            while ($offset < $size) {
+                $length = min($chunkSize, $size - $offset);
+                if (fseek($handle, $offset) !== 0) {
+                    throw new RuntimeException('خواندن بخش بعدی فایل بکاپ ناموفق بود.');
+                }
+                $chunk = '';
+                while (strlen($chunk) < $length && ! feof($handle)) {
+                    $piece = fread($handle, min(1024 * 1024, $length - strlen($chunk)));
+                    if ($piece === false || $piece === '') {
+                        break;
+                    }
+                    $chunk .= $piece;
+                }
+                if (strlen($chunk) !== $length) {
+                    throw new RuntimeException('خواندن کامل بخش فایل بکاپ ناموفق بود.');
+                }
+
+                // The preauthenticated upload URL must not receive the Graph bearer token.
+                $response = Http::timeout(300)->withBody($chunk, 'application/octet-stream')->withHeaders([
+                    'Content-Length' => (string) $length,
+                    'Content-Range' => 'bytes '.$offset.'-'.($offset + $length - 1).'/'.$size,
+                ])->put($uploadUrl);
+
+                if (! in_array($response->status(), [200, 201, 202], true)) {
+                    throw new RuntimeException('ارسال بخش فایل به OneDrive ناموفق بود (HTTP '.$response->status().').');
+                }
+                $uploaded = $response->json();
+                $offset += $length;
+            }
+        } finally {
+            fclose($handle);
+        }
+
+        if (! is_array($uploaded) || empty($uploaded['id'])) {
+            throw new RuntimeException('OneDrive آپلود فایل را تأیید نکرد.');
+        }
+
+        return (string) $uploaded['id'];
     }
 
     private function notifyBackupFailure(): void

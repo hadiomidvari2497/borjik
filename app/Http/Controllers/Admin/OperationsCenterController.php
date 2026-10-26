@@ -13,6 +13,7 @@ use App\Services\Sms\HttpSmsGateway;
 use App\Support\MobileNumber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 use ZipArchive;
@@ -23,9 +24,9 @@ class OperationsCenterController extends Controller
     {
         $setting = OperationsSetting::current();
         $values = $setting->values();
-        $values['drive_client_secret_set'] = $values['drive_client_secret'] !== '';
-        $values['drive_refresh_token_set'] = $values['drive_refresh_token'] !== '';
-        unset($values['drive_client_secret'], $values['drive_refresh_token']);
+        $values['onedrive_client_secret_set'] = $values['onedrive_client_secret'] !== '';
+        $values['onedrive_refresh_token_set'] = $values['onedrive_refresh_token'] !== '';
+        unset($values['onedrive_client_secret'], $values['onedrive_refresh_token'], $values['drive_client_secret'], $values['drive_refresh_token']);
         return view('admin.operations.index', [
             'settings' => $values,
             'backups' => BackupRun::query()->latest('id')->paginate(10, ['*'], 'backups_page'),
@@ -48,6 +49,9 @@ class OperationsCenterController extends Controller
             'drive_client_secret' => ['nullable', 'string', 'max:2000'],
             'drive_refresh_token' => ['nullable', 'string', 'max:3000'],
             'drive_folder_id' => ['nullable', 'string', 'max:500'],
+            'cloud_provider' => ['required', 'in:onedrive'],
+            'onedrive_client_id' => ['nullable', 'string', 'max:500'],
+            'onedrive_client_secret' => ['nullable', 'string', 'max:2000'],
             'alert_enabled' => ['nullable', 'boolean'],
             'alert_mobile' => ['nullable', 'string', 'max:30'],
             'disk_warning_percent' => ['required', 'integer', 'min:50', 'max:98'],
@@ -55,12 +59,12 @@ class OperationsCenterController extends Controller
 
         $setting = OperationsSetting::current();
         $values = $setting->values();
-        foreach (['local_path', 'backup_frequency', 'keep_local', 'drive_client_id', 'drive_folder_id', 'disk_warning_percent'] as $key) {
+        foreach (['local_path', 'backup_frequency', 'keep_local', 'drive_client_id', 'drive_folder_id', 'cloud_provider', 'onedrive_client_id', 'disk_warning_percent'] as $key) {
             if (array_key_exists($key, $data)) {
                 $values[$key] = $data[$key];
             }
         }
-        foreach (['drive_client_secret', 'drive_refresh_token'] as $secret) {
+        foreach (['onedrive_client_secret'] as $secret) {
             if (! empty($data[$secret])) {
                 $values[$secret] = $data[$secret];
             }
@@ -79,6 +83,66 @@ class OperationsCenterController extends Controller
         $setting->update(['settings' => $values]);
 
         return back()->with('status', 'تنظیمات مرکز عملیات ذخیره شد. مقادیر محرمانه به‌صورت رمزنگاری‌شده نگهداری می‌شوند.');
+    }
+
+    public function connectOneDrive(Request $request)
+    {
+        $values = OperationsSetting::current()->values();
+        if (trim((string) ($values['onedrive_client_id'] ?? '')) === '' || trim((string) ($values['onedrive_client_secret'] ?? '')) === '') {
+            return back()->with('error', 'ابتدا Client ID و Client Secret برنامهٔ Microsoft را ذخیره کن.');
+        }
+
+        $state = bin2hex(random_bytes(32));
+        $request->session()->put('onedrive_oauth_state', $state);
+        $redirectUri = route('admin.operations.onedrive.callback');
+        $query = http_build_query([
+            'client_id' => $values['onedrive_client_id'],
+            'response_type' => 'code',
+            'redirect_uri' => $redirectUri,
+            'response_mode' => 'query',
+            'scope' => 'offline_access Files.ReadWrite User.Read',
+            'state' => $state,
+            'prompt' => 'select_account',
+        ]);
+
+        return redirect('https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?'.$query);
+    }
+
+    public function oneDriveCallback(Request $request)
+    {
+        $expectedState = (string) $request->session()->pull('onedrive_oauth_state', '');
+        $providedState = (string) $request->query('state', '');
+        if ($expectedState === '' || $providedState === '' || ! hash_equals($expectedState, $providedState)) {
+            return redirect()->route('admin.operations.index')->with('error', 'اعتبار درخواست اتصال OneDrive تأیید نشد؛ دوباره تلاش کن.');
+        }
+        if ($request->filled('error')) {
+            return redirect()->route('admin.operations.index')->with('error', 'اتصال OneDrive لغو شد یا مایکروسافت خطا داد: '.mb_substr((string) $request->query('error_description', $request->query('error')), 0, 300));
+        }
+        $code = (string) $request->query('code', '');
+        if ($code === '') {
+            return redirect()->route('admin.operations.index')->with('error', 'کد تأیید از Microsoft دریافت نشد.');
+        }
+
+        $record = OperationsSetting::current();
+        $values = $record->values();
+        $response = Http::asForm()->timeout(30)->post('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', [
+            'client_id' => $values['onedrive_client_id'] ?? '',
+            'client_secret' => $values['onedrive_client_secret'] ?? '',
+            'grant_type' => 'authorization_code',
+            'code' => $code,
+            'redirect_uri' => route('admin.operations.onedrive.callback'),
+            'scope' => 'offline_access Files.ReadWrite User.Read',
+        ]);
+
+        if (! $response->successful() || ! $response->json('refresh_token')) {
+            report(new \RuntimeException('Microsoft OneDrive OAuth token exchange failed: HTTP '.$response->status()));
+            return redirect()->route('admin.operations.index')->with('error', 'دریافت مجوز پایدار OneDrive ناموفق بود؛ نوع حساب و Redirect URI را در Microsoft Entra بررسی کن.');
+        }
+
+        $values['onedrive_refresh_token'] = (string) $response->json('refresh_token');
+        $record->update(['settings' => $values]);
+
+        return redirect()->route('admin.operations.index')->with('status', 'حساب OneDrive متصل شد؛ حالا ارسال ابری را فعال و یک بکاپ آزمایشی اجرا کن.');
     }
 
     public function runBackup(BackupService $service)
