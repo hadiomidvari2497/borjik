@@ -57,6 +57,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/actions/{action}', 'rejectAction')->whereNumber('action')->name('actions.reject');
         });
         Route::put('/operations', [OperationsCenterController::class, 'update'])->middleware('admin.can:site.settings')->name('operations.update');
+        Route::get('/operations/onedrive/connect', [OperationsCenterController::class, 'connectOneDrive'])->middleware('admin.can:site.settings')->name('operations.onedrive.connect');
+        Route::get('/operations/onedrive/callback', [OperationsCenterController::class, 'oneDriveCallback'])->middleware('admin.can:site.settings')->name('operations.onedrive.callback');
         Route::post('/operations/backup', [OperationsCenterController::class, 'runBackup'])->middleware('admin.can:site.settings')->middleware('throttle:2,1')->name('operations.backup');
         Route::post('/operations/backups/{backupRun}/verify', [OperationsCenterController::class, 'verifyBackup'])->whereNumber('backupRun')->middleware('admin.can:site.settings')->middleware('throttle:6,1')->name('operations.backups.verify');
         Route::post('/operations/health-check', [OperationsCenterController::class, 'checkNow'])->middleware('admin.can:site.settings')->name('operations.check');
