@@ -100,7 +100,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::prefix('finances')->name('finances.')->middleware('admin.can:plans.manage')->controller(FinancialManagementController::class)->group(function () {
             Route::get('/', 'index')->name('index');
-            Route::get('/bulk-edit', fn () => view('admin.finances.bulk-edit'))->name('bulk-edit');
+            Route::get('/bulk-edit', 'bulkEdit')->name('bulk-edit');
             Route::post('/bulk-adjust', 'bulkAdjust')->name('bulk-adjust');
         });
 
