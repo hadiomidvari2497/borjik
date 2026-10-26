@@ -19,7 +19,8 @@
         <th>نام</th>
         <th>سقف واحد</th>
         <th>مدت (ماه)</th>
-        <th>قیمت</th>
+        <th>قیمت پایه</th>
+        <th>قیمت نهایی</th>
         <th>وضعیت</th>
         <th>تعداد اشتراک</th>
         <th></th>
@@ -33,6 +34,16 @@
         <td>{{ $F::num($plan->duration_months) }}</td>
         <td>
           @if((int) $plan->price === 0)
+            <span class="pill">رایگان</span>
+          @else
+            {{ $F::money($plan->price) }}
+          @endif
+        </td>
+        <td>
+          @if($plan->discountIsActive())
+            <del style="color:var(--muted);font-size:12px">{{ $F::money($plan->price) }}</del><br>
+            <b>{{ $F::money($plan->effectivePrice()) }}</b> <span class="pill">تخفیف</span>
+          @elseif((int) $plan->price === 0)
             <span class="pill">رایگان</span>
           @else
             {{ $F::money($plan->price) }}

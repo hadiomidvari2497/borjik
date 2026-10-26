@@ -33,7 +33,7 @@
   @else
     <div class="feat" style="margin-top:8px">
       @foreach($plans as $plan)
-        @php $free = (int) $plan->price === 0; @endphp
+        @php $free = (int) $plan->effectivePrice() === 0; @endphp
         <div class="card" style="margin:0">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
             <b>{{ $plan->name }}</b>
@@ -44,10 +44,17 @@
             مدت: <b>{{ $F::num($plan->duration_months) }} ماه</b><br>
             قیمت:
             <b>
-              @if($free)
+              @if($free && (int) $plan->price === 0)
                 رایگان
+              @elseif($free)
+                <del style="color:var(--muted);font-size:12px">{{ $F::money($plan->price) }}</del>
+                رایگان با تخفیف
+              @elseif($plan->discountIsActive())
+                <del style="color:var(--muted);font-size:12px">{{ $F::money($plan->price) }}</del>
+                {{ $F::money($plan->effectivePrice()) }}
+                <span class="pill">تخفیف ویژه</span>
               @else
-                {{ $F::money($plan->price) }}
+                {{ $F::money($plan->effectivePrice()) }}
               @endif
             </b>
           </p>
@@ -55,6 +62,13 @@
             data-confirm="{{ $free ? 'پلن رایگان فعال شود؟' : 'برای پرداخت به درگاه زرین‌پال هدایت می‌شوید. ادامه می‌دهید؟' }}"
             data-confirm-title="{{ $free ? 'فعال‌سازی اشتراک' : 'پرداخت اشتراک' }}">
             @csrf
+            @if($plan->effectivePrice() > 0)
+              <div style="margin:10px 0">
+                <label for="coupon-{{ $plan->id }}">کد تخفیف (اختیاری)</label>
+                <input id="coupon-{{ $plan->id }}" name="coupon_code" value="{{ old('coupon_code') }}" placeholder="کد تخفیف را وارد کنید" autocomplete="off">
+                @error('coupon_code')<div class="e">{{ $message }}</div>@enderror
+              </div>
+            @endif
             <button class="btn {{ $free ? '' : 'sec' }}" type="submit" style="width:100%;justify-content:center">
               @if($free)
                 {{ $subscription ? 'تعویض به پلن رایگان' : 'فعال‌سازی رایگان' }}

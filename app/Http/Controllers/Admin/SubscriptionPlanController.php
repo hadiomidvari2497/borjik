@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SubscriptionPlan;
 use App\Support\MobileNumber;
+use App\Support\JalaliDate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -73,6 +74,7 @@ class SubscriptionPlanController extends Controller
             'price' => MobileNumber::toLatinDigits((string) $request->input('price', '0')),
             'units_limit' => MobileNumber::toLatinDigits((string) $request->input('units_limit', '0')),
             'duration_months' => MobileNumber::toLatinDigits((string) $request->input('duration_months', '1')),
+            'discount_value' => MobileNumber::toLatinDigits((string) $request->input('discount_value', '0')),
         ]);
 
         $data = $request->validate([
@@ -80,9 +82,37 @@ class SubscriptionPlanController extends Controller
             'units_limit' => ['required', 'integer', 'min:1', 'max:100000'],
             'duration_months' => ['required', 'integer', 'min:1', 'max:120'],
             'price' => ['required', 'integer', 'min:0'], // 0 = رایگان
+            'discount_type' => ['nullable', Rule::in(['percent', 'fixed'])],
+            'discount_value' => ['nullable', 'integer', 'min:0', 'max:1000000000'],
+            'discount_starts_at' => ['nullable', 'string', 'max:20'],
+            'discount_ends_at' => ['nullable', 'string', 'max:20'],
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $discountStart = JalaliDate::parse($request->input('discount_starts_at'));
+        $discountEnd = JalaliDate::parse($request->input('discount_ends_at'));
+        if ($request->filled('discount_starts_at') && ! $discountStart) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_starts_at' => 'تاریخ شروع شمسی معتبر نیست.']);
+        }
+        if ($request->filled('discount_ends_at') && ! $discountEnd) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_ends_at' => 'تاریخ پایان شمسی معتبر نیست.']);
+        }
+        if ($discountStart && $discountEnd && $discountEnd->lt($discountStart)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_ends_at' => 'تاریخ پایان نباید قبل از تاریخ شروع باشد.']);
+        }
+        $data['discount_starts_at'] = $discountStart?->startOfDay();
+        $data['discount_ends_at'] = $discountEnd?->endOfDay();
+
+        if (($data['discount_type'] ?? null) === 'percent' && (int) ($data['discount_value'] ?? 0) > 100) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_value' => 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰ باشد.']);
+        }
+        $data['discount_value'] = (int) ($data['discount_value'] ?? 0);
+        if (! ($data['discount_type'] ?? null) || $data['discount_value'] === 0) {
+            $data['discount_type'] = null;
+            $data['discount_value'] = 0;
+            $data['discount_starts_at'] = null;
+            $data['discount_ends_at'] = null;
+        }
         $data['is_active'] = $request->boolean('is_active');
         $data['price'] = (int) $data['price'];
         $data['units_limit'] = (int) $data['units_limit'];

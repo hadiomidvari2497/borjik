@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Building;
+use App\Models\CouponRedemption;
+use App\Models\DiscountCoupon;
 use App\Models\SiteSetting;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
@@ -50,11 +52,68 @@ class SubscriptionController extends Controller
         $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
         $user = $request->user();
 
-        if ((int) $plan->price === 0) {
-            $this->activateFreePlan($user->id, $plan);
+        $baseAmount = $plan->effectivePrice();
+        $couponCode = strtoupper(trim((string) $request->input('coupon_code', '')));
+        $discountAmount = 0;
+        $amount = $baseAmount;
+
+        if ($couponCode !== '' && $baseAmount <= 0) {
+            return back()->withInput()->withErrors(['coupon_code' => 'کد تخفیف فقط برای پلن‌هایی که مبلغ قابل پرداخت دارند قابل استفاده است.']);
+        }
+
+        if ($couponCode !== '') {
+            $coupon = DiscountCoupon::query()->where('code', $couponCode)->first();
+            if (! $coupon || ! $coupon->isAvailableFor($user->id, $plan->id, $baseAmount)) {
+                return back()->withInput()->withErrors(['coupon_code' => 'کد تخفیف نامعتبر، منقضی یا غیرقابل استفاده برای این پلن است.']);
+            }
+            $discountAmount = $coupon->discountFor($baseAmount);
+            $amount = max(0, $baseAmount - $discountAmount);
+        }
+
+        if ($amount === 0) {
+            try {
+                DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount) {
+                    $lockedCoupon = null;
+                    $discount = 0;
+                    if ($couponCode !== '') {
+                        $lockedCoupon = DiscountCoupon::query()->where('code', $couponCode)->lockForUpdate()->first();
+                        if (! $lockedCoupon || ! $lockedCoupon->isAvailableFor($user->id, $plan->id, $baseAmount)) {
+                            throw \Illuminate\Validation\ValidationException::withMessages(['coupon_code' => 'این کد تخفیف دیگر قابل استفاده نیست.']);
+                        }
+                        $discount = $lockedCoupon->discountFor($baseAmount);
+                        if ($discount < $baseAmount) {
+                            throw new \RuntimeException('Discount total changed during checkout.');
+                        }
+                    }
+
+                    Subscription::where('user_id', $user->id)->where('status', 'active')->update(['status' => 'expired']);
+                    $subscription = Subscription::create([
+                        'user_id' => $user->id,
+                        'plan_id' => $plan->id,
+                        'units_limit' => $plan->units_limit,
+                        'starts_at' => now(),
+                        'expires_at' => now()->addMonths(max(1, (int) $plan->duration_months)),
+                        'status' => 'active',
+                    ]);
+                    $previousIds = Subscription::where('user_id', $user->id)->where('id', '!=', $subscription->id)->pluck('id');
+                    if ($previousIds->isNotEmpty()) {
+                        Building::whereIn('subscription_id', $previousIds)->update(['subscription_id' => $subscription->id]);
+                    }
+                    if ($lockedCoupon) {
+                        CouponRedemption::create([
+                            'coupon_id' => $lockedCoupon->id,
+                            'user_id' => $user->id,
+                            'discount_amount' => $discount,
+                            'status' => 'paid',
+                        ]);
+                    }
+                });
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return back()->withInput()->withErrors($e->errors());
+            }
 
             return redirect()->route('buildings.create')
-                ->with('status', 'اشتراک رایگان «'.$plan->name.'» فعال شد. حالا می‌توانید ساختمان بسازید.');
+                ->with('status', 'اشتراک «'.$plan->name.'» با موفقیت فعال شد.');
         }
 
         $settings = SiteSetting::get('payment.gateway', []);
@@ -72,7 +131,16 @@ class SubscriptionController extends Controller
         }
 
         try {
-            $payment = DB::transaction(function () use ($user, $plan) {
+            $payment = DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount, $discountAmount, $amount) {
+                $lockedCoupon = null;
+                if ($couponCode !== '') {
+                    $lockedCoupon = DiscountCoupon::query()->where('code', $couponCode)->lockForUpdate()->first();
+                    if (! $lockedCoupon || ! $lockedCoupon->isAvailableFor($user->id, $plan->id, $baseAmount)
+                        || $lockedCoupon->discountFor($baseAmount) !== $discountAmount) {
+                        throw \Illuminate\Validation\ValidationException::withMessages(['coupon_code' => 'این کد تخفیف دیگر قابل استفاده نیست. دوباره تلاش کنید.']);
+                    }
+                }
+
                 $pending = Subscription::create([
                     'user_id' => $user->id,
                     'plan_id' => $plan->id,
@@ -82,20 +150,36 @@ class SubscriptionController extends Controller
                     'status' => 'pending',
                 ]);
 
-                return SubscriptionPayment::create([
+                $payment = SubscriptionPayment::create([
                     'subscription_id' => $pending->id,
                     'user_id' => $user->id,
-                    'amount' => (int) $plan->price,
+                    'amount' => $amount,
                     'gateway' => 'zarinpal',
                     'status' => 'pending',
                     'raw_response' => [
                         'plan_id' => $plan->id,
-                        'amount_rial' => (int) $plan->price * 10,
+                        'amount_rial' => $amount * 10,
+                        'base_amount' => $baseAmount,
+                        'discount_amount' => $discountAmount,
+                        'coupon_code' => $couponCode !== '' ? $couponCode : null,
+                        'coupon_id' => $lockedCoupon?->id,
                     ],
                 ]);
+
+                if ($lockedCoupon) {
+                    CouponRedemption::create([
+                        'coupon_id' => $lockedCoupon->id,
+                        'user_id' => $user->id,
+                        'payment_id' => $payment->id,
+                        'discount_amount' => $discountAmount,
+                        'status' => 'reserved',
+                    ]);
+                }
+
+                return $payment;
             });
 
-            $result = $gateway->request((int) $plan->price * 10, $payment->id, $user);
+            $result = $gateway->request($amount * 10, $payment->id, $user);
             $payment->update([
                 'raw_response' => array_merge($payment->raw_response ?? [], [
                     'authority' => $result['authority'],
@@ -104,6 +188,8 @@ class SubscriptionController extends Controller
             ]);
 
             return redirect()->away($result['payment_url']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withInput()->withErrors($e->errors());
         } catch (\Throwable $e) {
             if (isset($payment)) {
                 DB::transaction(function () use ($payment, $e) {
@@ -114,6 +200,7 @@ class SubscriptionController extends Controller
                     if ($payment->subscription_id) {
                         Subscription::whereKey($payment->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
                     }
+                    CouponRedemption::where('payment_id', $payment->id)->where('status', 'reserved')->update(['status' => 'released']);
                 });
             }
             SystemErrorReporter::caught(
@@ -151,6 +238,7 @@ class SubscriptionController extends Controller
                 if ($locked->status === 'pending') {
                     $locked->update(['status' => 'failed', 'raw_response' => array_merge($locked->raw_response ?? [], ['callback_status' => (string) $request->query('Status', '')])]);
                     Subscription::whereKey($locked->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
+                    CouponRedemption::where('payment_id', $locked->id)->where('status', 'reserved')->update(['status' => 'released']);
                 }
             });
 
@@ -171,6 +259,7 @@ class SubscriptionController extends Controller
                     if ($locked->status === 'pending') {
                         $locked->update(['status' => 'failed', 'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification])]);
                         Subscription::whereKey($locked->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
+                        CouponRedemption::where('payment_id', $locked->id)->where('status', 'reserved')->update(['status' => 'released']);
                     }
                 });
 
@@ -203,6 +292,8 @@ class SubscriptionController extends Controller
                     Building::whereIn('subscription_id', $previousIds)->get()
                         ->each(fn (Building $building) => $building->update(['subscription_id' => $subscription->id]));
                 }
+
+                CouponRedemption::where('payment_id', $locked->id)->where('status', 'reserved')->update(['status' => 'paid']);
 
                 $locked->update([
                     'status' => 'paid',

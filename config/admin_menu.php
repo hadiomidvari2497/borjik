@@ -16,6 +16,8 @@ return [
     [
         'title' => 'اشتراک و پرداخت',
         'items' => [
+            ['label' => 'مدیریت مالی و درآمد', 'icon' => 'credit-card', 'route' => 'admin.finances.index', 'active' => 'admin.finances.*', 'perm' => 'plans.manage',
+                'desc' => 'درآمد، تخفیف پلن‌ها، کد تخفیف و تغییر گروهی قیمت‌ها'],
             ['label' => 'پلن‌های اشتراک', 'icon' => 'crown', 'route' => 'admin.plans.index', 'active' => 'admin.plans.*', 'perm' => 'plans.manage',
                 'desc' => 'قیمت، مدت و سقف واحد پلن‌ها'],
             ['label' => 'اشتراک کاربران', 'icon' => 'users', 'route' => 'admin.subscriptions.index', 'active' => 'admin.subscriptions.*', 'perm' => 'subscriptions.manage',
