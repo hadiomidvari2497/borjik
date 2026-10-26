@@ -1,7 +1,10 @@
 @extends('admin.layout')
 @section('title', 'اتصال پیامک')
 @section('content')
-@php $F = \App\Support\Fa::class; $test = session('sms_test'); @endphp
+@php
+  $F = \App\Support\Fa::class; $test = session('sms_test');
+  $sharedBodyKeys = $providers->flatMap(fn ($p) => array_keys($p->settings()['template_body_ids'] ?? []))->unique()->values();
+@endphp
 
 <div class="card" style="display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap">
   <div style="display:flex;gap:12px;align-items:center">
@@ -92,7 +95,7 @@
       <div class="fld">
         <label for="t_provider">اتصال</label>
         <select id="t_provider">
-          @foreach($providers as $p)<option value="{{ $p->id }}">{{ $p->name }}{{ $p->is_active ? '' : ' (غیرفعال)' }}</option>@endforeach
+          @foreach($providers as $p)<option value="{{ $p->id }}" data-shared="{{ str_contains(strtolower((string) ($p->settings()['url'] ?? '')), 'sendbybasenumber2') ? '1' : '0' }}" data-body-ids="{{ implode(',', array_keys($p->settings()['template_body_ids'] ?? [])) }}">{{ $p->name }}{{ $p->is_active ? '' : ' (غیرفعال)' }}</option>@endforeach
         </select>
       </div>
       <div class="fld">
@@ -101,8 +104,26 @@
         @error('mobile')<div class="e">{{ $message }}</div>@enderror
       </div>
       <div class="fld full">
-        <label for="t_message">متن پیام</label>
+        <label for="t_message">متن پیام (برای اتصال‌های معمولی)</label>
         <input id="t_message" name="message" value="{{ old('message', $defaultText) }}" maxlength="300">
+      </div>
+      <div class="fld full" id="shared-test-fields" style="display:none">
+        <div class="fld">
+          <label for="t_template_key">نوع پیام دارای Body ID</label>
+          <select id="t_template_key" name="template_key">
+            <option value="">انتخاب الگو...</option>
+            @foreach($sharedBodyKeys as $key)
+              <option value="{{ $key }}" @selected(old('template_key') === $key)>{{ $messageTypes[$key]['label'] ?? str_replace('_', ' ', $key) }}</option>
+            @endforeach
+          </select>
+          @error('template_key')<div class="e">{{ $message }}</div>@enderror
+        </div>
+        <div class="fld">
+          <label for="t_template_vars">مقادیر متغیرهای الگو</label>
+          <input id="t_template_vars" name="template_vars" value="{{ old('template_vars') }}" placeholder="مقدار اول;مقدار دوم" maxlength="1000">
+          <small style="color:var(--muted)">مقادیر را دقیقاً به ترتیب تعریف‌شده در الگو و با ; جدا کنید؛ این مقادیر جای متن آزاد را می‌گیرند.</small>
+          @error('template_vars')<div class="e">{{ $message }}</div>@enderror
+        </div>
       </div>
     </div>
     <div class="fbar"><button class="btn" type="submit">ارسال پیامک تستی</button></div>
@@ -112,7 +133,21 @@
 <script>
   (function () {
     var f = document.getElementById('test-form'), s = document.getElementById('t_provider');
-    function sync() { f.action = f.dataset.base + '/' + s.value + '/test'; }
+    var sharedFields = document.getElementById('shared-test-fields');
+    var templateKey = document.getElementById('t_template_key');
+    function sync() {
+      f.action = f.dataset.base + '/' + s.value + '/test';
+      var option = s.options[s.selectedIndex];
+      var shared = option && option.dataset.shared === '1';
+      sharedFields.style.display = shared ? 'grid' : 'none';
+      if (templateKey) {
+        var allowed = (option && option.dataset.bodyIds ? option.dataset.bodyIds : '').split(',').filter(Boolean);
+        Array.prototype.forEach.call(templateKey.options, function (item) {
+          item.hidden = item.value !== '' && allowed.indexOf(item.value) === -1;
+        });
+        if (templateKey.value && allowed.indexOf(templateKey.value) === -1) templateKey.value = '';
+      }
+    }
     s.addEventListener('change', sync); sync();
   })();
 </script>

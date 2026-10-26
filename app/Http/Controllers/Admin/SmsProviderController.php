@@ -27,6 +27,7 @@ class SmsProviderController extends Controller
             'current' => SmsProvider::current(),
             'driver' => config('sms.driver'),
             'defaultText' => self::DEFAULT_TEST_TEXT,
+            'messageTypes' => $this->messageTypes(),
         ]);
     }
 
@@ -109,6 +110,8 @@ class SmsProviderController extends Controller
         $data = $request->validate([
             'mobile' => ['required', 'string', 'max:20'],
             'message' => ['nullable', 'string', 'max:300'],
+            'template_key' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9_]+$/'],
+            'template_vars' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $mobile = MobileNumber::normalize($data['mobile']);
@@ -116,11 +119,31 @@ class SmsProviderController extends Controller
             throw ValidationException::withMessages(['mobile' => 'شماره‌ی موبایل معتبر نیست.']);
         }
         $text = ($data['message'] ?? null) ?: self::DEFAULT_TEST_TEXT;
+        $settings = $provider->settings();
+        $isSharedLine = str_contains(strtolower((string) ($settings['url'] ?? '')), 'sendbybasenumber2');
+        $templateKey = trim((string) ($data['template_key'] ?? ''));
+        $templateVars = [];
 
-        $log = SmsLog::create(['mobile' => $mobile, 'template_key' => 'admin_test', 'body' => $text, 'status' => 'queued', 'gateway' => $provider->name]);
+        // SendByBaseNumber2 requires a configured Body ID, not arbitrary free-form test text.
+        if ($isSharedLine) {
+            $bodyIds = $settings['template_body_ids'] ?? [];
+            if ($templateKey === '' || trim((string) ($bodyIds[$templateKey] ?? '')) === '') {
+                throw ValidationException::withMessages(['template_key' => 'برای تست خط اشتراکی، یک نوع پیام دارای Body ID تنظیم‌شده انتخاب کنید.']);
+            }
+
+            $rawVars = trim((string) ($data['template_vars'] ?? ''));
+            if ($rawVars === '') {
+                throw ValidationException::withMessages(['template_vars' => 'مقادیر متغیرهای الگو را به ترتیب و با ; از هم جدا وارد کنید.']);
+            }
+            $templateVars = array_map('trim', explode(';', $rawVars));
+        } else {
+            $templateKey = '';
+        }
+
+        $log = SmsLog::create(['mobile' => $mobile, 'template_key' => $templateKey !== '' ? $templateKey : 'admin_test', 'body' => $text, 'status' => 'queued', 'gateway' => $provider->name]);
 
         try {
-            $result = (new HttpSmsGateway($provider))->sendWithResponse($mobile, $text);
+            $result = (new HttpSmsGateway($provider))->sendWithResponse($mobile, $text, $templateKey !== '' ? $templateKey : null, $templateVars);
             $log->update(['status' => 'sent', 'provider_ref' => $result['ref'], 'sent_at' => now()]);
             $provider->update(['last_test_at' => now(), 'last_test_ok' => true, 'last_test_note' => null]);
 
