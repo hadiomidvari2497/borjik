@@ -56,7 +56,6 @@
         <label for="discount_ends_at">پایان تخفیف (تاریخ شمسی)</label>
         <input id="discount_ends_at" name="discount_ends_at" class="jdate" autocomplete="off" placeholder="۱۴۰۵/۰۷/۳۰" value="{{ $dateValue('discount_ends_at') }}">
         @error('discount_ends_at')<div class="e">{{ $message }}</div>@enderror
-      </div>@enderror
       </div>
       <div class="fld">
         <label style="display:flex;gap:8px;align-items:center;margin-top:28px">
