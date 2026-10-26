@@ -36,6 +36,11 @@ final class ImapMailbox
     public function listMessages(string $search = '', int $limit = 50, string $folder = 'INBOX'): array
     {
         $folder = $this->safeFolder($folder);
+        // A newly provisioned mailbox may not have a Sent folder yet. Create it
+        // before SELECT so opening the folder never looks like an IMAP login failure.
+        if ($folder === 'Sent') {
+            $this->sentFolder();
+        }
         $this->command('SELECT '.$this->quote($folder));
         $search = trim($search);
         $criteria = $search === '' ? 'ALL' : ($folder === 'INBOX' ? 'OR SUBJECT '.$this->quote($search).' FROM '.$this->quote($search) : 'OR SUBJECT '.$this->quote($search).' TO '.$this->quote($search));
