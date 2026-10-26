@@ -42,7 +42,7 @@ class SeoTest extends TestCase
     public function test_configured_production_robots_and_sitemap_include_only_public_entry_points(): void
     {
         $this->app['env'] = 'production';
-        SiteSetting::set('seo.site_url', 'https://borjik.example');
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
         SiteSetting::set('seo.indexing_enabled', true);
 
         $this->get('/robots.txt')
@@ -50,24 +50,24 @@ class SeoTest extends TestCase
             ->assertSee('Allow: /')
             ->assertDontSee('Disallow: /profile')
             ->assertDontSee('Disallow: /invite/')
-            ->assertSee('Sitemap: https://borjik.example/sitemap.xml');
+            ->assertSee('Sitemap: https://sabkhoneh.ir/sitemap.xml');
 
         $this->get('/sitemap.xml')
             ->assertOk()
-            ->assertSee('https://borjik.example/')
-            ->assertSee('https://borjik.example/articles');
+            ->assertSee('https://sabkhoneh.ir/')
+            ->assertSee('https://sabkhoneh.ir/articles');
     }
 
     public function test_http_or_non_root_site_urls_cannot_enable_public_indexing(): void
     {
         $this->app['env'] = 'production';
-        SiteSetting::set('seo.site_url', 'http://borjik.example');
+        SiteSetting::set('seo.site_url', 'http://sabkhoneh.ir');
         SiteSetting::set('seo.indexing_enabled', true);
 
         $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /');
         $this->get('/sitemap.xml')->assertOk()->assertDontSee('<url><loc>', false);
 
-        SiteSetting::set('seo.site_url', 'https://borjik.example/subdirectory');
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir/subdirectory');
         $this->get('/robots.txt')->assertOk()->assertSee('Disallow: /');
         $this->get('/sitemap.xml')->assertOk()->assertDontSee('<url><loc>', false);
     }
@@ -75,7 +75,7 @@ class SeoTest extends TestCase
     public function test_published_article_has_canonical_open_graph_and_structured_data_on_https_production_domain(): void
     {
         $this->app['env'] = 'production';
-        SiteSetting::set('seo.site_url', 'https://borjik.example');
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
         SiteSetting::set('seo.indexing_enabled', true);
 
         $article = Article::query()->where('slug', 'transparent-building-charges')->firstOrFail();
@@ -83,9 +83,9 @@ class SeoTest extends TestCase
         $this->get(route('marketing.articles.show', $article->slug))
             ->assertOk()
             ->assertSee('name="robots" content="index,follow"', false)
-            ->assertSee('rel="canonical" href="https://borjik.example/articles/transparent-building-charges"', false)
+            ->assertSee('rel="canonical" href="https://sabkhoneh.ir/articles/transparent-building-charges"', false)
             ->assertSee('property="og:type" content="article"', false)
-            ->assertSee('property="og:url" content="https://borjik.example/articles/transparent-building-charges"', false)
+            ->assertSee('property="og:url" content="https://sabkhoneh.ir/articles/transparent-building-charges"', false)
             ->assertSee('application/ld+json', false)
             ->assertSee('"@type":"Article"', false)
             ->assertSee('"headline":"چطور محاسبهٔ شارژ را شفاف‌تر کنیم؟"', false);
@@ -94,7 +94,7 @@ class SeoTest extends TestCase
     public function test_sitemap_includes_published_articles_but_not_drafts_or_future_articles(): void
     {
         $this->app['env'] = 'production';
-        SiteSetting::set('seo.site_url', 'https://borjik.example');
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
         SiteSetting::set('seo.indexing_enabled', true);
 
         Article::create([
@@ -113,9 +113,8 @@ class SeoTest extends TestCase
 
         $this->get('/sitemap.xml')
             ->assertOk()
-            ->assertSee('https://borjik.example/articles/transparent-building-charges')
+            ->assertSee('https://sabkhoneh.ir/articles/transparent-building-charges')
             ->assertDontSee('private-draft-for-seo-test')
             ->assertDontSee('future-article-for-seo-test');
     }
-
 }
