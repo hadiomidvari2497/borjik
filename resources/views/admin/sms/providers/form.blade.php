@@ -122,6 +122,21 @@
     @error('params')<div class="e" style="color:#e0453a;font-size:12.5px;margin-top:8px">{{ $message }}</div>@enderror
   </div>
 
+  <div class="card" style="margin-top:16px">
+    <div class="page-h"><h2>اتصال جایگزین برای پیام‌های بدون Body ID</h2></div>
+    <p class="hdr-sub">این گزینه را روی اتصال «ملی‌پیامک — خط خدماتی اشتراکی» تنظیم کنید. اگر برای نوع پیامک Body ID ثبت شده باشد، پیام از همین اتصال اشتراکی می‌رود؛ اگر خالی باشد، از اتصال معمولی انتخاب‌شده در این فهرست ارسال می‌شود. برای اعمال این مسیریابی، اتصال اشتراکی را پیش‌فرض کنید.</p>
+    <div class="fld">
+      <label for="body_id_fallback_provider_id">اتصال معمولی ملی‌پیامک (برای پیام‌های بدون Body ID)</label>
+      <select id="body_id_fallback_provider_id" name="body_id_fallback_provider_id">
+        <option value="">بدون اتصال جایگزین</option>
+        @foreach($fallbackProviders as $fallback)
+          <option value="{{ $fallback->id }}" @selected((string) $v('body_id_fallback_provider_id', $s['body_id_fallback_provider_id'] ?? '') === (string) $fallback->id)>{{ $fallback->name }}</option>
+        @endforeach
+      </select>
+      @error('body_id_fallback_provider_id')<div class="e">{{ $message }}</div>@enderror
+    </div>
+  </div>
+
   @if(!empty($messageTypes))
   <div class="card" style="margin-top:16px">
     <div class="page-h"><h2>Body ID جداگانه برای هر نوع پیامک</h2></div>
