@@ -88,7 +88,9 @@ class SeoTest extends TestCase
             ->assertSee('property="og:url" content="https://sabkhoneh.ir/articles/transparent-building-charges"', false)
             ->assertSee('application/ld+json', false)
             ->assertSee('"@type":"Article"', false)
-            ->assertSee('"headline":"چطور محاسبهٔ شارژ را شفاف‌تر کنیم؟"', false);
+            ->assertSee('"headline":"چطور محاسبهٔ شارژ را شفاف‌تر کنیم؟"', false)
+            ->assertSee('"author":{"@type":"Organization","name":"تیم صابخونه"', false)
+            ->assertSee('نویسنده: تیم صابخونه', false);
     }
 
     public function test_article_listing_has_unique_metadata_and_collection_structured_data_on_public_production_domain(): void

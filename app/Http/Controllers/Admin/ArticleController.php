@@ -29,6 +29,8 @@ class ArticleController extends Controller
     {
         $data = $this->validated($request);
         unset($data['remove_cover']);
+        $authorName = trim((string) ($data['author_name'] ?? ''));
+        $data['author_name'] = $authorName !== '' ? $authorName : 'تیم صابخونه';
         $data['slug'] = $this->uniqueSlug($data['slug'] ?: $data['title']);
         $data['admin_id'] = $request->user('admin')->id;
         $data['body'] = ArticleHtmlSanitizer::sanitize($data['body']);
@@ -50,6 +52,8 @@ class ArticleController extends Controller
         $data = $this->validated($request, $article);
         $removeCover = $request->boolean('remove_cover');
         unset($data['remove_cover']);
+        $authorName = trim((string) ($data['author_name'] ?? ''));
+        $data['author_name'] = $authorName !== '' ? $authorName : ($article->author_name ?: 'تیم صابخونه');
         $data['slug'] = $this->uniqueSlug($data['slug'] ?: $data['title'], $article->id);
         $data['body'] = ArticleHtmlSanitizer::sanitize($data['body']);
         if ($removeCover) {
@@ -91,16 +95,18 @@ class ArticleController extends Controller
         for ($i = 1; $i <= 5; $i++) {
             $examples[] = [
                 'title' => "عنوان مقاله نمونه {$i}",
+                'author_name' => 'تیم صابخونه',
                 'slug' => "sample-article-{$i}",
                 'excerpt' => 'خلاصه کوتاه مقاله را اینجا بنویسید.',
                 'body' => '<h2>عنوان بخش</h2><p>متن مقاله را اینجا بنویسید. می‌توانید از HTML ساده مانند تیتر، پاراگراف، فهرست و لینک استفاده کنید.</p><ul><li>نکته اول</li><li>نکته دوم</li></ul>',
+                'author_name' => 'تیم صابخونه',
                 'status' => 'draft',
                 'published_at' => null,
                 'cover_image' => null,
             ];
         }
         $zip->addFromString('articles.json', json_encode($examples, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        $zip->addFromString('README.txt', "قالب ورود گروهی مقالات برجیک\n\n۱) articles.json را با UTF-8 و بدون تغییر ساختار آرایه ویرایش کنید.\n۲) برای هر مقاله title و body لازم است؛ slug اختیاری است. status فقط draft یا published باشد.\n۳) تصویر جلد را در پوشه images قرار دهید و مقدار cover_image را مانند images/cover-1.jpg تنظیم کنید. اگر تصویر نمی‌خواهید مقدار cover_image را null بگذارید.\n۴) همه فایل‌ها را دوباره داخل ZIP قرار دهید و ZIP را در پنل مدیریت وارد کنید.\n۵) اگر slug مقاله‌ای از قبل وجود داشته باشد همان مقاله به‌روزرسانی می‌شود؛ در غیر این صورت مقاله جدید ساخته می‌شود.\n\nحداکثر ۱۰۰ مقاله، ZIP حداکثر ۱۰ مگابایت و هر تصویر حداکثر ۵ مگابایت است. تصاویر مجاز: JPG، PNG و WebP.\n");
+        $zip->addFromString('README.txt', "قالب ورود گروهی مقالات برجیک\n\n۱) articles.json را با UTF-8 و بدون تغییر ساختار آرایه ویرایش کنید.\n۲) برای هر مقاله title و body لازم است؛ author_name و slug اختیاری هستند؛ اگر author_name خالی باشد «تیم صابخونه» ثبت می‌شود. status فقط draft یا published باشد.\n۳) تصویر جلد را در پوشه images قرار دهید و مقدار cover_image را مانند images/cover-1.jpg تنظیم کنید. اگر تصویر نمی‌خواهید مقدار cover_image را null بگذارید.\n۴) همه فایل‌ها را دوباره داخل ZIP قرار دهید و ZIP را در پنل مدیریت وارد کنید.\n۵) اگر slug مقاله‌ای از قبل وجود داشته باشد همان مقاله به‌روزرسانی می‌شود؛ در غیر این صورت مقاله جدید ساخته می‌شود.\n\nحداکثر ۱۰۰ مقاله، ZIP حداکثر ۱۰ مگابایت و هر تصویر حداکثر ۵ مگابایت است. تصاویر مجاز: JPG، PNG و WebP.\n");
         $zip->addFromString('images/README.txt', "تصاویر جلد را در همین پوشه قرار دهید. فایل‌های تصویر را با نام‌هایی مثل cover-1.jpg نام‌گذاری و مسیرشان را در cover_image وارد کنید. فایل README تصویر نیست و صرفاً راهنماست.\n");
         $zip->close();
 
@@ -156,6 +162,7 @@ class ArticleController extends Controller
                     }
                     $validator = Validator::make($record, [
                         'title' => ['required', 'string', 'max:200'],
+                        'author_name' => ['nullable', 'string', 'max:160'],
                         'slug' => ['nullable', 'string', 'max:220'],
                         'excerpt' => ['nullable', 'string', 'max:500'],
                         'body' => ['required', 'string', 'max:50000'],
@@ -172,6 +179,8 @@ class ArticleController extends Controller
                     $existing = Article::query()->where('slug', $slug)->first();
                     $data['slug'] = $existing ? $existing->slug : $this->uniqueSlug($slug);
                     $data['excerpt'] = $data['excerpt'] ?? null;
+                    $authorName = trim((string) ($data['author_name'] ?? ''));
+                    $data['author_name'] = $authorName !== '' ? $authorName : ($existing?->author_name ?: 'تیم صابخونه');
                     $data['body'] = ArticleHtmlSanitizer::sanitize($data['body']);
                     $data['status'] = $data['status'] ?? 'draft';
                     $data['published_at'] = $data['status'] === 'published' ? ($data['published_at'] ?? now()) : null;
@@ -224,6 +233,7 @@ class ArticleController extends Controller
     {
         return $request->validate([
             'title' => ['required', 'string', 'max:200'],
+            'author_name' => ['nullable', 'string', 'max:160'],
             'slug' => ['nullable', 'string', 'max:220', 'regex:/^[\pL\pN-]+$/u', Rule::unique('articles', 'slug')->ignore($article?->id)],
             'excerpt' => ['nullable', 'string', 'max:500'],
             'cover_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
