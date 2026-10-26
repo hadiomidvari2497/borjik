@@ -85,9 +85,16 @@ class SmsRoutingGatewayTest extends TestCase
         $gateway->send('09123456789', 'یادآوری عادی', 'expense_reminder', ['month' => 'مهر']);
         $this->assertSame('ملی‌پیامک معمولی', $gateway->label());
 
-        Http::assertSent(fn ($request): bool => str_contains($request->url(), 'SendByBaseNumber2')
-            && $request['text'] === '250000;12'
-            && (string) $request['bodyId'] === '12345');
+        Http::assertSent(function ($request): bool {
+            if (! str_contains($request->url(), 'SendByBaseNumber2')) {
+                return false;
+            }
+
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+
+            return ($query['text'] ?? null) === '250000;12'
+                && (string) ($query['bodyId'] ?? '') === '12345';
+        });
         Http::assertSent(fn ($request): bool => str_contains($request->url(), 'normal.example.test')
             && $request['text'] === 'یادآوری عادی');
     }
