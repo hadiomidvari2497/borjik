@@ -131,6 +131,8 @@ class SubscriptionController extends Controller
             ]);
 
             return redirect()->away($result['payment_url']);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withInput()->withErrors($e->errors());
         } catch (\Throwable $e) {
             if (isset($payment)) {
                 DB::transaction(function () use ($payment, $e) {
