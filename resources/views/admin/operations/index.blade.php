@@ -6,21 +6,66 @@
   $bytes = fn ($n) => $n === null ? '—' : ($n >= 1073741824 ? number_format($n / 1073741824, 2).' GB' : number_format($n / 1048576, 1).' MB');
 @endphp
 <style>
-.oc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}.oc-card{border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}.oc-muted{color:var(--muted);font-size:12px;line-height:1.9}.oc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.oc-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.oc-form label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}.oc-form input,.oc-form select{width:100%;min-width:0}.oc-check{display:flex;align-items:center;gap:8px;font-size:13px}.oc-check input{width:auto}.oc-table{width:100%;border-collapse:collapse}.oc-table th,.oc-table td{padding:10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}.oc-table th{font-size:12px;color:var(--muted)}.oc-pill{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800}.oc-good{background:#e8f7ee;color:#17683a}.oc-bad{background:#fff0ef;color:#a52b24}.oc-warn{background:#fff5df;color:#8a5a08}.oc-secret{background:var(--surface);border:1px solid var(--line);padding:10px;border-radius:9px;font-size:12px;color:var(--muted)}.oc-section{margin-top:22px}.oc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-@media(max-width:800px){.oc-grid{grid-template-columns:1fr}.oc-form{grid-template-columns:1fr}.oc-table-wrap{overflow:auto}.oc-table{min-width:680px}}
-
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]) .oc-good{background:rgba(47,160,96,.18);color:#91e0ae}
- :root:not([data-theme="light"]) .oc-bad{background:rgba(224,69,58,.18);color:#ffaaa3}
- :root:not([data-theme="light"]) .oc-warn{background:rgba(232,163,61,.18);color:#f4c775}
-}
+.oc-page{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:22px;padding:clamp(16px,2.4vw,30px);background:linear-gradient(145deg,rgba(16,185,129,.045),transparent 34%),var(--surface)}
+.oc-page:before{content:"";position:absolute;top:-115px;left:-70px;width:260px;height:260px;border-radius:50%;background:rgba(16,185,129,.075);filter:blur(2px);pointer-events:none}
+.oc-page>*{position:relative}
+.oc-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.oc-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:clamp(18px,3vw,30px);border-radius:18px;border:1px solid rgba(16,185,129,.2);background:linear-gradient(125deg,rgba(16,185,129,.12),rgba(20,184,166,.045) 58%,transparent);margin-bottom:20px}
+.oc-hero-copy{min-width:0;max-width:720px}
+.oc-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:850;letter-spacing:.02em;color:var(--primary,#0f9f78);padding:5px 10px;border:1px solid rgba(16,185,129,.24);border-radius:999px;background:rgba(16,185,129,.07);margin-bottom:10px}
+.oc-title{font-size:clamp(21px,2.4vw,29px);font-weight:900;letter-spacing:-.035em;line-height:1.5;margin:0}
+.oc-subtitle{font-size:13px;color:var(--muted);line-height:2;margin:6px 0 0;max-width:650px}
+.oc-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 11px;font-size:11px;font-weight:850;white-space:nowrap;border:1px solid transparent}
+.oc-good{background:#e8f7ee;color:#17683a;border-color:rgba(23,104,58,.08)}
+.oc-bad{background:#fff0ef;color:#a52b24;border-color:rgba(165,43,36,.08)}
+.oc-warn{background:#fff5df;color:#8a5a08;border-color:rgba(138,90,8,.08)}
+.oc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0 28px}
+.oc-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;padding:19px;min-width:0;background:var(--surface);box-shadow:0 5px 18px rgba(15,23,42,.025);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.oc-card:after{content:"";position:absolute;inset-inline-start:0;top:18px;bottom:18px;width:3px;border-radius:4px;background:rgba(16,185,129,.55)}
+.oc-card:hover{transform:translateY(-2px);border-color:rgba(16,185,129,.35);box-shadow:0 10px 25px rgba(15,23,42,.06)}
+.oc-card h3{font-size:20px;font-weight:900;letter-spacing:-.02em;line-height:1.6;overflow-wrap:anywhere}
+.oc-muted{color:var(--muted);font-size:12px;line-height:1.95}
+.oc-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.oc-form>div{min-width:0;padding:13px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--surface) 94%,var(--muted) 6%)}
+.oc-form label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:7px}
+.oc-form input:not([type=checkbox]),.oc-form select{width:100%;min-width:0;border-radius:10px}
+.oc-check{display:flex!important;align-items:center;gap:9px;font-size:13px!important;color:var(--text)!important;min-height:25px}
+.oc-check input{width:auto;accent-color:#0f9f78}
+.oc-section{margin-top:27px;padding-top:24px;border-top:1px solid var(--line)}
+.oc-section h3{font-size:17px;font-weight:900;letter-spacing:-.02em}
+.oc-section h4{font-size:14px;font-weight:850;margin:0 0 8px}
+.oc-section> .oc-head{margin-bottom:14px}
+.oc-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;margin-top:13px}
+.oc-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface)}
+.oc-table th,.oc-table td{padding:13px 12px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+.oc-table th{font-size:11px;font-weight:850;color:var(--muted);white-space:nowrap;background:color-mix(in srgb,var(--surface) 90%,var(--muted) 10%)}
+.oc-table tbody tr:last-child td{border-bottom:0}
+.oc-table tbody tr:hover td{background:rgba(16,185,129,.035)}
+.oc-table td{font-size:12px;line-height:1.9}
+.oc-secret{background:var(--surface);border:1px dashed var(--line);padding:12px 14px;border-radius:11px;font-size:12px;color:var(--muted)}
+.oc-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:15px;background:color-mix(in srgb,var(--surface) 93%,var(--muted) 7%)}
+.oc-actions .btn{border-radius:10px;min-height:40px;font-weight:800;transition:transform .15s ease,box-shadow .15s ease}
+.oc-actions .btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(15,23,42,.08)}
+.oc-actions form{margin:0}
+.oc-section form[data-confirm] .btn{white-space:nowrap}
+.oc-footnote{margin-top:22px;padding:15px 17px;border-radius:13px;border:1px solid rgba(16,185,129,.18);background:rgba(16,185,129,.045)}
+@media(max-width:900px){.oc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.oc-grid,.oc-form{grid-template-columns:1fr}.oc-hero{align-items:flex-start}.oc-page{padding:12px;border-radius:16px}.oc-card{padding:16px}.oc-actions{padding:10px}.oc-actions>.btn,.oc-actions>form{width:100%}.oc-actions>form .btn{width:100%}.oc-actions form>div{width:100%}.oc-table{min-width:760px}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .oc-good{background:rgba(47,160,96,.18);color:#91e0ae}:root:not([data-theme="light"]) .oc-bad{background:rgba(224,69,58,.18);color:#ffaaa3}:root:not([data-theme="light"]) .oc-warn{background:rgba(232,163,61,.18);color:#f4c775}}
 :root[data-theme="dark"] .oc-good{background:rgba(47,160,96,.18);color:#91e0ae}
 :root[data-theme="dark"] .oc-bad{background:rgba(224,69,58,.18);color:#ffaaa3}
 :root[data-theme="dark"] .oc-warn{background:rgba(232,163,61,.18);color:#f4c775}
-
+@media(prefers-reduced-motion:reduce){.oc-card,.oc-actions .btn{transition:none}.oc-card:hover,.oc-actions .btn:hover{transform:none}}
 </style>
-<div class="card">
-  <div class="oc-head"><div><h2 style="margin:0">مرکز عملیات صابخونه</h2><p class="oc-muted">سلامت سرویس، هشدار پیامکی و نسخه‌های پشتیبان را از یکجا مدیریت کن.</p></div><span class="oc-pill {{ $smsReady ? 'oc-good' : 'oc-warn' }}">{{ $smsReady ? 'اتصال پیامکی آماده است' : 'اتصال پیامکی تنظیم نشده' }}</span></div>
+<div class="card oc-page">
+  <header class="oc-hero">
+    <div class="oc-hero-copy">
+      <span class="oc-eyebrow">مدیریت زیرساخت · صابخونه</span>
+      <h2 class="oc-title">مرکز عملیات و پشتیبان‌گیری</h2>
+      <p class="oc-subtitle">وضعیت سرویس‌ها را بررسی کن، نسخه‌های پشتیبان را مدیریت کن و از آماده‌بودن مسیر بازیابی اطلاعات مطمئن شو.</p>
+    </div>
+    <span class="oc-pill {{ $smsReady ? 'oc-good' : 'oc-warn' }}"><span aria-hidden="true">●</span>{{ $smsReady ? 'اتصال پیامکی آماده است' : 'اتصال پیامکی تنظیم نشده' }}</span>
+  </header>
   <div class="oc-grid">
     <div class="oc-card"><span class="oc-muted">آخرین بررسی سلامت</span><h3 style="margin:8px 0">{{ $lastHealth ? ($lastHealth->status === 'ok' ? 'سالم' : 'نیازمند رسیدگی') : 'هنوز بررسی نشده' }}</h3><span class="oc-muted">{{ $lastHealth ? $F::date($lastHealth->created_at, 'j F Y - H:i:s') : 'برای شروع «بررسی سلامت» را اجرا کن.' }}</span></div>
     <div class="oc-card"><span class="oc-muted">آخرین بکاپ</span><h3 style="margin:8px 0">{{ $lastBackup ? (['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$lastBackup->status] ?? $lastBackup->status) : 'هنوز بکاپی ثبت نشده' }}</h3><span class="oc-muted">{{ $lastBackup?->size_bytes ? $bytes($lastBackup->size_bytes) : 'حجم نامشخص' }} @if($lastBackup?->finished_at) · {{ $F::date($lastBackup->finished_at, 'j F Y - H:i:s') }} @endif</span></div>
@@ -77,6 +122,6 @@
     @forelse($health as $record)<tr><td>{{ $F::date($record->created_at, 'j F Y H:i:s') }}</td><td><span class="oc-pill {{ $record->status==='ok'?'oc-good':'oc-bad' }}">{{ $record->status==='ok'?'سالم':'هشدار' }}</span></td><td>@foreach($record->checks as $check)<div><strong>{{ $check['name'] ?? '' }}:</strong> {{ $check['detail'] ?? '' }} <span class="oc-muted">({{ $check['status'] ?? 'unknown' }})</span></div>@endforeach</td></tr>@empty<tr><td colspan="3">هنوز بررسی‌ای ثبت نشده است.</td></tr>@endforelse
     </tbody></table></div><div style="margin-top:12px">{{ $health->links() }}</div>
   </section>
-  <p class="oc-muted" style="margin-top:18px">نکته امنیتی: بکاپ شامل داده‌های خصوصی و فایل‌های بارگذاری‌شده است. مسیر محلی را خارج از public انتخاب کن و دسترسی حساب OneDrive را فقط به افراد مورداعتماد بده و دکمهٔ «بررسی سلامت فایل» یک تمرین غیرمخرب است: ساختار ZIP، manifest و خواندن فایل‌های آرشیو را می‌سنجد و دیتابیس فعال را تغییر نمی‌دهد. برای اثبات بازیابی کامل، فایل را در محیط ایزوله جداگانه بازیابی و برنامه را روی نسخهٔ آزمایشی بررسی کن.</p>
+  <p class="oc-muted oc-footnote">نکته امنیتی: بکاپ شامل داده‌های خصوصی و فایل‌های بارگذاری‌شده است. مسیر محلی را خارج از public انتخاب کن و دسترسی حساب OneDrive را فقط به افراد مورداعتماد بده و دکمهٔ «بررسی سلامت فایل» یک تمرین غیرمخرب است: ساختار ZIP، manifest و خواندن فایل‌های آرشیو را می‌سنجد و دیتابیس فعال را تغییر نمی‌دهد. برای اثبات بازیابی کامل، فایل را در محیط ایزوله جداگانه بازیابی و برنامه را روی نسخهٔ آزمایشی بررسی کن.</p>
 </div>
 @endsection
