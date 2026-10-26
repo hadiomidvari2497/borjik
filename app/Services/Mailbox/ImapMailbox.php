@@ -33,9 +33,10 @@ final class ImapMailbox
         $this->command('LOGIN '.$this->quote((string) $this->credentials['username']).' '.$this->quote((string) $this->credentials['password']));
     }
 
-    public function listMessages(string $search = '', int $limit = 50): array
+    public function listMessages(string $search = '', int $limit = 50, string $folder = 'INBOX'): array
     {
-        $this->command('SELECT INBOX');
+        $folder = $this->safeFolder($folder);
+        $this->command('SELECT '.$this->quote($folder));
         $search = trim($search);
         $criteria = $search === '' ? 'ALL' : 'OR SUBJECT '.$this->quote($search).' FROM '.$this->quote($search);
         $response = $this->command('UID SEARCH '.$criteria);
@@ -44,7 +45,7 @@ final class ImapMailbox
         $uids = array_slice(array_reverse(array_filter($uids, fn ($uid) => ctype_digit($uid))), 0, max(1, min(100, $limit)));
         $messages = [];
         foreach ($uids as $uid) {
-            $raw = $this->command('UID FETCH '.(int) $uid.' (UID FLAGS INTERNALDATE RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE)])');
+            $raw = $this->command('UID FETCH '.(int) $uid.' (UID FLAGS INTERNALDATE RFC822.SIZE BODY.PEEK[HEADER.FIELDS (FROM SUBJECT DATE TO)])');
             $header = $this->literal($raw, true);
             $headers = $this->headers((string) $header);
             preg_match('/INTERNALDATE\s+"([^"]+)"/i', $raw, $date);
@@ -54,7 +55,7 @@ final class ImapMailbox
             $messages[] = [
                 'uid' => (int) $uid,
                 'subject' => $this->decodeHeader($headers['subject'] ?? '(بدون موضوع)'),
-                'from' => $this->decodeHeader($headers['from'] ?? 'فرستنده نامشخص'),
+                'from' => $this->decodeHeader($folder === 'INBOX' ? ($headers['from'] ?? 'فرستنده نامشخص') : ($headers['to'] ?? 'گیرنده نامشخص')),
                 'date' => $timestamp ? date(DATE_ATOM, $timestamp) : ($headers['date'] ?? ''),
                 'size' => (int) ($size[1] ?? 0),
                 'seen' => str_contains(strtolower($flags[1] ?? ''), '\\seen'),
@@ -63,12 +64,13 @@ final class ImapMailbox
         return $messages;
     }
 
-    public function getMessage(int $uid): array
+    public function getMessage(int $uid, string $folder = 'INBOX'): array
     {
+        $folder = $this->safeFolder($folder);
         if ($uid < 1) {
             throw new RuntimeException('شناسه ایمیل معتبر نیست.');
         }
-        $this->command('SELECT INBOX');
+        $this->command('SELECT '.$this->quote($folder));
         $raw = $this->command('UID FETCH '.$uid.' (UID INTERNALDATE BODY.PEEK[])');
         if (! preg_match('/\bUID\s+'.preg_quote((string) $uid, '/').'\b/', $raw)) {
             throw new RuntimeException('ایمیل موردنظر پیدا نشد.');
@@ -90,6 +92,62 @@ final class ImapMailbox
             'date' => $timestamp ? date(DATE_ATOM, $timestamp) : ($headers['date'] ?? ''),
             'message' => trim($text),
         ];
+    }
+
+    public function appendSentMessage(string $from, string $to, string $subject, string $body): void
+    {
+        $folder = $this->sentFolder();
+        $message = 'From: '.$from."\r\n"
+            .'To: '.$to."\r\n"
+            .'Subject: =?UTF-8?B?'.base64_encode($subject)."?=\r\n"
+            .'Date: '.date(DATE_RFC2822)."\r\n"
+            ."MIME-Version: 1.0\r\n"
+            ."Content-Type: text/plain; charset=UTF-8\r\n"
+            ."Content-Transfer-Encoding: base64\r\n\r\n"
+            .chunk_split(base64_encode($body), 76, "\r\n");
+        $tag = 'A'.str_pad((string) ++$this->tag, 4, '0', STR_PAD_LEFT);
+        $command = $tag.' APPEND '.$this->quote($folder).' (\\Seen) {'.strlen($message)."}\r\n";
+        if (fwrite($this->stream, $command) === false) {
+            throw new RuntimeException('ارسال نسخهٔ ذخیره‌شده به صندوق ناموفق بود.');
+        }
+        $line = fgets($this->stream);
+        if (! is_string($line) || ! str_starts_with(trim($line), '+')) {
+            throw new RuntimeException('سرور ایمیل ذخیرهٔ نسخهٔ ارسالی را نپذیرفت.');
+        }
+        if (fwrite($this->stream, $message."\r\n") === false) {
+            throw new RuntimeException('ذخیرهٔ نسخهٔ ارسالی ناقص بود.');
+        }
+        while (($line = fgets($this->stream)) !== false) {
+            if (preg_match('/^'.preg_quote($tag, '/').'\s+(OK|NO|BAD)\b/i', $line, $status)) {
+                if (strtoupper($status[1]) !== 'OK') {
+                    throw new RuntimeException('سرور ایمیل نتوانست نسخهٔ ارسالی را ذخیره کند.');
+                }
+                return;
+            }
+        }
+        throw new RuntimeException('ارتباط هنگام ذخیرهٔ نسخهٔ ارسالی قطع شد.');
+    }
+
+    private function sentFolder(): string
+    {
+        $response = $this->command('LIST "" "*"');
+        preg_match_all('/^\* LIST \([^)]*\)\s+(?:"[^"]+"\s+)?(?:"((?:[^"\\\\]|\\\\.)+)"|([^\r\n]+))\r?$/mi', $response, $matches, PREG_SET_ORDER);
+        foreach ($matches as $match) {
+            $name = stripcslashes(trim($match[1] !== '' ? $match[1] : $match[2], '"'));
+            if (in_array(strtolower($name), ['sent', 'sent messages', 'inbox.sent'], true)) {
+                return $name;
+            }
+        }
+        $this->command('CREATE "Sent"');
+        return 'Sent';
+    }
+
+    private function safeFolder(string $folder): string
+    {
+        if (! in_array($folder, ['INBOX', 'Sent', 'Sent Messages', 'INBOX.Sent'], true)) {
+            throw new RuntimeException('پوشهٔ ایمیل معتبر نیست.');
+        }
+        return $folder;
     }
 
     private function command(string $command): string
