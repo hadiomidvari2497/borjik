@@ -72,6 +72,11 @@ class MenuBuilder
         foreach (config('menu') as $group) {
             $items = [];
             foreach ($group['items'] as $item) {
+                // ابزارهایی که مدیریت سامانه غیرفعال کرده، نباید در سایدبار اصلی نمایش داده شوند.
+                if (! BuildingTools::enabled($item['route'])) {
+                    continue;
+                }
+
                 // «واحد من» برای نقش‌های مالکیتی/مدیریتی نمایش داده نمی‌شود.
                 if ($item['route'] === 'my.units' && app(CurrentBuilding::class)->hasRole('owner', 'manager')) {
                     continue;
