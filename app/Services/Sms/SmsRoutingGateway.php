@@ -37,7 +37,7 @@ class SmsRoutingGateway implements SmsGateway
         $bodyIds = $settings['template_body_ids'] ?? [];
 
         // Keep fallback routing scoped to the shared-line pattern endpoint, not regular providers.
-        if (! str_contains($url, 'sendbybasenumber2') && empty($bodyIds)) {
+        if (! str_contains($url, 'sendbybasenumber2')) {
             return $this->current;
         }
         $bodyId = trim((string) ($bodyIds[$templateKey ?? ''] ?? ''));
