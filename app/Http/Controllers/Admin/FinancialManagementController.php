@@ -25,7 +25,7 @@ class FinancialManagementController extends Controller
             'active_plans' => SubscriptionPlan::where('is_active', true)->count(),
         ];
 
-        $recentAdjustments = DB::table('financial_price_adjustments')->latest('id')->limit(10)->get();
+        $recentAdjustments = FinancialPriceAdjustment::query()->latest('id')->limit(10)->get();
 
         return view('admin.finances.index', compact('stats', 'recentAdjustments'));
     }
