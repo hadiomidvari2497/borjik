@@ -38,7 +38,7 @@ final class ImapMailbox
         $folder = $this->safeFolder($folder);
         $this->command('SELECT '.$this->quote($folder));
         $search = trim($search);
-        $criteria = $search === '' ? 'ALL' : 'OR SUBJECT '.$this->quote($search).' FROM '.$this->quote($search);
+        $criteria = $search === '' ? 'ALL' : ($folder === 'INBOX' ? 'OR SUBJECT '.$this->quote($search).' FROM '.$this->quote($search) : 'OR SUBJECT '.$this->quote($search).' TO '.$this->quote($search));
         $response = $this->command('UID SEARCH '.$criteria);
         preg_match('/\* SEARCH([^\r\n]*)/i', $response, $match);
         $uids = preg_split('/\s+/', trim($match[1] ?? ''), -1, PREG_SPLIT_NO_EMPTY) ?: [];
@@ -134,7 +134,7 @@ final class ImapMailbox
         preg_match_all('/^\* LIST \([^)]*\)\s+(?:"[^"]+"\s+)?(?:"((?:[^"\\\\]|\\\\.)+)"|([^\r\n]+))\r?$/mi', $response, $matches, PREG_SET_ORDER);
         foreach ($matches as $match) {
             $name = stripcslashes(trim($match[1] !== '' ? $match[1] : $match[2], '"'));
-            if (in_array(strtolower($name), ['sent', 'sent messages', 'inbox.sent'], true)) {
+            if (strtolower($name) === 'sent') {
                 return $name;
             }
         }
