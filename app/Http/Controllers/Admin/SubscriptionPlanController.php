@@ -107,7 +107,7 @@ class SubscriptionPlanController extends Controller
             throw \Illuminate\Validation\ValidationException::withMessages(['discount_value' => 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰ باشد.']);
         }
         $data['discount_value'] = (int) ($data['discount_value'] ?? 0);
-        if (! $data['discount_type'] || $data['discount_value'] === 0) {
+        if (! ($data['discount_type'] ?? null) || $data['discount_value'] === 0) {
             $data['discount_type'] = null;
             $data['discount_value'] = 0;
             $data['discount_starts_at'] = null;
