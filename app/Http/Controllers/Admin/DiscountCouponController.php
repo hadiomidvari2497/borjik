@@ -66,8 +66,8 @@ class DiscountCouponController extends Controller
         $request->merge([
             'code' => strtoupper(trim((string) $request->input('code', ''))),
             'discount_value' => MobileNumber::toLatinDigits((string) $request->input('discount_value', '')),
-            'min_order_amount' => MobileNumber::toLatinDigits((string) $request->input('min_order_amount', '0')),
-            'max_uses' => MobileNumber::toLatinDigits((string) $request->input('max_uses', '')),
+            'min_order_amount' => trim((string) $request->input('min_order_amount', '0')) === '' ? '0' : MobileNumber::toLatinDigits((string) $request->input('min_order_amount', '0')),
+            'max_uses' => trim((string) $request->input('max_uses', '')) === '' ? null : MobileNumber::toLatinDigits((string) $request->input('max_uses', '')),
             'max_uses_per_user' => MobileNumber::toLatinDigits((string) $request->input('max_uses_per_user', '1')),
         ]);
 
