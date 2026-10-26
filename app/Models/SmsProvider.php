@@ -40,7 +40,7 @@ class SmsProvider extends Model
     {
         return ($this->config ?? []) + [
             'method' => 'POST', 'url' => '', 'number_format' => 'local', 'headers' => [], 'body_type' => 'none',
-            'body' => '', 'params' => [], 'success' => [], 'ref_path' => '', 'timeout' => 15,
+            'body' => '', 'params' => [], 'template_body_ids' => [], 'body_id_fallback_provider_id' => null, 'success' => [], 'ref_path' => '', 'timeout' => 15,
         ];
     }
 

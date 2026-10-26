@@ -13,6 +13,10 @@ class SmsGatewayFactory
         $provider = $this->currentProvider();
 
         if ($provider) {
+            if (str_contains(strtolower((string) $provider->settings()['url']), 'sendbybasenumber2')) {
+                return new SmsRoutingGateway($provider);
+            }
+
             return new HttpSmsGateway($provider);
         }
 
