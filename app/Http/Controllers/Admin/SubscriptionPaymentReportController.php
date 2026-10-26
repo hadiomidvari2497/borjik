@@ -73,7 +73,7 @@ class SubscriptionPaymentReportController extends Controller
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['شناسه تراکنش', 'تاریخ ثبت', 'تاریخ پرداخت', 'کاربر', 'موبایل', 'پلن', 'مبلغ (تومان)', 'درگاه', 'وضعیت', 'شماره پیگیری']);
+            fputcsv($out, ['شناسه تراکنش', 'تاریخ ثبت', 'تاریخ پرداخت', 'کاربر', 'موبایل', 'پلن', 'مبلغ پرداختی (تومان)', 'مبلغ قبل از تخفیف', 'مبلغ تخفیف', 'کد تخفیف', 'درگاه', 'وضعیت', 'شماره پیگیری']);
 
             $exported = 0;
             foreach ($query->lazyById(500) as $payment) {
@@ -89,6 +89,9 @@ class SubscriptionPaymentReportController extends Controller
                     $payment->user?->mobile ?? '',
                     $payment->subscription?->plan?->name ?? '',
                     (string) $payment->amount,
+                    (string) data_get($payment->raw_response, 'base_amount', $payment->amount),
+                    (string) data_get($payment->raw_response, 'discount_amount', 0),
+                    (string) data_get($payment->raw_response, 'coupon_code', ''),
                     $payment->gateway,
                     $this->statusLabel($payment->status),
                     $payment->ref_id ?? '',
