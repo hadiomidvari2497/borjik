@@ -45,9 +45,6 @@
           <div><label for="onedrive_client_secret">Client Secret Value</label><input id="onedrive_client_secret" name="onedrive_client_secret" type="password" autocomplete="new-password" placeholder="{{ $settings['onedrive_client_secret_set'] ? 'ذخیره شده؛ برای تغییر مقدار جدید وارد کن' : 'وارد کردن مقدار' }}"></div>
         </div>
         <div class="oc-secret" style="margin-top:10px;direction:ltr;overflow-wrap:anywhere">Redirect URI: {{ route('admin.operations.onedrive.callback') }}</div>
-        <div class="oc-actions">
-          <button class="btn" type="submit">ذخیره تنظیمات</button>
-        </div>
       </div>
       <div class="oc-section"><h4>هشدار پیامکی</h4><p class="oc-muted">پیامک از اتصال فعال و پیش‌فرض بخش «اتصال پیامک» ارسال می‌شود. هشدارها هنگام تغییر وضعیت سلامت (خرابی یا بازگشت به حالت سالم) فرستاده می‌شوند تا هر بار بررسی، پیامک تکراری ایجاد نکند.</p>
         <div class="oc-form">
