@@ -29,6 +29,25 @@
 .oc-form>div{min-width:0;padding:13px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--surface) 94%,var(--muted) 6%)}
 .oc-form label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:7px}
 .oc-form input:not([type=checkbox]),.oc-form select{width:100%;min-width:0;border-radius:10px}
+.oc-page input:not([type=checkbox]):not([type=hidden]):not([type=submit]),.oc-page select,.oc-page textarea{display:block;box-sizing:border-box;min-height:46px;width:100%;max-width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)!important;color:var(--text)!important;font:inherit;font-size:13px;line-height:1.6;box-shadow:inset 0 1px 2px rgba(15,23,42,.025),0 1px 0 rgba(255,255,255,.12);outline:none;transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+.oc-page input::placeholder,.oc-page textarea::placeholder{color:var(--muted);opacity:.78}
+.oc-page input:hover:not([type=checkbox]):not([type=hidden]),.oc-page select:hover,.oc-page textarea:hover{border-color:rgba(16,185,129,.55)}
+.oc-page input:focus-visible:not([type=checkbox]):not([type=hidden]),.oc-page select:focus-visible,.oc-page textarea:focus-visible{border-color:#10b981!important;box-shadow:0 0 0 3px rgba(16,185,129,.16),0 3px 10px rgba(16,185,129,.06);background:var(--surface)!important}
+.oc-page input:disabled,.oc-page select:disabled,.oc-page textarea:disabled{opacity:.58;cursor:not-allowed}
+.oc-page input:-webkit-autofill,.oc-page input:-webkit-autofill:hover,.oc-page input:-webkit-autofill:focus{-webkit-text-fill-color:var(--text)!important;box-shadow:0 0 0 1000px var(--surface) inset,0 0 0 3px rgba(16,185,129,.08);caret-color:var(--text);border-color:rgba(16,185,129,.5)}
+.oc-page select{appearance:none;padding-inline-end:42px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%238896a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:left 13px center!important}
+.oc-page input[type=number]{font-variant-numeric:tabular-nums}
+.oc-page input[type=number]::-webkit-inner-spin-button,.oc-page input[type=number]::-webkit-outer-spin-button{opacity:.55}
+.oc-page input[type=checkbox]{appearance:none;-webkit-appearance:none;display:inline-grid;place-content:center;flex:0 0 19px;width:19px;height:19px;min-width:19px;margin:0;border:1px solid var(--line);border-radius:6px;background:var(--surface);cursor:pointer;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease}
+.oc-page input[type=checkbox]::before{content:"";width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) scale(0);transform-origin:center;transition:transform .12s ease}
+.oc-page input[type=checkbox]:checked{background:#0f9f78;border-color:#0f9f78;box-shadow:0 2px 6px rgba(15,159,120,.2)}
+.oc-page input[type=checkbox]:checked::before{transform:rotate(-45deg) scale(1)}
+.oc-page input[type=checkbox]:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(16,185,129,.2)}
+.oc-page input[type=checkbox]:disabled{opacity:.55;cursor:not-allowed}
+.oc-form>div:focus-within{border-color:rgba(16,185,129,.28);background:color-mix(in srgb,var(--surface) 97%,#10b981 3%)}
+.oc-actions input:not([type=checkbox]):not([type=hidden]){min-height:40px;width:auto;max-width:100%;padding:8px 12px;border-radius:10px}
+.oc-page input[type=password]{letter-spacing:.04em}
+@media(max-width:640px){.oc-page input:not([type=checkbox]):not([type=hidden]),.oc-page select,.oc-page textarea{min-height:45px;font-size:16px}.oc-actions input:not([type=checkbox]):not([type=hidden]){width:100%;min-width:0}}
 .oc-check{display:flex!important;align-items:center;gap:9px;font-size:13px!important;color:var(--text)!important;min-height:25px}
 .oc-check input{width:auto;accent-color:#0f9f78}
 .oc-section{margin-top:27px;padding-top:24px;border-top:1px solid var(--line)}
