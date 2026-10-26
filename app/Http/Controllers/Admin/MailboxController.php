@@ -20,23 +20,33 @@ class MailboxController extends Controller
 {
     public function index(Request $request)
     {
+        return $this->folderPage($request, 'INBOX');
+    }
+
+    public function sent(Request $request)
+    {
+        return $this->folderPage($request, 'Sent');
+    }
+
+    private function folderPage(Request $request, string $folder)
+    {
         $request->validate(['q' => ['nullable', 'string', 'max:120']]);
         $account = $this->currentMailbox();
         if (! $account) {
-            return view('admin.mailbox.index', ['account' => null, 'messages' => [], 'query' => (string) $request->query('q', ''), 'connectionError' => null]);
+            return view('admin.mailbox.index', ['account' => null, 'messages' => [], 'query' => (string) $request->query('q', ''), 'connectionError' => null, 'folder' => $folder]);
         }
 
         try {
-            $messages = $this->client($account)->listMessages((string) $request->query('q', ''), 50);
+            $messages = $this->client($account)->listMessages((string) $request->query('q', ''), 50, $folder);
             foreach ($messages as &$message) {
                 $timestamp = strtotime((string) $message['date']);
                 $message['jalali_date'] = $timestamp ? Jalalian::fromDateTime('@'.$timestamp)->format('Y/m/d H:i') : '—';
             }
             unset($message);
-            return view('admin.mailbox.index', ['account' => $account, 'messages' => $messages, 'query' => (string) $request->query('q', ''), 'connectionError' => null]);
+            return view('admin.mailbox.index', ['account' => $account, 'messages' => $messages, 'query' => (string) $request->query('q', ''), 'connectionError' => null, 'folder' => $folder]);
         } catch (Throwable $e) {
-            Log::warning('Admin mailbox could not load inbox.', ['email' => $account->email, 'exception' => $e::class]);
-            return view('admin.mailbox.index', ['account' => $account, 'messages' => [], 'query' => (string) $request->query('q', ''), 'connectionError' => app()->hasDebugModeEnabled() ? $e->getMessage() : 'اتصال صندوق ایمیل برقرار نشد؛ میزبان و رمز را بررسی کنید.']);
+            Log::warning('Admin mailbox could not load folder.', ['email' => $account->email, 'folder' => $folder, 'exception' => $e::class]);
+            return view('admin.mailbox.index', ['account' => $account, 'messages' => [], 'query' => (string) $request->query('q', ''), 'connectionError' => app()->hasDebugModeEnabled() ? $e->getMessage() : 'اتصال صندوق ایمیل برقرار نشد؛ میزبان و رمز را بررسی کنید.', 'folder' => $folder]);
         }
     }
 
@@ -78,13 +88,14 @@ class MailboxController extends Controller
         $account = $this->currentMailbox();
         abort_unless($account, 403, 'ابتدا با آدرس و رمز صندوق ایمیل وارد شوید.');
         try {
-            $message = $this->client($account)->getMessage($uid);
+            $folder = $request->query('folder') === 'sent' ? 'Sent' : 'INBOX';
+            $message = $this->client($account)->getMessage($uid, $folder);
             $timestamp = strtotime((string) $message['date']);
             $message['jalali_date'] = $timestamp ? Jalalian::fromDateTime('@'.$timestamp)->format('Y/m/d H:i') : '—';
-            return view('admin.mailbox.show', compact('message', 'account'));
+            return view('admin.mailbox.show', compact('message', 'account', 'folder'));
         } catch (Throwable $e) {
             Log::warning('Admin mailbox message could not be opened.', ['email' => $account->email, 'uid' => $uid, 'exception' => $e::class]);
-            return redirect()->route('admin.mailbox.index')->withErrors(['mailbox' => 'بازکردن ایمیل ممکن نشد؛ اتصال یا شناسه ایمیل را بررسی کنید.']);
+            return redirect()->route($request->query('folder') === 'sent' ? 'admin.mailbox.sent' : 'admin.mailbox.index')->withErrors(['mailbox' => 'بازکردن ایمیل ممکن نشد؛ اتصال یا شناسه ایمیل را بررسی کنید.']);
         }
     }
 
@@ -179,7 +190,14 @@ class MailboxController extends Controller
             Log::warning('Admin mailbox email send failed.', ['email' => $account->email, 'exception' => $e::class]);
             return back()->withErrors(['send' => 'ارسال ناموفق بود؛ تنظیمات SMTP و رمز صندوق را بررسی کنید.'])->withInput();
         }
-        return redirect()->route('admin.mailbox.index')->with('success', 'ایمیل به سرویس SMTP تحویل داده شد.');
+        try {
+            $this->client($account)->appendSentMessage($account->email, $data['to'], $data['subject'], $data['body']);
+        } catch (Throwable $e) {
+            // SMTP already accepted the message; report the sent-copy problem separately.
+            Log::warning('Email was sent but could not be copied to Sent folder.', ['email' => $account->email, 'exception' => $e::class]);
+            return redirect()->route('admin.mailbox.sent')->with('success', 'ایمیل ارسال شد، اما ذخیرهٔ نسخه در صندوق خروجی انجام نشد. لطفاً پوشه‌های IMAP را بررسی کنید.');
+        }
+        return redirect()->route('admin.mailbox.sent')->with('success', 'ایمیل ارسال شد و نسخهٔ آن در صندوق خروجی ذخیره شد.');
     }
 
     private function currentMailbox(): ?MailAccount
