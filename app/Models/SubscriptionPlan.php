@@ -13,6 +13,8 @@ class SubscriptionPlan extends Model
     {
         return [
             'is_active' => 'boolean',
+            'discount_starts_at' => 'datetime',
+            'discount_ends_at' => 'datetime',
         ];
     }
 
