@@ -96,6 +96,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/settings', [SiteSettingController::class, 'edit'])->middleware('admin.can:site.settings')->name('settings.edit');
         Route::put('/settings', [SiteSettingController::class, 'update'])->middleware('admin.can:site.settings')->name('settings.update');
 
+        Route::prefix('finances')->name('finances.')->middleware('admin.can:plans.manage')->controller(FinancialManagementController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/bulk-edit', fn () => view('admin.finances.bulk-edit'))->name('bulk-edit');
+            Route::post('/bulk-adjust', 'bulkAdjust')->name('bulk-adjust');
+        });
+
+        Route::prefix('coupons')->name('coupons.')->middleware('admin.can:plans.manage')->controller(DiscountCouponController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{id}/edit', 'edit')->whereNumber('id')->name('edit');
+            Route::put('/{id}', 'update')->whereNumber('id')->name('update');
+            Route::post('/{id}/toggle', 'toggle')->whereNumber('id')->name('toggle');
+        });
+
         Route::prefix('plans')->name('plans.')->middleware('admin.can:plans.manage')->controller(SubscriptionPlanController::class)->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
