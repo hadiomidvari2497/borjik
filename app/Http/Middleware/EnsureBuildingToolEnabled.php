@@ -13,7 +13,7 @@ class EnsureBuildingToolEnabled
     {
         if (! BuildingTools::routeEnabled($request->route()?->getName())) {
             return redirect()->route('dashboard')
-                ->with('warning', 'این ابزار فعلاً توسط مدیریت سامانه غیرفعال شده است.');
+                ->with('warning', 'این ابزار از طرف مدیریت سامانه حذف شده است و در حال حاضر قابل استفاده نیست.');
         }
 
         return $next($request);
