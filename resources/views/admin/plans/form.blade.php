@@ -34,6 +34,28 @@
         @error('price')<div class="e">{{ $message }}</div>@enderror
       </div>
       <div class="fld">
+        <label for="discount_type">تخفیف مستقیم پلن</label>
+        <select id="discount_type" name="discount_type">
+          <option value="" @selected(!$v('discount_type'))>بدون تخفیف</option>
+          <option value="percent" @selected($v('discount_type') === 'percent')>درصدی</option>
+          <option value="fixed" @selected($v('discount_type') === 'fixed')>مبلغ ثابت (تومان)</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label for="discount_value">مقدار تخفیف</label>
+        <input id="discount_value" name="discount_value" inputmode="numeric" value="{{ $v('discount_value', 0) }}">
+        @error('discount_value')<div class="e">{{ $message }}</div>@enderror
+      </div>
+      <div class="fld">
+        <label for="discount_starts_at">شروع تخفیف</label>
+        <input id="discount_starts_at" name="discount_starts_at" type="datetime-local" value="{{ $v('discount_starts_at') ? \\Illuminate\\Support\\Carbon::parse($v('discount_starts_at'))->format('Y-m-d\\TH:i') : '' }}">
+      </div>
+      <div class="fld">
+        <label for="discount_ends_at">پایان تخفیف</label>
+        <input id="discount_ends_at" name="discount_ends_at" type="datetime-local" value="{{ $v('discount_ends_at') ? \\Illuminate\\Support\\Carbon::parse($v('discount_ends_at'))->format('Y-m-d\\TH:i') : '' }}">
+        @error('discount_ends_at')<div class="e">{{ $message }}</div>@enderror
+      </div>
+      <div class="fld">
         <label style="display:flex;gap:8px;align-items:center;margin-top:28px">
           <input type="checkbox" name="is_active" value="1" style="width:auto" @checked(old('is_active', $plan?->is_active ?? true))>
           نمایش در صفحهٔ اشتراک کاربران (فعال)
