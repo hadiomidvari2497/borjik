@@ -289,7 +289,8 @@ class BackupService
                 $log->update(['status' => 'failed', 'error' => 'اتصال پیامکی پیش‌فرض فعال نیست.']);
                 return;
             }
-            $result = (new HttpSmsGateway($provider))->sendWithResponse((string) $settings['alert_mobile'], $message);
+            // This template has no placeholders; pass one empty argument so it is not replaced with the full free-form message.
+            $result = (new HttpSmsGateway($provider))->sendWithResponse((string) $settings['alert_mobile'], $message, 'backup_failure', ['']);
             $log->update(['status' => 'sent', 'provider_ref' => $result['ref'], 'sent_at' => now()]);
         } catch (Throwable $exception) {
             report($exception);

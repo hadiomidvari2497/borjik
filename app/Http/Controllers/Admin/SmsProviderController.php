@@ -163,6 +163,7 @@ class SmsProviderController extends Controller
     private function messageTypes(): array
     {
         $types = collect(array_keys(config('sms.templates', [])))
+            ->merge(['operations_alert', 'operations_recovered', 'backup_failure'])
             ->merge(\App\Models\SmsTemplate::query()->distinct()->pluck('key'))
             ->filter()
             ->unique()
@@ -179,6 +180,9 @@ class SmsProviderController extends Controller
                 'invitation' => 'دعوت به ساختمان',
                 'task_created', 'task_assigned' => 'ارجاع تسک',
                 'task_status_changed' => 'تغییر وضعیت تسک',
+                'operations_alert' => 'هشدار سلامت سامانه',
+                'operations_recovered' => 'بازگشت سلامت سامانه',
+                'backup_failure' => 'خطای پشتیبان‌گیری',
                 default => str_replace('_', ' ', $key),
             };
 
