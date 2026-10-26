@@ -66,10 +66,15 @@ class CheckOperationsHealth extends Command
                 $issueNames = collect($checks)->filter(fn ($check) => in_array($check['status'], ['fail', 'warning'], true))
                     ->pluck('name')->implode('، ');
                 $message = 'هشدار صابخونه: نیازمند بررسی: '.$issueNames.'؛ پنل مدیریت > مرکز عملیات را بررسی کنید.';
+                $templateKey = 'operations_alert';
+                $templateVars = [$issueNames];
             } else {
                 $message = 'صابخونه: بررسی سلامت سایت دوباره به وضعیت عادی برگشت.';
+                $templateKey = 'operations_recovered';
+                // This template has no placeholders; keep the argument list non-empty so the gateway sends an empty pattern value.
+                $templateVars = [''];
             }
-            $this->sendAlert((string) $settings['alert_mobile'], $message);
+            $this->sendAlert((string) $settings['alert_mobile'], $message, $templateKey, $templateVars);
         }
 
         $this->info('Health check '.$status.'; record #'.$record->id);
@@ -88,15 +93,15 @@ class CheckOperationsHealth extends Command
         }
     }
 
-    private function sendAlert(string $mobile, string $message): void
+    private function sendAlert(string $mobile, string $message, string $templateKey, array $templateVars = []): void
     {
         $provider = SmsProvider::current();
-        $log = SmsLog::create(['mobile' => $mobile, 'template_key' => 'operations_alert', 'body' => $message, 'status' => 'queued', 'gateway' => $provider?->name ?? config('sms.driver', 'log')]);
+        $log = SmsLog::create(['mobile' => $mobile, 'template_key' => $templateKey, 'body' => $message, 'status' => 'queued', 'gateway' => $provider?->name ?? config('sms.driver', 'log')]);
         try {
             if (! $provider) {
                 throw new SmsException('اتصال پیامکی پیش‌فرض و فعالی تنظیم نشده است.');
             }
-            $result = (new HttpSmsGateway($provider))->sendWithResponse($mobile, $message);
+            $result = (new HttpSmsGateway($provider))->sendWithResponse($mobile, $message, $templateKey, $templateVars);
             $log->update(['status' => 'sent', 'provider_ref' => $result['ref'], 'sent_at' => now()]);
         } catch (Throwable $exception) {
             $log->update(['status' => 'failed', 'error' => mb_substr($exception->getMessage(), 0, 250)]);
