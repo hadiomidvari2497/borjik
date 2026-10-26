@@ -99,7 +99,6 @@ class ArticleController extends Controller
                 'slug' => "sample-article-{$i}",
                 'excerpt' => 'خلاصه کوتاه مقاله را اینجا بنویسید.',
                 'body' => '<h2>عنوان بخش</h2><p>متن مقاله را اینجا بنویسید. می‌توانید از HTML ساده مانند تیتر، پاراگراف، فهرست و لینک استفاده کنید.</p><ul><li>نکته اول</li><li>نکته دوم</li></ul>',
-                'author_name' => 'تیم صابخونه',
                 'status' => 'draft',
                 'published_at' => null,
                 'cover_image' => null,
