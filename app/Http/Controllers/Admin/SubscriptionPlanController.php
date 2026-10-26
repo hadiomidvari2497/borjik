@@ -104,7 +104,7 @@ class SubscriptionPlanController extends Controller
         $data['discount_ends_at'] = $discountEnd?->endOfDay();
 
         if (($data['discount_type'] ?? null) === 'percent' && (int) ($data['discount_value'] ?? 0) > 100) {
-            throw \\Illuminate\\Validation\\ValidationException::withMessages(['discount_value' => 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰ باشد.']);
+            throw \Illuminate\Validation\ValidationException::withMessages(['discount_value' => 'تخفیف درصدی نمی‌تواند بیشتر از ۱۰۰ باشد.']);
         }
         $data['discount_value'] = (int) ($data['discount_value'] ?? 0);
         if (! $data['discount_type'] || $data['discount_value'] === 0) {
