@@ -32,7 +32,7 @@ class SmsProviderController extends Controller
 
     public function create()
     {
-        return view('admin.sms.providers.form', ['provider' => null, 'presets' => config('sms_presets'), 's' => (new SmsProvider)->settings(), 'messageTypes' => $this->messageTypes()]);
+        return view('admin.sms.providers.form', ['provider' => null, 'presets' => config('sms_presets'), 's' => (new SmsProvider)->settings(), 'messageTypes' => $this->messageTypes(), 'fallbackProviders' => SmsProvider::query()->where('is_active', true)->orderBy('name')->get()]);
     }
 
     public function store(Request $request)
@@ -54,7 +54,7 @@ class SmsProviderController extends Controller
     {
         $provider = SmsProvider::findOrFail($id);
 
-        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => config('sms_presets'), 's' => $provider->settings(), 'messageTypes' => $this->messageTypes()]);
+        return view('admin.sms.providers.form', ['provider' => $provider, 'presets' => config('sms_presets'), 's' => $provider->settings(), 'messageTypes' => $this->messageTypes(), 'fallbackProviders' => SmsProvider::query()->where('is_active', true)->whereKeyNot($provider->id)->orderBy('name')->get()]);
     }
 
     public function update(Request $request, int $id)
@@ -184,6 +184,7 @@ class SmsProviderController extends Controller
             'body' => ['nullable', 'string', 'max:5000'],
             'template_body_ids' => ['nullable', 'array', 'max:100'],
             'template_body_ids.*' => ['nullable', 'string', 'max:40'],
+            'body_id_fallback_provider_id' => ['nullable', 'integer', 'exists:sms_providers,id'],
             'headers' => ['nullable', 'array', 'max:15'],
             'headers.*.name' => ['nullable', 'string', 'max:60', 'regex:/^[A-Za-z0-9\-]+$/'],
             'headers.*.value' => ['nullable', 'string', 'max:500'],
@@ -211,6 +212,18 @@ class SmsProviderController extends Controller
         $params = $this->mergeParams($r['params'] ?? [], $existing);
 
         $this->assertUrl($r['url']);
+
+        $fallbackId = (int) ($r['body_id_fallback_provider_id'] ?? 0);
+        if ($fallbackId > 0) {
+            if ($existing && $fallbackId === (int) $existing->id) {
+                throw ValidationException::withMessages(['body_id_fallback_provider_id' => 'اتصال جایگزین باید با اتصال فعلی متفاوت باشد.']);
+            }
+
+            $fallback = SmsProvider::query()->whereKey($fallbackId)->where('is_active', true)->first();
+            if (! $fallback) {
+                throw ValidationException::withMessages(['body_id_fallback_provider_id' => 'اتصال جایگزین باید وجود داشته و فعال باشد.']);
+            }
+        }
         if ($r['method'] === 'GET' && ! in_array($r['body_type'], ['none', 'form'], true)) {
             throw ValidationException::withMessages(['body_type' => 'در روش GET فقط «بدون بدنه» یا «فرم» (به‌صورت کوئری) معنا دارد.']);
         }
@@ -228,6 +241,7 @@ class SmsProviderController extends Controller
             'method' => $r['method'], 'url' => trim($r['url']), 'number_format' => $r['number_format'], 'headers' => $headers,
             'body_type' => $r['body_type'], 'body' => (string) ($r['body'] ?? ''), 'params' => $params,
             'template_body_ids' => collect($r['template_body_ids'] ?? [])->map(fn ($id) => trim((string) $id))->filter(fn ($id) => $id !== '')->all(),
+            'body_id_fallback_provider_id' => filled($r['body_id_fallback_provider_id'] ?? null) ? (int) $r['body_id_fallback_provider_id'] : null,
             'success' => [
                 'json_path' => trim((string) ($r['success_json_path'] ?? '')),
                 'expected' => (string) ($r['success_expected'] ?? ''),
