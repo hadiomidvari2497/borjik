@@ -54,6 +54,9 @@ class FinancialManagementController extends Controller
                 $query->where('is_active', true);
             }
             $plans = $query->lockForUpdate()->get();
+            if ($plans->isEmpty()) {
+                return;
+            }
 
             foreach ($plans as $plan) {
                 $old = (int) $plan->price;
