@@ -65,9 +65,9 @@ class CheckOperationsHealth extends Command
             if ($failed) {
                 $issueNames = collect($checks)->filter(fn ($check) => in_array($check['status'], ['fail', 'warning'], true))
                     ->pluck('name')->implode('، ');
-                $message = 'هشدار برجیک: نیازمند بررسی: '.$issueNames.'؛ پنل مدیریت > مرکز عملیات را بررسی کنید.';
+                $message = 'هشدار صابخونه: نیازمند بررسی: '.$issueNames.'؛ پنل مدیریت > مرکز عملیات را بررسی کنید.';
             } else {
-                $message = 'برجیک: بررسی سلامت سایت دوباره به وضعیت عادی برگشت.';
+                $message = 'صابخونه: بررسی سلامت سایت دوباره به وضعیت عادی برگشت.';
             }
             $this->sendAlert((string) $settings['alert_mobile'], $message);
         }
