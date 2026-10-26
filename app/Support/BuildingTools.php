@@ -67,16 +67,18 @@ final class BuildingTools
             return true;
         }
 
+        $matchedKey = null;
         foreach (self::all() as $key => $tool) {
             $prefix = str_ends_with($key, '.index') ? substr($key, 0, -6) : $key;
             $matches = $routeName === $key || Str::is($prefix.'.*', $routeName);
 
-            if ($matches && ! self::enabled($key)) {
-                return false;
+            // مسیرهای اختصاصی‌تر مثل requests.reports بر مسیر عمومی requests.index اولویت دارند.
+            if ($matches && ($matchedKey === null || strlen($key) > strlen($matchedKey))) {
+                $matchedKey = $key;
             }
         }
 
-        return true;
+        return $matchedKey === null || self::enabled($matchedKey);
     }
 
     /** @param array<string, bool> $states */
