@@ -40,18 +40,18 @@
   <form class="mailbox-search" style="margin-bottom:14px" method="GET" action="{{ $folder === 'Sent' ? route('admin.mailbox.sent') : route('admin.mailbox.index') }}">
     <input class="form-control" type="search" name="q" value="{{ $query }}" maxlength="120" placeholder="جست‌وجو در {{ $folder === 'Sent' ? 'گیرنده و موضوع' : 'فرستنده و موضوع' }}" aria-label="جست‌وجوی ایمیل">
     <button class="btn btn-primary" type="submit">جست‌وجو</button>
-    @if($query !== '')<a class="btn btn-outline-secondary" href="{{ route('admin.mailbox.index') }}">پاک‌کردن</a>@endif
+    @if($query !== '')<a class="btn btn-outline-secondary" href="{{ $folder === 'Sent' ? route('admin.mailbox.sent') : route('admin.mailbox.index') }}">پاک‌کردن</a>@endif
   </form>
   <div class="mailbox-table-wrap"><table class="mailbox-table">
     <thead><tr><th>{{ $folder === 'Sent' ? 'گیرنده' : 'فرستنده' }}</th><th>موضوع</th><th>تاریخ</th><th>حجم</th></tr></thead><tbody>
     @forelse($messages as $email)
       <tr @class(['unread' => !$email['seen']])>
         <td><a href="{{ route('admin.mailbox.show', ['uid' => $email['uid'], 'folder' => $folder === 'Sent' ? 'sent' : 'inbox']) }}">@if(!$email['seen'])<span class="mailbox-dot"></span>@endif{{ $email['from'] }}</a></td>
-        <td><a href="{{ route('admin.mailbox.show',$email['uid']) }}">{{ $email['subject'] }}</a></td>
+        <td><a href="{{ route('admin.mailbox.show', ['uid' => $email['uid'], 'folder' => $folder === 'Sent' ? 'sent' : 'inbox']) }}">{{ $email['subject'] }}</a></td>
         <td>{{ $email['jalali_date'] }}</td>
         <td class="mailbox-size">{{ $email['size'] > 0 ? number_format($email['size'] / 1024, 1).' KB' : '—' }}</td>
       </tr>
-    @empty<tr><td colspan="4" class="mailbox-empty">{{ $connectionError ? 'پس از رفع اتصال، ایمیل‌ها اینجا نمایش داده می‌شوند.' : '{{ $folder === 'Sent' ? 'هنوز ایمیلی در صندوق خروجی ثبت نشده است.' : 'ایمیلی برای نمایش پیدا نشد.' }}' }}</td></tr>@endforelse
+    @empty<tr><td colspan="4" class="mailbox-empty">{{ $connectionError ? 'پس از رفع اتصال، ایمیل‌ها اینجا نمایش داده می‌شوند.' : ($folder === 'Sent' ? 'هنوز ایمیلی در صندوق خروجی ثبت نشده است.' : 'ایمیلی برای نمایش پیدا نشد.') }}</td></tr>@endforelse
     </tbody></table></div>
 @endif
 @endsection
