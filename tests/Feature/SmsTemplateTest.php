@@ -6,6 +6,7 @@ use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Role;
 use App\Models\SmsTemplate;
+use App\Models\SiteSetting;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,6 +22,8 @@ class SmsTemplateTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // This test covers template CRUD, so explicitly enable the tool that is disabled by default.
+        SiteSetting::set('building_tools.enabled', ['sms-templates.index' => true]);
         $this->seed(RolePermissionSeeder::class);
         $this->owner = User::create(['mobile' => '09120000041', 'first_name' => 'مالک', 'last_name' => 'پیامک', 'status' => 'active', 'profile_completed_at' => now()]);
         $this->building = Building::create(['name' => 'ساختمان پیامک', 'code' => '88141', 'created_by' => $this->owner->id]);
