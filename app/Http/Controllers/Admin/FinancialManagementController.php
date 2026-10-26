@@ -46,19 +46,15 @@ class FinancialManagementController extends Controller
             return back()->withErrors(['value' => 'درصد تغییر باید حداکثر ۱۰۰ باشد.'])->withInput();
         }
 
-        $query = SubscriptionPlan::query()->where('price', '>', 0);
-        if ($data['scope'] === 'active') {
-            $query->where('is_active', true);
-        }
-
-        $plans = $query->lockForUpdate()->get();
-        if ($plans->isEmpty()) {
-            return back()->with('warning', 'پلنی با قیمت مثبت در محدوده انتخاب‌شده وجود ندارد.');
-        }
-
         $before = [];
         $after = [];
-        DB::transaction(function () use ($plans, $data, &$before, &$after) {
+        DB::transaction(function () use ($data, &$before, &$after) {
+            $query = SubscriptionPlan::query()->where('price', '>', 0);
+            if ($data['scope'] === 'active') {
+                $query->where('is_active', true);
+            }
+            $plans = $query->lockForUpdate()->get();
+
             foreach ($plans as $plan) {
                 $old = (int) $plan->price;
                 $value = (float) $data['value'];
@@ -81,6 +77,10 @@ class FinancialManagementController extends Controller
                 'admin_user_id' => auth('admin')->id(),
             ]);
         });
+
+        if ($after === []) {
+            return back()->with('warning', 'پلنی با قیمت مثبت در محدوده انتخاب‌شده وجود ندارد.');
+        }
 
         return redirect()->route('admin.finances.index')->with('status', 'قیمت پایه '.count($after).' پلن با موفقیت به‌روزرسانی شد. تخفیف‌های فعال هر پلن جداگانه محاسبه می‌شوند.');
     }
