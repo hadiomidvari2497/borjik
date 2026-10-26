@@ -75,7 +75,7 @@
     <div class="empty">تراکنشی با این فیلترها پیدا نشد.</div>
   @else
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>شناسه / تاریخ</th><th>کاربر</th><th>پلن</th><th>مبلغ</th><th>درگاه</th><th>وضعیت</th><th>شماره پیگیری</th></tr></thead>
+      <thead><tr><th>شناسه / تاریخ</th><th>کاربر</th><th>پلن</th><th>مبلغ پرداختی</th><th>تخفیف</th><th>کد تخفیف</th><th>درگاه</th><th>وضعیت</th><th>شماره پیگیری</th></tr></thead>
       <tbody>
       @foreach($payments as $payment)
         <tr>
