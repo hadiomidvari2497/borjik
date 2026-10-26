@@ -52,11 +52,64 @@ class SubscriptionController extends Controller
         $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
         $user = $request->user();
 
-        if ((int) $plan->price === 0) {
-            $this->activateFreePlan($user->id, $plan);
+        $baseAmount = $plan->effectivePrice();
+        $couponCode = strtoupper(trim((string) $request->input('coupon_code', '')));
+        $discountAmount = 0;
+        $amount = $baseAmount;
+
+        if ($couponCode !== '') {
+            $coupon = DiscountCoupon::query()->where('code', $couponCode)->first();
+            if (! $coupon || ! $coupon->isAvailableFor($user->id, $plan->id, $baseAmount)) {
+                return back()->withInput()->withErrors(['coupon_code' => 'کد تخفیف نامعتبر، منقضی یا غیرقابل استفاده برای این پلن است.']);
+            }
+            $discountAmount = $coupon->discountFor($baseAmount);
+            $amount = max(0, $baseAmount - $discountAmount);
+        }
+
+        if ($amount === 0) {
+            try {
+                DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount) {
+                    $lockedCoupon = null;
+                    $discount = 0;
+                    if ($couponCode !== '') {
+                        $lockedCoupon = DiscountCoupon::query()->where('code', $couponCode)->lockForUpdate()->first();
+                        if (! $lockedCoupon || ! $lockedCoupon->isAvailableFor($user->id, $plan->id, $baseAmount)) {
+                            throw \Illuminate\Validation\ValidationException::withMessages(['coupon_code' => 'این کد تخفیف دیگر قابل استفاده نیست.']);
+                        }
+                        $discount = $lockedCoupon->discountFor($baseAmount);
+                        if ($discount < $baseAmount) {
+                            throw new \RuntimeException('Discount total changed during checkout.');
+                        }
+                    }
+
+                    Subscription::where('user_id', $user->id)->where('status', 'active')->update(['status' => 'expired']);
+                    $subscription = Subscription::create([
+                        'user_id' => $user->id,
+                        'plan_id' => $plan->id,
+                        'units_limit' => $plan->units_limit,
+                        'starts_at' => now(),
+                        'expires_at' => now()->addMonths(max(1, (int) $plan->duration_months)),
+                        'status' => 'active',
+                    ]);
+                    $previousIds = Subscription::where('user_id', $user->id)->where('id', '!=', $subscription->id)->pluck('id');
+                    if ($previousIds->isNotEmpty()) {
+                        Building::whereIn('subscription_id', $previousIds)->update(['subscription_id' => $subscription->id]);
+                    }
+                    if ($lockedCoupon) {
+                        CouponRedemption::create([
+                            'coupon_id' => $lockedCoupon->id,
+                            'user_id' => $user->id,
+                            'discount_amount' => $discount,
+                            'status' => 'paid',
+                        ]);
+                    }
+                });
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                return back()->withInput()->withErrors($e->errors());
+            }
 
             return redirect()->route('buildings.create')
-                ->with('status', 'اشتراک رایگان «'.$plan->name.'» فعال شد. حالا می‌توانید ساختمان بسازید.');
+                ->with('status', 'اشتراک «'.$plan->name.'» با موفقیت فعال شد.');
         }
 
         $settings = SiteSetting::get('payment.gateway', []);
