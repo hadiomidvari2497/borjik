@@ -57,6 +57,10 @@ class SubscriptionController extends Controller
         $discountAmount = 0;
         $amount = $baseAmount;
 
+        if ($couponCode !== '' && $baseAmount <= 0) {
+            return back()->withInput()->withErrors(['coupon_code' => 'کد تخفیف فقط برای پلن‌هایی که مبلغ قابل پرداخت دارند قابل استفاده است.']);
+        }
+
         if ($couponCode !== '') {
             $coupon = DiscountCoupon::query()->where('code', $couponCode)->first();
             if (! $coupon || ! $coupon->isAvailableFor($user->id, $plan->id, $baseAmount)) {
