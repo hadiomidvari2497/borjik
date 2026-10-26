@@ -48,13 +48,15 @@
         @error('discount_value')<div class="e">{{ $message }}</div>@enderror
       </div>
       <div class="fld">
-        <label for="discount_starts_at">شروع تخفیف</label>
-        <input id="discount_starts_at" name="discount_starts_at" type="datetime-local" value="{{ $v('discount_starts_at') ? \\Illuminate\\Support\\Carbon::parse($v('discount_starts_at'))->format('Y-m-d\\TH:i') : '' }}">
+        <label for="discount_starts_at">شروع تخفیف (تاریخ شمسی)</label>
+        <input id="discount_starts_at" name="discount_starts_at" class="jdate" autocomplete="off" placeholder="۱۴۰۵/۰۷/۰۱" value="{{ $dateValue('discount_starts_at') }}">
+        @error('discount_starts_at')<div class="e">{{ $message }}</div>@enderror
       </div>
       <div class="fld">
-        <label for="discount_ends_at">پایان تخفیف</label>
-        <input id="discount_ends_at" name="discount_ends_at" type="datetime-local" value="{{ $v('discount_ends_at') ? \\Illuminate\\Support\\Carbon::parse($v('discount_ends_at'))->format('Y-m-d\\TH:i') : '' }}">
+        <label for="discount_ends_at">پایان تخفیف (تاریخ شمسی)</label>
+        <input id="discount_ends_at" name="discount_ends_at" class="jdate" autocomplete="off" placeholder="۱۴۰۵/۰۷/۳۰" value="{{ $dateValue('discount_ends_at') }}">
         @error('discount_ends_at')<div class="e">{{ $message }}</div>@enderror
+      </div>@enderror
       </div>
       <div class="fld">
         <label style="display:flex;gap:8px;align-items:center;margin-top:28px">
