@@ -14,8 +14,8 @@ class SeoController extends Controller
     {
         $settings = [
             'site_url' => (string) SiteSetting::get('seo.site_url', ''),
-            'title' => (string) SiteSetting::get('seo.title', 'صابخونه | مدیریت هوشمند ساختمان'),
-            'description' => (string) SiteSetting::get('seo.description', 'صابخونه؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها و ارتباط بهتر میان مدیران و ساکنان.'),
+            'title' => (string) SiteSetting::get('seo.title', 'نرم‌افزار مدیریت ساختمان | صابخونه'),
+            'description' => (string) SiteSetting::get('seo.description', 'صابخونه؛ نرم‌افزار مدیریت ساختمان برای مدیریت شارژ و هزینه‌ها، پرداخت‌ها، درخواست‌های ساکنان و اطلاع‌رسانی شفاف در مجتمع‌های مسکونی.'),
             'google_verification' => (string) SiteSetting::get('seo.google_verification', ''),
             'indexing_enabled' => (bool) SiteSetting::get('seo.indexing_enabled', false),
         ];
