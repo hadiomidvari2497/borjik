@@ -7,7 +7,6 @@ use App\Models\OperationsSetting;
 use App\Models\SmsLog;
 use App\Models\SmsProvider;
 use App\Services\Sms\HttpSmsGateway;
-use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 use Throwable;
@@ -225,93 +224,46 @@ class BackupService
 
     private function uploadToOneDrive(string $path, array $settings): string
     {
-        foreach (['onedrive_client_id', 'onedrive_client_secret', 'onedrive_refresh_token'] as $key) {
-            if (trim((string) ($settings[$key] ?? '')) === '') {
-                throw new RuntimeException('برای ارسال به OneDrive باید Client ID، Client Secret و اتصال حساب Microsoft تکمیل شوند.');
-            }
+        $binary = trim((string) config('services.rclone.binary', 'rclone'));
+        $configPath = trim((string) config('services.rclone.config', '/etc/rclone/sabkhoneh.conf'));
+        $remote = trim((string) config('services.rclone.remote', 'sabkhoneh-onedrive:Sabkhoneh-Backups'));
+
+        if ($binary === '') {
+            throw new RuntimeException('مسیر اجرای rclone تنظیم نشده است؛ مقدار RCLONE_BINARY را بررسی کن.');
+        }
+        if ($configPath === '' || ! is_file($configPath) || ! is_readable($configPath)) {
+            throw new RuntimeException('فایل تنظیمات rclone برای کاربر اجرای برنامه قابل خواندن نیست؛ مقدار RCLONE_CONFIG و مجوز فایل را بررسی کن.');
+        }
+        if (! preg_match('/^[A-Za-z0-9_-]+:.+$/', $remote)) {
+            throw new RuntimeException('مقصد rclone معتبر نیست؛ مقدار RCLONE_REMOTE باید به شکل نام‌اتصال:پوشه باشد.');
+        }
+        if (! is_file($path) || ! is_readable($path) || (filesize($path) ?: 0) < 1) {
+            throw new RuntimeException('فایل بکاپ محلی برای ارسال به OneDrive وجود ندارد یا قابل خواندن نیست.');
         }
 
-        $tokenResponse = Http::asForm()->timeout(30)->post('https://login.microsoftonline.com/consumers/oauth2/v2.0/token', [
-            'client_id' => $settings['onedrive_client_id'],
-            'client_secret' => $settings['onedrive_client_secret'],
-            'refresh_token' => $settings['onedrive_refresh_token'],
-            'grant_type' => 'refresh_token',
-            'scope' => 'offline_access Files.ReadWrite User.Read',
+        $destination = rtrim($remote, '/').'/'.basename($path);
+        $process = new Process([
+            $binary,
+            'copyto',
+            $path,
+            $destination,
+            '--config='.$configPath,
+            '--retries=3',
+            '--low-level-retries=10',
         ]);
-        if (! $tokenResponse->successful() || ! $tokenResponse->json('access_token')) {
-            throw new RuntimeException('گرفتن توکن OneDrive ناموفق بود؛ اتصال حساب Microsoft را دوباره برقرار کن.');
-        }
+        $process->setTimeout(1800);
+        $process->run();
 
-        $accessToken = (string) $tokenResponse->json('access_token');
-        $rotatedRefreshToken = $tokenResponse->json('refresh_token');
-        if (is_string($rotatedRefreshToken) && $rotatedRefreshToken !== '') {
-            $record = OperationsSetting::current();
-            $values = $record->values();
-            $values['onedrive_refresh_token'] = $rotatedRefreshToken;
-            $record->update(['settings' => $values]);
-        }
-
-        $filename = rawurlencode(basename($path));
-        $session = Http::withToken($accessToken)->acceptJson()->timeout(30)->post(
-            'https://graph.microsoft.com/v1.0/me/drive/root:/'.$filename.':/createUploadSession',
-            ['item' => ['@microsoft.graph.conflictBehavior' => 'rename', 'name' => basename($path)]]
-        );
-        $uploadUrl = $session->json('uploadUrl');
-        if (! $session->successful() || ! is_string($uploadUrl) || ! str_starts_with($uploadUrl, 'https://')) {
-            throw new RuntimeException('ایجاد نشست آپلود OneDrive ناموفق بود (HTTP '.$session->status().').');
-        }
-
-        $size = filesize($path);
-        if ($size === false || $size < 1) {
-            throw new RuntimeException('اندازه فایل بکاپ برای ارسال به OneDrive معتبر نیست.');
-        }
-        $handle = fopen($path, 'rb');
-        if ($handle === false) {
-            throw new RuntimeException('بازکردن فایل بکاپ برای ارسال به OneDrive ناموفق بود.');
-        }
-
-        try {
-            $chunkSize = 5 * 1024 * 1024; // Multiple of 320 KiB, as required by Microsoft Graph.
-            $offset = 0;
-            $uploaded = null;
-            while ($offset < $size) {
-                $length = min($chunkSize, $size - $offset);
-                if (fseek($handle, $offset) !== 0) {
-                    throw new RuntimeException('خواندن بخش بعدی فایل بکاپ ناموفق بود.');
-                }
-                $chunk = '';
-                while (strlen($chunk) < $length && ! feof($handle)) {
-                    $piece = fread($handle, min(1024 * 1024, $length - strlen($chunk)));
-                    if ($piece === false || $piece === '') {
-                        break;
-                    }
-                    $chunk .= $piece;
-                }
-                if (strlen($chunk) !== $length) {
-                    throw new RuntimeException('خواندن کامل بخش فایل بکاپ ناموفق بود.');
-                }
-
-                // The preauthenticated upload URL must not receive the Graph bearer token.
-                $response = Http::timeout(300)->withBody($chunk, 'application/octet-stream')->withHeaders([
-                    'Content-Length' => (string) $length,
-                    'Content-Range' => 'bytes '.$offset.'-'.($offset + $length - 1).'/'.$size,
-                ])->put($uploadUrl);
-
-                if (! in_array($response->status(), [200, 201, 202], true)) {
-                    throw new RuntimeException('ارسال بخش فایل به OneDrive ناموفق بود (HTTP '.$response->status().').');
-                }
-                $uploaded = $response->json();
-                $offset += $length;
+        if (! $process->isSuccessful()) {
+            $details = trim($process->getErrorOutput());
+            if ($details === '') {
+                $details = trim($process->getOutput());
             }
-        } finally {
-            fclose($handle);
+            throw new RuntimeException('ارسال بکاپ به OneDrive از طریق rclone ناموفق بود: '.mb_substr($details ?: 'rclone با کد خطا پایان یافت.', 0, 700));
         }
 
-        if (! is_array($uploaded) || empty($uploaded['id'])) {
-            throw new RuntimeException('OneDrive آپلود فایل را تأیید نکرد.');
-        }
-
-        return (string) $uploaded['id'];
+        // Keep the remote path in the existing field so the operations screen can identify the uploaded file.
+        return $destination;
     }
 
     private function notifyBackupFailure(): void
