@@ -605,6 +605,17 @@
         @keyframes dust{from{transform:translateY(0)}to{transform:translateY(-18px)}}
         @media(max-width:720px){.marquee{padding:11px 0}.marquee span{font-size:.85rem}.dashboard-art{transform:none!important}}
         @media(prefers-reduced-motion:reduce){.marquee-track,.hero-dust,.btn-primary:after{animation:none!important}.js .rv.in>*{animation:none}}
+        .seo-pages{position:relative;overflow:hidden;background:radial-gradient(ellipse at 8% 8%,rgba(34,197,170,.11),transparent 34%),linear-gradient(145deg,#f8fbfa,#edf7f3)}
+        .seo-pages-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+        .seo-page-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:270px;padding:clamp(24px,3vw,36px);overflow:hidden;border:1px solid #dcece6;border-radius:26px;background:rgba(255,255,255,.92);box-shadow:0 16px 42px rgba(14,62,52,.06);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+        .seo-page-card:hover{transform:translateY(-5px);border-color:#9bdcca;box-shadow:0 24px 52px rgba(14,62,52,.12)}
+        .seo-page-icon{display:grid;place-items:center;width:54px;height:54px;margin-bottom:20px;border-radius:17px;background:linear-gradient(145deg,#dff8ef,#c7f0e4);color:#087f78;font-size:1.55rem;font-weight:900}
+        .seo-page-card:nth-child(2) .seo-page-icon{background:linear-gradient(145deg,#fff2d9,#ffe4b3);color:#94600d}
+        .seo-page-card h3{margin:0 0 10px;color:#102d3b;font-size:clamp(1.12rem,2vw,1.35rem);line-height:1.7}
+        .seo-page-card p{margin:0 0 24px;color:#627782;font-size:.92rem;line-height:2;flex:1}
+        .seo-page-link{display:inline-flex;align-items:center;gap:9px;padding:10px 15px;border-radius:13px;background:#0c8e7d;color:#fff;font-weight:850;font-size:.88rem;transition:background .2s,transform .2s}
+        .seo-page-link:hover{background:#076f68;transform:translateX(-2px)}
+        @media(max-width:700px){.seo-pages-grid{grid-template-columns:1fr;gap:15px}.seo-page-card{min-height:0;padding:24px}.seo-page-card p{margin-bottom:18px}}
     </style>
 </head>
 <body>
@@ -632,7 +643,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <div class="wrap nav">
         <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
-            <a href="#features">امکانات</a><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a><a href="{{ route('marketing.building-charges') }}">نرم‌افزار شارژ ساختمان</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
+            <a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
         <div class="nav-actions"><a class="btn btn-ghost" href="#features">آشنایی با صابخونه</a>@auth<a class="btn btn-primary" href="{{ route('dashboard') }}" title="{{ $authTitle }}">ادامه در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a>@endauth</div>
     </div>
@@ -646,7 +657,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                 <span class="eyebrow"><i></i> {{ data_get($content ?? [], 'hero.badge', 'مدیریت نوین ساختمان، در یک جا') }}</span>
                 <h1>{{ data_get($content ?? [], 'hero.title', 'نرم‌افزار مدیریت ساختمان،') }}<br><span>{{ data_get($content ?? [], 'hero.highlight', 'با آرامش بیشتر') }}</span></h1>
                 <p class="hero-copy">{{ data_get($content ?? [], 'hero.description', 'صابخونه کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.') }}</p>
-                <div class="hero-actions">@auth<a class="btn btn-primary" href="{{ route('dashboard') }}">ادامه‌ی کار در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از صابخونه') }} <span aria-hidden="true">←</span></a>@endauth<a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a><a class="btn btn-light" href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان <span aria-hidden="true">←</span></a><a class="btn btn-light" href="{{ route('marketing.building-charges') }}">مشاهدهٔ صفحهٔ شارژ ساختمان <span aria-hidden="true">←</span></a></div>
+                <div class="hero-actions">@auth<a class="btn btn-primary" href="{{ route('dashboard') }}">ادامه‌ی کار در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از صابخونه') }} <span aria-hidden="true">←</span></a>@endauth<a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
                 <div class="hero-proof"><div class="proof-avatars" aria-hidden="true"><span>م</span><span>س</span><span>ب</span></div><div><strong>همه‌چیز شفاف‌تر</strong><br>برای مدیران، ساکنان و پرسنل ساختمان</div></div>
                 <div class="hero-highlights" aria-label="مزیت‌های صابخونه">
                     <span><i aria-hidden="true">✓</i> امور مالی شفاف</span>
@@ -684,6 +695,16 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                 @foreach($features as $feature)
                 <article class="feature-card"><div class="feature-icon">{{ $feature['icon'] ?? '✦' }}</div><h3>{{ $feature['title'] ?? '' }}</h3><p>{{ $feature['description'] ?? '' }}</p></article>
                 @endforeach
+            </div>
+        </div>
+    </section>
+
+    <section class="content-section seo-pages" id="software-pages">
+        <div class="wrap">
+            <div class="section-head"><span class="section-kicker">راهنمای امکانات صابخونه</span><h2>از مدیریت کل ساختمان تا امور مالی</h2><p>برای آشنایی دقیق‌تر با راهکارهای صابخونه، صفحه‌ای را انتخاب کنید که به نیاز شما نزدیک‌تر است.</p></div>
+            <div class="seo-pages-grid">
+                <article class="seo-page-card"><span class="seo-page-icon" aria-hidden="true">⌂</span><h3>نرم‌افزار مدیریت ساختمان</h3><p>با امکانات صابخونه برای مدیریت امور ساختمان، پیگیری درخواست‌های ساکنان، اطلاع‌رسانی و هماهنگی مسئولیت‌ها بیشتر آشنا شوید.</p><a class="seo-page-link" href="{{ route('marketing.building-management') }}">آشنایی با نرم‌افزار مدیریت ساختمان <span aria-hidden="true">←</span></a></article>
+                <article class="seo-page-card"><span class="seo-page-icon" aria-hidden="true">₮</span><h3>نرم‌افزار شارژ ساختمان</h3><p>راهکارهای مدیریت شارژ و هزینه‌ها، پیگیری پرداخت‌ها و شفاف‌تر نگه‌داشتن اطلاعات مالی ساختمان را ببینید.</p><a class="seo-page-link" href="{{ route('marketing.building-charges') }}">مشاهدهٔ امکانات شارژ ساختمان <span aria-hidden="true">←</span></a></article>
             </div>
         </div>
     </section>
