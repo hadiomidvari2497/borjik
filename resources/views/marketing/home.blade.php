@@ -11,8 +11,8 @@
         $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
         $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && $seoScheme === 'https' && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true) && empty(parse_url($seoBase, PHP_URL_USER)) && empty(parse_url($seoBase, PHP_URL_PASS)) && in_array((string) parse_url($seoBase, PHP_URL_PATH), ['', '/'], true) && parse_url($seoBase, PHP_URL_QUERY) === null && parse_url($seoBase, PHP_URL_FRAGMENT) === null;
         $seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false);
-        $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'صابخونه | مدیریت ساختمان، با آرامش بیشتر');
-        $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'صابخونه؛ سامانه فارسی مدیریت ساختمان برای شارژ، پرداخت‌ها، درخواست‌ها، اطلاع‌رسانی و ارتباط بهتر میان مدیران و ساکنان.');
+        $seoTitle = (string) \App\Models\SiteSetting::get('seo.title', 'نرم‌افزار مدیریت ساختمان | صابخونه');
+        $seoDescription = (string) \App\Models\SiteSetting::get('seo.description', 'صابخونه؛ نرم‌افزار مدیریت ساختمان برای مدیریت شارژ و هزینه‌ها، پرداخت‌ها، درخواست‌های ساکنان و اطلاع‌رسانی شفاف در مجتمع‌های مسکونی.');
         $seoVerification = (string) \App\Models\SiteSetting::get('seo.google_verification', '');
         $faqItems = [
             ['q' => 'صابخونه چه کاری انجام می‌دهد؟', 'a' => 'سامانه‌ای فارسی برای مدیریت ساختمان است: شارژ و پرداخت‌ها، درخواست‌ها و وظایف، اطلاع‌رسانی و اسناد، در یک جا و با دسترسی متناسب با نقش هر کاربر.'],
@@ -641,7 +641,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <div class="wrap hero-grid">
             <div>
                 <span class="eyebrow"><i></i> {{ data_get($content ?? [], 'hero.badge', 'مدیریت نوین ساختمان، در یک جا') }}</span>
-                <h1>{{ data_get($content ?? [], 'hero.title', 'مدیریت ساختمان،') }}<br><span>{{ data_get($content ?? [], 'hero.highlight', 'با آرامش بیشتر') }}</span></h1>
+                <h1>{{ data_get($content ?? [], 'hero.title', 'نرم‌افزار مدیریت ساختمان،') }}<br><span>{{ data_get($content ?? [], 'hero.highlight', 'با آرامش بیشتر') }}</span></h1>
                 <p class="hero-copy">{{ data_get($content ?? [], 'hero.description', 'صابخونه کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.') }}</p>
                 <div class="hero-actions"><a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از صابخونه') }} <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
                 <div class="hero-proof"><div class="proof-avatars" aria-hidden="true"><span>م</span><span>س</span><span>ب</span></div><div><strong>همه‌چیز شفاف‌تر</strong><br>برای مدیران، ساکنان و پرسنل ساختمان</div></div>
@@ -733,7 +733,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <section class="content-section" id="about">
         <div class="wrap about-grid">
             <div class="about-visual"><div class="about-note"><strong>{{ data_get($content ?? [], 'about.note_title', 'مدیریت بهتر، با اطلاعات روشن‌تر') }}</strong><p>{{ data_get($content ?? [], 'about.note_description', 'وقتی وضعیت‌ها مشخص باشند، تصمیم‌گیری و همکاری هم ساده‌تر می‌شود.') }}</p></div></div>
-            <div class="about-copy"><span class="section-kicker">{{ data_get($content ?? [], 'about.eyebrow', 'درباره صابخونه') }}</span><h2>{{ data_get($content ?? [], 'about.title', 'ساختمان بهتر، با همکاری شفاف‌تر') }}</h2><p>{{ data_get($content ?? [], 'about.paragraph1', 'صابخونه یک سامانه‌ی فارسی برای سامان‌دهی کارهای روزمره‌ی ساختمان است؛ فضایی مشترک که مدیران، ساکنان و پرسنل بتوانند امور مرتبط را متناسب با نقش خود پیگیری کنند.') }}</p><p>{{ data_get($content ?? [], 'about.paragraph2', 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.') }}</p><ul class="check-list">@foreach(data_get($content ?? [], 'about.points', ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری','تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان','دسترسی متناسب با نقش هر کاربر در ساختمان']) as $point)<li><span class="check">✓</span><span>{{ $point }}</span></li>@endforeach</ul></div>
+            <div class="about-copy"><span class="section-kicker">{{ data_get($content ?? [], 'about.eyebrow', 'درباره صابخونه') }}</span><h2>{{ data_get($content ?? [], 'about.title', 'ساختمان بهتر، با همکاری شفاف‌تر') }}</h2><p>{{ data_get($content ?? [], 'about.paragraph1', 'صابخونه یک نرم‌افزار مدیریت ساختمان فارسی است که به مدیران، ساکنان و پرسنل کمک می‌کند شارژ و هزینه‌ها، پرداخت‌ها، درخواست‌ها و امور روزمره‌ی مجتمع را در فضایی مشترک و متناسب با نقش هر کاربر پیگیری کنند.') }}</p><p>{{ data_get($content ?? [], 'about.paragraph2', 'هدف ما ساده است: کاهش سردرگمی، روشن‌تر شدن سوابق و فراهم کردن تجربه‌ای منظم‌تر برای زندگی و کار در ساختمان.') }}</p><ul class="check-list">@foreach(data_get($content ?? [], 'about.points', ['اطلاعات و مسئولیت‌ها در مسیرهای مشخص و قابل پیگیری','تجربه‌ی فارسی و طراحی‌شده برای نیازهای مدیریت ساختمان','دسترسی متناسب با نقش هر کاربر در ساختمان']) as $point)<li><span class="check">✓</span><span>{{ $point }}</span></li>@endforeach</ul></div>
         </div>
     </section>
 
