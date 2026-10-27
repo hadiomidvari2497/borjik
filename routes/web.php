@@ -14,6 +14,7 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap
 Route::get('/', [MarketingController::class, 'home'])->name('home');
 Route::get('/enamad/image', [MarketingController::class, 'enamadImage'])->name('marketing.enamad.image');
 Route::get('/payment/gateway/callback', [SubscriptionController::class, 'callback'])->name('payment.gateway.callback');
+Route::get('/software-building-charges', [MarketingController::class, 'buildingCharges'])->name('marketing.building-charges');
 Route::get('/articles', [MarketingController::class, 'articles'])->name('marketing.articles.index');
 Route::get('/articles/{slug}', [MarketingController::class, 'article'])->name('marketing.articles.show');
 
