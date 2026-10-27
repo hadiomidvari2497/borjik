@@ -23,6 +23,11 @@ class MarketingController extends Controller
         return view('marketing.home', compact('content', 'articles'));
     }
 
+    public function buildingCharges()
+    {
+        return view('marketing.building-charges');
+    }
+
     public function enamadImage()
     {
         $path = data_get(SiteSetting::get('marketing.content', []), 'enamad.image_path');
