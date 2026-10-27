@@ -55,7 +55,7 @@ class DashboardTest extends TestCase
     public function test_public_homepage_is_shown_to_guests_instead_of_login(): void
     {
         $this->get('/')->assertOk()
-            ->assertSeeText('مدیریت ساختمان، با آرامش بیشتر')
+            ->assertSeeText('نرم‌افزار مدیریت ساختمان')
             ->assertSee('امکانات صابخونه')
             ->assertSee('درباره صابخونه')
             ->assertSee('مقالات')
