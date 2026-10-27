@@ -29,7 +29,7 @@ class BackupService
 
             $stamp = now()->format('Ymd-His');
             $sqlOrDb = $this->exportDatabase($tempDir);
-            $archive = $tempDir.DIRECTORY_SEPARATOR.'borjik-'.$stamp.'.zip';
+            $archive = $tempDir.DIRECTORY_SEPARATOR.'sabkhoneh-'.$stamp.'.zip';
             if (! class_exists(ZipArchive::class)) {
                 throw new RuntimeException('افزونه PHP zip فعال نیست؛ پیش از اجرای بکاپ آن را نصب یا فعال کن.');
             }
@@ -296,7 +296,10 @@ class BackupService
 
     private function prune(string $directory, int $keep): void
     {
-        $files = collect(glob($directory.DIRECTORY_SEPARATOR.'borjik-*.zip') ?: [])
+        $files = collect(array_merge(
+            glob($directory.DIRECTORY_SEPARATOR.'sabkhoneh-*.zip') ?: [],
+            glob($directory.DIRECTORY_SEPARATOR.'borjik-*.zip') ?: [],
+        ))
             ->filter(fn ($path) => is_file($path))->sortByDesc(fn ($path) => filemtime($path) ?: 0)->values();
         foreach ($files->slice($keep) as $file) {
             @unlink($file);
