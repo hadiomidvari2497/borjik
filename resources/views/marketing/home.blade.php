@@ -641,7 +641,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 @endphp
 <header class="site-header">
     <div class="wrap nav">
-        <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a>
+        <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" width="43" height="43" decoding="async" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
             <a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
@@ -830,16 +830,10 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     </div><div class="footer-bottom"><span>© {{ date('Y') }} صابخونه — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>
 <script>(function(){if(!document.documentElement.classList.contains('js'))return;var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');o.unobserve(x.target)}})},{threshold:.12});document.querySelectorAll('.role-tabs,.role-panel.on,.faq-list,.section-head,.feature-grid,.steps,.about-grid,.article-grid,.partner-panel,.contact-grid').forEach(function(n){n.classList.add('rv');o.observe(n)})})();</script>
-<script>(function(){var sp=document.getElementById('sp');function u(){var h=document.documentElement.scrollHeight-innerHeight;sp.style.transform='scaleX('+(h>0?Math.min(scrollY/h,1):0)+')'}addEventListener('scroll',u,{passive:true});u();
+<script>(function(){var sp=document.getElementById('sp'),frame=0,maxScroll=0;function measure(){maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);paint()}function paint(){frame=0;if(sp)sp.style.transform='scaleX('+(maxScroll?Math.min(scrollY/maxScroll,1):0)+')'}function schedule(){if(!frame)frame=requestAnimationFrame(paint)}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',measure,{passive:true});if('ResizeObserver'in window){new ResizeObserver(measure).observe(document.body)}measure();
 var tabs=[].slice.call(document.querySelectorAll('.role-tab'));function sel(t){tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).classList.toggle('on',on)})}
 tabs.forEach(function(t,i){t.addEventListener('click',function(){sel(t)});t.addEventListener('keydown',function(e){var k=e.key==='ArrowLeft'?1:e.key==='ArrowRight'?-1:0;if(k){var n=tabs[(i+k+tabs.length)%tabs.length];n.focus();sel(n)}})})})();</script>
 <script>(function(){var els=document.querySelectorAll('.count[data-to]');if(!els.length||!document.documentElement.classList.contains('cnt'))return;var fa='۰۱۲۳۴۵۶۷۸۹';function num(v){return parseInt(String(v).replace(/[۰-۹]/g,function(c){return fa.indexOf(c)}),10)}var o=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;o.unobserve(e.target);var el=e.target,to=num(el.getAttribute('data-to')),t0=performance.now();(function f(t){var k=Math.min((t-t0)/1400,1),v=Math.round(to*(1-Math.pow(1-k,3)));el.textContent=v.toLocaleString('fa-IR',{useGrouping:false});if(k<1)requestAnimationFrame(f);else el.textContent=el.getAttribute('data-to')})(t0)})},{threshold:.4});els.forEach(function(n){o.observe(n)})})();</script>
-<script>(function(){var fine=matchMedia('(hover:hover) and (pointer:fine)').matches,rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
-document.querySelectorAll('.feature-grid,.steps,.testi-grid,.stat-grid').forEach(function(g){[].forEach.call(g.children,function(c,i){c.style.setProperty('--i',Math.min(i,8))})});
-if(!fine)return;
-document.addEventListener('mousemove',function(e){var c=e.target.closest&&e.target.closest('.feature-card,.step,.testi-card,.stat-card');if(!c)return;var r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});
-var h=document.getElementById('home'),art=h&&h.querySelector('.dashboard-art');if(!art||rm)return;
-h.addEventListener('mousemove',function(e){var r=h.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;art.style.setProperty('--ry',(x*-9).toFixed(2)+'deg');art.style.setProperty('--rx',(y*7).toFixed(2)+'deg')},{passive:true});
-h.addEventListener('mouseleave',function(){art.style.setProperty('--ry','0deg');art.style.setProperty('--rx','0deg')})})();</script>
+<script>(function(){document.querySelectorAll('.feature-grid,.steps,.testi-grid,.stat-grid').forEach(function(g){[].forEach.call(g.children,function(c,i){c.style.setProperty('--i',Math.min(i,8))})})})();</script>
 </body>
 </html>
