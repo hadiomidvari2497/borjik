@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 class RunBorjikBackup extends Command
 {
     protected $signature = 'borjik:backup {--force : Run even if the configured schedule is not due}';
-    protected $description = 'Create a local Borjik backup and optionally copy it to Google Drive';
+    protected $description = 'Create a local Sabkhoneh backup and optionally upload it to OneDrive using rclone';
 
     public function handle(BackupService $backups): int
     {

@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'rclone' => [
+        'binary' => env('RCLONE_BINARY', 'rclone'),
+        'config' => env('RCLONE_CONFIG', '/etc/rclone/sabkhoneh.conf'),
+        'remote' => env('RCLONE_REMOTE', 'sabkhoneh-onedrive:Sabkhoneh-Backups'),
+    ],
+
 ];

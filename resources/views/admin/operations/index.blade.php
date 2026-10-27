@@ -88,11 +88,11 @@
   <div class="oc-grid">
     <div class="oc-card"><span class="oc-muted">آخرین بررسی سلامت</span><h3 style="margin:8px 0">{{ $lastHealth ? ($lastHealth->status === 'ok' ? 'سالم' : 'نیازمند رسیدگی') : 'هنوز بررسی نشده' }}</h3><span class="oc-muted">{{ $lastHealth ? $F::date($lastHealth->created_at, 'j F Y - H:i:s') : 'برای شروع «بررسی سلامت» را اجرا کن.' }}</span></div>
     <div class="oc-card"><span class="oc-muted">آخرین بکاپ</span><h3 style="margin:8px 0">{{ $lastBackup ? (['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$lastBackup->status] ?? $lastBackup->status) : 'هنوز بکاپی ثبت نشده' }}</h3><span class="oc-muted">{{ $lastBackup?->size_bytes ? $bytes($lastBackup->size_bytes) : 'حجم نامشخص' }} @if($lastBackup?->finished_at) · {{ $F::date($lastBackup->finished_at, 'j F Y - H:i:s') }} @endif</span></div>
-    <div class="oc-card"><span class="oc-muted">مقصد ابری</span><h3 style="margin:8px 0">{{ $settings['cloud_enabled'] ? 'OneDrive فعال' : 'غیرفعال' }}</h3><span class="oc-muted">برای بکاپ خارج از سرور، حساب OneDrive شخصی را متصل کن و سپس یک بکاپ آزمایشی اجرا کن.</span></div>
+    <div class="oc-card"><span class="oc-muted">مقصد ابری</span><h3 style="margin:8px 0">{{ $settings['cloud_enabled'] ? 'OneDrive فعال' : 'غیرفعال' }}</h3><span class="oc-muted">برای نگهداری نسخهٔ خارج از سرور، اتصال rclone را روی VPS آماده کن و سپس بکاپ آزمایشی اجرا کن.</span></div>
   </div>
 
   <section class="oc-section">
-    <div class="oc-head"><h3 style="margin:0">تنظیمات بکاپ و هشدار</h3><span class="oc-muted">کلیدهای OAuth به‌صورت رمزنگاری‌شده در دیتابیس ذخیره می‌شوند.</span></div>
+    <div class="oc-head"><h3 style="margin:0">تنظیمات بکاپ و هشدار</h3><span class="oc-muted">تنظیم اتصال ابری از طریق rclone روی سرور انجام می‌شود.</span></div>
     <form method="POST" action="{{ route('admin.operations.update') }}" style="margin-top:14px">@csrf @method('PUT')
       <div class="oc-form">
         <div><label for="local_path">مسیر کامل ذخیرهٔ محلی</label><input id="local_path" name="local_path" value="{{ old('local_path', $settings['local_path']) }}" required placeholder="/var/backups/borjik"><p class="oc-muted">مثال اوبونتو: /var/backups/borjik — بکاپ داخل پوشهٔ عمومی سایت پذیرفته نمی‌شود.</p></div>
@@ -100,15 +100,16 @@
         <div><label for="keep_local">تعداد نسخه‌های محلی برای نگهداری</label><input id="keep_local" type="number" min="1" max="365" name="keep_local" value="{{ old('keep_local',$settings['keep_local']) }}" required></div>
         <div><label for="disk_warning_percent">آستانه هشدار مصرف دیسک (درصد)</label><input id="disk_warning_percent" type="number" min="50" max="98" name="disk_warning_percent" value="{{ old('disk_warning_percent',$settings['disk_warning_percent']) }}" required></div>
         <div><label class="oc-check"><input type="checkbox" name="backup_enabled" value="1" @checked(old('backup_enabled',$settings['backup_enabled']))> بکاپ خودکار فعال باشد</label><p class="oc-muted">نیازمند اجرای Cron لاراول روی سرور است.</p></div>
-        <div><input type="hidden" name="cloud_provider" value="onedrive"><label class="oc-check"><input type="checkbox" name="cloud_enabled" value="1" @checked(old('cloud_enabled',$settings['cloud_enabled']))> ارسال نسخه به OneDrive فعال باشد</label><p class="oc-muted">در صورت فعال‌بودن، شکست ارسال ابری به‌عنوان شکست کل بکاپ ثبت می‌شود.</p></div>
+        <div><label class="oc-check"><input type="checkbox" name="cloud_enabled" value="1" @checked(old('cloud_enabled',$settings['cloud_enabled']))> ارسال نسخه به OneDrive فعال باشد</label><p class="oc-muted">در صورت فعال‌بودن، شکست ارسال ابری به‌عنوان شکست کل بکاپ ثبت می‌شود.</p></div>
       </div>
-      <div class="oc-section"><h4>اتصال OneDrive شخصی</h4>
-        <p class="oc-muted">در Microsoft Entra یک برنامه با پشتیبانی از حساب‌های شخصی Microsoft ثبت کن. Redirect URI این صفحه را عیناً در برنامه وارد کن. Client Secret محرمانه است و در دیتابیس رمزنگاری‌شده نگهداری می‌شود. پس از ذخیرهٔ شناسه و رمز، دکمهٔ اتصال را بزن تا ورود به حساب Microsoft و اجازهٔ Files.ReadWrite انجام شود؛ Refresh Token به‌صورت خودکار و رمزنگاری‌شده ذخیره می‌شود.</p>
+      <div class="oc-section"><h4>اتصال ابری OneDrive با rclone</h4>
+        <p class="oc-muted">احراز هویت در خود rclone نگهداری می‌شود؛ نیازی به ساخت برنامه در Microsoft Entra یا ذخیره Client Secret و Refresh Token در تنظیمات سایت نیست. ابتدا اتصال <code>sabkhoneh-onedrive</code> را با حساب شخصی Microsoft روی VPS تأیید کن. سپس فایل تنظیمات را در مسیری قرار بده که کاربر PHP و زمان‌بندی بکاپ بتوانند آن را بخوانند.</p>
         <div class="oc-form">
-          <div><label for="onedrive_client_id">Microsoft Application (Client) ID</label><input id="onedrive_client_id" name="onedrive_client_id" value="{{ old('onedrive_client_id',$settings['onedrive_client_id']) }}" autocomplete="off"></div>
-          <div><label for="onedrive_client_secret">Client Secret Value</label><input id="onedrive_client_secret" name="onedrive_client_secret" type="password" autocomplete="new-password" placeholder="{{ $settings['onedrive_client_secret_set'] ? 'ذخیره شده؛ برای تغییر مقدار جدید وارد کن' : 'وارد کردن مقدار' }}"></div>
+          <div><label>مقصد آپلود</label><input value="{{ $settings['rclone_remote'] }}" readonly><p class="oc-muted">از متغیر محیطی RCLONE_REMOTE قابل تغییر است.</p></div>
+          <div><label>وضعیت فایل تنظیمات rclone</label><p style="margin:10px 0"><span class="oc-pill {{ $settings['rclone_configured'] ? 'oc-good' : 'oc-warn' }}">{{ $settings['rclone_configured'] ? 'فایل موجود و قابل خواندن' : 'فایل تنظیمات پیدا نشد یا قابل خواندن نیست' }}</span></p><p class="oc-muted" style="direction:ltr;text-align:left;overflow-wrap:anywhere">{{ $settings['rclone_config_path'] }}</p></div>
         </div>
-        <div class="oc-secret" style="margin-top:10px;direction:ltr;overflow-wrap:anywhere">Redirect URI: {{ route('admin.operations.onedrive.callback') }}</div>
+        <div class="oc-secret" style="margin-top:10px;direction:ltr;text-align:left;overflow-wrap:anywhere">RCLONE_CONFIG={{ $settings['rclone_config_path'] }}<br>RCLONE_REMOTE={{ $settings['rclone_remote'] }}</div>
+        <p class="oc-muted" style="margin-top:10px">پس از آماده‌سازی فایل تنظیمات، دسترسی خواندن آن را فقط به root و کاربر/گروه لازم برای اجرای برنامه بده. توکن‌ها را در چت یا لاگ‌ها منتشر نکن. در صورت تغییر متغیرهای محیطی، کش تنظیمات Laravel را بازسازی کن.</p>
       </div>
       <div class="oc-section"><h4>هشدار پیامکی</h4><p class="oc-muted">پیامک از اتصال فعال و پیش‌فرض بخش «اتصال پیامک» ارسال می‌شود. هشدارها هنگام تغییر وضعیت سلامت (خرابی یا بازگشت به حالت سالم) فرستاده می‌شوند تا هر بار بررسی، پیامک تکراری ایجاد نکند.</p>
         <div class="oc-form">
@@ -119,7 +120,6 @@
       <div class="oc-actions"><button class="btn" type="submit">ذخیره تنظیمات</button></div>
     </form>
     <div class="oc-actions">
-      <a class="btn sec" href="{{ route('admin.operations.onedrive.connect') }}">اتصال / تأیید حساب OneDrive</a>
       <form method="POST" action="{{ route('admin.operations.check') }}">@csrf<button class="btn sec" type="submit">بررسی سلامت همین حالا</button></form>
       <form method="POST" action="{{ route('admin.operations.backup') }}">@csrf<button class="btn sec" type="submit">اجرای بکاپ همین حالا</button></form>
       <form method="POST" action="{{ route('admin.operations.test-sms') }}">@csrf<div style="display:flex;gap:6px;flex-wrap:wrap"><input name="mobile" value="{{ $settings['alert_mobile'] }}" placeholder="شماره تست" required style="max-width:190px"><button class="btn sec" type="submit">تست پیامک</button></div></form>
