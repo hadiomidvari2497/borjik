@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b2434">
 @php
-$seoBase = rtrim((string) \\App\\Models\\SiteSetting::get('seo.site_url', config('app.url')), '/');
+$seoBase = rtrim((string) \App\Models\\SiteSetting::get('seo.site_url', config('app.url')), '/');
 $seoScheme = strtolower((string) parse_url($seoBase, PHP_URL_SCHEME));
 $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
 $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && $seoScheme === 'https' && !in_array($seoHost, ['localhost','127.0.0.1','::1'], true) && empty(parse_url($seoBase, PHP_URL_USER)) && empty(parse_url($seoBase, PHP_URL_PASS)) && in_array((string) parse_url($seoBase, PHP_URL_PATH), ['', '/'], true) && parse_url($seoBase, PHP_URL_QUERY) === null && parse_url($seoBase, PHP_URL_FRAGMENT) === null;
-$seoIndexable = $seoPublic && app()->environment('production') && (bool) \\App\\Models\\SiteSetting::get('seo.indexing_enabled', false);
+$seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\\SiteSetting::get('seo.indexing_enabled', false);
 $seoTitle = 'نرم‌افزار مدیریت ساختمان؛ امور مجتمع در یک سامانه | صابخونه';
 $seoDescription = 'با نرم‌افزار مدیریت ساختمان صابخونه، امور مالی، شارژ، درخواست‌های ساکنان، اطلاع‌رسانی و پیگیری کارهای مجتمع را منظم‌تر و شفاف‌تر مدیریت کنید.';
 $seoUrl = $seoBase.'/software-building-management';
