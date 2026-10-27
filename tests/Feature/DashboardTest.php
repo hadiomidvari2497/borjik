@@ -65,6 +65,18 @@ class DashboardTest extends TestCase
             ->assertSee('ورود به سامانه');
     }
 
+    public function test_homepage_points_logged_in_users_to_their_panel(): void
+    {
+        $owner = User::where('mobile', '09120000001')->firstOrFail();
+
+        $this->actingAs($owner)->get('/')->assertOk()
+            ->assertSee('ادامه در پنل من')
+            ->assertSee('ادامه‌ی کار در پنل من')
+            ->assertSee('بازگشت به پنل من')
+            ->assertSee(route('dashboard'), false)
+            ->assertDontSee('ورود به سامانه');
+    }
+
     public function test_owner_sees_management_dashboard_with_full_menu(): void
     {
         $owner = User::where('mobile', '09120000001')->firstOrFail();
