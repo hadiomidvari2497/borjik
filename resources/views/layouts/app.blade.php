@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/jdate.css') }}">
 <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+<link rel="stylesheet" href="{{ asset('css/sidebar.css') }}">
+<script src="{{ asset('js/sidebar-search.js') }}" defer></script>
 <link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap-toast.rtl.min.css') }}">
 <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('css/notify.css') }}">
@@ -99,6 +101,7 @@
       @endif
     </div>
 
+    <label class="side-search" for="side-menu-search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><input id="side-menu-search" type="search" autocomplete="off" placeholder="جست‌وجو در منو..." aria-label="جست‌وجو در منو"><kbd>/</kbd></label>
     <nav class="nav" aria-label="منوی اصلی">
       @foreach($menu as $group)
         <div class="grp">{{ $group['title'] }}</div>
