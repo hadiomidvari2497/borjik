@@ -566,6 +566,45 @@
         @media(max-width:820px){.footer-side{align-items:flex-start;margin-inline-start:0}.footer-side .footer-links{justify-content:flex-start}.footer-side .footer-logo img{width:170px}}
     </style>
     <script>(function(){var d=document.documentElement;if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion:reduce)').matches)return;d.classList.add('cnt')})()</script>
+
+    <style>
+        /* v5: visual wow pass */
+        .hero-dust{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.75;animation:dust 14s ease-in-out infinite alternate;background:radial-gradient(2px 2px at 8% 22%,#fff,transparent),radial-gradient(1.6px 1.6px at 18% 68%,#8ff0d8,transparent),radial-gradient(2.4px 2.4px at 31% 14%,#fff,transparent),radial-gradient(1.6px 1.6px at 44% 82%,#f6c874,transparent),radial-gradient(2px 2px at 57% 30%,#8ff0d8,transparent),radial-gradient(1.6px 1.6px at 66% 72%,#fff,transparent),radial-gradient(2.4px 2.4px at 78% 18%,#f6c874,transparent),radial-gradient(2px 2px at 88% 60%,#fff,transparent),radial-gradient(1.6px 1.6px at 94% 86%,#8ff0d8,transparent),radial-gradient(2px 2px at 12% 90%,#fff,transparent)}
+        .hero h1 span{background-image:linear-gradient(100deg,#7af2d9,#22c5aa,#f6c874,#22c5aa,#7af2d9);background-size:220% auto;animation:gshift 7s linear infinite}
+        .dashboard-art{transform:perspective(1300px) rotateY(var(--ry,0deg)) rotateX(var(--rx,0deg));transition:transform .25s ease-out;transform-style:preserve-3d}
+        .btn-primary{position:relative;overflow:hidden}
+        .btn-primary:after{content:"";position:absolute;top:0;bottom:0;width:55%;left:-90%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:shine 4.5s ease-in-out infinite;pointer-events:none}
+        .marquee{direction:ltr;overflow:hidden;background:linear-gradient(90deg,#04121b,#08303a 50%,#04121b);border-block:1px solid rgba(143,240,216,.18);padding:15px 0;position:relative;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+        .marquee-track{display:flex;gap:44px;width:max-content;animation:marq 38s linear infinite}
+        .marquee:hover .marquee-track{animation-play-state:paused}
+        .marquee span{direction:rtl;display:inline-flex;align-items:center;gap:10px;color:#cfe9e6;font-weight:700;font-size:.95rem;white-space:nowrap}
+        .marquee i{font-style:normal;width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:rgba(34,197,170,.2);color:#8ff0d8;font-size:.85rem}
+        .marquee span:after{content:"";width:6px;height:6px;border-radius:50%;background:#f6c874;margin-inline-start:34px;box-shadow:0 0 12px #f6c874}
+        @media(min-width:981px){
+            .feature-grid{grid-template-columns:repeat(6,1fr)!important}
+            .feature-grid .feature-card{grid-column:span 2}
+            .feature-grid .feature-card:nth-child(6n+1),.feature-grid .feature-card:nth-child(6n+4){grid-column:span 4}
+            .feature-grid .feature-card:nth-child(6n+5),.feature-grid .feature-card:nth-child(6n+6){grid-column:span 3}
+        }
+        .feature-grid .feature-card:nth-child(6n+1){background:radial-gradient(70% 90% at 90% 0%,rgba(34,197,170,.4),transparent 62%),linear-gradient(145deg,#04121b,#0a4a4e);border-color:transparent;box-shadow:0 30px 60px rgba(4,18,27,.25)}
+        .feature-grid .feature-card:nth-child(6n+1) h3{color:#fff;font-size:1.35rem}.feature-grid .feature-card:nth-child(6n+1) p{color:#c4e2df}
+        .feature-grid .feature-card:nth-child(6n+1) .feature-icon{background:linear-gradient(145deg,#f6c874,#e0993a)!important;color:#3a2600!important;box-shadow:0 12px 30px rgba(240,185,90,.45)}
+        .feature-grid .feature-card:nth-child(6n+4){background:linear-gradient(145deg,#e1f7f0,#fff 70%)}
+        .feature-card:after{inset:0!important;left:0!important;top:0!important;width:auto!important;height:auto!important;border-radius:inherit!important;background:radial-gradient(320px circle at var(--mx,50%) var(--my,0%),rgba(34,197,170,.22),transparent 62%)!important;opacity:0;transition:opacity .35s}
+        .feature-card:hover:after{opacity:1}
+        .feature-card:nth-child(6n+1):after{background:radial-gradient(320px circle at var(--mx,50%) var(--my,0%),rgba(143,240,216,.25),transparent 62%)!important}
+        .step,.testi-card,.stat-card,.how .step{position:relative;overflow:hidden}
+        .step:before,.testi-card:before,.stat-card:before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .35s;background:radial-gradient(300px circle at var(--mx,50%) var(--my,0%),rgba(34,197,170,.2),transparent 62%)}
+        .step:hover:before,.testi-card:hover:before,.stat-card:hover:before{opacity:1}
+        .js .rv.in>*{animation:cardin .8s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i,0)*90ms)}
+        @keyframes cardin{from{opacity:0;transform:translateY(26px) scale(.97)}}
+        @keyframes marq{to{transform:translateX(-50%)}}
+        @keyframes shine{0%,55%{left:-90%}100%{left:150%}}
+        @keyframes gshift{to{background-position:220% center}}
+        @keyframes dust{from{transform:translateY(0)}to{transform:translateY(-18px)}}
+        @media(max-width:720px){.marquee{padding:11px 0}.marquee span{font-size:.85rem}.dashboard-art{transform:none!important}}
+        @media(prefers-reduced-motion:reduce){.marquee-track,.hero-dust,.btn-primary:after{animation:none!important}.js .rv.in>*{animation:none}}
+    </style>
 </head>
 <body>
 @php
@@ -598,6 +637,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
 <main>
     <section class="hero" id="home">
+    <div class="hero-dust" aria-hidden="true"></div>
         <div class="wrap hero-grid">
             <div>
                 <span class="eyebrow"><i></i> {{ data_get($content ?? [], 'hero.badge', 'مدیریت نوین ساختمان، در یک جا') }}</span>
@@ -629,6 +669,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         </div>
     </section>
 
+    <div class="marquee" aria-hidden="true"><div class="marquee-track">@for($k = 0; $k < 2; $k++)@foreach($features as $feature)<span><i>{{ $feature['icon'] ?? '✦' }}</i>{{ $feature['title'] ?? '' }}</span>@endforeach @endfor</div></div>
     <div class="trust-strip"><div class="wrap trust-items">
         @foreach(data_get($content ?? [], 'trust_items', [['icon'=>'◈','text'=>'شفافیت مالی'],['icon'=>'✓','text'=>'پیگیری درخواست‌ها'],['icon'=>'⌂','text'=>'مناسب انواع ساختمان'],['icon'=>'↗','text'=>'دسترسی ساده و آنلاین']]) as $item)<div class="trust-item"><span>{{ $item['icon'] ?? '✓' }}</span> {{ $item['text'] ?? '' }}</div>@endforeach
     </div></div>
@@ -769,5 +810,12 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 var tabs=[].slice.call(document.querySelectorAll('.role-tab'));function sel(t){tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).classList.toggle('on',on)})}
 tabs.forEach(function(t,i){t.addEventListener('click',function(){sel(t)});t.addEventListener('keydown',function(e){var k=e.key==='ArrowLeft'?1:e.key==='ArrowRight'?-1:0;if(k){var n=tabs[(i+k+tabs.length)%tabs.length];n.focus();sel(n)}})})})();</script>
 <script>(function(){var els=document.querySelectorAll('.count[data-to]');if(!els.length||!document.documentElement.classList.contains('cnt'))return;var fa='۰۱۲۳۴۵۶۷۸۹';function num(v){return parseInt(String(v).replace(/[۰-۹]/g,function(c){return fa.indexOf(c)}),10)}var o=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;o.unobserve(e.target);var el=e.target,to=num(el.getAttribute('data-to')),t0=performance.now();(function f(t){var k=Math.min((t-t0)/1400,1),v=Math.round(to*(1-Math.pow(1-k,3)));el.textContent=v.toLocaleString('fa-IR',{useGrouping:false});if(k<1)requestAnimationFrame(f);else el.textContent=el.getAttribute('data-to')})(t0)})},{threshold:.4});els.forEach(function(n){o.observe(n)})})();</script>
+<script>(function(){var fine=matchMedia('(hover:hover) and (pointer:fine)').matches,rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+document.querySelectorAll('.feature-grid,.steps,.testi-grid,.stat-grid').forEach(function(g){[].forEach.call(g.children,function(c,i){c.style.setProperty('--i',Math.min(i,8))})});
+if(!fine)return;
+document.addEventListener('mousemove',function(e){var c=e.target.closest&&e.target.closest('.feature-card,.step,.testi-card,.stat-card');if(!c)return;var r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true});
+var h=document.getElementById('home'),art=h&&h.querySelector('.dashboard-art');if(!art||rm)return;
+h.addEventListener('mousemove',function(e){var r=h.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;art.style.setProperty('--ry',(x*-9).toFixed(2)+'deg');art.style.setProperty('--rx',(y*7).toFixed(2)+'deg')},{passive:true});
+h.addEventListener('mouseleave',function(){art.style.setProperty('--ry','0deg');art.style.setProperty('--rx','0deg')})})();</script>
 </body>
 </html>
