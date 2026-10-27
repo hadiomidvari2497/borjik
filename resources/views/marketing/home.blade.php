@@ -611,6 +611,8 @@
 @php
     $shot = data_get($content ?? [], 'hero.screenshot_url');
     $shot = is_string($shot) && preg_match('~^https?://~i', $shot) ? $shot : null;
+    $authName = auth()->check() ? trim((string) (auth()->user()->display_name ?? '')) : '';
+    $authTitle = $authName !== '' ? 'سلام '.$authName.'، خوش آمدید' : 'خوش آمدید';
     $stats = collect(data_get($content ?? [], 'stats', []))->filter(fn ($x) => filled(data_get($x, 'value')) && filled(data_get($x, 'label')))->values();
     $testimonials = collect(data_get($content ?? [], 'testimonials', []))->filter(fn ($x) => filled(data_get($x, 'name')) && filled(data_get($x, 'text')))->values();
 @endphp
@@ -632,7 +634,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
         <nav class="nav-links" aria-label="ناوبری اصلی">
             <a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
-        <div class="nav-actions"><a class="btn btn-ghost" href="#features">آشنایی با صابخونه</a><a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a></div>
+        <div class="nav-actions"><a class="btn btn-ghost" href="#features">آشنایی با صابخونه</a>@auth<a class="btn btn-primary" href="{{ route('dashboard') }}" title="{{ $authTitle }}">ادامه در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a>@endauth</div>
     </div>
 </header>
 
@@ -644,7 +646,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                 <span class="eyebrow"><i></i> {{ data_get($content ?? [], 'hero.badge', 'مدیریت نوین ساختمان، در یک جا') }}</span>
                 <h1>{{ data_get($content ?? [], 'hero.title', 'نرم‌افزار مدیریت ساختمان،') }}<br><span>{{ data_get($content ?? [], 'hero.highlight', 'با آرامش بیشتر') }}</span></h1>
                 <p class="hero-copy">{{ data_get($content ?? [], 'hero.description', 'صابخونه کمک می‌کند امور مالی، شارژ، درخواست‌های ساکنان و ارتباطات ساختمان را شفاف‌تر و منظم‌تر مدیریت کنید؛ بدون کاغذبازی و سردرگمی.') }}</p>
-                <div class="hero-actions"><a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از صابخونه') }} <span aria-hidden="true">←</span></a><a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
+                <div class="hero-actions">@auth<a class="btn btn-primary" href="{{ route('dashboard') }}">ادامه‌ی کار در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">{{ data_get($content ?? [], 'hero.primary_cta', 'شروع استفاده از صابخونه') }} <span aria-hidden="true">←</span></a>@endauth<a class="btn btn-light" href="#features">{{ data_get($content ?? [], 'hero.secondary_cta', 'امکانات را ببینید') }} <span aria-hidden="true">⌄</span></a></div>
                 <div class="hero-proof"><div class="proof-avatars" aria-hidden="true"><span>م</span><span>س</span><span>ب</span></div><div><strong>همه‌چیز شفاف‌تر</strong><br>برای مدیران، ساکنان و پرسنل ساختمان</div></div>
                 <div class="hero-highlights" aria-label="مزیت‌های صابخونه">
                     <span><i aria-hidden="true">✓</i> امور مالی شفاف</span>
@@ -787,7 +789,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 
     <section class="content-section contact-section" id="contact">
         <div class="wrap contact-grid">
-            <div><span class="section-kicker">{{ data_get($content ?? [], 'contact.eyebrow', 'تماس با ما') }}</span><h2>{{ data_get($content ?? [], 'contact.title', 'برای شروع همکاری، در ارتباط باشیم') }}</h2><p>{{ data_get($content ?? [], 'contact.description', 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به صابخونه شروع کنید.') }}</p><a class="btn btn-primary" href="{{ route('login') }}">ورود به صابخونه <span aria-hidden="true">←</span></a></div>
+            <div><span class="section-kicker">{{ data_get($content ?? [], 'contact.eyebrow', 'تماس با ما') }}</span><h2>{{ data_get($content ?? [], 'contact.title', 'برای شروع همکاری، در ارتباط باشیم') }}</h2>@auth<p>خوشحالیم که با ماست. برای ادامه‌ی کار و پیگیری امور ساختمان، به پنل خود بازگردید.</p>@else<p>{{ data_get($content ?? [], 'contact.description', 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به صابخونه شروع کنید.') }}</p>@endauth @auth<a class="btn btn-primary" href="{{ route('dashboard') }}">بازگشت به پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">ورود به صابخونه <span aria-hidden="true">←</span></a>@endauth</div>
             <div class="contact-card">
                 <div class="contact-row"><span class="contact-symbol">✉</span><div><strong>ارتباط با تیم صابخونه</strong>
                     @if(data_get($content ?? [], 'contact.email'))<a class="contact-email" href="mailto:{{ data_get($content, 'contact.email') }}">{{ data_get($content, 'contact.email') }}</a>@else<small>راه ارتباطی عمومی هنوز در پنل مدیریت ثبت نشده است.</small>@endif
@@ -803,7 +805,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 <footer>
     <div class="wrap"><div class="footer-main">
         <div class="footer-brand"><a class="brand" href="#home"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a><p>{{ data_get($content ?? [], 'footer_description', 'سامانه‌ی فارسی مدیریت ساختمان؛ برای شفافیت بیشتر، پیگیری ساده‌تر و همکاری بهتر.') }}</p>@if(data_get($content ?? [], 'enamad.enabled') && (data_get($content ?? [], 'enamad.image_path') || data_get($content ?? [], 'enamad.image_url')) && data_get($content ?? [], 'enamad.verification_url'))<a class="footer-trust" href="{{ data_get($content, 'enamad.verification_url') }}" target="_blank" rel="noopener noreferrer" aria-label="{{ data_get($content, 'enamad.alt', 'مشاهده نماد اعتماد الکترونیکی') }}"><img src="{{ data_get($content, 'enamad.image_path') ? route('marketing.enamad.image') : data_get($content, 'enamad.image_url') }}" alt="{{ data_get($content, 'enamad.alt', 'نماد اعتماد الکترونیکی') }}" loading="lazy"><span class="footer-trust-label"><strong>نماد اعتماد الکترونیکی</strong><span>برای مشاهدهٔ اعتبار نماد کلیک کنید</span></span></a>@endif</div>
-        <div class="footer-side"><nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#faq">سوالات متداول</a><a href="#contact">تماس با ما</a><a href="{{ route('login') }}">ورود</a></nav><span class="footer-logo"><img src="{{ asset('images/sabkhoneh-logo.png') }}" alt="صابخونه" width="170" height="150" loading="lazy"></span></div>
+        <div class="footer-side"><nav class="footer-links" aria-label="پیوندهای پایین صفحه"><a href="#features">امکانات</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#faq">سوالات متداول</a><a href="#contact">تماس با ما</a>@auth<a href="{{ route('dashboard') }}">پنل من</a>@else<a href="{{ route('login') }}">ورود</a>@endauth</nav><span class="footer-logo"><img src="{{ asset('images/sabkhoneh-logo.png') }}" alt="صابخونه" width="170" height="150" loading="lazy"></span></div>
     </div><div class="footer-bottom"><span>© {{ date('Y') }} صابخونه — تمامی حقوق محفوظ است.</span><span>ساخته‌شده برای مدیریت شفاف‌تر ساختمان</span></div></div>
 </footer>
 <script>(function(){if(!document.documentElement.classList.contains('js'))return;var o=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');o.unobserve(x.target)}})},{threshold:.12});document.querySelectorAll('.role-tabs,.role-panel.on,.faq-list,.section-head,.feature-grid,.steps,.about-grid,.article-grid,.partner-panel,.contact-grid').forEach(function(n){n.classList.add('rv');o.observe(n)})})();</script>
