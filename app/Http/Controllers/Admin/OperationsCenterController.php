@@ -26,6 +26,7 @@ class OperationsCenterController extends Controller
         unset($values['onedrive_client_secret'], $values['onedrive_refresh_token'], $values['drive_client_secret'], $values['drive_refresh_token']);
         $rcloneConfig = (string) config('services.rclone.config', '/etc/rclone/sabkhoneh.conf');
         $values['rclone_remote'] = (string) config('services.rclone.remote', 'sabkhoneh-onedrive:Sabkhoneh-Backups');
+        $values['rclone_config_path'] = $rcloneConfig;
         $values['rclone_configured'] = $rcloneConfig !== '' && is_file($rcloneConfig) && is_readable($rcloneConfig);
         return view('admin.operations.index', [
             'settings' => $values,
