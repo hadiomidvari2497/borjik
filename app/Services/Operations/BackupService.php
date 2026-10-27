@@ -297,7 +297,7 @@ class BackupService
     private function prune(string $directory, int $keep): void
     {
         $files = collect(glob($directory.DIRECTORY_SEPARATOR.'borjik-*.zip') ?: [])
-            ->filter('is_file')->sortByDesc(fn ($path) => filemtime($path) ?: 0)->values();
+            ->filter(fn ($path) => is_file($path))->sortByDesc(fn ($path) => filemtime($path) ?: 0)->values();
         foreach ($files->slice($keep) as $file) {
             @unlink($file);
         }
