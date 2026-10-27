@@ -52,6 +52,15 @@ class MarketingController extends Controller
             ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
             ->firstOrFail();
 
-        return view('marketing.article', compact('article'));
+        $relatedArticles = Article::query()
+            ->where('status', 'published')
+            ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
+            ->where('slug', '!=', $article->slug)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(2)
+            ->get();
+
+        return view('marketing.article', compact('article', 'relatedArticles'));
     }
 }
