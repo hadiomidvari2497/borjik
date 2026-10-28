@@ -81,11 +81,23 @@ class PaymentGatewayController extends Controller
             throw ValidationException::withMessages(['provider_name' => 'برای فعال‌سازی اتصال، نام درگاه را وارد کنید.']);
         }
 
+        if ($settings['active'] && $settings['driver'] === 'bitpay' && empty($settings['api_key'])) {
+            throw ValidationException::withMessages(['api_key' => 'برای فعال‌سازی بیت‌پی، کد API را وارد کنید.']);
+        }
+
+        if ($settings['active'] && $settings['driver'] === 'zarinpal' && empty($settings['merchant_id'])) {
+            throw ValidationException::withMessages(['merchant_id' => 'برای فعال‌سازی زرین‌پال، شناسه پذیرنده لازم است.']);
+        }
+
         // Settings are stored as a JSON value; credentials are encrypted before persistence.
         SiteSetting::set(self::KEY, $settings, true);
 
         return redirect()->route('admin.payment-gateway.edit')
-            ->with('status', $settings['driver'] === 'zarinpal' ? 'تنظیمات زرین‌پال ذخیره شد. برای خرید واقعی، شناسه پذیرنده معتبر و محیط مناسب را تنظیم کنید.' : 'تنظیمات درگاه ذخیره شد. برای درگاه‌های دیگر، آداپتور اختصاصی لازم است.');
+            ->with('status', match ($settings['driver']) {
+                'zarinpal' => 'تنظیمات زرین‌پال ذخیره شد. پیش از دریافت وجه، شناسه پذیرنده و محیط مناسب را بررسی کنید.',
+                'bitpay' => 'تنظیمات بیت‌پی ذخیره شد. پیش از فعال‌سازی پرداخت عمومی، یک تراکنش کنترل‌شده و تأیید سمت سرور را آزمایش کنید.',
+                default => 'تنظیمات درگاه ذخیره شد؛ برای این درگاه آداپتور اختصاصی لازم است.',
+            });
     }
 
     public function validateConfiguration()
@@ -96,8 +108,8 @@ class PaymentGatewayController extends Controller
 
         if (empty($settings['provider_name'])) $missing[] = 'نام درگاه';
         if (empty($settings['driver'])) $missing[] = 'شناسه فنی درگاه';
-        if (empty($settings['merchant_id'])) $missing[] = 'شناسه پذیرنده';
-        if (($settings['driver'] ?? '') !== 'zarinpal' && empty($settings['api_key'])) $missing[] = 'کلید API';
+        if (($settings['driver'] ?? '') === 'zarinpal' && empty($settings['merchant_id'])) $missing[] = 'شناسه پذیرنده زرین‌پال';
+        if (in_array(($settings['driver'] ?? ''), ['bitpay', 'custom'], true) && empty($settings['api_key'])) $missing[] = 'کلید API';
 
         if (empty($settings['active'])) {
             return back()->with('warning', 'اتصال درگاه غیرفعال است؛ این بررسی فقط تنظیمات ذخیره‌شده را اعتبارسنجی می‌کند و تراکنش آزمایشی ارسال نمی‌کند.');
