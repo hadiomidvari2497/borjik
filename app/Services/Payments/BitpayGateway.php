@@ -15,7 +15,7 @@ class BitpayGateway
     {
         $settings = $this->settings($configuredSettings);
         $api = $this->secret($settings['api_key'] ?? null);
-        $callback = route('payment.gateway.callback');
+        $callback = route('payment.gateway.callback', ! empty($settings['_gateway_id']) ? ['gateway_id' => $settings['_gateway_id']] : []);
         $response = Http::asForm()->timeout(20)->post('https://bitpay.ir/payment/gateway-send', [
             'api' => $api,
             'amount' => $amountRial,
