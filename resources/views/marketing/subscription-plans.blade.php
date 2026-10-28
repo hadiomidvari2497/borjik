@@ -28,7 +28,7 @@
 <header class="top">
     <div class="wrap nav">
         <a class="brand" href="{{ route('home') }}"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt=""><span>صابخونه</span></a>
-        <div class="nav-actions"><a class="btn light" href="{{ route('home') }}">صفحه اصلی</a>@auth<a class="btn primary" href="{{ route('subscription.show') }}">رفتن به اشتراک‌ها</a>@else<a class="btn primary" href="{{ route('register') }}">ثبت‌نام برای خرید</a>@endauth</div>
+        <div class="nav-actions"><a class="btn light" href="{{ route('home') }}">صفحه اصلی</a>@auth<a class="btn primary" href="{{ route('subscription.show') }}">رفتن به اشتراک‌ها</a>@else<a class="btn primary" href="{{ route('login') }}">ورود یا ساخت حساب</a>@endauth</div>
     </div>
 </header>
 <main>
@@ -70,7 +70,7 @@
                             @auth
                                 <a class="btn primary" href="{{ route('subscription.show') }}">مشاهده اشتراک‌ها <span aria-hidden="true">←</span></a>
                             @else
-                                <a class="btn primary" href="{{ route('register') }}">ثبت‌نام برای خرید <span aria-hidden="true">←</span></a>
+                                <a class="btn primary" href="{{ route('login') }}">ورود یا ساخت حساب <span aria-hidden="true">←</span></a>
                             @endauth
                         </article>
                     @endforeach
@@ -83,7 +83,7 @@
             <div class="notice">
                 <div class="notice-icon" aria-hidden="true">✦</div>
                 <div><h2>برای خرید اشتراک، ابتدا ثبت‌نام کنید</h2><p>پس از ثبت‌نام و ورود به حساب کاربری، به بخش «اشتراک‌ها» در پنل خود مراجعه کنید؛ آنجا می‌توانید پلن دلخواه را انتخاب و مراحل خرید را تکمیل کنید.</p></div>
-                <div class="btns">@auth<a class="btn primary" href="{{ route('subscription.show') }}">رفتن به بخش اشتراک‌ها</a>@else<a class="btn primary" href="{{ route('register') }}">ثبت‌نام و شروع</a><a class="btn light" href="{{ route('login') }}">قبلاً ثبت‌نام کرده‌ام</a>@endauth</div>
+                <div class="btns">@auth<a class="btn primary" href="{{ route('subscription.show') }}">رفتن به بخش اشتراک‌ها</a>@else<a class="btn primary" href="{{ route('login') }}">ورود یا ساخت حساب</a><a class="btn light" href="{{ route('login') }}">قبلاً ثبت‌نام کرده‌ام</a>@endauth</div>
             </div>
             <div class="steps">
                 <article class="step"><b>مرحله ۱</b><h3>ساخت حساب کاربری</h3><p>با ثبت‌نام، حساب خود را بسازید و وارد صابخونه شوید.</p></article>
