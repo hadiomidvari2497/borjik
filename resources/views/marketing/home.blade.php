@@ -65,6 +65,7 @@
     @endif
     <title>{{ $seoTitle }}</title>
     <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-ExtraBold.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <style>
         :root{--ink:#102b3a;--muted:#627582;--teal:#13a895;--teal-dark:#087f78;--paper:#f7faf9;--line:#e1eae8;--white:#fff;--gold:#f0b95a}
