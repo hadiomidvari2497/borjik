@@ -59,7 +59,7 @@ class AdminPaymentGatewaySettingsTest extends TestCase
             'api_secret' => 'test-api-secret',
             'webhook_secret' => 'test-hook-secret',
             'active' => '1',
-        ])->assertRedirect(route('admin.payment-gateway.edit'));
+        ])->assertRedirect(route('admin.payment-gateway.edit', ['gateway_id' => 'legacy']));
 
         $settings = SiteSetting::get('payment.gateway');
         $this->assertSame('درگاه آزمایشی', $settings['provider_name']);
@@ -93,7 +93,7 @@ class AdminPaymentGatewaySettingsTest extends TestCase
             'merchant_id' => 'm1',
             'api_key' => '',
             'clear_api_key' => '0',
-        ])->assertRedirect(route('admin.payment-gateway.edit'));
+        ])->assertRedirect(route('admin.payment-gateway.edit', ['gateway_id' => 'legacy']));
 
         $this->assertSame('keep-me', Crypt::decryptString(SiteSetting::get('payment.gateway')['api_key']));
 
@@ -104,7 +104,7 @@ class AdminPaymentGatewaySettingsTest extends TestCase
             'merchant_id' => 'm1',
             'api_key' => '',
             'clear_api_key' => '1',
-        ])->assertRedirect(route('admin.payment-gateway.edit'));
+        ])->assertRedirect(route('admin.payment-gateway.edit', ['gateway_id' => 'legacy']));
 
         $this->assertNull(SiteSetting::get('payment.gateway')['api_key']);
     }
@@ -119,7 +119,7 @@ class AdminPaymentGatewaySettingsTest extends TestCase
             'environment' => 'production',
             'api_key' => 'demo-value',
             'active' => '1',
-        ])->assertRedirect(route('admin.payment-gateway.edit'));
+        ])->assertRedirect(route('admin.payment-gateway.edit', ['gateway_id' => 'legacy']));
 
         $settings = SiteSetting::get('payment.gateway');
         $this->assertSame('bitpay', $settings['driver']);
