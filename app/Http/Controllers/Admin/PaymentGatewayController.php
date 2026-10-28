@@ -138,7 +138,7 @@ class PaymentGatewayController extends Controller
 
     public function validateConfiguration(PaymentGatewayRegistry $registry)
     {
-        $active = $registry->active();
+        $active = array_filter($registry->all(), static fn ($item) => is_array($item) && ! empty($item['active']));
         if ($active === []) {
             return back()->with('warning', 'هیچ درگاه فعال و کامل پیکربندی نشده است.');
         }
