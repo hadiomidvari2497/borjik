@@ -45,7 +45,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool'])->gr
 
     Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     Route::get('/subscription/plans', [SubscriptionController::class, 'show'])->name('subscription.plans');
-    Route::post('/subscription/plans/{id}', [SubscriptionController::class, 'subscribe'])->whereNumber('id')->name('subscription.subscribe');
+    Route::post('/subscription/plans/{id}', [SubscriptionController::class, 'subscribe'])->whereNumber('id')->name('subscription.subscribe');\n    Route::get('/subscription/payments/{payment}/receipt', [SubscriptionPaymentReceiptController::class, 'show'])->whereNumber('payment')->name('subscription.payment.receipt');
 
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::get('/operations-center', [OperationsCenterController::class, 'index'])->middleware('can:building.manage')->name('operations-center.index');
