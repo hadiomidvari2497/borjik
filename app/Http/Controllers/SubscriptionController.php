@@ -136,7 +136,7 @@ class SubscriptionController extends Controller
         }
 
         try {
-            $payment = DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount, $discountAmount, $amount) {
+            $payment = DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount, $discountAmount, $amount, $driver) {
                 $lockedCoupon = null;
                 if ($couponCode !== '') {
                     $lockedCoupon = DiscountCoupon::query()->where('code', $couponCode)->lockForUpdate()->first();
