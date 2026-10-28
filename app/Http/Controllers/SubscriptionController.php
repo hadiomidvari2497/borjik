@@ -263,6 +263,8 @@ class SubscriptionController extends Controller
                 : $zarinpal->verify($authority, $amountRial);
             $verified = $isBitpay
                 ? (int) data_get($verification, 'status', 0) === 1
+                    && (int) data_get($verification, 'amount', 0) === $amountRial
+                    && (string) data_get($verification, 'factorId', '') === (string) $payment->id
                 : in_array((int) data_get($verification, 'data.code', 0), [100, 101], true);
             if (! $verified) {
                 DB::transaction(function () use ($payment, $verification) {
