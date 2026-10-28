@@ -34,22 +34,21 @@ class SubscriptionController extends Controller
             ->orderBy('duration_months')
             ->get();
 
-        $gateway = SiteSetting::get('payment.gateway', []);
-        $driver = (string) data_get($gateway, 'driver', '');
-        $gatewayReady = is_array($gateway)
-            && ! empty($gateway['active'])
-            && (($driver === 'zarinpal' && ! empty($gateway['merchant_id']))
-                || ($driver === 'bitpay' && ! empty($gateway['api_key'])));
+        $gateways = app(PaymentGatewayRegistry::class)->active();
+        $gatewayReady = $gateways !== [];
 
         return view('subscription.show', [
             'subscription' => $current,
             'plans' => $plans,
             'gatewayReady' => $gatewayReady,
+            'paymentGateways' => $gateways,
+            'recentPayments' => SubscriptionPayment::query()->with('subscription.plan')
+                ->where('user_id', $user->id)->latest('id')->limit(10)->get(),
         ]);
     }
 
     /** پلن رایگان مستقیماً فعال می‌شود؛ پلن پولی فقط با شروع تراکنش واقعی. */
-    public function subscribe(Request $request, int $id, ZarinpalGateway $zarinpal, BitpayGateway $bitpay)
+    public function subscribe(Request $request, int $id, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaymentGatewayRegistry $registry)
     {
         $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
         $user = $request->user();
@@ -118,11 +117,14 @@ class SubscriptionController extends Controller
                 ->with('status', 'اشتراک «'.$plan->name.'» با موفقیت فعال شد.');
         }
 
-        $settings = SiteSetting::get('payment.gateway', []);
+        $availableGateways = $registry->active();
+        $gatewayId = trim((string) $request->input('gateway_id', ''));
+        if ($gatewayId === '' && count($availableGateways) === 1) {
+            $gatewayId = (string) array_key_first($availableGateways);
+        }
+        $settings = $availableGateways[$gatewayId] ?? null;
         $driver = (string) data_get($settings, 'driver', '');
-        if (! is_array($settings) || empty($settings['active']) || ! in_array($driver, ['zarinpal', 'bitpay'], true)
-            || ($driver === 'zarinpal' && empty($settings['merchant_id']))
-            || ($driver === 'bitpay' && empty($settings['api_key']))) {
+        if (! is_array($settings) || ! in_array($driver, ['zarinpal', 'bitpay'], true)) {
             SystemErrorReporter::warning(
                 $request,
                 'payment.gateway',
@@ -136,7 +138,7 @@ class SubscriptionController extends Controller
         }
 
         try {
-            $payment = DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount, $discountAmount, $amount, $driver) {
+            $payment = DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount, $discountAmount, $amount, $driver, $gatewayId, $settings) {
                 $lockedCoupon = null;
                 if ($couponCode !== '') {
                     $lockedCoupon = DiscountCoupon::query()->where('code', $couponCode)->lockForUpdate()->first();
@@ -163,7 +165,7 @@ class SubscriptionController extends Controller
                     'status' => 'pending',
                     'raw_response' => [
                         'plan_id' => $plan->id,
-                        'amount_rial' => $amount * 10,
+                        'amount_rial' => $amount * 10,\n                        'gateway_id' => $gatewayId,\n                        'gateway_name' => (string) ($settings['provider_name'] ?? $driver),
                         'base_amount' => $baseAmount,
                         'discount_amount' => $discountAmount,
                         'coupon_code' => $couponCode !== '' ? $couponCode : null,
@@ -185,8 +187,8 @@ class SubscriptionController extends Controller
             });
 
             $result = $driver === 'bitpay'
-                ? $bitpay->request($amount * 10, $payment->id, $user)
-                : $zarinpal->request($amount * 10, $payment->id, $user);
+                ? $bitpay->request($amount * 10, $payment->id, $user, $settings)
+                : $zarinpal->request($amount * 10, $payment->id, $user, $settings);
             $payment->update([
                 'raw_response' => array_merge($payment->raw_response ?? [], $driver === 'bitpay'
                     ? ['id_get' => $result['id_get'], 'request' => $result['response']]
@@ -223,7 +225,7 @@ class SubscriptionController extends Controller
     }
 
     /** Callback عمومی است؛ فعال‌سازی فقط پس از تأیید سمت سرور با API زرین‌پال انجام می‌شود. */
-    public function callback(Request $request, ZarinpalGateway $zarinpal, BitpayGateway $bitpay)
+    public function callback(Request $request, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaymentGatewayRegistry $registry)
     {
         $authority = (string) $request->query('Authority', '');
         $status = strtoupper((string) $request->query('Status', ''));
@@ -253,14 +255,16 @@ class SubscriptionController extends Controller
         }
 
         try {
+            $gatewayId = (string) data_get($payment->raw_response, 'gateway_id', 'legacy');
+            $gatewaySettings = $registry->find($gatewayId) ?? SiteSetting::get('payment.gateway', []);
             $amountRial = (int) data_get($payment->raw_response, 'amount_rial', 0);
             if ($amountRial <= 0) {
                 throw new \RuntimeException('Invalid stored payment amount.');
             }
 
             $verification = $isBitpay
-                ? $bitpay->verify($idGet, $transId)
-                : $zarinpal->verify($authority, $amountRial);
+                ? $bitpay->verify($idGet, $transId, is_array($gatewaySettings) ? $gatewaySettings : null)
+                : $zarinpal->verify($authority, $amountRial, is_array($gatewaySettings) ? $gatewaySettings : null);
             $verified = $isBitpay
                 ? (int) data_get($verification, 'status', 0) === 1
                     && (int) data_get($verification, 'amount', 0) === $amountRial
@@ -316,7 +320,7 @@ class SubscriptionController extends Controller
                 ]);
             });
 
-            return redirect()->route('subscription.show')->with('status', 'پرداخت با موفقیت تأیید شد و اشتراک شما فعال شد.');
+            return redirect()->route('subscription.payment.receipt', ['payment' => $payment->id])->with('status', 'پرداخت با موفقیت تأیید شد و اشتراک شما فعال شد.');
         } catch (\Throwable $e) {
             SystemErrorReporter::caught(
                 $request,
