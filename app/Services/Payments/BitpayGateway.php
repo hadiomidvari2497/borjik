@@ -11,11 +11,11 @@ use RuntimeException;
 class BitpayGateway
 {
     /** @return array{id_get:string,payment_url:string,response:string} */
-    public function request(int $amountRial, int $paymentId, User $user): array
+    public function request(int $amountRial, int $paymentId, User $user, ?array $configuredSettings = null): array
     {
-        $settings = $this->settings();
+        $settings = $this->settings($configuredSettings);
         $api = $this->secret($settings['api_key'] ?? null);
-        $callback = route('payment.gateway.callback');
+        $callback = route('payment.gateway.callback', ! empty($settings['_gateway_id']) ? ['gateway_id' => $settings['_gateway_id']] : []);
         $response = Http::asForm()->timeout(20)->post('https://bitpay.ir/payment/gateway-send', [
             'api' => $api,
             'amount' => $amountRial,
@@ -39,9 +39,9 @@ class BitpayGateway
     }
 
     /** @return array<string,mixed> */
-    public function verify(string $idGet, string $transId): array
+    public function verify(string $idGet, string $transId, ?array $configuredSettings = null): array
     {
-        $settings = $this->settings();
+        $settings = $this->settings($configuredSettings);
         $response = Http::asForm()->acceptJson()->timeout(20)->post('https://bitpay.ir/payment/gateway-result-second', [
             'api' => $this->secret($settings['api_key'] ?? null),
             'id_get' => $idGet,
@@ -57,9 +57,9 @@ class BitpayGateway
     }
 
     /** @return array<string,mixed> */
-    private function settings(): array
+    private function settings(?array $configuredSettings = null): array
     {
-        $settings = SiteSetting::get('payment.gateway', []);
+        $settings = $configuredSettings ?? SiteSetting::get('payment.gateway', []);
         if (! is_array($settings) || empty($settings['active']) || ($settings['driver'] ?? '') !== 'bitpay' || empty($settings['api_key'])) {
             throw new RuntimeException('Bitpay gateway is not configured.');
         }

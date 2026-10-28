@@ -10,7 +10,7 @@
 
 
 .sub-alert{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;margin-top:18px;border:1px solid var(--line);border-radius:18px;background:var(--card)}.sub-alert-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:13px;background:var(--brand-soft);color:var(--brand-d)}.sub-alert-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8}.sub-alert-copy{min-width:0;flex:1}.sub-alert-copy strong{display:block;margin:1px 0 4px;font-size:13px;font-weight:850}.sub-alert-copy p{margin:0;color:var(--sub-muted);font-size:12px;line-height:1.9}.sub-alert-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-inline-start:auto}.sub-alert-actions a{display:inline-flex;align-items:center;justify-content:center;padding:9px 13px;border-radius:11px;text-decoration:none;font-size:12px;font-weight:800;background:var(--brand);color:#fff;white-space:nowrap}.sub-alert-actions a.secondary{background:var(--track);color:var(--sub-ink)}
-.sub-notice{margin-top:14px;padding:12px 15px;border-radius:14px;background:var(--brand-soft);color:var(--sub-ink);font-size:12px;line-height:1.9}.sub-notice.error{background:rgba(224,69,58,.1);border:1px solid rgba(224,69,58,.2);color:var(--danger)}
+.sub-gateway-list{display:grid;gap:8px;margin-bottom:12px}.sub-gateway-option{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer}.sub-gateway-option:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}.sub-gateway-option input{accent-color:var(--brand)}.sub-gateway-option b{display:block;font-size:12px}.sub-gateway-option small{display:block;color:var(--sub-muted);font-size:10px;margin-top:3px}.sub-history{margin-top:26px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--card)}.sub-history h3{margin:0 0 12px;font-size:16px}.sub-history-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid var(--line);font-size:12px}.sub-history-row a{color:var(--brand-d);font-weight:800;text-decoration:none}.sub-history-muted{color:var(--sub-muted)}.sub-notice{margin-top:14px;padding:12px 15px;border-radius:14px;background:var(--brand-soft);color:var(--sub-ink);font-size:12px;line-height:1.9}.sub-notice.error{background:rgba(224,69,58,.1);border:1px solid rgba(224,69,58,.2);color:var(--danger)}
 .sub-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:28px 2px 15px}.sub-section-head h3{margin:0 0 4px;font-size:20px;font-weight:900;letter-spacing:-.3px;color:var(--sub-ink)}.sub-section-head p{margin:0;color:var(--sub-muted);font-size:12px;line-height:1.9}.sub-count{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--sub-muted);font-size:11px;white-space:nowrap}
 .sub-plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px;align-items:stretch}.sub-plan{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:0;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:0 5px 18px rgba(25,60,55,.045);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}.sub-plan:hover{transform:translateY(-3px);border-color:rgba(42,155,143,.48);box-shadow:0 14px 30px rgba(25,90,80,.09)}
 .sub-plan-top{padding:20px 20px 17px;border-bottom:1px solid var(--line);background:linear-gradient(145deg,var(--brand-soft),transparent 78%)}.sub-plan-topline{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.sub-plan-name{margin:0;color:var(--sub-ink);font-size:17px;font-weight:900;line-height:1.7;overflow-wrap:anywhere}.sub-plan-mark{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border:1px solid var(--line);border-radius:13px;background:var(--panel);color:var(--brand-d)}.sub-plan-mark svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7}
@@ -66,13 +66,25 @@
             <form method="POST" action="{{ route('subscription.subscribe', $plan->id) }}" data-confirm="{{ $free ? 'پلن رایگان فعال شود؟' : 'برای پرداخت به درگاه پرداخت هدایت می‌شوید. ادامه می‌دهید؟' }}" data-confirm-title="{{ $free ? 'فعال‌سازی اشتراک' : 'پرداخت اشتراک' }}">
               @csrf
               @if($plan->effectivePrice() > 0)
+                @if($paymentGateways)
+                  <div class="sub-gateway-list" aria-label="انتخاب درگاه پرداخت">
+                    @foreach($paymentGateways as $gatewayKey => $gatewayOption)
+                      <label class="sub-gateway-option">
+                        <input type="radio" name="gateway_id" value="{{ $gatewayKey }}" @checked(old('gateway_id', array_key_first($paymentGateways)) === $gatewayKey) required>
+                        <span><b>{{ $gatewayOption['provider_name'] ?? $gatewayOption['driver'] }}</b><small>{{ ($gatewayOption['driver'] ?? '') === 'bitpay' ? 'پرداخت از طریق بیت‌پی' : ((($gatewayOption['driver'] ?? '') === 'zarinpal') ? 'پرداخت از طریق زرین‌پال' : 'درگاه پرداخت') }}</small></span>
+                      </label>
+                    @endforeach
+                  </div>
+                @else
+                  <div class="sub-notice error">در حال حاضر درگاه پرداخت فعالی وجود ندارد.</div>
+                @endif
                 <div class="sub-coupon">
                   <label for="coupon-{{ $plan->id }}"><svg viewBox="0 0 24 24"><path d="m20.5 13.5-7 7-10-10v-7h7z"/><circle cx="7.5" cy="7.5" r="1"/></svg>کد تخفیف <span style="font-weight:500;color:var(--sub-muted)">(اختیاری)</span></label>
                   <div class="sub-coupon-row"><input id="coupon-{{ $plan->id }}" name="coupon_code" value="{{ old('coupon_code') }}" placeholder="کد تخفیف را وارد کنید" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="coupon-help-{{ $plan->id }}"></div>
                   @error('coupon_code')<div class="sub-error" id="coupon-help-{{ $plan->id }}" role="alert">{{ $message }}</div>@enderror
                 </div>
               @endif
-              <button class="sub-submit {{ $free ? 'free' : '' }}" type="submit">
+              <button class="sub-submit {{ $free ? 'free' : '' }}" type="submit" {{ !$free && !$gatewayReady ? 'disabled' : '' }}>
                 @if($free)<svg viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"/></svg>{{ $subscription ? 'انتخاب این پلن' : 'فعال‌سازی رایگان' }}@else<svg viewBox="0 0 24 24"><path d="M4 7h16v13H4z"/><path d="M4 11h16M8 7V4h8v3M8 16h3"/></svg>{{ $subscription ? 'پرداخت و تمدید / تغییر پلن' : 'خرید و فعال‌سازی اشتراک' }}@endif
               </button>
             </form>
@@ -82,6 +94,17 @@
     </div>
   @endif
 
+  @if($recentPayments->isNotEmpty())
+    <section class="sub-history">
+      <h3>سوابق پرداخت و فاکتورها</h3>
+      @foreach($recentPayments as $recentPayment)
+        <div class="sub-history-row">
+          <div><strong>پرداخت #{{ $recentPayment->id }}</strong><div class="sub-history-muted">{{ $recentPayment->subscription?->plan?->name ?? 'اشتراک' }} · {{ $recentPayment->paid_at ? $F::date($recentPayment->paid_at, 'Y/m/d H:i') : '—' }}</div></div>
+          <div style="text-align:left"><strong>{{ $F::money($recentPayment->amount) }} تومان</strong><div>@if($recentPayment->status === 'paid')<a href="{{ route('subscription.payment.receipt', ['payment' => $recentPayment->id]) }}">مشاهده فاکتور</a>@else<span class="sub-history-muted">{{ $recentPayment->status === 'pending' ? 'در انتظار پرداخت' : 'ناموفق' }}</span>@endif</div></div>
+        </div>
+      @endforeach
+    </section>
+  @endif
   <div class="sub-trust" aria-label="نکات خرید اشتراک">
     <div class="sub-trust-item"><span class="sub-trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-4.8"/></svg></span><div><b>پرداخت امن</b><span>فعال‌سازی پلن پولی پس از تأیید پرداخت</span></div></div>
     <div class="sub-trust-item"><span class="sub-trust-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span><div><b>مدت مشخص</b><span>مدت اشتراک پیش از انتخاب نمایش داده می‌شود</span></div></div>
