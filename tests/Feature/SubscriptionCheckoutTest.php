@@ -79,7 +79,7 @@ class SubscriptionCheckoutTest extends TestCase
         $this->get(route('payment.gateway.callback', [
             'Authority' => 'A00000000000000000000000000000000001',
             'Status' => 'OK',
-        ]))->assertRedirect(route('subscription.show'))->assertSessionHas('status');
+        ]))->assertRedirect(route('subscription.payment.receipt', ['payment' => $payment->id]))->assertSessionHas('status');
 
         $this->assertSame('active', $subscription->fresh()->status);
         $this->assertSame('paid', $payment->fresh()->status);
