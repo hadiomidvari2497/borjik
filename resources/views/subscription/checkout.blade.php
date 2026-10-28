@@ -1,4 +1,4 @@
-@php $F = \\App\\Support\\Fa::class; @endphp
+@php $F = \App\Support\Fa::class; @endphp
 @extends('layouts.app')
 @section('title', 'تکمیل خرید اشتراک')
 @section('content')
