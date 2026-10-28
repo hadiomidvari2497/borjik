@@ -139,4 +139,31 @@ class AdminPaymentGatewaySettingsTest extends TestCase
         $this->actingAs($admin, 'admin')->post('/admin/payment-gateway/validate')
             ->assertSessionHas('status');
     }
+
+    public function test_multiple_gateways_can_be_saved_independently(): void
+    {
+        $admin = $this->admin(['gateway.manage']);
+        $this->actingAs($admin, 'admin')->post('/admin/payment-gateway', [
+            'provider_name' => 'بیت‌پی دوم',
+            'driver' => 'bitpay',
+            'environment' => 'production',
+            'api_key' => 'bitpay-key-2',
+            'active' => '1',
+        ])->assertRedirect();
+
+        $this->actingAs($admin, 'admin')->post('/admin/payment-gateway', [
+            'provider_name' => 'زرین‌پال دوم',
+            'driver' => 'zarinpal',
+            'environment' => 'production',
+            'merchant_id' => 'merchant-2',
+            'active' => '1',
+        ])->assertRedirect();
+
+        $gateways = SiteSetting::get('payment.gateways');
+        $this->assertCount(2, $gateways);
+        $this->assertSame(['bitpay', 'zarinpal'], array_values(array_column($gateways, 'driver')));
+        $bitpay = collect($gateways)->firstWhere('driver', 'bitpay');
+        $this->assertSame('bitpay-key-2', Crypt::decryptString($bitpay['api_key']));
+        $this->assertSame('merchant-2', collect($gateways)->firstWhere('driver', 'zarinpal')['merchant_id']);
+    }
 }
