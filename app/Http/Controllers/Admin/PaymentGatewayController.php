@@ -123,7 +123,15 @@ class PaymentGatewayController extends Controller
     {
         $all = $registry->all();
         abort_unless(isset($all[$gatewayId]), 404);
-        if (SubscriptionPayment::query()->where('status', 'pending')->where('raw_response->gateway_id', $gatewayId)->exists()) {
+        $pendingPayments = SubscriptionPayment::query()->where('status', 'pending');
+        if ($gatewayId === 'legacy') {
+            $pendingPayments->where(function ($query) {
+                $query->where('raw_response->gateway_id', 'legacy')->orWhereNull('raw_response->gateway_id');
+            });
+        } else {
+            $pendingPayments->where('raw_response->gateway_id', $gatewayId);
+        }
+        if ($pendingPayments->exists()) {
             return back()->with('error', 'این درگاه تراکنش در انتظار دارد؛ تا تعیین تکلیف تراکنش نمی‌توان آن را حذف کرد.');
         }
         unset($all[$gatewayId]);
