@@ -10,6 +10,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\SubscriptionPlan;
 use App\Services\BuildingService;
+use App\Services\Payments\BitpayGateway;
 use App\Services\Payments\ZarinpalGateway;
 use App\Support\SystemErrorReporter;
 use Illuminate\Http\Request;
@@ -34,10 +35,11 @@ class SubscriptionController extends Controller
             ->get();
 
         $gateway = SiteSetting::get('payment.gateway', []);
+        $driver = (string) data_get($gateway, 'driver', '');
         $gatewayReady = is_array($gateway)
             && ! empty($gateway['active'])
-            && ($gateway['driver'] ?? '') === 'zarinpal'
-            && ! empty($gateway['merchant_id']);
+            && (($driver === 'zarinpal' && ! empty($gateway['merchant_id']))
+                || ($driver === 'bitpay' && ! empty($gateway['api_key'])));
 
         return view('subscription.show', [
             'subscription' => $current,
@@ -47,7 +49,7 @@ class SubscriptionController extends Controller
     }
 
     /** پلن رایگان مستقیماً فعال می‌شود؛ پلن پولی فقط با شروع تراکنش واقعی. */
-    public function subscribe(Request $request, int $id, ZarinpalGateway $gateway)
+    public function subscribe(Request $request, int $id, ZarinpalGateway $zarinpal, BitpayGateway $bitpay)
     {
         $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
         $user = $request->user();
@@ -117,7 +119,10 @@ class SubscriptionController extends Controller
         }
 
         $settings = SiteSetting::get('payment.gateway', []);
-        if (! is_array($settings) || empty($settings['active']) || ($settings['driver'] ?? '') !== 'zarinpal') {
+        $driver = (string) data_get($settings, 'driver', '');
+        if (! is_array($settings) || empty($settings['active']) || ! in_array($driver, ['zarinpal', 'bitpay'], true)
+            || ($driver === 'zarinpal' && empty($settings['merchant_id']))
+            || ($driver === 'bitpay' && empty($settings['api_key']))) {
             SystemErrorReporter::warning(
                 $request,
                 'payment.gateway',
@@ -154,7 +159,7 @@ class SubscriptionController extends Controller
                     'subscription_id' => $pending->id,
                     'user_id' => $user->id,
                     'amount' => $amount,
-                    'gateway' => 'zarinpal',
+                    'gateway' => $driver,
                     'status' => 'pending',
                     'raw_response' => [
                         'plan_id' => $plan->id,
@@ -179,12 +184,13 @@ class SubscriptionController extends Controller
                 return $payment;
             });
 
-            $result = $gateway->request($amount * 10, $payment->id, $user);
+            $result = $driver === 'bitpay'
+                ? $bitpay->request($amount * 10, $payment->id, $user)
+                : $zarinpal->request($amount * 10, $payment->id, $user);
             $payment->update([
-                'raw_response' => array_merge($payment->raw_response ?? [], [
-                    'authority' => $result['authority'],
-                    'request' => $result['response'],
-                ]),
+                'raw_response' => array_merge($payment->raw_response ?? [], $driver === 'bitpay'
+                    ? ['id_get' => $result['id_get'], 'request' => $result['response']]
+                    : ['authority' => $result['authority'], 'request' => $result['response']]),
             ]);
 
             return redirect()->away($result['payment_url']);
@@ -217,22 +223,23 @@ class SubscriptionController extends Controller
     }
 
     /** Callback عمومی است؛ فعال‌سازی فقط پس از تأیید سمت سرور با API زرین‌پال انجام می‌شود. */
-    public function callback(Request $request, ZarinpalGateway $gateway)
+    public function callback(Request $request, ZarinpalGateway $zarinpal, BitpayGateway $bitpay)
     {
         $authority = (string) $request->query('Authority', '');
         $status = strtoupper((string) $request->query('Status', ''));
+        $idGet = trim((string) $request->query('id_get', ''));
+        $transId = trim((string) $request->query('trans_id', ''));
+        $isBitpay = $idGet !== '' && $transId !== '';
 
-        $payment = SubscriptionPayment::query()
-            ->where('gateway', 'zarinpal')
-            ->where('status', 'pending')
-            ->where('raw_response->authority', $authority)
-            ->first();
+        $payment = $isBitpay
+            ? SubscriptionPayment::query()->where('gateway', 'bitpay')->where('status', 'pending')->where('raw_response->id_get', $idGet)->first()
+            : SubscriptionPayment::query()->where('gateway', 'zarinpal')->where('status', 'pending')->where('raw_response->authority', $authority)->first();
 
-        if (! $payment || $authority === '') {
+        if (! $payment || ($isBitpay ? ($idGet === '' || $transId === '') : $authority === '')) {
             return redirect()->route('subscription.show')->with('error', 'تراکنش معتبر یا در انتظار پرداختی برای این بازگشت پیدا نشد.');
         }
 
-        if ($status !== 'OK') {
+        if (! $isBitpay && $status !== 'OK') {
             DB::transaction(function () use ($payment, $request) {
                 $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'pending') {
@@ -251,9 +258,13 @@ class SubscriptionController extends Controller
                 throw new \RuntimeException('Invalid stored payment amount.');
             }
 
-            $verification = $gateway->verify($authority, $amountRial);
-            $code = (int) data_get($verification, 'data.code', 0);
-            if (! in_array($code, [100, 101], true)) {
+            $verification = $isBitpay
+                ? $bitpay->verify($idGet, $transId)
+                : $zarinpal->verify($authority, $amountRial);
+            $verified = $isBitpay
+                ? (int) data_get($verification, 'status', 0) === 1
+                : in_array((int) data_get($verification, 'data.code', 0), [100, 101], true);
+            if (! $verified) {
                 DB::transaction(function () use ($payment, $verification) {
                     $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
                     if ($locked->status === 'pending') {
@@ -298,7 +309,7 @@ class SubscriptionController extends Controller
                 $locked->update([
                     'status' => 'paid',
                     'paid_at' => now(),
-                    'ref_id' => (string) data_get($verification, 'data.ref_id', $authority),
+                    'ref_id' => $isBitpay ? $transId : (string) data_get($verification, 'data.ref_id', $authority),
                     'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification]),
                 ]);
             });
