@@ -109,6 +109,25 @@ class AdminPaymentGatewaySettingsTest extends TestCase
         $this->assertNull(SiteSetting::get('payment.gateway')['api_key']);
     }
 
+    public function test_bitpay_can_be_configured_without_a_merchant_terminal(): void
+    {
+        $admin = $this->admin(['gateway.manage']);
+
+        $this->actingAs($admin, 'admin')->put('/admin/payment-gateway', [
+            'provider_name' => 'بیت‌پی',
+            'driver' => 'bitpay',
+            'environment' => 'production',
+            'api_key' => 'demo-value',
+            'active' => '1',
+        ])->assertRedirect(route('admin.payment-gateway.edit'));
+
+        $settings = SiteSetting::get('payment.gateway');
+        $this->assertSame('bitpay', $settings['driver']);
+        $this->assertTrue($settings['active']);
+        $this->assertEmpty($settings['merchant_id']);
+        $this->assertSame('demo-value', Crypt::decryptString($settings['api_key']));
+    }
+
     public function test_configuration_check_does_not_claim_live_gateway_connectivity(): void
     {
         $admin = $this->admin(['gateway.manage']);
