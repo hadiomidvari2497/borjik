@@ -2,18 +2,31 @@
 @extends('layouts.app')
 @section('title', 'فاکتور پرداخت')
 @section('content')
-<style>
-.invoice-page{max-width:900px;margin:0 auto;color:#172b27}.invoice{background:#fff;border:1px solid #dce7e3;border-radius:20px;overflow:hidden;box-shadow:0 10px 32px rgba(20,50,42,.07)}.invoice-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:28px;background:linear-gradient(120deg,#effaf6,#fff);border-bottom:1px solid #dce7e3}.invoice-brand{font-size:23px;font-weight:950;color:#176b5d}.invoice-top h2{margin:0 0 7px;font-size:21px}.invoice-sub{font-size:11px;color:#61746e;line-height:1.9}.invoice-status{padding:8px 12px;border-radius:99px;background:#e4f8ed;color:#147348;font-size:12px;font-weight:900;white-space:nowrap}.invoice-body{padding:25px}.invoice-section{margin-bottom:22px}.invoice-section h3{font-size:13px;margin:0 0 12px;color:#176b5d}.invoice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.invoice-item{padding:13px;border:1px solid #e1eae6;border-radius:12px;min-width:0}.invoice-item span{display:block;color:#687b74;font-size:11px;margin-bottom:6px}.invoice-item strong{display:block;font-size:13px;overflow-wrap:anywhere}.invoice-table{width:100%;border-collapse:collapse;font-size:12px}.invoice-table td{padding:12px 10px;border-bottom:1px solid #e4ece8}.invoice-table td:last-child{text-align:left;font-weight:800}.invoice-table tr:last-child td{font-weight:950;background:#f0f8f4}.invoice-total{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px;border-radius:13px;background:#eaf7f0;font-weight:900}.invoice-total strong{font-size:24px}.invoice-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.invoice-actions button,.invoice-actions a{border:0;border-radius:11px;padding:12px 16px;background:#187565;color:#fff;text-decoration:none;font:inherit;font-size:12px;font-weight:850;cursor:pointer}.invoice-actions .secondary{background:#f3f7f5;color:#29463e;border:1px solid #dce7e3}
-@page{size:auto;margin:12mm}
-@media print{html,body{background:#fff!important;color:#111!important;margin:0!important;padding:0!important}body *{visibility:hidden!important}.invoice-page,.invoice-page *{visibility:visible!important}.invoice-page{position:absolute!important;inset:0 auto auto 0!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}.invoice{border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important}.invoice-top{background:#fff!important;padding:0 0 16px!important}.invoice-body{padding:16px 0 0!important}.invoice-actions{display:none!important}.invoice-item,.invoice-section,.invoice-total{break-inside:avoid}.invoice-status{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-@media(max-width:600px){.invoice-top{padding:20px;flex-direction:column}.invoice-body{padding:16px}.invoice-grid{grid-template-columns:1fr}.invoice-total strong{font-size:20px}}
-</style>
+<link rel="stylesheet" href="{{ asset('css/billing.css') }}">
+@php
+    $plan = $payment->subscription?->plan;
+    $sub = $payment->subscription;
+    $gw = data_get($payment->raw_response, 'gateway_name', $payment->gateway === 'bitpay' ? 'بیت‌پی' : ($payment->gateway === 'zarinpal' ? 'زرین‌پال' : $payment->gateway));
+@endphp
 <div class="invoice-page"><article class="invoice">
-<header class="invoice-top"><div><div class="invoice-brand">صابخونه</div><div class="invoice-sub">مدیریت ساختمان، با آرامش بیشتر</div></div><div><h2>فاکتور و رسید پرداخت</h2><div class="invoice-sub">شماره فاکتور: <strong dir="ltr">{{ $invoiceNumber }}</strong><br>رسید صادرشده پس از تأیید درگاه</div></div><span class="invoice-status">✓ پرداخت موفق</span></header>
+<header class="invoice-top">
+    <div><div class="invoice-brand"><span><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" width="48" height="48"></span>صابخونه</div><div class="invoice-sub">مدیریت ساختمان، با آرامش بیشتر</div></div>
+    <div class="invoice-meta"><h2>فاکتور و رسید پرداخت</h2><div class="invoice-sub">رسید صادرشده پس از تأیید درگاه</div><span class="invoice-no" dir="ltr">{{ $invoiceNumber }}</span></div>
+</header>
 <div class="invoice-body">
-<section class="invoice-section"><h3>اطلاعات پرداخت‌کننده</h3><div class="invoice-grid"><div class="invoice-item"><span>نام و نام خانوادگی / نام شرکت</span><strong>{{ $payment->user?->display_name ?: 'کاربر صابخونه' }}</strong></div><div class="invoice-item"><span>شناسه کاربر</span><strong dir="ltr">#{{ $payment->user_id }}</strong></div></div></section>
-<section class="invoice-section"><h3>جزئیات اشتراک</h3><table class="invoice-table"><tbody><tr><td>نام پلن</td><td>{{ $payment->subscription?->plan?->name ?? 'اشتراک صابخونه' }}</td></tr><tr><td>شناسه پرداخت</td><td dir="ltr">#{{ $payment->id }}</td></tr><tr><td>درگاه پرداخت</td><td>{{ data_get($payment->raw_response, 'gateway_name', $payment->gateway === 'bitpay' ? 'بیت‌پی' : ($payment->gateway === 'zarinpal' ? 'زرین‌پال' : $payment->gateway)) }}</td></tr><tr><td>شماره پیگیری</td><td dir="ltr">{{ $payment->ref_id ?: '—' }}</td></tr><tr><td>تاریخ پرداخت</td><td>{{ $payment->paid_at ? $F::date($payment->paid_at, 'Y/m/d H:i') : '—' }}</td></tr><tr><td>وضعیت</td><td>تأییدشده توسط درگاه</td></tr></tbody></table></section>
-<div class="invoice-total"><span>مبلغ پرداخت‌شده</span><strong>{{ $F::money($payment->amount) }} تومان</strong></div>
+<div class="invoice-row"><section class="invoice-section"><h3>اطلاعات پرداخت‌کننده</h3><div class="invoice-grid"><div class="invoice-item"><span>نام و نام خانوادگی / نام شرکت</span><strong>{{ $payment->user?->display_name ?: 'کاربر صابخونه' }}</strong></div><div class="invoice-item"><span>شناسه کاربر</span><strong dir="ltr">#{{ $payment->user_id }}</strong></div></div></section><div class="invoice-stamp" aria-label="پرداخت موفق"><span><b>✓</b>پرداخت موفق</span></div></div>
+<section class="invoice-section"><h3>شرح خرید</h3>
+<table class="invoice-table"><thead><tr><th>شرح</th><th>ظرفیت</th><th>مدت</th><th>مبلغ</th></tr></thead><tbody><tr><td>{{ $plan?->name ? 'اشتراک '.$plan->name : 'اشتراک صابخونه' }}</td><td>{{ $plan?->units_limit ? $F::num($plan->units_limit).' واحد' : ($sub?->units_limit ? $F::num($sub->units_limit).' واحد' : '—') }}</td><td>{{ $plan?->duration_months ? $F::num($plan->duration_months).' ماه' : '—' }}</td><td>{{ $F::money($payment->amount) }}</td></tr></tbody></table></section>
+<section class="invoice-section"><h3>جزئیات پرداخت</h3><div class="invoice-grid three">
+<div class="invoice-item"><span>درگاه پرداخت</span><strong>{{ $gw }}</strong></div>
+<div class="invoice-item"><span>شماره پیگیری</span><strong dir="ltr">{{ $payment->ref_id ?: '—' }}</strong></div>
+<div class="invoice-item"><span>شناسه پرداخت</span><strong dir="ltr">#{{ $payment->id }}</strong></div>
+<div class="invoice-item"><span>تاریخ پرداخت</span><strong>{{ $payment->paid_at ? $F::date($payment->paid_at, 'Y/m/d H:i') : '—' }}</strong></div>
+@if($sub?->starts_at && $sub?->expires_at)<div class="invoice-item"><span>دوره اشتراک</span><strong>{{ $F::date($sub->starts_at, 'Y/m/d') }} تا {{ $F::date($sub->expires_at, 'Y/m/d') }}</strong></div>@endif
+<div class="invoice-item"><span>وضعیت</span><strong>تأییدشده توسط درگاه</strong></div>
+</div></section>
+<div class="invoice-total"><span>مبلغ پرداخت‌شده</span><strong>{{ $F::money($payment->amount) }}</strong></div>
+<p class="invoice-thanks">از اعتماد شما سپاسگزاریم. این فاکتور پس از تأیید پرداخت توسط درگاه صادر شده است.</p>
 <div class="invoice-actions"><button type="button" onclick="window.print()">چاپ فاکتور / ذخیره PDF</button><a class="secondary" href="{{ route('subscription.show') }}">بازگشت به اشتراک‌ها</a></div>
 </div></article></div>
 @endsection

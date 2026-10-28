@@ -2,23 +2,81 @@
 @extends('layouts.app')
 @section('title', 'خرید اشتراک')
 @section('content')
-<style>
-.sub-wrap{max-width:1180px;margin:auto;color:var(--text)}.sub-hero{position:relative;overflow:hidden;padding:32px;border-radius:28px;background:radial-gradient(circle at 8% 0%,rgba(39,170,145,.22),transparent 36%),linear-gradient(125deg,var(--brand-soft),var(--card) 70%);border:1px solid var(--line);margin-bottom:28px;box-shadow:0 18px 45px rgba(20,90,75,.08)}.sub-hero:after{content:"";position:absolute;width:180px;height:180px;border:1px solid rgba(39,170,145,.18);border-radius:50%;left:-45px;top:-75px;box-shadow:0 0 0 22px rgba(39,170,145,.035),0 0 0 45px rgba(39,170,145,.025);pointer-events:none}.sub-hero h2{position:relative;z-index:1;margin:0 0 8px;font-size:clamp(23px,3vw,32px);font-weight:950;letter-spacing:-.5px}.sub-hero p{position:relative;z-index:1;max-width:720px;margin:0;color:var(--muted);font-size:13px;line-height:2}.sub-alert,.sub-note{padding:14px 17px;border:1px solid var(--line);border-radius:15px;background:var(--card);margin-bottom:18px;font-size:13px;line-height:1.9}.sub-plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:20px;align-items:stretch}.sub-plan{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;padding:25px;border:1px solid var(--line);border-radius:25px;background:linear-gradient(155deg,var(--card) 58%,var(--brand-soft));box-shadow:0 12px 32px rgba(17,55,48,.08);min-width:0;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}.sub-plan:before{content:"";position:absolute;z-index:-1;inset:0 0 auto;height:5px;background:linear-gradient(90deg,var(--brand),#67c8ad,#d5eee5)}.sub-plan:after{content:"";position:absolute;z-index:-1;width:150px;height:150px;left:-62px;top:75px;border-radius:50%;background:radial-gradient(circle,rgba(45,170,143,.11),transparent 70%);pointer-events:none}.sub-plan:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--brand) 48%,var(--line));box-shadow:0 22px 48px rgba(17,90,73,.15)}.sub-plan h3{font-size:21px;margin:0 0 9px;font-weight:950;letter-spacing:-.3px}.sub-muted{color:var(--muted);font-size:12px;line-height:1.9}.sub-price{position:relative;margin:22px 0 4px;padding:16px 17px;border:1px solid color-mix(in srgb,var(--brand) 18%,var(--line));border-radius:17px;background:linear-gradient(115deg,var(--brand-soft),var(--card));font-size:28px;font-weight:950;letter-spacing:-.5px;box-shadow:inset 0 1px rgba(255,255,255,.5)}.sub-price small{font-size:12px;font-weight:800;color:var(--muted)}.sub-facts{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 22px}.sub-facts span{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-size:11px;font-weight:800}.sub-facts span:first-child:before{content:"⌂";color:var(--brand);font-size:15px}.sub-facts span:last-child:before{content:"◷";color:var(--brand);font-size:14px}.sub-btn{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:auto;padding:14px 16px;border:1px solid transparent;border-radius:14px;background:linear-gradient(115deg,var(--brand),color-mix(in srgb,var(--brand) 72%,#124b43));color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 8px 18px color-mix(in srgb,var(--brand) 22%,transparent);transition:filter .2s ease,transform .2s ease}.sub-btn span{font-size:18px;transition:transform .2s ease}.sub-btn:hover{color:#fff;filter:brightness(1.06);transform:translateY(-1px)}.sub-btn:hover span{transform:translateX(-3px)}.sub-history{margin-top:28px;padding:22px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:0 10px 28px rgba(17,55,48,.05)}.sub-history h3{margin:0 0 12px;font-size:17px;font-weight:900}.sub-history-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-top:1px solid var(--line);font-size:12px}.sub-history-row a{color:var(--brand);font-weight:850}.sub-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:24px}.sub-trust div{position:relative;padding:17px 18px 17px 44px;border:1px solid var(--line);border-radius:17px;background:var(--card);font-size:12px;line-height:1.9;box-shadow:0 6px 18px rgba(17,55,48,.035)}.sub-trust div:before{content:"✓";position:absolute;right:15px;top:17px;display:grid;place-items:center;width:21px;height:21px;border-radius:7px;background:var(--brand-soft);color:var(--brand);font-weight:950}.sub-trust b{display:block;margin-bottom:5px;font-size:13px}@media(prefers-reduced-motion:reduce){.sub-plan,.sub-btn,.sub-btn span{transition:none}}@media(max-width:650px){.sub-hero{padding:22px}.sub-plans{gap:14px}.sub-plan{padding:21px}.sub-trust{grid-template-columns:1fr}.sub-history-row{align-items:flex-start}.sub-price{font-size:25px}}
-</style>
-<div class="sub-wrap">
-@if(session('error'))<div class="sub-note" role="alert">{{ session('error') }}</div>@endif
-@if(session('status'))<div class="sub-note" role="status">{{ session('status') }}</div>@endif
-@if($subscription)<section class="sub-alert"><strong>اشتراک فعلی شما فعال است.</strong><br>@if($subscription->plan)پلن {{ $subscription->plan->name }} · @endif ظرفیت {{ $F::num($subscription->units_limit) }} واحد · اعتبار تا {{ $F::date($subscription->expires_at, 'Y/m/d') }}<p><a href="{{ route('dashboard') }}">بازگشت به داشبورد</a></p></section>@endif
-<section class="sub-hero"><h2>{{ $subscription ? 'تمدید یا تغییر اشتراک' : 'پلن مناسب صابخونه را انتخاب کنید' }}</h2><p>امکانات و مدت هر پلن را مقایسه کنید. در مرحله بعد، کد تخفیف و درگاه پرداخت را در یک صفحه ساده و امن انتخاب می‌کنید.</p></section>
-@if($plans->isEmpty())<div class="sub-alert">در حال حاضر پلنی برای خرید وجود ندارد. لطفاً بعداً دوباره مراجعه کنید.</div>@else
-<div class="sub-plans">@foreach($plans as $plan)
-<article class="sub-plan"><h3>{{ $plan->name }}</h3><div class="sub-muted">مدیریت ساختمان، ساکنان و امور مالی در یک فضای یکپارچه</div>
-<div class="sub-price">{{ $F::money($plan->effectivePrice()) }} <small style="font-size:12px;font-weight:700">تومان</small></div>
-@if($plan->discountIsActive() && (int)$plan->price > (int)$plan->effectivePrice())<div class="sub-muted"><del>{{ $F::money($plan->price) }} تومان</del> · قیمت با تخفیف پلن</div>@endif
-<div class="sub-facts"><span>{{ $F::num($plan->units_limit) }} واحد</span><span>{{ $F::num($plan->duration_months) }} ماه</span></div>
-<a class="sub-btn" href="{{ route('subscription.show', ['checkout' => $plan->id]) }}">انتخاب پلن و ادامه <span aria-hidden="true">←</span></a></article>
-@endforeach</div>@endif
-@if($recentPayments->isNotEmpty())<section class="sub-history"><h3>سوابق پرداخت و فاکتورها</h3>@foreach($recentPayments as $p)<div class="sub-history-row"><div><strong>پرداخت #{{ $p->id }}</strong><div class="sub-muted">{{ $p->subscription?->plan?->name ?? 'اشتراک' }} · {{ $p->paid_at ? $F::date($p->paid_at, 'Y/m/d H:i') : '—' }}</div></div><div style="text-align:left"><strong>{{ $F::money($p->amount) }} تومان</strong><div>@if($p->status === 'paid')<a href="{{ route('subscription.payment.receipt', ['payment'=>$p->id]) }}">مشاهده فاکتور</a>@else<span class="sub-muted">{{ $p->status === 'pending' ? 'در انتظار پرداخت' : 'ناموفق' }}</span>@endif</div></div></div>@endforeach</section>@endif
-<div class="sub-trust"><div><b>پرداخت امن</b>فعال‌سازی اشتراک پولی پس از تأیید درگاه</div><div><b>قیمت شفاف</b>مبلغ نهایی پیش از انتقال به درگاه نمایش داده می‌شود</div><div><b>فاکتور قابل چاپ</b>دریافت رسید پس از پرداخت موفق</div></div>
+<link rel="stylesheet" href="{{ asset('css/billing.css') }}">
+@php
+    $expires = $subscription?->expires_at;
+    $starts = $subscription?->starts_at;
+    $daysLeft = $expires instanceof \Carbon\CarbonInterface ? max(0, (int) now()->diffInDays($expires, false)) : null;
+    $spanDays = ($expires instanceof \Carbon\CarbonInterface && $starts instanceof \Carbon\CarbonInterface) ? max(1, (int) $starts->diffInDays($expires)) : null;
+    $usedPct = $spanDays && $daysLeft !== null ? min(100, max(0, (int) round(100 - ($daysLeft / $spanDays) * 100))) : 0;
+@endphp
+<div class="bl">
+@if(session('error'))<div class="bl-note" role="alert">{{ session('error') }}</div>@endif
+@if(session('status'))<div class="bl-note" role="status">{{ session('status') }}</div>@endif
+
+<section class="bl-intro">
+    <h2>{{ $subscription ? 'تمدید یا تغییر اشتراک' : 'پلن مناسب صابخونه را انتخاب کنید' }}</h2>
+    <p>امکانات و مدت هر پلن را مقایسه کنید. در مرحله بعد، کد تخفیف و درگاه پرداخت را در یک صفحه ساده و امن انتخاب می‌کنید.</p>
+    <ol class="bl-steps" aria-label="مراحل خرید"><li class="on"><i>۱</i>انتخاب پلن</li><li><i>۲</i>تکمیل خرید</li><li><i>۳</i>دریافت فاکتور</li></ol>
+</section>
+
+@if($subscription)
+<section class="bl-active" aria-label="اشتراک فعلی">
+    <div class="bl-active-ic" aria-hidden="true"><svg class="i"><use href="#shield"/></svg></div>
+    <div>
+        <h3>اشتراک فعلی شما فعال است <span class="bl-pill">فعال</span></h3>
+        <p>@if($subscription->plan)پلن {{ $subscription->plan->name }} · @endif ظرفیت {{ $F::num($subscription->units_limit) }} واحد · اعتبار تا {{ $F::date($subscription->expires_at, 'Y/m/d') }}</p>
+        @if($spanDays)<div class="bl-meter" role="img" aria-label="{{ $usedPct }} درصد از مدت اشتراک گذشته است"><b style="width:{{ $usedPct }}%"></b></div>@endif
+        <a class="bl-link" href="{{ route('dashboard') }}">بازگشت به داشبورد ←</a>
+    </div>
+    @if($daysLeft !== null)<div class="bl-days"><b>{{ $F::num($daysLeft) }}</b><span>روز تا پایان اعتبار</span></div>@endif
+</section>
+@endif
+
+@if($plans->isEmpty())
+<div class="bl-note">در حال حاضر پلنی برای خرید وجود ندارد. لطفاً بعداً دوباره مراجعه کنید.</div>
+@else
+<div class="bl-plans">
+@foreach($plans as $plan)
+@php
+    $eff = (int) $plan->effectivePrice();
+    $hasDiscount = $plan->discountIsActive() && (int) $plan->price > $eff;
+    $savePct = $hasDiscount ? (int) round((1 - $eff / max(1, (int) $plan->price)) * 100) : 0;
+    $perMonth = ($eff > 0 && (int) $plan->duration_months > 1) ? intdiv($eff, (int) $plan->duration_months) : null;
+    $isCurrent = $subscription && (int) $subscription->plan_id === (int) $plan->id;
+@endphp
+<article class="bl-plan {{ $hasDiscount ? 'hot' : '' }} {{ $isCurrent ? 'cur' : '' }}">
+    @if($isCurrent)<span class="bl-ribbon mint">پلن فعلی شما</span>@elseif($hasDiscount)<span class="bl-ribbon">تخفیف ویژه{{ $savePct > 0 ? ' · '.$F::num($savePct).'٪' : '' }}</span>@elseif($eff <= 0)<span class="bl-ribbon mint">رایگان</span>@endif
+    <div class="bl-plan-ic" aria-hidden="true"><svg class="i"><use href="#bld"/></svg></div>
+    <h3>{{ $plan->name }}</h3>
+    <div class="bl-sub">مدیریت ساختمان، ساکنان و امور مالی در یک فضای یکپارچه</div>
+    <div class="bl-price">@if($eff <= 0)رایگان @else{{ $F::num($eff) }} <small>تومان</small>@endif</div>
+    <div class="bl-was">@if($hasDiscount)<del>{{ $F::money($plan->price) }}</del> · قیمت با تخفیف پلن @elseif($perMonth)ماهانه حدود {{ $F::money($perMonth) }} @endif</div>
+    <ul class="bl-feat"><li>ظرفیت {{ $F::num($plan->units_limit) }} واحد</li><li>{{ $F::num($plan->duration_months) }} ماه اعتبار</li><li>مدیریت ساکنان، شارژ و درخواست‌ها</li></ul>
+    <a class="bl-btn" href="{{ route('subscription.show', ['checkout' => $plan->id]) }}">{{ $isCurrent ? 'تمدید این پلن' : 'انتخاب پلن و ادامه' }} <span aria-hidden="true">←</span></a>
+</article>
+@endforeach
 </div>
+@endif
+
+@if($recentPayments->isNotEmpty())
+<section class="bl-hist"><h3>سوابق پرداخت و فاکتورها</h3>
+@foreach($recentPayments as $p)
+<div class="bl-row">
+    <div class="bl-row-ic" aria-hidden="true"><svg class="i"><use href="#doc"/></svg></div>
+    <div><b>پرداخت #{{ $F::num($p->id) }}</b><small>{{ $p->subscription?->plan?->name ?? 'اشتراک' }} · {{ $p->paid_at ? $F::date($p->paid_at, 'Y/m/d H:i') : '—' }}</small></div>
+    <div class="bl-amt">{{ $F::money($p->amount) }}</div>
+    <div>@if($p->status === 'paid')<a class="bl-mini" href="{{ route('subscription.payment.receipt', ['payment'=>$p->id]) }}">مشاهده فاکتور</a>@elseif($p->status === 'pending')<span class="bl-pill warn">در انتظار پرداخت</span>@else<span class="bl-pill bad">ناموفق</span>@endif</div>
+</div>
+@endforeach
+</section>
+@endif
+
+<div class="bl-trust">
+    <div><svg class="i" aria-hidden="true"><use href="#shield"/></svg><span><b>پرداخت امن</b>فعال‌سازی اشتراک پولی پس از تأیید درگاه</span></div>
+    <div><svg class="i" aria-hidden="true"><use href="#coin"/></svg><span><b>قیمت شفاف</b>مبلغ نهایی پیش از انتقال به درگاه نمایش داده می‌شود</span></div>
+    <div><svg class="i" aria-hidden="true"><use href="#doc"/></svg><span><b>فاکتور قابل چاپ</b>دریافت رسید پس از پرداخت موفق</span></div>
+</div>
+</div>
+<script>(function(){if(!matchMedia('(hover:hover) and (pointer:fine)').matches)return;document.addEventListener('mousemove',function(e){var c=e.target.closest&&e.target.closest('.bl-plan');if(!c)return;var r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')},{passive:true})})();</script>
 @endsection
