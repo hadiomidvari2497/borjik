@@ -10,9 +10,9 @@ use RuntimeException;
 class ZarinpalGateway
 {
     /** @return array{authority:string,payment_url:string,response:array<string,mixed>} */
-    public function request(int $amountRial, int $paymentId, User $user): array
+    public function request(int $amountRial, int $paymentId, User $user, ?array $configuredSettings = null): array
     {
-        $settings = $this->settings();
+        $settings = $this->settings($configuredSettings);
         $base = $this->apiBase($settings);
         $response = Http::acceptJson()->asJson()->timeout(20)->post($base.'/payment/request.json', [
             'merchant_id' => (string) $settings['merchant_id'],
@@ -36,9 +36,9 @@ class ZarinpalGateway
     }
 
     /** @return array<string,mixed> */
-    public function verify(string $authority, int $amountRial): array
+    public function verify(string $authority, int $amountRial, ?array $configuredSettings = null): array
     {
-        $settings = $this->settings();
+        $settings = $this->settings($configuredSettings);
 
         return Http::acceptJson()->asJson()->timeout(20)->post($this->apiBase($settings).'/payment/verify.json', [
             'merchant_id' => (string) $settings['merchant_id'],
@@ -61,9 +61,9 @@ class ZarinpalGateway
     }
 
     /** @return array<string,mixed> */
-    private function settings(): array
+    private function settings(?array $configuredSettings = null): array
     {
-        $settings = SiteSetting::get('payment.gateway', []);
+        $settings = $configuredSettings ?? SiteSetting::get('payment.gateway', []);
         if (! is_array($settings) || empty($settings['active']) || ($settings['driver'] ?? '') !== 'zarinpal' || empty($settings['merchant_id'])) {
             throw new RuntimeException('Zarinpal gateway is not configured.');
         }
