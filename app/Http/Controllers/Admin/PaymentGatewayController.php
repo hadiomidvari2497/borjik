@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
+use App\Models\SubscriptionPayment;
 use App\Services\Payments\PaymentGatewayRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -122,6 +123,9 @@ class PaymentGatewayController extends Controller
     {
         $all = $registry->all();
         abort_unless(isset($all[$gatewayId]), 404);
+        if (SubscriptionPayment::query()->where('status', 'pending')->where('raw_response->gateway_id', $gatewayId)->exists()) {
+            return back()->with('error', 'این درگاه تراکنش در انتظار دارد؛ تا تعیین تکلیف تراکنش نمی‌توان آن را حذف کرد.');
+        }
         unset($all[$gatewayId]);
         SiteSetting::set(self::KEY, $all, true);
         if ($gatewayId === 'legacy' || count($all) === 0) {
