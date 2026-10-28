@@ -7,7 +7,7 @@
     @if(!empty($gateway['active'])) <span class="pill">فعال در تنظیمات</span> @else <span class="pill u">غیرفعال</span> @endif
   </div>
   <p style="color:var(--muted);font-size:13px;line-height:1.9;margin:0 0 16px">
-    این فرم مستقل از نام شرکت ارائه‌دهنده طراحی شده تا اطلاعات پذیرنده و کلیدهای سرویس را ثبت کنید. چون هنوز درگاه مشخص نشده، ذخیره یا اعتبارسنجی این فرم به‌تنهایی به معنی اتصال زنده نیست؛ برای پرداخت واقعی باید درایور فنی همان درگاه پیاده‌سازی و آزمایش شود.
+    این فرم مستقل از نام شرکت ارائه‌دهنده طراحی شده تا اطلاعات پذیرنده و کلیدهای سرویس را ثبت کنید. اتصال‌های پیاده‌سازی‌شده: زرین‌پال و بیت‌پی. ذخیره تنظیمات به‌تنهایی اتصال زنده را اثبات نمی‌کند؛ پیش از فعال‌سازی عمومی، پرداخت کنترل‌شده و تأیید تراکنش را آزمایش کنید.
   </p>
 
   <div class="card" style="margin-bottom:16px">
@@ -31,8 +31,9 @@
         <select id="gateway_template" onchange="applyGatewayTemplate(this.value)">
           <option value="custom">تنظیم دستی / درگاه اختصاصی</option>
           <option value="zarinpal" @selected(($gateway['driver'] ?? '') === 'zarinpal')>زرین‌پال (Zarinpal)</option>
+          <option value="bitpay" @selected(($gateway['driver'] ?? '') === 'bitpay')>بیت‌پی ایران (Bitpay)</option>
         </select>
-        <small>با انتخاب قالب زرین‌پال، شناسه فنی و نشانی API خودکار تنظیم می‌شود. شناسه پذیرنده را از پنل زرین‌پال وارد کنید.</small>
+        <small>زرین‌پال از شناسه پذیرنده استفاده می‌کند؛ بیت‌پی ایران از کد API در فیلد «کلید API» استفاده می‌کند و نیازی به شناسه پذیرنده جداگانه ندارد.</small>
       </div>
       <div class="fld">
         <label for="provider_name">نام نمایشی درگاه</label>
@@ -99,6 +100,11 @@
 
   <script>
     function applyGatewayTemplate(template) {
+      if (template === 'bitpay') {
+        document.getElementById('provider_name').value = 'بیت‌پی';
+        document.getElementById('driver').value = 'bitpay';
+        document.getElementById('api_base_url').value = '';
+      }
       if (template === 'zarinpal') {
         document.getElementById('provider_name').value = 'زرین‌پال';
         document.getElementById('driver').value = 'zarinpal';
