@@ -277,7 +277,7 @@ class SubscriptionController extends Controller
                 return redirect()->route('subscription.show')->with('error', 'درگاه پرداخت را تأیید نکرد؛ اشتراک فعال نشده است.');
             }
 
-            DB::transaction(function () use ($payment, $verification, $authority) {
+            DB::transaction(function () use ($payment, $verification, $authority, $isBitpay, $transId) {
                 $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'paid') {
                     return;
