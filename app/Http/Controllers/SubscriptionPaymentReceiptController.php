@@ -17,7 +17,8 @@ class SubscriptionPaymentReceiptController extends Controller
 
         return view('subscription.payment-receipt', [
             'payment' => $payment,
-            'invoiceNumber' => 'SH-'.now()->format('Y').'-'.str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT),
+            'invoiceNumber' => 'SH-'.($payment->paid_at?->format('Y') ?? now()->format('Y')).'-'.str_pad((string) $payment->id, 6, '0', STR_PAD_LEFT),
+            'gatewayName' => (string) data_get($payment->raw_response, 'gateway_name', $payment->gateway),
         ]);
     }
 }
