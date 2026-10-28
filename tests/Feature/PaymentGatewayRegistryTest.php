@@ -45,7 +45,7 @@ class PaymentGatewayRegistryTest extends TestCase
 
         $this->assertSame(['bitpay-main', 'zarinpal-backup'], array_keys($registry->active()));
         $this->assertSame('بیت‌پی اصلی', $registry->find('bitpay-main')['provider_name']);
-        $this->assertSame('زریـن‌پال پشتیبان', $registry->active()['zarinpal-backup']['provider_name'] ?? 'زریـن‌پال پشتیبان');
+        $this->assertSame('زرین‌پال پشتیبان', $registry->active()['zarinpal-backup']['provider_name']);
     }
 
     public function test_registry_falls_back_to_existing_single_gateway_configuration(): void
