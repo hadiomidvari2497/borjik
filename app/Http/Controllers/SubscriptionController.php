@@ -23,6 +23,18 @@ class SubscriptionController extends Controller
     public function show(Request $request, BuildingService $buildings)
     {
         $user = $request->user();
+
+        if ($request->filled('checkout')) {
+            $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail((int) $request->query('checkout'));
+            $gateways = app(PaymentGatewayRegistry::class)->active();
+            return view('subscription.checkout', [
+                'plan' => $plan,
+                'paymentGateways' => $gateways,
+                'gatewayReady' => $gateways !== [],
+                'user' => $user,
+            ]);
+        }
+
         $current = $buildings->activeSubscription($user);
         if ($current) {
             $current->loadMissing('plan');
