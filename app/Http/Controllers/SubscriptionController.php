@@ -12,6 +12,7 @@ use App\Models\SubscriptionPlan;
 use App\Services\BuildingService;
 use App\Services\Payments\BitpayGateway;
 use App\Services\Payments\PaymentGatewayRegistry;
+use App\Services\Payments\PaymentGatewayRegistry;
 use App\Services\Payments\ZarinpalGateway;
 use App\Support\SystemErrorReporter;
 use Illuminate\Http\Request;
