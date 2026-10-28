@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\SiteSetting;
+use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\Storage;
 
 class MarketingController extends Controller
@@ -21,6 +22,18 @@ class MarketingController extends Controller
             ->get();
 
         return view('marketing.home', compact('content', 'articles'));
+    }
+
+    public function subscriptionPlans()
+    {
+        $plans = SubscriptionPlan::query()
+            ->where('is_active', true)
+            ->orderBy('price')
+            ->orderBy('units_limit')
+            ->orderBy('duration_months')
+            ->get();
+
+        return view('marketing.subscription-plans', compact('plans'));
     }
 
     public function buildingCharges()
