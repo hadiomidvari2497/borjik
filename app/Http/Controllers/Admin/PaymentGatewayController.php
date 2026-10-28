@@ -93,7 +93,11 @@ class PaymentGatewayController extends Controller
         SiteSetting::set(self::KEY, $settings, true);
 
         return redirect()->route('admin.payment-gateway.edit')
-            ->with('status', $settings['driver'] === 'zarinpal' ? 'تنظیمات زرین‌پال ذخیره شد. برای خرید واقعی، شناسه پذیرنده معتبر و محیط مناسب را تنظیم کنید.' : 'تنظیمات درگاه ذخیره شد. برای درگاه‌های دیگر، آداپتور اختصاصی لازم است.');
+            ->with('status', match ($settings['driver']) {
+                'zarinpal' => 'تنظیمات زرین‌پال ذخیره شد. پیش از دریافت وجه، شناسه پذیرنده و محیط مناسب را بررسی کنید.',
+                'bitpay' => 'تنظیمات بیت‌پی ذخیره شد. پیش از فعال‌سازی پرداخت عمومی، یک تراکنش کنترل‌شده و تأیید سمت سرور را آزمایش کنید.',
+                default => 'تنظیمات درگاه ذخیره شد؛ برای این درگاه آداپتور اختصاصی لازم است.',
+            });
     }
 
     public function validateConfiguration()
