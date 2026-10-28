@@ -1,4 +1,4 @@
-@php $F = \\App\\Support\\Fa::class; @endphp
+@php $F = \App\Support\Fa::class; @endphp
 @extends('layouts.app')
 @section('title', 'فاکتور و رسید پرداخت')
 @section('content')
@@ -17,7 +17,7 @@
         <div class="receipt-item"><span>شناسه پرداخت</span><strong dir="ltr">#{{ $payment->id }}</strong></div>
         <div class="receipt-item"><span>پرداخت‌کننده</span><strong>{{ $payment->user?->name ?? 'کاربر صابخونه' }}</strong></div>
         <div class="receipt-item"><span>پلن خریداری‌شده</span><strong>{{ $payment->subscription?->plan?->name ?? 'اشتراک صابخونه' }}</strong></div>
-        <div class="receipt-item"><span>درگاه پرداخت</span><strong>{{ $payment->gateway === 'bitpay' ? 'بیت‌پی' : ($payment->gateway === 'zarinpal' ? 'زرین‌پال' : $payment->gateway) }}</strong></div>
+        <div class="receipt-item"><span>درگاه پرداخت</span><strong>{{ data_get($payment->raw_response, 'gateway_name', $payment->gateway === 'bitpay' ? 'بیت‌پی' : ($payment->gateway === 'zarinpal' ? 'زرین‌پال' : $payment->gateway)) }}</strong></div>
         <div class="receipt-item"><span>شماره پیگیری تراکنش</span><strong dir="ltr">{{ $payment->ref_id ?: '—' }}</strong></div>
         <div class="receipt-item"><span>تاریخ پرداخت</span><strong>{{ $payment->paid_at ? $F::date($payment->paid_at, 'Y/m/d H:i') : '—' }}</strong></div>
         <div class="receipt-item"><span>وضعیت</span><strong>تأییدشده توسط درگاه</strong></div>
