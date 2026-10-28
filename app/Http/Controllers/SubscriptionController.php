@@ -259,7 +259,13 @@ class SubscriptionController extends Controller
 
         try {
             $gatewayId = (string) data_get($payment->raw_response, 'gateway_id', 'legacy');
-            $gatewaySettings = $registry->find($gatewayId) ?? SiteSetting::get('payment.gateway', []);
+            $gatewaySettings = $registry->find($gatewayId);
+            if (! is_array($gatewaySettings) && $gatewayId === 'legacy') {
+                $gatewaySettings = SiteSetting::get('payment.gateway', []);
+            }
+            if (! is_array($gatewaySettings)) {
+                throw new \\RuntimeException('Payment gateway configuration is no longer available.');
+            }
             $amountRial = (int) data_get($payment->raw_response, 'amount_rial', 0);
             if ($amountRial <= 0) {
                 throw new \RuntimeException('Invalid stored payment amount.');
