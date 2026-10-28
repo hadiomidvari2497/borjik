@@ -104,8 +104,8 @@ class PaymentGatewayController extends Controller
 
         if (empty($settings['provider_name'])) $missing[] = 'نام درگاه';
         if (empty($settings['driver'])) $missing[] = 'شناسه فنی درگاه';
-        if (empty($settings['merchant_id'])) $missing[] = 'شناسه پذیرنده';
-        if (($settings['driver'] ?? '') !== 'zarinpal' && empty($settings['api_key'])) $missing[] = 'کلید API';
+        if (($settings['driver'] ?? '') === 'zarinpal' && empty($settings['merchant_id'])) $missing[] = 'شناسه پذیرنده زرین‌پال';
+        if (in_array(($settings['driver'] ?? ''), ['bitpay', 'custom'], true) && empty($settings['api_key'])) $missing[] = 'کلید API';
 
         if (empty($settings['active'])) {
             return back()->with('warning', 'اتصال درگاه غیرفعال است؛ این بررسی فقط تنظیمات ذخیره‌شده را اعتبارسنجی می‌کند و تراکنش آزمایشی ارسال نمی‌کند.');
