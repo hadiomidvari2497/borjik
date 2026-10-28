@@ -189,9 +189,11 @@ class SubscriptionController extends Controller
                 return $payment;
             });
 
+            $requestSettings = $settings;
+            $requestSettings['_gateway_id'] = $gatewayId;
             $result = $driver === 'bitpay'
-                ? $bitpay->request($amount * 10, $payment->id, $user, $settings)
-                : $zarinpal->request($amount * 10, $payment->id, $user, $settings);
+                ? $bitpay->request($amount * 10, $payment->id, $user, $requestSettings)
+                : $zarinpal->request($amount * 10, $payment->id, $user, $requestSettings);
             $payment->update([
                 'raw_response' => array_merge($payment->raw_response ?? [], $driver === 'bitpay'
                     ? ['id_get' => $result['id_get'], 'request' => $result['response']]
@@ -234,11 +236,14 @@ class SubscriptionController extends Controller
         $status = strtoupper((string) $request->query('Status', ''));
         $idGet = trim((string) $request->query('id_get', ''));
         $transId = trim((string) $request->query('trans_id', ''));
+        $callbackGatewayId = trim((string) $request->query('gateway_id', ''));
         $isBitpay = $idGet !== '' && $transId !== '';
 
         $payment = $isBitpay
-            ? SubscriptionPayment::query()->where('gateway', 'bitpay')->where('status', 'pending')->where('raw_response->id_get', $idGet)->first()
-            : SubscriptionPayment::query()->where('gateway', 'zarinpal')->where('status', 'pending')->where('raw_response->authority', $authority)->first();
+            ? SubscriptionPayment::query()->where('gateway', 'bitpay')->where('status', 'pending')->where('raw_response->id_get', $idGet)
+                ->when($callbackGatewayId !== '', fn ($query) => $query->where('raw_response->gateway_id', $callbackGatewayId))->first()
+            : SubscriptionPayment::query()->where('gateway', 'zarinpal')->where('status', 'pending')->where('raw_response->authority', $authority)
+                ->when($callbackGatewayId !== '', fn ($query) => $query->where('raw_response->gateway_id', $callbackGatewayId))->first();
 
         if (! $payment || ($isBitpay ? ($idGet === '' || $transId === '') : $authority === '')) {
             return redirect()->route('subscription.show')->with('error', 'تراکنش معتبر یا در انتظار پرداختی برای این بازگشت پیدا نشد.');
