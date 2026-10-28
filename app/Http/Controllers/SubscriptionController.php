@@ -11,6 +11,7 @@ use App\Models\SubscriptionPayment;
 use App\Models\SubscriptionPlan;
 use App\Services\BuildingService;
 use App\Services\Payments\BitpayGateway;
+use App\Services\Payments\PaymentGatewayRegistry;
 use App\Services\Payments\ZarinpalGateway;
 use App\Support\SystemErrorReporter;
 use Illuminate\Http\Request;
@@ -165,7 +166,9 @@ class SubscriptionController extends Controller
                     'status' => 'pending',
                     'raw_response' => [
                         'plan_id' => $plan->id,
-                        'amount_rial' => $amount * 10,\n                        'gateway_id' => $gatewayId,\n                        'gateway_name' => (string) ($settings['provider_name'] ?? $driver),
+                        'amount_rial' => $amount * 10,
+                        'gateway_id' => $gatewayId,
+                        'gateway_name' => (string) ($settings['provider_name'] ?? $driver),
                         'base_amount' => $baseAmount,
                         'discount_amount' => $discountAmount,
                         'coupon_code' => $couponCode !== '' ? $couponCode : null,
