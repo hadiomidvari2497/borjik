@@ -49,7 +49,7 @@
         <div class="gw-actions"><button class="btn" type="submit">ذخیره درگاه</button><a class="btn sec" href="{{ route('admin.payment-gateway.edit') }}">بازگشت به فهرست</a></div>
       </form>
       @if($gatewayId)
-        <form method="POST" action="{{ route('admin.payment-gateway.destroy', ['gatewayId' => $gatewayId]) }}" class="gw-actions" onsubmit="return confirm('این درگاه از تنظیمات حذف شود؟ تراکنش‌های قبلی حفظ می‌شوند.')">@csrf @method('DELETE')<button class="btn danger" type="submit">حذف درگاه</button></form>
+        <form method="POST" action="{{ route('admin.payment-gateway.destroy', ['gatewayId' => $gatewayId]) }}" class="gw-actions" data-confirm="این درگاه از تنظیمات حذف شود؟ تراکنش‌های قبلی حفظ می‌شوند." data-confirm-title="حذف درگاه پرداخت">@csrf @method('DELETE')<button class="btn danger" type="submit">حذف درگاه</button></form>
       @endif
     </section>
   </div>
