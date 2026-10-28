@@ -81,6 +81,14 @@ class PaymentGatewayController extends Controller
             throw ValidationException::withMessages(['provider_name' => 'برای فعال‌سازی اتصال، نام درگاه را وارد کنید.']);
         }
 
+        if ($settings['active'] && $settings['driver'] === 'bitpay' && empty($settings['api_key'])) {
+            throw ValidationException::withMessages(['api_key' => 'برای فعال‌سازی بیت‌پی، کد API را وارد کنید.']);
+        }
+
+        if ($settings['active'] && $settings['driver'] === 'zarinpal' && empty($settings['merchant_id'])) {
+            throw ValidationException::withMessages(['merchant_id' => 'برای فعال‌سازی زرین‌پال، شناسه پذیرنده لازم است.']);
+        }
+
         // Settings are stored as a JSON value; credentials are encrypted before persistence.
         SiteSetting::set(self::KEY, $settings, true);
 
