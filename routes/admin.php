@@ -75,7 +75,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         Route::get('/payment-gateway', [PaymentGatewayController::class, 'edit'])->middleware('admin.can:gateway.manage')->name('payment-gateway.edit');
+        Route::post('/payment-gateway', [PaymentGatewayController::class, 'store'])->middleware('admin.can:gateway.manage')->name('payment-gateway.store');
         Route::put('/payment-gateway', [PaymentGatewayController::class, 'update'])->middleware('admin.can:gateway.manage')->name('payment-gateway.update');
+        Route::put('/payment-gateway/{gatewayId}', [PaymentGatewayController::class, 'update'])->where('gatewayId', '[A-Za-z0-9_-]+')->middleware('admin.can:gateway.manage')->name('payment-gateway.update-one');
+        Route::delete('/payment-gateway/{gatewayId}', [PaymentGatewayController::class, 'destroy'])->where('gatewayId', '[A-Za-z0-9_-]+')->middleware('admin.can:gateway.manage')->name('payment-gateway.destroy');
         Route::post('/payment-gateway/validate', [PaymentGatewayController::class, 'validateConfiguration'])->middleware('admin.can:gateway.manage')->name('payment-gateway.validate');
 
         Route::get('/marketing-content', [MarketingContentController::class, 'edit'])->middleware('admin.can:site.settings')->name('marketing-content.edit');
