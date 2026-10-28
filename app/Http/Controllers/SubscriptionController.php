@@ -264,7 +264,7 @@ class SubscriptionController extends Controller
                 $gatewaySettings = SiteSetting::get('payment.gateway', []);
             }
             if (! is_array($gatewaySettings)) {
-                throw new \\RuntimeException('Payment gateway configuration is no longer available.');
+                throw new \RuntimeException('Payment gateway configuration is no longer available.');
             }
             $amountRial = (int) data_get($payment->raw_response, 'amount_rial', 0);
             if ($amountRial <= 0) {
