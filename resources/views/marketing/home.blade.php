@@ -621,6 +621,7 @@
         .seo-page-link{display:inline-flex;align-items:center;gap:9px;padding:10px 15px;border-radius:13px;background:#0c8e7d;color:#fff;font-weight:850;font-size:.88rem;transition:background .2s,transform .2s}
         .seo-page-link:hover{background:#076f68;transform:translateX(-2px)}
         @media(max-width:700px){.seo-pages-grid{grid-template-columns:1fr;gap:15px}.seo-page-card{min-height:0;padding:24px}.seo-page-card p{margin-bottom:18px}}
+        .subscription-promo{padding-top:12px}.subscription-promo-card{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:clamp(26px,4vw,44px);border:1px solid #cfece2;border-radius:28px;background:linear-gradient(115deg,#e5f8f1,#f8fcfa 65%,#eef8f5);box-shadow:0 18px 45px rgba(14,62,52,.07)}.subscription-promo-copy{max-width:760px}.subscription-promo .section-kicker{display:inline-block;margin-bottom:9px;color:#087f78;font-size:.82rem;font-weight:800}.subscription-promo h2{margin:0 0 10px;color:#102d3b;font-size:clamp(1.35rem,2.7vw,2rem);line-height:1.7}.subscription-promo p{margin:0;color:#526b75;line-height:2}.subscription-promo-action{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 20px;border-radius:14px;background:#0b9b87;color:#fff;font-weight:800;box-shadow:0 10px 24px rgba(11,155,135,.2);transition:transform .2s,background .2s}.subscription-promo-action:hover{transform:translateY(-2px);background:#087f78}@media(max-width:700px){.subscription-promo-card{align-items:stretch;flex-direction:column;gap:18px;padding:24px}.subscription-promo-action{width:100%}}
     </style>
 </head>
 <body>
@@ -710,6 +711,15 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
             <div class="seo-pages-grid">
                 <article class="seo-page-card"><span class="seo-page-icon" aria-hidden="true">⌂</span><h3>نرم‌افزار مدیریت ساختمان</h3><p>با امکانات صابخونه برای مدیریت امور ساختمان، پیگیری درخواست‌های ساکنان، اطلاع‌رسانی و هماهنگی مسئولیت‌ها بیشتر آشنا شوید.</p><a class="seo-page-link" href="{{ route('marketing.building-management') }}">آشنایی با نرم‌افزار مدیریت ساختمان <span aria-hidden="true">←</span></a></article>
                 <article class="seo-page-card"><span class="seo-page-icon" aria-hidden="true">₮</span><h3>نرم‌افزار شارژ ساختمان</h3><p>راهکارهای مدیریت شارژ و هزینه‌ها، پیگیری پرداخت‌ها و شفاف‌تر نگه‌داشتن اطلاعات مالی ساختمان را ببینید.</p><a class="seo-page-link" href="{{ route('marketing.building-charges') }}">مشاهدهٔ امکانات شارژ ساختمان <span aria-hidden="true">←</span></a></article>
+            </div>
+        </div>
+    </section>
+
+    <section class="content-section subscription-promo" id="subscription-plans">
+        <div class="wrap">
+            <div class="subscription-promo-card">
+                <div class="subscription-promo-copy"><span class="section-kicker">پلن‌های اشتراک صابخونه</span><h2>می‌خواهید با اشتراک‌ها و امکانات هر پلن آشنا شوید؟</h2><p>برای مشاهدهٔ پلن‌های اشتراک، مقایسهٔ گزینه‌ها و بررسی جزئیات هر پلن، به صفحهٔ معرفی اشتراک‌های صابخونه مراجعه کنید.</p></div>
+                <a class="subscription-promo-action" href="{{ route('marketing.subscription-plans') }}">آشنایی با پلن‌های اشتراک <span aria-hidden="true">←</span></a>
             </div>
         </div>
     </section>
