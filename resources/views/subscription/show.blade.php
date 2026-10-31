@@ -15,7 +15,7 @@
 @if(session('status'))<div class="bl-note" role="status">{{ session('status') }}</div>@endif
 
 <section class="bl-intro">
-    <h2>{{ $subscription ? 'تمدید یا تغییر اشتراک' : 'اشتراک ساختمان «{{ $building->name }}» را انتخاب کنید' }}</h2>
+    <h2>@if($subscription)تمدید یا تغییر اشتراک@else اشتراک ساختمان «{{ $building->name }}» را انتخاب کنید@endif</h2>
     <p>اشتراک هر ساختمان مستقل است. پلن مناسب ساختمان «{{ $building->name }}» را انتخاب کنید؛ خرید یا انقضای این اشتراک روی ساختمان‌های دیگر شما اثری ندارد.</p>
     <ol class="bl-steps" aria-label="مراحل خرید"><li class="on"><i>۱</i>انتخاب پلن</li><li><i>۲</i>تکمیل خرید</li><li><i>۳</i>دریافت فاکتور</li></ol>
 </section>
