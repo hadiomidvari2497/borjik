@@ -97,7 +97,7 @@
                 <button type="submit" @if($isCurrentBuilding) aria-current="true" @endif>
                   <span class="sw-building-name">{{ $b['name'] }}</span>
                   <small>{{ $b['roles'] }}</small>
-                  @if($isCurrentBuilding)<span class="sw-current-badge"><svg class="i" aria-hidden="true"><use href="#check"/></svg>در حال استفاده</span>@endif
+                  @if($isCurrentBuilding)<span class="sw-current-badge"><span aria-hidden="true">✓</span>در حال استفاده</span>@endif
                 </button>
               </form>
             </li>
