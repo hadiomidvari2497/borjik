@@ -90,10 +90,15 @@
       @if($myBuildings->count() > 1)
         <ul>
           @foreach($myBuildings as $b)
-            <li>
+            @php($isCurrentBuilding = (int) session('current_building_user_role_id') === (int) $b['membership_id'])
+            <li @class(['is-current' => $isCurrentBuilding])>
               <form method="POST" action="{{ route('building.switch', $b['id']) }}">@csrf
                 <input type="hidden" name="membership_id" value="{{ $b['membership_id'] }}">
-                <button type="submit">{{ $b['name'] }}<small>{{ $b['roles'] }}</small></button>
+                <button type="submit" @if($isCurrentBuilding) aria-current="true" @endif>
+                  <span class="sw-building-name">{{ $b['name'] }}</span>
+                  <small>{{ $b['roles'] }}</small>
+                  @if($isCurrentBuilding)<span class="sw-current-badge"><svg class="i" aria-hidden="true"><use href="#check"/></svg>در حال استفاده</span>@endif
+                </button>
               </form>
             </li>
           @endforeach
