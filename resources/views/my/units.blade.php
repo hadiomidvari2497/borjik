@@ -215,7 +215,7 @@
               <div class="mui-fact"><span class="mui-fact-label">متراژ</span><span class="mui-fact-value">{{ $F::num((float) $unit->area_m2) }} <small>متر مربع</small></span></div>
               <div class="mui-fact"><span class="mui-fact-label">تعداد اتاق</span><span class="mui-fact-value">{{ $unit->bedrooms !== null ? $F::num($unit->bedrooms).' اتاق' : 'ثبت نشده' }}</span></div>
               <div class="mui-fact"><span class="mui-fact-label">جهت واحد</span><span class="mui-fact-value">{{ $direction }}</span></div>
-              <div class="mui-fact"><span class="mui-fact-label">اعضای خانوار</span><span class="mui-fact-value">{{ $F::num($parties->count()) }} <small>نفر ثبت‌شده</small></span></div>
+              <div class="mui-fact"><span class="mui-fact-label">اعضای خانوار</span><span class="mui-fact-value">{{ $F::num($unit->family_count) }} <small>نفر</small></span></div>
             </div>
 
             <div class="mui-unit-divider"></div>
