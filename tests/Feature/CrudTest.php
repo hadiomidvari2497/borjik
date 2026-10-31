@@ -63,14 +63,14 @@ class CrudTest extends TestCase
         return $this->actingAs($u)->withSession(['current_building_id' => $b->id]);
     }
 
-    public function test_building_creation_requires_a_subscription(): void
+    public function test_building_can_be_created_before_buying_its_own_subscription(): void
     {
         $user = $this->owner();
 
         $this->actingAs($user)->post(route('buildings.store'), ['name' => 'برج تست', 'type' => 'residential'])
-            ->assertSessionHasErrors('general');
+            ->assertRedirect(route('subscription.show'));
 
-        $this->assertSame(0, Building::count());
+        $this->assertDatabaseHas('buildings', ['name' => 'برج تست', 'subscription_id' => null]);
     }
 
     public function test_creating_a_building_makes_the_creator_owner_and_seeds_defaults(): void
@@ -79,10 +79,10 @@ class CrudTest extends TestCase
         $sub = $this->subscribe($user);
 
         $this->actingAs($user)->post(route('buildings.store'), ['name' => 'برج تست', 'type' => 'residential', 'postal_code' => '۱۲۳۴۵۶۷۸۹۰', 'built_at' => '۱۳۹۵/۰۶/۱۵'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('subscription.show'));
 
         $b = Building::where('name', 'برج تست')->firstOrFail();
-        $this->assertSame($sub->id, $b->subscription_id);
+        $this->assertNull($b->subscription_id);
         $this->assertSame(5, strlen($b->code));
         $this->assertSame('1234567890', $b->postal_code);
         $this->assertSame(1, BuildingUserRole::where(['building_id' => $b->id, 'user_id' => $user->id, 'status' => 'active'])->count());
