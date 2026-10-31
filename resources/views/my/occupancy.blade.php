@@ -3,7 +3,7 @@
 @section('content')
 <div class="card" style="max-width:760px;margin:auto">
   <div class="page-h">
-    <div><h2>وضعیت سکونت واحد {{ \\App\\Support\\Fa::digits($unit->number) }}</h2><p class="muted">{{ $unit->block?->name }} · ثبت اطلاعات توسط مالک</p></div>
+    <div><h2>وضعیت سکونت واحد {{ \App\Support\Fa::digits($unit->number) }}</h2><p class="muted">{{ $unit->block?->name }} · ثبت اطلاعات توسط مالک</p></div>
     <a class="btn sec" href="{{ route('my.units') }}">بازگشت</a>
   </div>
   @if($errors->any())<div class="alert error" style="margin:12px 0">{{ $errors->first() }}</div>@endif
@@ -22,8 +22,8 @@
         <div class="fgrid">
           <div class="fld"><label for="representative_name">نام و نام خانوادگی مستأجر *</label><input id="representative_name" name="representative_name" value="{{ old('representative_name', $unit->representative_name) }}" maxlength="150">@error('representative_name')<div class="e">{{ $message }}</div>@enderror</div>
           <div class="fld"><label for="representative_mobile">شماره موبایل مستأجر *</label><input id="representative_mobile" name="representative_mobile" inputmode="numeric" maxlength="11" value="{{ old('representative_mobile', $unit->representative_mobile) }}">@error('representative_mobile')<div class="e">{{ $message }}</div>@enderror</div>
-          <div class="fld"><label for="lease_start_date">تاریخ شروع اجاره *</label><input id="lease_start_date" name="lease_start_date" value="{{ old('lease_start_date', $unit->lease_start_date ? \\App\\Support\\Fa::date($unit->lease_start_date, 'Y/m/d') : '') }}" placeholder="۱۴۰۵/۰۷/۰۱">@error('lease_start_date')<div class="e">{{ $message }}</div>@enderror</div>
-          <div class="fld"><label for="lease_end_date">تاریخ پایان اجاره *</label><input id="lease_end_date" name="lease_end_date" value="{{ old('lease_end_date', $unit->lease_end_date ? \\App\\Support\\Fa::date($unit->lease_end_date, 'Y/m/d') : '') }}" placeholder="۱۴۰۶/۰۷/۰۱">@error('lease_end_date')<div class="e">{{ $message }}</div>@enderror</div>
+          <div class="fld"><label for="lease_start_date">تاریخ شروع اجاره *</label><input id="lease_start_date" name="lease_start_date" value="{{ old('lease_start_date', $unit->lease_start_date ? \App\Support\Fa::date($unit->lease_start_date, 'Y/m/d') : '') }}" placeholder="۱۴۰۵/۰۷/۰۱">@error('lease_start_date')<div class="e">{{ $message }}</div>@enderror</div>
+          <div class="fld"><label for="lease_end_date">تاریخ پایان اجاره *</label><input id="lease_end_date" name="lease_end_date" value="{{ old('lease_end_date', $unit->lease_end_date ? \App\Support\Fa::date($unit->lease_end_date, 'Y/m/d') : '') }}" placeholder="۱۴۰۶/۰۷/۰۱">@error('lease_end_date')<div class="e">{{ $message }}</div>@enderror</div>
         </div>
         <div class="h">اطلاعات مستأجر فقط برای شناسایی سرپرست واحد ثبت می‌شود؛ برای او حساب کاربری یا دعوت‌نامه ساخته نمی‌شود.</div>
       </div>
