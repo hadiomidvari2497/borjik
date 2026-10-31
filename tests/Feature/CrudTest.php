@@ -50,8 +50,10 @@ class CrudTest extends TestCase
     private function building(int $limit = 5, int $days = 30, string $mobile = '09120000001'): array
     {
         $owner = $this->owner($mobile);
+        $b = Building::create(['name' => 'برج '.$mobile, 'code' => substr($mobile, -5), 'created_by' => $owner->id]);
         $sub = $this->subscribe($owner, $limit, $days);
-        $b = Building::create(['name' => 'برج '.$mobile, 'code' => substr($mobile, -5), 'created_by' => $owner->id, 'subscription_id' => $sub->id]);
+        $sub->update(['building_id' => $b->id]);
+        $b->update(['subscription_id' => $sub->id]);
         BuildingUserRole::create(['building_id' => $b->id, 'user_id' => $owner->id, 'role_id' => Role::where('key', 'owner')->value('id'), 'status' => 'active']);
         $block = app(CurrentBuilding::class)->actingAs($b->id, fn () => Block::create(['number' => 1, 'name' => 'الف', 'floors_count' => 5]));
 
