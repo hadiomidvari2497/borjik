@@ -26,6 +26,7 @@ class Building extends Model
     public function city() { return $this->belongsTo(City::class, 'city_id'); }
     public function createdBy() { return $this->belongsTo(User::class, 'created_by'); }
     public function subscription() { return $this->belongsTo(Subscription::class, 'subscription_id'); }
+    public function subscriptions() { return $this->hasMany(Subscription::class, 'building_id'); }
 
     public function blocks() { return $this->hasMany(Block::class); }
     public function units() { return $this->hasMany(Unit::class); }
