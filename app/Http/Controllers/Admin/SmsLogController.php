@@ -34,6 +34,29 @@ class SmsLogController extends Controller
         ]);
     }
 
+    public function clear(Request $request)
+    {
+        $data = $request->validate([
+            'scope' => ['required', 'in:all,range'],
+            'from' => ['required_if:scope,range', 'nullable', 'string', 'max:20'],
+            'to' => ['required_if:scope,range', 'nullable', 'string', 'max:20'],
+            'confirmation' => ['required', 'in:حذف'],
+        ]);
+        $query = SmsLog::query();
+        if ($data['scope'] === 'range') {
+            $from = JalaliDate::parse($data['from']);
+            $to = JalaliDate::parse($data['to']);
+            if (! $from || ! $to || $to->lt($from)) {
+                return back()->withErrors(['to' => 'بازهٔ تاریخی واردشده معتبر نیست.'])->withInput();
+            }
+            $query->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()]);
+        }
+        $deleted = $query->delete();
+
+        return redirect()->route('admin.sms.logs.index')
+            ->with('status', number_format($deleted).' پیامک از آرشیو پاک شد.');
+    }
+
     public function export(Request $request)
     {
         $query = $this->query($this->filters($request))->latest('id')->limit(self::EXPORT_LIMIT);
