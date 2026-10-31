@@ -26,7 +26,8 @@ class SubscriptionController extends Controller
         $user = $request->user();
         $buildingId = app(CurrentBuilding::class)->id();
         $building = $buildingId ? Building::query()->whereHas('members', fn ($query) => $query
-            ->where('user_id', $user->id)->where('status', 'active'))->findOrFail($buildingId) : null;
+            ->where('user_id', $user->id)->where('status', 'active')
+            ->whereHas('role', fn ($role) => $role->whereIn('key', ['owner', 'manager'])))->findOrFail($buildingId) : null;
 
         if (! $building) {
             return redirect()->route('buildings.create')->with('warning', 'ابتدا ساختمان موردنظر را ایجاد یا انتخاب کنید.');
