@@ -41,6 +41,25 @@ class AdminSystemDiagnosticsTest extends TestCase
             ->assertSee('diagnostics-admin');
     }
 
+
+    public function test_authorized_admin_can_clear_all_system_error_logs(): void
+    {
+        $admin = AdminUser::create(['username' => 'diagnostics-clear-admin', 'password' => 'secret-pass-1', 'status' => 'active', 'is_super' => true]);
+        SystemErrorLog::query()->create([
+            'exception_class' => RuntimeException::class,
+            'message' => 'clear-me',
+            'status_code' => 500,
+            'created_at' => now(),
+        ]);
+
+        $this->actingAs($admin, 'admin')->delete(route('admin.system-diagnostics.clear'), [
+            'scope' => 'all',
+            'confirmation' => 'حذف',
+        ])->assertRedirect(route('admin.system-diagnostics.index'));
+
+        $this->assertDatabaseMissing('system_error_logs', ['message' => 'clear-me']);
+    }
+
     public function test_handled_application_warning_is_recorded_with_details_and_copyable_data(): void
     {
         $request = Request::create('/subscription/plan/1', 'POST');
