@@ -15,8 +15,8 @@
 @if(session('status'))<div class="bl-note" role="status">{{ session('status') }}</div>@endif
 
 <section class="bl-intro">
-    <h2>{{ $subscription ? 'تمدید یا تغییر اشتراک' : 'پلن مناسب صابخونه را انتخاب کنید' }}</h2>
-    <p>امکانات و مدت هر پلن را مقایسه کنید. در مرحله بعد، کد تخفیف و درگاه پرداخت را در یک صفحه ساده و امن انتخاب می‌کنید.</p>
+    <h2>{{ $subscription ? 'تمدید یا تغییر اشتراک' : 'اشتراک ساختمان «{{ $building->name }}» را انتخاب کنید' }}</h2>
+    <p>اشتراک هر ساختمان مستقل است. پلن مناسب ساختمان «{{ $building->name }}» را انتخاب کنید؛ خرید یا انقضای این اشتراک روی ساختمان‌های دیگر شما اثری ندارد.</p>
     <ol class="bl-steps" aria-label="مراحل خرید"><li class="on"><i>۱</i>انتخاب پلن</li><li><i>۲</i>تکمیل خرید</li><li><i>۳</i>دریافت فاکتور</li></ol>
 </section>
 
@@ -24,7 +24,7 @@
 <section class="bl-active" aria-label="اشتراک فعلی">
     <div class="bl-active-ic" aria-hidden="true"><svg class="i"><use href="#shield"/></svg></div>
     <div>
-        <h3>اشتراک فعلی شما فعال است <span class="bl-pill">فعال</span></h3>
+        <h3>اشتراک ساختمان «{{ $building->name }}» فعال است <span class="bl-pill">فعال</span></h3>
         <p>@if($subscription->plan)پلن {{ $subscription->plan->name }} · @endif ظرفیت {{ $F::num($subscription->units_limit) }} واحد · اعتبار تا {{ $F::date($subscription->expires_at, 'Y/m/d') }}</p>
         @if($spanDays)<div class="bl-meter" role="img" aria-label="{{ $usedPct }} درصد از مدت اشتراک گذشته است"><b style="width:{{ $usedPct }}%"></b></div>@endif
         <a class="bl-link" href="{{ route('dashboard') }}">بازگشت به داشبورد ←</a>
