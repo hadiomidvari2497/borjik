@@ -11,7 +11,7 @@
 <div class="bl bl-co">
 <section class="bl-intro">
     <h2>تکمیل خرید اشتراک</h2>
-    <p>پلن انتخابی را بررسی کنید، در صورت داشتن کد تخفیف آن را وارد کنید و درگاه پرداخت دلخواهتان را انتخاب کنید.</p>
+    <p>اشتراک ساختمان «{{ $building->name }}» را بررسی کنید، در صورت داشتن کد تخفیف آن را وارد کنید و درگاه پرداخت را انتخاب کنید.</p>
     <ol class="bl-steps" aria-label="مراحل خرید"><li class="done"><i>✓</i>انتخاب پلن</li><li class="on"><i>۲</i>تکمیل خرید</li><li><i>۳</i>دریافت فاکتور</li></ol>
 </section>
 @if(session('error'))<div class="bl-note" role="alert">{{ session('error') }}</div>@endif
