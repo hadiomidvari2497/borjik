@@ -17,6 +17,7 @@ class SubscriptionCheckoutTest extends TestCase
 
     private User $user;
     private SubscriptionPlan $paidPlan;
+    private Building $building;
 
     protected function setUp(): void
     {
@@ -30,6 +31,10 @@ class SubscriptionCheckoutTest extends TestCase
             'profile_completed_at' => now(),
         ]);
 
+        $this->seed(RolePermissionSeeder::class);
+        $this->building = Building::create(['name' => 'ساختمان پرداخت', 'code' => '20099', 'created_by' => $this->user->id]);
+        BuildingUserRole::create(['building_id' => $this->building->id, 'user_id' => $this->user->id, 'role_id' => Role::where('key', 'owner')->whereNull('building_id')->value('id'), 'status' => 'active']);
+
         $this->paidPlan = SubscriptionPlan::create([
             'name' => 'حرفه‌ای',
             'units_limit' => 50,
@@ -39,7 +44,7 @@ class SubscriptionCheckoutTest extends TestCase
         ]);
     }
 
-    private function configureZarinpal(): void
+    private function asBuilding()\n    {\n        return $this->asBuilding()->withSession(['current_building_id' => $this->building->id]);\n    }\n\n    private function configureZarinpal(): void
     {
         SiteSetting::set('payment.gateway', [
             'provider_name' => 'زرین‌پال',
@@ -141,8 +146,8 @@ class SubscriptionCheckoutTest extends TestCase
 
         $this->actingAs($this->user)
             ->post(route('subscription.subscribe', $free->id))
-            ->assertRedirect(route('buildings.create'));
+            ->assertRedirect(route('dashboard'));
 
-        $this->assertDatabaseHas('subscriptions', ['user_id' => $this->user->id, 'plan_id' => $free->id, 'status' => 'active']);
+        $this->assertDatabaseHas('subscriptions', ['user_id' => $this->user->id, 'building_id' => $this->building->id, 'plan_id' => $free->id, 'status' => 'active']);
     }
 }
