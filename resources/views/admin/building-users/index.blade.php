@@ -64,7 +64,7 @@
               @if($u->active_subscription_expires_at)
                 <div class="bu-muted" style="margin-top:4px">اعتبار تا {{ $F::date(\Illuminate\Support\Carbon::parse($u->active_subscription_expires_at), 'j F Y') }}</div>
               @endif
-              <div class="bu-muted" style="margin-top:5px">پرداخت موفق: {{ $F::num(number_format((float)($u->paid_total ?? 0))) }} تومان</div>
+              <div class="bu-muted" style="margin-top:5px">پرداخت موفق: {{ $F::num((float) ($u->paid_total ?? 0)) }} تومان</div>
               @if($u->latest_payment_status)
                 <div class="bu-muted" style="margin-top:3px">{{ $paymentLabels[$u->latest_payment_status] ?? 'وضعیت پرداخت: '.$u->latest_payment_status }}</div>
               @endif
