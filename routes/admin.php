@@ -44,7 +44,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->middleware('admin.can:logs.view')->name('activity-logs.index');
+        Route::delete('/activity-logs', [AdminActivityLogController::class, 'clear'])->middleware('admin.can:logs.view')->name('activity-logs.clear');
         Route::get('/system-diagnostics', [SystemDiagnosticsController::class, 'index'])->middleware('admin.can:logs.view')->name('system-diagnostics.index');
+        Route::delete('/system-diagnostics', [SystemDiagnosticsController::class, 'clear'])->middleware('admin.can:logs.view')->name('system-diagnostics.clear');
         Route::get('/analytics', [AnalyticsController::class, 'index'])->middleware('admin.can:stats.view')->name('analytics.index');
         Route::get('/analytics/export', [AnalyticsController::class, 'export'])->middleware('admin.can:stats.view')->name('analytics.export');
         Route::get('/building-analytics', [BuildingAnalyticsController::class, 'index'])->middleware('admin.can:stats.view')->name('building-analytics.index');
@@ -151,6 +153,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::prefix('logs')->name('logs.')->middleware('admin.can:sms.logs')->controller(SmsLogController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
+                Route::delete('/', 'clear')->name('clear');
                 Route::get('/export', 'export')->name('export');
             });
         });
