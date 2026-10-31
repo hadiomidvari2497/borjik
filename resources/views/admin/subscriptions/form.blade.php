@@ -1,7 +1,7 @@
 @extends('admin.layout')
 @section('title', 'اختصاص اشتراک به ساختمان')
 @section('content')
-@php $F = \\App\\Support\\Fa::class; @endphp
+@php $F = \App\Support\Fa::class; @endphp
 <div class="card">
   <div class="page-h">
     <h2>اختصاص اشتراک به ساختمان</h2>
