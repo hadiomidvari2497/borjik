@@ -86,10 +86,10 @@ class AdminSubscriptionManagementTest extends TestCase
     {
         $admin = $this->admin([], true);
         $user = $this->user('09120000003');
+        $building = Building::create(['name' => 'ساختمان صفحه', 'code' => '10003', 'created_by' => $user->id]);
 
         $this->actingAs($admin, 'admin')->get(route('admin.subscriptions.index'))
             ->assertOk()->assertSee($user->mobile);
-        $building = Building::create(['name' => 'ساختمان صفحه', 'code' => '10003', 'created_by' => $user->id]);
         $this->actingAs($admin, 'admin')->get(route('admin.subscriptions.create', ['building_id' => $building->id]))
             ->assertOk()->assertSee('اختصاص اشتراک به ساختمان');
     }
