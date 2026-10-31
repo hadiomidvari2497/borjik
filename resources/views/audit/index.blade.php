@@ -10,7 +10,7 @@
   @if(session('status'))<div class="alert success" role="status">{{ session('status') }}</div>@endif
   <details style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px">
     <summary style="cursor:pointer;font-weight:800;color:#b42318">پاک‌سازی لاگ‌ها</summary>
-    <form method="POST" action="{{ route('audit.clear') }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px">
+    <form method="POST" data-confirm="پاک‌سازی لاگ‌ها برگشت‌پذیر نیست. آیا ادامه می‌دهی؟" action="{{ route('audit.clear') }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px">
       @csrf @method('DELETE')
       <div><label>محدوده پاک‌سازی</label><select name="scope" required><option value="all">تمام لاگ‌های این بخش</option><option value="range">فقط بازه تاریخی</option></select></div>
       <div><label>از تاریخ (شمسی)</label><input name="from" class="jdate" autocomplete="off"></div>
