@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AdminRole;
 use App\Models\AdminUser;
+use App\Models\Building;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
@@ -45,11 +46,12 @@ class AdminSubscriptionManagementTest extends TestCase
         $user = $this->user('09120000001');
         $oldPlan = SubscriptionPlan::create(['name' => 'قدیمی', 'units_limit' => 10, 'duration_months' => 1, 'price' => 0, 'is_active' => true]);
         $newPlan = SubscriptionPlan::create(['name' => 'ویژه', 'units_limit' => 100, 'duration_months' => 6, 'price' => 1000, 'is_active' => false]);
+        $building = Building::create(['name' => 'ساختمان آزمایشی', 'code' => '10001', 'created_by' => $user->id]);
         $old = Subscription::create([
-            'user_id' => $user->id, 'plan_id' => $oldPlan->id, 'units_limit' => 10,
+            'user_id' => $user->id, 'building_id' => $building->id, 'plan_id' => $oldPlan->id, 'units_limit' => 10,
             'starts_at' => now()->subDays(2), 'expires_at' => now()->addDays(10), 'status' => 'active',
         ]);
-        $building = Building::create(['name' => 'ساختمان آزمایشی', 'code' => '10001', 'created_by' => $user->id, 'subscription_id' => $old->id]);
+        $building->update(['subscription_id' => $old->id]);
 
         $this->actingAs($admin, 'admin')->post(route('admin.subscriptions.store'), [
             'building_id' => $building->id, 'plan_id' => $newPlan->id,
