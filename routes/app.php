@@ -147,6 +147,8 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
     });
     Route::get('/my/contracts', [MyContractController::class, 'index'])->middleware('can:contract.view.own')->name('my.contracts');
     Route::get('/my/unit', [MyUnitController::class, 'index'])->middleware('can:unit.view.own')->name('my.units');
+    Route::get('/my/unit/{unit}/occupancy', [MyUnitController::class, 'editOccupancy'])->whereNumber('unit')->middleware('can:unit.view.own')->name('my.units.occupancy.edit');
+    Route::put('/my/unit/{unit}/occupancy', [MyUnitController::class, 'updateOccupancy'])->whereNumber('unit')->middleware('can:unit.view.own')->name('my.units.occupancy.update');
 
     Route::get('/files/{id}', [FileController::class, 'show'])->whereNumber('id')->name('files.show');
 
