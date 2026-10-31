@@ -3,6 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\SiteSetting;
+use App\Models\Building;
+use App\Models\BuildingUserRole;
+use App\Models\Role;
+use Database\Seeders\RolePermissionSeeder;
 use App\Models\Subscription;
 use App\Models\SubscriptionPayment;
 use App\Models\SubscriptionPlan;
