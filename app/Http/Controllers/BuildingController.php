@@ -35,14 +35,14 @@ class BuildingController extends Controller
         return view('buildings.index', [
             'buildings' => $buildings,
             'currentId' => app(CurrentBuilding::class)->id(),
-            'hasSubscription' => $service->activeSubscription($request->user()) !== null,
+            'hasSubscription' => (bool) optional(\App\Models\Building::find(app(CurrentBuilding::class)->id()))->subscription?->isActive(),
         ]);
     }
 
     public function create(Request $request, BuildingService $service)
     {
         return view('buildings.form', $this->formData(null) + [
-            'blocked' => $service->activeSubscription($request->user()) === null,
+            'blocked' => false,
         ]);
     }
 
@@ -58,7 +58,7 @@ class BuildingController extends Controller
 
         $request->session()->put('current_building_id', $building->id);
 
-        return redirect()->route('dashboard')->with('status', 'ساختمان ساخته شد. کد ساختمان: '.$building->code);
+        return redirect()->route('subscription.show')->with('status', 'ساختمان ساخته شد. برای فعال‌شدن امکانات، اشتراک همین ساختمان را انتخاب کنید. کد ساختمان: '.$building->code);
     }
 
     /** تنظیمات ساختمان فعال. */
