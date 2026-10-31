@@ -1,21 +1,21 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Building;
-use App\\Models\\Subscription;
-use App\\Models\\SubscriptionPlan;
-use App\\Support\\MobileNumber;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
+use App\Http\Controllers\Controller;
+use App\Models\Building;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use App\Support\MobileNumber;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionManagementController extends Controller
 {
     public function index(Request $request)
     {
         $q = trim((string) $request->query('q', ''));
-        $like = '%'.addcslashes(MobileNumber::toLatinDigits($q), '%_\\\\').'%';
+        $like = '%'.addcslashes(MobileNumber::toLatinDigits($q), '%_\\').'%';
 
         $buildings = Building::query()
             ->with(['createdBy', 'subscription.plan'])
