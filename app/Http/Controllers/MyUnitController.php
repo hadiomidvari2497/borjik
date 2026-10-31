@@ -138,6 +138,7 @@ class MyUnitController extends Controller
             'overdueCount' => $overdueCount,
             'openInvoiceCount' => $openInvoices->count(),
             'uid' => (int) $user->id,
+            'ownedUnitIds' => $ownedUnitIds,
         ]);
     }
 }
