@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Http\\Middleware;
+namespace App\Http\Middleware;
 
-use App\\Models\\Building;
-use App\\Services\\BuildingService;
-use App\\Support\\CurrentBuilding;
+use App\Models\Building;
+use App\Services\BuildingService;
+use App\Support\CurrentBuilding;
 use Closure;
-use Illuminate\\Http\\Request;
-use Symfony\\Component\\HttpFoundation\\Response;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class EnsureSubscriptionAccess
 {
