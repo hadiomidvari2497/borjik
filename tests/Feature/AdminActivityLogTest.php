@@ -31,6 +31,24 @@ class AdminActivityLogTest extends TestCase
             ->assertSee('admin.logout');
     }
 
+
+    public function test_authorized_admin_can_clear_activity_logs_for_a_date_range(): void
+    {
+        $admin = AdminUser::create(['username' => 'activity-clear-admin', 'password' => 'secret-pass-1', 'status' => 'active', 'is_super' => true]);
+        AdminActivityLog::query()->create(['admin_user_id' => $admin->id, 'method' => 'POST', 'action' => 'old action', 'path' => '/old', 'created_at' => now()->subDays(5)]);
+        AdminActivityLog::query()->create(['admin_user_id' => $admin->id, 'method' => 'POST', 'action' => 'new action', 'path' => '/new', 'created_at' => now()]);
+
+        $this->actingAs($admin, 'admin')->delete(route('admin.activity-logs.clear'), [
+            'scope' => 'range',
+            'from' => now()->subDays(6)->toDateString(),
+            'to' => now()->subDays(4)->toDateString(),
+            'confirmation' => 'حذف',
+        ])->assertRedirect(route('admin.activity-logs.index'));
+
+        $this->assertDatabaseMissing('admin_activity_logs', ['action' => 'old action']);
+        $this->assertDatabaseHas('admin_activity_logs', ['action' => 'new action']);
+    }
+
     public function test_activity_log_page_requires_logs_view_permission(): void
     {
         $admin = AdminUser::create(['username' => 'activity-log-limited', 'password' => 'secret-pass-1', 'status' => 'active', 'is_super' => false]);
