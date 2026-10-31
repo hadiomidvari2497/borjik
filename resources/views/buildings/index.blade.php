@@ -4,9 +4,8 @@
 <div class="card">
   <div class="page-h">
     <h2>ساختمان‌های من</h2>
-    @if($hasSubscription)<a class="btn" href="{{ route('buildings.create') }}">+ ساختمان جدید</a>@endif
+    <a class="btn" href="{{ route('buildings.create') }}">+ ساختمان جدید</a>
   </div>
-  @unless($hasSubscription)<div class="warnbox" style="margin:10px 0">برای ساخت ساختمان جدید اشتراک فعال لازم است.</div>@endunless
   <div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>نام ساختمان</th><th>کد</th><th>نقش من</th><th>واحدها</th><th></th></tr></thead>
     <tbody>
