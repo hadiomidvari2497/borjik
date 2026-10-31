@@ -22,6 +22,8 @@ class Unit extends Model
             'area_m2' => 'decimal:2',
             'direction' => Direction::class,
             'status' => UnitStatus::class,
+            'lease_start_date' => 'date',
+            'lease_end_date' => 'date',
         ];
     }
 
