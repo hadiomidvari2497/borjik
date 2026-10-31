@@ -147,12 +147,16 @@ class CrudTest extends TestCase
         $this->assertSame([10], $units->pluck('floor')->unique()->values()->all());
     }
 
-    public function test_expired_subscription_blocks_adding_units_but_not_viewing(): void
+    public function test_expired_subscription_locks_all_building_features_and_keeps_renewal_access(): void
     {
         [$owner, $b] = $this->building(days: -1);
 
-        $this->as($owner, $b)->get(route('units.index'))->assertOk();
-        $this->as($owner, $b)->get(route('units.create'))->assertForbidden();
+        $this->as($owner, $b)->get(route('units.index'))
+            ->assertRedirect(route('subscription.show'))
+            ->assertSessionHas('warning');
+        $this->as($owner, $b)->get(route('units.create'))
+            ->assertRedirect(route('subscription.show'));
+        $this->as($owner, $b)->get(route('subscription.show'))->assertOk();
     }
 
     public function test_block_with_units_cannot_be_deleted(): void
