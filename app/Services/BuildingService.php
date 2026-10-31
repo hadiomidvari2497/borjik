@@ -21,54 +21,29 @@ class BuildingService
         ['آسانسور', 'fixed', 'equal'], ['نظافت', 'fixed', 'equal'], ['تعمیرات', 'variable', 'equal'],
     ];
 
-    public function activeSubscription(User $user): ?Subscription
+    public function activeSubscriptionForBuilding(Building $building): ?Subscription
     {
-        return Subscription::where('user_id', $user->id)->where('status', 'active')
-            ->where('expires_at', '>', now())->orderByDesc('expires_at')->first();
+        $subscription = $building->subscription()->with('plan')->first();
+
+        return $subscription?->isActive() ? $subscription : null;
     }
 
-    /**
-     * ساختمان‌هایی را که به اشتراک منقضی‌شده‌ی سازنده وصل مانده‌اند، به اشتراک فعال جدید او منتقل می‌کند.
-     * این مسیر برای ساختمان‌هایی است که پیش از اصلاح فرایند تغییر اشتراک ساخته شده‌اند.
-     */
+    /** هر ساختمان مستقل از حساب سازنده، اشتراک خودش را دارد. */
     public function ensureActiveSubscription(Building $building): ?Subscription
     {
         $building->loadMissing('subscription');
 
-        if ($building->subscription?->isActive()) {
-            return $building->subscription;
-        }
-
-        $owner = $building->createdBy;
-        $subscription = $owner ? $this->activeSubscription($owner) : null;
-
-        if (! $subscription) {
-            return $building->subscription;
-        }
-
-        if ((int) $building->subscription_id !== (int) $subscription->id) {
-            DB::table('buildings')
-                ->where('id', $building->id)
-                ->update(['subscription_id' => $subscription->id]);
-
-            $building->subscription_id = $subscription->id;
-            $building->setRelation('subscription', $subscription);
-        }
-
-        return $subscription;
+        return $building->subscription?->isActive() ? $building->subscription : null;
     }
 
-    /** ساخت ساختمان: سازنده «مالک ساختمان» می‌شود و به اشتراک فعال خودش وصل می‌گردد. */
+    /** ایجاد ساختمان بدون اشتراک؛ امکانات آن پس از خرید/اختصاص اشتراک همان ساختمان فعال می‌شود. */
     public function create(User $user, array $data): Building
     {
-        $subscription = $this->activeSubscription($user)
-            ?? throw new SubscriptionException('برای ساخت ساختمان ابتدا باید اشتراک فعال داشته باشید.');
-
-        return DB::transaction(function () use ($user, $data, $subscription) {
+        return DB::transaction(function () use ($user, $data) {
             $building = Building::create($data + [
                 'code' => $this->uniqueCode(),
                 'created_by' => $user->id,
-                'subscription_id' => $subscription->id,
+                'subscription_id' => null,
                 'status' => 'active',
             ]);
 
@@ -84,7 +59,7 @@ class BuildingService
             ]);
 
             app(CurrentBuilding::class)->actingAs($building->id, function () {
-                ChargeSetting::create([]); // مقادیر پیش‌فرض ستون‌ها
+                ChargeSetting::create([]);
                 foreach (self::DEFAULT_CATEGORIES as [$name, $kind, $basis]) {
                     ExpenseCategory::create(['name' => $name, 'kind' => $kind, 'split_basis' => $basis]);
                 }
