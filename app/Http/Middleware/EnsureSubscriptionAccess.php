@@ -1,19 +1,14 @@
 <?php
 
-namespace App\Http\Middleware;
+namespace App\\Http\\Middleware;
 
-use App\Models\Building;
-use App\Models\Subscription;
-use App\Services\BuildingService;
-use App\Support\CurrentBuilding;
+use App\\Models\\Building;
+use App\\Services\\BuildingService;
+use App\\Support\\CurrentBuilding;
 use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\\Http\\Request;
+use Symfony\\Component\\HttpFoundation\\Response;
 
-/**
- * دسترسی به امکانات پنل فقط در صورت داشتن اشتراک فعال مجاز است.
- * صفحه‌های مربوط به مشاهده/خرید اشتراک و داشبورد برای تمدید در دسترس می‌مانند.
- */
 class EnsureSubscriptionAccess
 {
     private const ALLOWED_ROUTES = [
@@ -30,34 +25,19 @@ class EnsureSubscriptionAccess
             return $next($request);
         }
 
-        $user = $request->user();
-        if (! $user) {
+        if (! $request->user()) {
             return $next($request);
         }
 
         $buildingId = app(CurrentBuilding::class)->id();
+        $building = $buildingId ? Building::find($buildingId) : null;
+        $subscription = $building
+            ? app(BuildingService::class)->ensureActiveSubscription($building)
+            : null;
 
-        if ($buildingId) {
-            $building = Building::find($buildingId);
-            $subscription = $building
-                ? app(BuildingService::class)->ensureActiveSubscription($building)
-                : null;
-
-            // Legacy buildings created before subscription enforcement may not have a subscription.
-            // New buildings are still created only through the subscription-checked controller.
-        } else {
-            $subscription = app(BuildingService::class)->activeSubscription($user);
-        }
-
-        $legacyUnsubscribedBuilding = $buildingId
-            && isset($building)
-            && $building
-            && ! $building->subscription_id
-            && ! Subscription::query()->where('user_id', $user->id)->exists();
-
-        if (! $legacyUnsubscribedBuilding && (! $subscription || ! $subscription->isActive())) {
+        if (! $subscription || ! $subscription->isActive()) {
             return redirect()->route('subscription.show')
-                ->with('warning', 'مهلت اشتراک شما به پایان رسیده است. برای ادامه استفاده از امکانات پنل، اشتراک خود را تمدید کنید.');
+                ->with('warning', 'اشتراک این ساختمان فعال نیست. برای استفاده از امکانات، اشتراک همین ساختمان را خریداری یا تمدید کنید.');
         }
 
         return $next($request);
