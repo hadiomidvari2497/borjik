@@ -111,6 +111,20 @@
 
   <section style="margin-top:26px">
     <div class="page-h" style="margin-bottom:12px"><div><h3 style="margin:0;font-size:16px">تاریخچه خطاها</h3><p class="sd-muted" style="margin:6px 0 0">خطاها از زمان فعال‌شدن این قابلیت ثبت می‌شوند.</p></div><span class="sd-muted">{{ $F::num($errors->total()) }} نتیجه</span></div>
+
+  @if(session('status'))<div class="alert success" role="status">{{ session('status') }}</div>@endif
+  <details style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px">
+    <summary style="cursor:pointer;font-weight:800;color:#b42318">پاک‌سازی لاگ‌ها</summary>
+    <form method="POST" action="{{ route('admin.system-diagnostics.clear') }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px">
+      @csrf @method('DELETE')
+      <div><label>محدوده پاک‌سازی</label><select name="scope" required><option value="all">تمام لاگ‌های این بخش</option><option value="range">فقط بازه تاریخی</option></select></div>
+      <div><label>از تاریخ </label><input name="from" type="date"></div>
+      <div><label>تا تاریخ </label><input name="to" type="date"></div>
+      <div><label>برای تأیید، «حذف» را وارد کن</label><input name="confirmation" required pattern="حذف" placeholder="حذف"></div>
+      <div><button class="btn" type="submit" style="background:#b42318;color:#fff">پاک‌سازی لاگ‌ها</button></div>
+    </form>
+    <p class="sd-muted" style="margin:9px 0 0">این عملیات برگشت‌پذیر نیست و فقط رکوردهای همین آرشیو را حذف می‌کند.</p>
+  </details>
     <form method="GET" class="card" style="padding:14px;margin-bottom:16px">
       <div class="sd-filters">
         <div><label for="sd-q">جست‌وجو</label><input id="sd-q" name="q" value="{{ $filters['q'] }}" placeholder="نوع خطا، پیام، مسیر یا شناسه کاربر"></div>
