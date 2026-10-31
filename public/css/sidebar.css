@@ -47,3 +47,22 @@ body:not(.adm) .side .out:hover,body.adm .side .out:hover{background:rgba(244,10
 @keyframes sbpulse{0%{box-shadow:0 0 0 0 rgba(98,223,180,.55)}70%,100%{box-shadow:0 0 0 9px rgba(98,223,180,0)}}
 @media(prefers-reduced-motion:reduce){body .side .nav a,body .side .nav a svg.i,body .side .side-search,body .side .out,body .side .brand-signal{transition:none!important;animation:none!important}body .side .nav a:hover{transform:none}}
 body .side .nav a[hidden],body .side .nav .grp[hidden],body .side .nav-empty[hidden]{display:none!important}
+
+/* ---- منوی کشویی انتخاب ساختمان: بالاتر از بقیه‌ی سایدبار + انیمیشن بازشدن ---- */
+body:not(.adm) .side .sw{z-index:30}
+body:not(.adm) .side .sw>button{cursor:pointer}
+body:not(.adm) .side .sw svg.ch{transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+body:not(.adm) .side .sw.open svg.ch{transform:rotate(180deg)}
+body:not(.adm) .side .sw.open>button{border-color:rgba(143,240,216,.55);box-shadow:0 0 0 3px rgba(143,240,216,.1)}
+body:not(.adm) .side .sw ul{display:block!important;z-index:40;max-height:min(60vh,340px);overflow:auto;overscroll-behavior:contain;margin:0;background:linear-gradient(180deg,#0c3541,#0a2f3a);backdrop-filter:blur(14px);visibility:hidden;opacity:0;pointer-events:none;clip-path:inset(0 0 100% 0 round 16px);transform:translateY(-10px);transform-origin:top center;transition:clip-path .38s cubic-bezier(.2,.8,.2,1),opacity .25s ease,transform .38s cubic-bezier(.2,.8,.2,1),visibility 0s linear .38s}
+body:not(.adm) .side .sw.open ul{visibility:visible;opacity:1;pointer-events:auto;clip-path:inset(0 0 0 0 round 16px);transform:none;transition-delay:0s}
+body:not(.adm) .side .sw li{opacity:0;transform:translateY(-6px);transition:opacity .25s ease,transform .3s cubic-bezier(.2,.8,.2,1)}
+body:not(.adm) .side .sw.open li{opacity:1;transform:none}
+body:not(.adm) .side .sw.open li:nth-child(1){transition-delay:.06s}
+body:not(.adm) .side .sw.open li:nth-child(2){transition-delay:.1s}
+body:not(.adm) .side .sw.open li:nth-child(3){transition-delay:.14s}
+body:not(.adm) .side .sw.open li:nth-child(4){transition-delay:.18s}
+body:not(.adm) .side .sw.open li:nth-child(n+5){transition-delay:.22s}
+body:not(.adm) .side .sw li form button{display:block;border-radius:12px;transition:background .2s,transform .2s}
+body:not(.adm) .side .sw li form button:hover{transform:translateX(-3px)}
+@media(prefers-reduced-motion:reduce){body:not(.adm) .side .sw ul,body:not(.adm) .side .sw li,body:not(.adm) .side .sw svg.ch{transition:none!important}}
