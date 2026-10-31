@@ -11,7 +11,7 @@
 
   @if($blocked)
     <div class="warnbox" style="margin:12px 0">
-      برای ساخت ساختمان باید اشتراک فعال داشته باشید.
+      پس از ساخت، برای فعال‌سازی امکانات این ساختمان باید اشتراک جداگانه تهیه کنید.
       <a href="{{ route('subscription.show') }}" class="btn sm" style="margin-inline-start:8px">رفتن به صفحهٔ اشتراک</a>
     </div>
   @else
