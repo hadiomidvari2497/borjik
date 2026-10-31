@@ -49,18 +49,19 @@ class AdminSubscriptionManagementTest extends TestCase
             'user_id' => $user->id, 'plan_id' => $oldPlan->id, 'units_limit' => 10,
             'starts_at' => now()->subDays(2), 'expires_at' => now()->addDays(10), 'status' => 'active',
         ]);
+        $building = Building::create(['name' => 'ساختمان آزمایشی', 'code' => '10001', 'created_by' => $user->id, 'subscription_id' => $old->id]);
 
         $this->actingAs($admin, 'admin')->post(route('admin.subscriptions.store'), [
-            'user_id' => $user->id, 'plan_id' => $newPlan->id,
+            'building_id' => $building->id, 'plan_id' => $newPlan->id,
         ])->assertRedirect(route('admin.subscriptions.index'))
           ->assertSessionHas('status');
 
         $this->assertSame('expired', $old->fresh()->status);
         $this->assertDatabaseHas('subscriptions', [
-            'user_id' => $user->id, 'plan_id' => $newPlan->id,
+            'user_id' => $user->id, 'building_id' => $building->id, 'plan_id' => $newPlan->id,
             'units_limit' => 100, 'status' => 'active',
         ]);
-        $new = Subscription::where('user_id', $user->id)->where('plan_id', $newPlan->id)->firstOrFail();
+        $new = Subscription::where('building_id', $building->id)->where('plan_id', $newPlan->id)->firstOrFail();
         $this->assertTrue($new->expires_at->isAfter(now()->addMonths(5)));
     }
 
@@ -71,11 +72,12 @@ class AdminSubscriptionManagementTest extends TestCase
         $plan = SubscriptionPlan::create(['name' => 'تست', 'units_limit' => 10, 'duration_months' => 1, 'price' => 0, 'is_active' => true]);
 
         $this->actingAs($admin, 'admin')->get(route('admin.subscriptions.index'))->assertForbidden();
+        $building = Building::create(['name' => 'ساختمان محروم', 'code' => '10002', 'created_by' => $user->id]);
         $this->actingAs($admin, 'admin')->post(route('admin.subscriptions.store'), [
-            'user_id' => $user->id, 'plan_id' => $plan->id,
+            'building_id' => $building->id, 'plan_id' => $plan->id,
         ])->assertForbidden();
 
-        $this->assertDatabaseMissing('subscriptions', ['user_id' => $user->id]);
+        $this->assertDatabaseMissing('subscriptions', ['building_id' => $building->id]);
     }
 
     public function test_subscription_management_pages_render_for_authorized_admin(): void
@@ -85,7 +87,8 @@ class AdminSubscriptionManagementTest extends TestCase
 
         $this->actingAs($admin, 'admin')->get(route('admin.subscriptions.index'))
             ->assertOk()->assertSee($user->mobile);
-        $this->actingAs($admin, 'admin')->get(route('admin.subscriptions.create', ['user_id' => $user->id]))
-            ->assertOk()->assertSee('فعال‌سازی اشتراک');
+        $building = Building::create(['name' => 'ساختمان صفحه', 'code' => '10003', 'created_by' => $user->id]);
+        $this->actingAs($admin, 'admin')->get(route('admin.subscriptions.create', ['building_id' => $building->id]))
+            ->assertOk()->assertSee('اختصاص اشتراک به ساختمان');
     }
 }
