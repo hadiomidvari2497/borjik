@@ -205,6 +205,11 @@
               <span class="mui-pill {{ $status[1] }}">{{ $status[0] }}</span>
             </div>
           </div>
+          @if($ownedUnitIds->contains($unit->id))
+            <div style="padding:0 20px 14px;display:flex;justify-content:flex-start">
+              <a class="mui-text-link" href="{{ route('my.units.occupancy.edit', $unit) }}">مدیریت وضعیت سکونت و سرپرست واحد ←</a>
+            </div>
+          @endif
           <div class="mui-unit-body">
             <div class="mui-facts">
               <div class="mui-fact"><span class="mui-fact-label">متراژ</span><span class="mui-fact-value">{{ $F::num((float) $unit->area_m2) }} <small>متر مربع</small></span></div>
