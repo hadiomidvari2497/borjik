@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BuildingType;
-use App\Exceptions\SubscriptionException;
 use App\Models\Building;
-use App\Services\BuildingService;
 use App\Support\CurrentBuilding;
 use App\Support\JalaliDate;
 use App\Support\MobileNumber;
@@ -16,7 +14,7 @@ use Illuminate\Validation\Rule;
 class BuildingController extends Controller
 {
     /** ساختمان‌های من (همه‌ی عضویت‌های فعال کاربر). */
-    public function index(Request $request, BuildingService $service)
+    public function index(Request $request)
     {
         $rows = DB::table('building_user_roles as bur')
             ->join('buildings as b', 'b.id', '=', 'bur.building_id')
@@ -39,22 +37,18 @@ class BuildingController extends Controller
         ]);
     }
 
-    public function create(Request $request, BuildingService $service)
+    public function create(Request $request)
     {
         return view('buildings.form', $this->formData(null) + [
             'blocked' => false,
         ]);
     }
 
-    public function store(Request $request, BuildingService $service)
+    public function store(Request $request)
     {
         $data = $this->validated($request);
 
-        try {
-            $building = $service->create($request->user(), $data);
-        } catch (SubscriptionException $e) {
-            return back()->withErrors(['general' => $e->getMessage()])->withInput();
-        }
+        $building = app(\App\Services\BuildingService::class)->create($request->user(), $data);
 
         $request->session()->put('current_building_id', $building->id);
 
