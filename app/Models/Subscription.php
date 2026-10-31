@@ -18,6 +18,7 @@ class Subscription extends Model
     }
 
     public function user() { return $this->belongsTo(User::class, 'user_id'); }
+    public function building() { return $this->belongsTo(Building::class, 'building_id'); }
     public function plan() { return $this->belongsTo(SubscriptionPlan::class, 'plan_id'); }
 
     public function buildings() { return $this->hasMany(Building::class); }
