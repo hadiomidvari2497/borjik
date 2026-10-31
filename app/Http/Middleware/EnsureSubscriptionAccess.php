@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Building;
+use App\Models\Subscription;
 use App\Services\BuildingService;
 use App\Support\CurrentBuilding;
 use Closure;
@@ -52,7 +53,7 @@ class EnsureSubscriptionAccess
             && isset($building)
             && $building
             && ! $building->subscription_id
-            && ! $user->subscriptions()->exists();
+            && ! Subscription::query()->where('user_id', $user->id)->exists();
 
         if (! $legacyUnsubscribedBuilding && (! $subscription || ! $subscription->isActive())) {
             return redirect()->route('subscription.show')
