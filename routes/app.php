@@ -128,6 +128,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
     });
 
     Route::get('/audit', [AuditController::class, 'index'])->middleware('can:audit.view')->name('audit.index');
+    Route::delete('/audit', [AuditController::class, 'clear'])->middleware('can:audit.view')->name('audit.clear');
 
     Route::middleware('can:document.view')->prefix('documents')->name('documents.')->controller(DocumentController::class)->group(function () {
         Route::get('/', 'index')->name('index');
