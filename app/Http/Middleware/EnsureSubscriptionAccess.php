@@ -15,6 +15,7 @@ class EnsureSubscriptionAccess
         'dashboard',
         'subscription.*',
         'building.switch',
+        'buildings.index',
         'buildings.create',
         'buildings.store',
     ];
