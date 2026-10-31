@@ -41,9 +41,14 @@ class SubscriptionPagesTest extends TestCase
         SiteSetting::set('payment.gateway', ['provider_name' => 'زرین‌پال', 'driver' => 'zarinpal', 'environment' => 'sandbox', 'api_base_url' => 'https://sandbox.zarinpal.com/pg/v4', 'merchant_id' => '00000000-0000-0000-0000-000000000000', 'active' => true]);
     }
 
-    private function asBuilding()\n    {\n        return $this->asBuilding()->withSession(['current_building_id' => $this->building->id]);\n    }\n\n    public function test_plans_page_highlights_current_plan_discount_and_history(): void
+    private function asBuilding()
     {
-        $this->actingAs($this->user)->get(route('subscription.show'))
+        return $this->actingAs($this->user)->withSession(['current_building_id' => $this->building->id]);
+    }
+
+    public function test_plans_page_highlights_current_plan_discount_and_history(): void
+    {
+        $this->asBuilding()->get(route('subscription.show'))
             ->assertOk()
             ->assertSee('پلن فعلی شما')
             ->assertSee('تخفیف ویژه')
@@ -55,7 +60,7 @@ class SubscriptionPagesTest extends TestCase
 
     public function test_checkout_shows_steps_savings_and_a_single_currency_label(): void
     {
-        $this->actingAs($this->user)->get(route('subscription.show', ['checkout' => $this->big->id]))
+        $this->asBuilding()->get(route('subscription.show', ['checkout' => $this->big->id]))
             ->assertOk()
             ->assertSee('تکمیل خرید')
             ->assertSee('تخفیف پلن')
@@ -66,7 +71,7 @@ class SubscriptionPagesTest extends TestCase
 
     public function test_invoice_shows_number_amount_and_print_action(): void
     {
-        $this->actingAs($this->user)->get(route('subscription.payment.receipt', $this->payment->id))
+        $this->asBuilding()->get(route('subscription.payment.receipt', $this->payment->id))
             ->assertOk()
             ->assertSee('SH-'.now()->subDays(10)->format('Y').'-000001', false)
             ->assertSee('پرداخت موفق')
