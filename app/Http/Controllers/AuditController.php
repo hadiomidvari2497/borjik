@@ -40,4 +40,26 @@ class AuditController extends Controller
             'rows' => $logs->getCollection()->map(fn (AuditLog $l) => AuditPresenter::describe($l)),
         ]);
     }
+    public function clear(Request $request)
+    {
+        $data = $request->validate([
+            'scope' => ['required', 'in:all,range'],
+            'from' => ['required_if:scope,range', 'nullable', 'string', 'max:20'],
+            'to' => ['required_if:scope,range', 'nullable', 'string', 'max:20'],
+            'confirmation' => ['required', 'in:حذف'],
+        ]);
+        $buildingId = app(CurrentBuilding::class)->id();
+        $query = AuditLog::query()->where('building_id', $buildingId);
+        if ($data['scope'] === 'range') {
+            $from = JalaliDate::parse($data['from']);
+            $to = JalaliDate::parse($data['to']);
+            if (! $from || ! $to || $to->lt($from)) {
+                return back()->withErrors(['to' => 'بازهٔ تاریخی واردشده معتبر نیست.'])->withInput();
+            }
+            $query->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()]);
+        }
+        $deleted = $query->delete();
+
+        return redirect()->route('audit.index')->with('status', number_format($deleted).' رویداد از تاریخچه همین ساختمان پاک شد.');
+    }
 }
