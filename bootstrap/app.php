@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'building' => \App\Http\Middleware\SetCurrentBuilding::class,
             'building.tool' => \App\Http\Middleware\EnsureBuildingToolEnabled::class,
             'subscription.active' => \App\Http\Middleware\RequireActiveSubscription::class,
+            'subscription.access' => \\App\\Http\\Middleware\\EnsureSubscriptionAccess::class,
             'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
             'admin' => \App\Http\Middleware\EnsureAdminAuth::class,
             'admin.can' => \App\Http\Middleware\EnsureAdminPermission::class,
