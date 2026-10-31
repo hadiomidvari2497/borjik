@@ -65,6 +65,24 @@ class SystemDiagnosticsController extends Controller
         ]);
     }
 
+    public function clear(Request $request)
+    {
+        $data = $request->validate([
+            'scope' => ['required', 'in:all,range'],
+            'from' => ['required_if:scope,range', 'nullable', 'date_format:Y-m-d'],
+            'to' => ['required_if:scope,range', 'nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'confirmation' => ['required', 'in:حذف'],
+        ]);
+        $query = SystemErrorLog::query();
+        if ($data['scope'] === 'range') {
+            $query->whereBetween('created_at', [$data['from'].' 00:00:00', $data['to'].' 23:59:59']);
+        }
+        $deleted = $query->delete();
+
+        return redirect()->route('admin.system-diagnostics.index')
+            ->with('status', number_format($deleted).' خطا از تاریخچه پاک شد.');
+    }
+
     /**
      * صف رخدادهای قابل اقدام را از لاگ‌های موجود می‌سازد؛ هیچ جدول یا سامانهٔ موازی ایجاد نمی‌کند.
      *
