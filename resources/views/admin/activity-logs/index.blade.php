@@ -13,6 +13,20 @@
 </style>
 <div class="card">
   <div class="page-h"><div><h2>تاریخچه فعالیت مدیران</h2><p style="color:var(--muted);font-size:13px;line-height:1.8;margin:7px 0 0">ثبت عملیات موفق ایجاد، ویرایش و حذف در پنل مدیریت؛ بدون ذخیره رمز عبور، کلیدها یا محتوای فرم‌ها.</p></div></div>
+
+  @if(session('status'))<div class="alert success" role="status">{{ session('status') }}</div>@endif
+  <details style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px">
+    <summary style="cursor:pointer;font-weight:800;color:#b42318">پاک‌سازی لاگ‌ها</summary>
+    <form method="POST" action="{{ route('admin.activity-logs.clear') }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px">
+      @csrf @method('DELETE')
+      <div><label>محدوده پاک‌سازی</label><select name="scope" required><option value="all">تمام لاگ‌های این بخش</option><option value="range">فقط بازه تاریخی</option></select></div>
+      <div><label>از تاریخ </label><input name="from" type="date"></div>
+      <div><label>تا تاریخ </label><input name="to" type="date"></div>
+      <div><label>برای تأیید، «حذف» را وارد کن</label><input name="confirmation" required pattern="حذف" placeholder="حذف"></div>
+      <div><button class="btn" type="submit" style="background:#b42318;color:#fff">پاک‌سازی لاگ‌ها</button></div>
+    </form>
+    <p class="sd-muted" style="margin:9px 0 0">این عملیات برگشت‌پذیر نیست و فقط رکوردهای همین آرشیو را حذف می‌کند.</p>
+  </details>
   <div class="al-stats">
     <div class="al-stat"><small>عملیات امروز</small><strong>{{ $F::num($stats['today']) }}</strong></div>
     <div class="al-stat"><small>عملیات ۷ روز اخیر</small><strong>{{ $F::num($stats['week']) }}</strong></div>
