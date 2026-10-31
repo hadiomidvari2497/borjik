@@ -18,24 +18,30 @@ class SubscriptionPagesTest extends TestCase
     private SubscriptionPlan $pro;
     private SubscriptionPlan $big;
     private SubscriptionPayment $payment;
+    private Building $building;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->user = User::create(['mobile' => '09120000077', 'first_name' => 'مریم', 'last_name' => 'احمدی', 'status' => 'active', 'profile_completed_at' => now()]);
+        $this->seed(RolePermissionSeeder::class);
+        $this->building = Building::create(['name' => 'ساختمان صفحه اشتراک', 'code' => '20077', 'created_by' => $this->user->id]);
+        BuildingUserRole::create(['building_id' => $this->building->id, 'user_id' => $this->user->id, 'role_id' => Role::where('key', 'owner')->whereNull('building_id')->value('id'), 'status' => 'active']);
+
         $this->pro = SubscriptionPlan::create(['name' => 'حرفه‌ای', 'units_limit' => 50, 'duration_months' => 3, 'price' => 1250000, 'is_active' => true]);
         $this->big = SubscriptionPlan::create([
             'name' => 'سازمانی', 'units_limit' => 200, 'duration_months' => 12, 'price' => 9800000, 'is_active' => true,
             'discount_type' => 'percent', 'discount_value' => 20,
             'discount_starts_at' => now()->subDay(), 'discount_ends_at' => now()->addDays(5),
         ]);
-        $subscription = Subscription::create(['user_id' => $this->user->id, 'plan_id' => $this->pro->id, 'units_limit' => 50, 'starts_at' => now()->subDays(10), 'expires_at' => now()->addDays(80), 'status' => 'active']);
+        $subscription = Subscription::create(['user_id' => $this->user->id, 'building_id' => $this->building->id, 'plan_id' => $this->pro->id, 'units_limit' => 50, 'starts_at' => now()->subDays(10), 'expires_at' => now()->addDays(80), 'status' => 'active']);
+        $this->building->update(['subscription_id' => $subscription->id]);
         $this->payment = SubscriptionPayment::create(['subscription_id' => $subscription->id, 'user_id' => $this->user->id, 'amount' => 1250000, 'gateway' => 'zarinpal', 'ref_id' => '555111', 'status' => 'paid', 'paid_at' => now()->subDays(10)]);
         SiteSetting::set('payment.gateway', ['provider_name' => 'زرین‌پال', 'driver' => 'zarinpal', 'environment' => 'sandbox', 'api_base_url' => 'https://sandbox.zarinpal.com/pg/v4', 'merchant_id' => '00000000-0000-0000-0000-000000000000', 'active' => true]);
     }
 
-    public function test_plans_page_highlights_current_plan_discount_and_history(): void
+    private function asBuilding()\n    {\n        return $this->asBuilding()->withSession(['current_building_id' => $this->building->id]);\n    }\n\n    public function test_plans_page_highlights_current_plan_discount_and_history(): void
     {
         $this->actingAs($this->user)->get(route('subscription.show'))
             ->assertOk()
