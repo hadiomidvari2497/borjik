@@ -6,6 +6,20 @@
   <div class="page-h"><h2>تاریخچه‌ی تغییرات</h2></div>
   <div class="h" style="margin-top:6px">هر ثبت، ویرایش و حذف اطلاعات این ساختمان همراه با فرد انجام‌دهنده و زمان آن نگهداری می‌شود.</div>
 
+
+  @if(session('status'))<div class="alert success" role="status">{{ session('status') }}</div>@endif
+  <details style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px">
+    <summary style="cursor:pointer;font-weight:800;color:#b42318">پاک‌سازی لاگ‌ها</summary>
+    <form method="POST" action="{{ route('audit.clear') }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px">
+      @csrf @method('DELETE')
+      <div><label>محدوده پاک‌سازی</label><select name="scope" required><option value="all">تمام لاگ‌های این بخش</option><option value="range">فقط بازه تاریخی</option></select></div>
+      <div><label>از تاریخ (شمسی)</label><input name="from" class="jdate" autocomplete="off"></div>
+      <div><label>تا تاریخ (شمسی)</label><input name="to" class="jdate" autocomplete="off"></div>
+      <div><label>برای تأیید، «حذف» را وارد کن</label><input name="confirmation" required pattern="حذف" placeholder="حذف"></div>
+      <div><button class="btn" type="submit" style="background:#b42318;color:#fff">پاک‌سازی لاگ‌ها</button></div>
+    </form>
+    <p class="sd-muted" style="margin:9px 0 0">این عملیات برگشت‌پذیر نیست و فقط رکوردهای همین آرشیو را حذف می‌کند.</p>
+  </details>
   <form class="filters" method="GET" style="margin-top:12px">
     <select name="model"><option value="">همه‌ی موجودیت‌ها</option>
       @foreach(config('audit.models') as $class => $cfg)<option value="{{ $class }}" @selected(request('model') === $class)>{{ $cfg['label'] }}</option>@endforeach
