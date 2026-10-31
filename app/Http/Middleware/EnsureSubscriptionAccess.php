@@ -19,6 +19,8 @@ class EnsureSubscriptionAccess
         'dashboard',
         'subscription.*',
         'building.switch',
+        'buildings.create',
+        'buildings.store',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -39,11 +41,20 @@ class EnsureSubscriptionAccess
             $subscription = $building
                 ? app(BuildingService::class)->ensureActiveSubscription($building)
                 : null;
+
+            // Legacy buildings created before subscription enforcement may not have a subscription.
+            // New buildings are still created only through the subscription-checked controller.
         } else {
             $subscription = app(BuildingService::class)->activeSubscription($user);
         }
 
-        if (! $subscription || ! $subscription->isActive()) {
+        $legacyUnsubscribedBuilding = $buildingId
+            && isset($building)
+            && $building
+            && ! $building->subscription_id
+            && ! $user->subscriptions()->exists();
+
+        if (! $legacyUnsubscribedBuilding && (! $subscription || ! $subscription->isActive())) {
             return redirect()->route('subscription.show')
                 ->with('warning', 'مهلت اشتراک شما به پایان رسیده است. برای ادامه استفاده از امکانات پنل، اشتراک خود را تمدید کنید.');
         }
