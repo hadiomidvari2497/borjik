@@ -48,4 +48,23 @@ class AdminActivityLogController extends Controller
             ],
         ]);
     }
+    public function clear(Request $request)
+    {
+        $data = $request->validate([
+            'scope' => ['required', 'in:all,range'],
+            'from' => ['required_if:scope,range', 'nullable', 'date_format:Y-m-d'],
+            'to' => ['required_if:scope,range', 'nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'confirmation' => ['required', 'in:حذف'],
+        ]);
+
+        $query = AdminActivityLog::query();
+        if ($data['scope'] === 'range') {
+            $query->whereBetween('created_at', [$data['from'].' 00:00:00', $data['to'].' 23:59:59']);
+        }
+
+        $deleted = $query->delete();
+
+        return redirect()->route('admin.activity-logs.index')
+            ->with('status', number_format($deleted).' رکورد از تاریخچه فعالیت مدیران پاک شد.');
+    }
 }
