@@ -32,14 +32,14 @@
   @if($units->isEmpty())<div class="empty">واحدی پیدا نشد.</div>
   @else
   <div class="tbl-wrap"><table class="tbl">
-    <thead><tr><th>بلوک</th><th>واحد</th><th>طبقه</th><th>متراژ</th><th>خواب</th><th>ساکنین</th><th>پارکینگ</th><th>انباری</th><th>وضعیت</th><th>وضعیت مالی</th><th></th></tr></thead>
+    <thead><tr><th>بلوک</th><th>واحد</th><th>طبقه</th><th>متراژ</th><th>خواب</th><th>وضعیت سکونت</th><th>نماینده / سرپرست</th><th>اعضای خانواده</th><th>پارکینگ</th><th>انباری</th><th>وضعیت</th><th>وضعیت مالی</th><th></th></tr></thead>
     <tbody>
     @foreach($units as $u)
       <tr>
         <td>{{ $u->block->name }}</td><td><b>{{ \App\Support\Fa::digits($u->number) }}</b></td>
         <td>{{ \App\Support\Fa::digits($u->floor) }}</td><td>{{ \App\Support\Fa::num($u->area_m2) }} م</td>
         <td>{{ $u->bedrooms !== null ? \App\Support\Fa::digits($u->bedrooms) : '—' }}</td>
-        <td>{{ \App\Support\Fa::digits($u->residents_count) }}</td>
+        <td>{{ ['owner' => 'مالک‌نشین', 'rented' => 'مستأجرنشین', 'vacant' => 'خالی'][$u->occupancy_type] ?? 'تعیین‌نشده' }}</td><td>@if($u->representative_name)<b>{{ $u->representative_name }}</b><small style="display:block;color:var(--muted)">{{ $u->representative_mobile }}</small>@else—@endif</td><td>{{ \App\Support\Fa::digits($u->family_count) }}</td>
         <td>{{ $u->parkings_count ? \App\Support\Fa::digits($u->parkings_count) : '—' }}</td>
         <td>{{ $u->storages_count ? \App\Support\Fa::digits($u->storages_count) : '—' }}</td>
         <td><span class="pill {{ $st[$u->status->value][1] }}">{{ $st[$u->status->value][0] }}</span></td>
