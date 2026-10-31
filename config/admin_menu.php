@@ -20,7 +20,7 @@ return [
                 'desc' => 'درآمد، تخفیف پلن‌ها، کد تخفیف و تغییر گروهی قیمت‌ها'],
             ['label' => 'پلن‌های اشتراک', 'icon' => 'crown', 'route' => 'admin.plans.index', 'active' => 'admin.plans.*', 'perm' => 'plans.manage',
                 'desc' => 'قیمت، مدت و سقف واحد پلن‌ها'],
-            ['label' => 'اشتراک کاربران', 'icon' => 'users', 'route' => 'admin.subscriptions.index', 'active' => 'admin.subscriptions.*', 'perm' => 'subscriptions.manage',
+            ['label' => 'اشتراک ساختمان‌ها', 'icon' => 'users', 'route' => 'admin.subscriptions.index', 'active' => 'admin.subscriptions.*', 'perm' => 'subscriptions.manage',
                 'desc' => 'فعال‌سازی دستی پلن برای کاربران موجود'],
             ['label' => 'گزارش پرداخت اشتراک‌ها', 'icon' => 'credit-card', 'route' => 'admin.subscription-payments.index', 'active' => 'admin.subscription-payments.*', 'perm' => 'subscriptions.manage',
                 'desc' => 'تراکنش‌ها، درآمد، وضعیت پرداخت و تاریخچه فعال‌سازی پلن‌ها'],
