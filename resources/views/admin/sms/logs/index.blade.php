@@ -13,6 +13,20 @@
     <h2>آرشیو پیامک‌ها</h2>
     <a class="btn sec sm" href="{{ route('admin.sms.logs.export', array_filter($filters)) }}">خروجی CSV</a>
   </div>
+
+  @if(session('status'))<div class="alert success" role="status">{{ session('status') }}</div>@endif
+  <details style="margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px">
+    <summary style="cursor:pointer;font-weight:800;color:#b42318">پاک‌سازی لاگ‌ها</summary>
+    <form method="POST" action="{{ route('admin.sms.logs.clear') }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin-top:14px">
+      @csrf @method('DELETE')
+      <div><label>محدوده پاک‌سازی</label><select name="scope" required><option value="all">تمام لاگ‌های این بخش</option><option value="range">فقط بازه تاریخی</option></select></div>
+      <div><label>از تاریخ (شمسی)</label><input name="from" class="jdate" autocomplete="off"></div>
+      <div><label>تا تاریخ (شمسی)</label><input name="to" class="jdate" autocomplete="off"></div>
+      <div><label>برای تأیید، «حذف» را وارد کن</label><input name="confirmation" required pattern="حذف" placeholder="حذف"></div>
+      <div><button class="btn" type="submit" style="background:#b42318;color:#fff">پاک‌سازی لاگ‌ها</button></div>
+    </form>
+    <p class="sd-muted" style="margin:9px 0 0">این عملیات برگشت‌پذیر نیست و فقط رکوردهای همین آرشیو را حذف می‌کند.</p>
+  </details>
   <form method="GET" class="fgrid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
     <div class="fld"><label for="from">از تاریخ</label><input id="from" name="from" class="jdate" data-clearable="1" autocomplete="off" value="{{ $filters['from'] }}"></div>
     <div class="fld"><label for="to">تا تاریخ</label><input id="to" name="to" class="jdate" data-clearable="1" autocomplete="off" value="{{ $filters['to'] }}"></div>
