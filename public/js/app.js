@@ -4,17 +4,44 @@
 
   // ---- کشوی منو (موبایل)
   var side = $('side'), scrim = $('scrim');
-  function drawer(open) { side.classList.toggle('open', open); scrim.classList.toggle('open', open); }
-  ['burger', 'more'].forEach(function (id) { if ($(id)) $(id).addEventListener('click', function () { drawer(true); }); });
+  function drawer(open) {
+    if (side) side.classList.toggle('open', open);
+    if (scrim) scrim.classList.toggle('open', open);
+  }
+  ['burger', 'more'].forEach(function (id) {
+    if ($(id)) $(id).addEventListener('click', function () { drawer(true); });
+  });
   if (scrim) scrim.addEventListener('click', function () { drawer(false); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { drawer(false); var sw = $('sw'); if (sw) sw.classList.remove('open'); } });
 
   // ---- سوئیچ ساختمان
   var swb = $('swb'), sw = $('sw');
-  if (swb) {
-    swb.addEventListener('click', function () { sw.classList.toggle('open'); swb.setAttribute('aria-expanded', sw.classList.contains('open')); });
-    document.addEventListener('click', function (e) { if (!sw.contains(e.target)) sw.classList.remove('open'); });
+  if (swb && sw) {
+    swb.addEventListener('click', function () {
+      var open = !sw.classList.contains('open');
+      sw.classList.toggle('open', open);
+      swb.setAttribute('aria-expanded', String(open));
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!sw.contains(e.target) && sw.classList.contains('open')) {
+        sw.classList.remove('open');
+        swb.setAttribute('aria-expanded', 'false');
+      }
+    });
   }
+
+  // یک شنونده‌ی Escape برای هر دو منو؛ وضعیت ARIA و فوکوس همگام می‌ماند.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+
+    drawer(false);
+
+    if (swb && sw && sw.classList.contains('open')) {
+      sw.classList.remove('open');
+      swb.setAttribute('aria-expanded', 'false');
+      swb.focus();
+    }
+  });
 
   // ---- حالت تیره و روشن
   try { var t = localStorage.getItem('borjik-theme'); if (t) root.setAttribute('data-theme', t); } catch (e) {}
