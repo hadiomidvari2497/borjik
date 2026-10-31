@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Building;
+use App\Support\CurrentBuilding;
 use App\Models\CouponRedemption;
 use App\Models\DiscountCoupon;
 use App\Models\SiteSetting;
@@ -23,6 +24,13 @@ class SubscriptionController extends Controller
     public function show(Request $request, BuildingService $buildings)
     {
         $user = $request->user();
+        $buildingId = app(CurrentBuilding::class)->id();
+        $building = $buildingId ? Building::query()->whereHas('members', fn ($query) => $query
+            ->where('user_id', $user->id)->where('status', 'active'))->findOrFail($buildingId) : null;
+
+        if (! $building) {
+            return redirect()->route('buildings.create')->with('warning', 'ابتدا ساختمان موردنظر را ایجاد یا انتخاب کنید.');
+        }
 
         if ($request->filled('checkout')) {
             $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail((int) $request->query('checkout'));
@@ -32,10 +40,13 @@ class SubscriptionController extends Controller
                 'paymentGateways' => $gateways,
                 'gatewayReady' => $gateways !== [],
                 'user' => $user,
+                'building' => $building,
             ]);
         }
 
-        $current = $buildings->activeSubscription($user);
+        $current = Subscription::query()->where('building_id', $building->id)
+            ->where('status', 'active')->where('expires_at', '>', now())
+            ->with('plan')->latest('id')->first();
         if ($current) {
             $current->loadMissing('plan');
         }
@@ -55,8 +66,10 @@ class SubscriptionController extends Controller
             'plans' => $plans,
             'gatewayReady' => $gatewayReady,
             'paymentGateways' => $gateways,
+            'building' => $building,
             'recentPayments' => SubscriptionPayment::query()->with('subscription.plan')
-                ->where('user_id', $user->id)->latest('id')->limit(10)->get(),
+                ->whereHas('subscription', fn ($query) => $query->where('building_id', $building->id))
+                ->latest('id')->limit(10)->get(),
         ]);
     }
 
@@ -65,6 +78,12 @@ class SubscriptionController extends Controller
     {
         $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
         $user = $request->user();
+        $buildingId = app(CurrentBuilding::class)->id();
+        $building = $buildingId ? Building::query()->whereHas('members', fn ($query) => $query
+            ->where('user_id', $user->id)->where('status', 'active'))->findOrFail($buildingId) : null;
+        if (! $building) {
+            return redirect()->route('buildings.create')->with('warning', 'ابتدا ساختمان موردنظر را ایجاد یا انتخاب کنید.');
+        }
 
         $baseAmount = $plan->effectivePrice();
         $couponCode = strtoupper(trim((string) $request->input('coupon_code', '')));
@@ -86,7 +105,7 @@ class SubscriptionController extends Controller
 
         if ($amount === 0) {
             try {
-                DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount) {
+                DB::transaction(function () use ($user, $building, $plan, $couponCode, $baseAmount) {
                     $lockedCoupon = null;
                     $discount = 0;
                     if ($couponCode !== '') {
@@ -100,19 +119,17 @@ class SubscriptionController extends Controller
                         }
                     }
 
-                    Subscription::where('user_id', $user->id)->where('status', 'active')->update(['status' => 'expired']);
+                    Subscription::where('building_id', $building->id)->where('status', 'active')->update(['status' => 'expired']);
                     $subscription = Subscription::create([
                         'user_id' => $user->id,
+                        'building_id' => $building->id,
                         'plan_id' => $plan->id,
                         'units_limit' => $plan->units_limit,
                         'starts_at' => now(),
                         'expires_at' => now()->addMonths(max(1, (int) $plan->duration_months)),
                         'status' => 'active',
                     ]);
-                    $previousIds = Subscription::where('user_id', $user->id)->where('id', '!=', $subscription->id)->pluck('id');
-                    if ($previousIds->isNotEmpty()) {
-                        Building::whereIn('subscription_id', $previousIds)->update(['subscription_id' => $subscription->id]);
-                    }
+                    $building->update(['subscription_id' => $subscription->id]);
                     if ($lockedCoupon) {
                         CouponRedemption::create([
                             'coupon_id' => $lockedCoupon->id,
@@ -126,8 +143,8 @@ class SubscriptionController extends Controller
                 return back()->withInput()->withErrors($e->errors());
             }
 
-            return redirect()->route('buildings.create')
-                ->with('status', 'اشتراک «'.$plan->name.'» با موفقیت فعال شد.');
+            return redirect()->route('dashboard')
+                ->with('status', 'اشتراک «'.$plan->name.'» برای ساختمان «'.$building->name.'» با موفقیت فعال شد.');
         }
 
         $availableGateways = $registry->active();
@@ -151,7 +168,7 @@ class SubscriptionController extends Controller
         }
 
         try {
-            $payment = DB::transaction(function () use ($user, $plan, $couponCode, $baseAmount, $discountAmount, $amount, $driver, $gatewayId, $settings) {
+            $payment = DB::transaction(function () use ($user, $building, $plan, $couponCode, $baseAmount, $discountAmount, $amount, $driver, $gatewayId, $settings) {
                 $lockedCoupon = null;
                 if ($couponCode !== '') {
                     $lockedCoupon = DiscountCoupon::query()->where('code', $couponCode)->lockForUpdate()->first();
@@ -163,6 +180,7 @@ class SubscriptionController extends Controller
 
                 $pending = Subscription::create([
                     'user_id' => $user->id,
+                    'building_id' => $building->id,
                     'plan_id' => $plan->id,
                     'units_limit' => $plan->units_limit,
                     'starts_at' => now(),
@@ -323,17 +341,14 @@ class SubscriptionController extends Controller
                     throw new \RuntimeException('Pending subscription not found.');
                 }
 
-                Subscription::where('user_id', $locked->user_id)
+                Subscription::where('building_id', $subscription->building_id)
                     ->where('status', 'active')
+                    ->where('id', '!=', $subscription->id)
                     ->update(['status' => 'expired']);
 
                 $subscription->update(['status' => 'active', 'starts_at' => now()]);
-                $previousIds = Subscription::where('user_id', $locked->user_id)
-                    ->where('id', '!=', $subscription->id)
-                    ->pluck('id');
-                if ($previousIds->isNotEmpty()) {
-                    Building::whereIn('subscription_id', $previousIds)->get()
-                        ->each(fn (Building $building) => $building->update(['subscription_id' => $subscription->id]));
+                if ($subscription->building_id) {
+                    Building::whereKey($subscription->building_id)->update(['subscription_id' => $subscription->id]);
                 }
 
                 CouponRedemption::where('payment_id', $locked->id)->where('status', 'reserved')->update(['status' => 'paid']);
@@ -361,12 +376,13 @@ class SubscriptionController extends Controller
         }
     }
 
-    private function activateFreePlan(int $userId, SubscriptionPlan $plan): void
+    private function activateFreePlan(int $userId, int $buildingId, SubscriptionPlan $plan): void
     {
-        DB::transaction(function () use ($userId, $plan) {
-            Subscription::where('user_id', $userId)->where('status', 'active')->update(['status' => 'expired']);
+        DB::transaction(function () use ($userId, $buildingId, $plan) {
+            Subscription::where('building_id', $buildingId)->where('status', 'active')->update(['status' => 'expired']);
             $subscription = Subscription::create([
                 'user_id' => $userId,
+                'building_id' => $buildingId,
                 'plan_id' => $plan->id,
                 'units_limit' => $plan->units_limit,
                 'starts_at' => now(),
@@ -374,11 +390,7 @@ class SubscriptionController extends Controller
                 'status' => 'active',
             ]);
 
-            $previousIds = Subscription::where('user_id', $userId)->where('id', '!=', $subscription->id)->pluck('id');
-            if ($previousIds->isNotEmpty()) {
-                Building::whereIn('subscription_id', $previousIds)->get()
-                    ->each(fn (Building $building) => $building->update(['subscription_id' => $subscription->id]));
-            }
+            Building::whereKey($buildingId)->update(['subscription_id' => $subscription->id]);
         });
     }
 }
