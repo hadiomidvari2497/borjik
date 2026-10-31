@@ -44,7 +44,12 @@ class SubscriptionCheckoutTest extends TestCase
         ]);
     }
 
-    private function asBuilding()\n    {\n        return $this->asBuilding()->withSession(['current_building_id' => $this->building->id]);\n    }\n\n    private function configureZarinpal(): void
+    private function asBuilding()
+    {
+        return $this->actingAs($this->user)->withSession(['current_building_id' => $this->building->id]);
+    }
+
+    private function configureZarinpal(): void
     {
         SiteSetting::set('payment.gateway', [
             'provider_name' => 'زرین‌پال',
@@ -68,7 +73,7 @@ class SubscriptionCheckoutTest extends TestCase
             ], 200),
         ]);
 
-        $this->actingAs($this->user)
+        $this->asBuilding()
             ->post(route('subscription.subscribe', $this->paidPlan->id))
             ->assertRedirect('https://sandbox.zarinpal.com/pg/StartPay/A00000000000000000000000000000000001');
 
@@ -103,7 +108,7 @@ class SubscriptionCheckoutTest extends TestCase
             ], 200),
         ]);
 
-        $this->actingAs($this->user)->post(route('subscription.subscribe', $this->paidPlan->id))->assertRedirect();
+        $this->asBuilding()->post(route('subscription.subscribe', $this->paidPlan->id))->assertRedirect();
         $subscription = Subscription::where('user_id', $this->user->id)->firstOrFail();
 
         $this->get(route('payment.gateway.callback', ['Authority' => 'A-CANCELLED', 'Status' => 'NOK']))
@@ -116,14 +121,14 @@ class SubscriptionCheckoutTest extends TestCase
 
     public function test_gateway_configuration_details_are_hidden_from_customers_when_gateway_is_not_configured(): void
     {
-        $this->actingAs($this->user)
+        $this->asBuilding()
             ->get(route('subscription.show'))
             ->assertOk()
             ->assertDontSee('پنل مدیریت')
             ->assertDontSee('شناسه پذیرنده')
             ->assertDontSee('فعال‌سازی قالب زرین‌پال');
 
-        $this->actingAs($this->user)
+        $this->asBuilding()
             ->from(route('subscription.show'))
             ->post(route('subscription.subscribe', $this->paidPlan->id))
             ->assertRedirect(route('subscription.show'))
@@ -144,7 +149,7 @@ class SubscriptionCheckoutTest extends TestCase
             'is_active' => true,
         ]);
 
-        $this->actingAs($this->user)
+        $this->asBuilding()
             ->post(route('subscription.subscribe', $free->id))
             ->assertRedirect(route('dashboard'));
 
