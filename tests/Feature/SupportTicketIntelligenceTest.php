@@ -79,6 +79,33 @@ class SupportTicketIntelligenceTest extends TestCase
         $this->assertDatabaseHas('support_ticket_events', ['support_ticket_id' => $ticket->id, 'event_type' => 'priority_changed']);
     }
 
+
+    public function test_existing_tickets_can_be_analyzed_by_artisan_command(): void
+    {
+        $user = $this->createUser('09128880004');
+        $ticket = SupportTicket::create([
+            'number' => 'SP-INTEL-OLD-0001',
+            'user_id' => $user->id,
+            'subject' => 'خطای پرداخت اشتراک',
+            'category' => 'billing',
+            'priority' => 'normal',
+            'status' => 'open',
+        ]);
+        SupportMessage::create([
+            'support_ticket_id' => $ticket->id,
+            'sender_type' => 'user',
+            'sender_id' => $user->id,
+            'body' => 'پرداخت ناموفق بوده و برای تمدید اشتراک خطا دریافت می‌کنم.',
+        ]);
+
+        $this->artisan('support:analyze-existing')->assertExitCode(0);
+
+        $this->assertDatabaseHas('support_tickets', [
+            'id' => $ticket->id,
+            'priority_suggestion' => 'urgent',
+        ]);
+    }
+
     private function createUser(string $mobile): \App\Models\User
     {
         return \App\Models\User::create([
