@@ -13,6 +13,7 @@
   <div class="page-h">
     <h2>قرارداد {{ $rent ? 'اجاره' : 'فروش' }} شماره‌ی {{ $F::digits($contract->id) }} <span class="pill {{ $active ? '' : 'h' }}">{{ $contract->status->label() }}</span></h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn sm" href="{{ route('contracts.print', $contract->id) }}" target="_blank" rel="noopener">چاپ قرارداد</a>
       <a class="btn sec sm" href="{{ route('contracts.index') }}">بازگشت به فهرست</a>
       @if($contract->isActiveRent())
         <form method="POST" action="{{ route('contracts.end', $contract->id) }}" data-confirm="مستأجر از ساکنین واحد حذف می‌شود و واحد از اجاره خارج می‌شود." data-confirm-title="قرارداد اجاره پایان یابد؟" data-confirm-icon="warning">@csrf<button class="btn dng sm" type="submit">پایان قرارداد</button></form>

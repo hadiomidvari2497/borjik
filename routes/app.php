@@ -154,6 +154,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::get('/{id}/print', 'print')->whereNumber('id')->name('print');
         Route::get('/{id}', 'show')->whereNumber('id')->name('show');
         Route::post('/{id}/end', 'end')->whereNumber('id')->name('end');
         Route::put('/{id}/payer', 'payer')->whereNumber('id')->name('payer');
