@@ -612,6 +612,7 @@
         @media(prefers-reduced-motion:reduce){.marquee-track,.hero-dust,.btn-primary:after{animation:none!important}.js .rv.in>*{animation:none}}
         .seo-pages{position:relative;overflow:hidden;background:radial-gradient(ellipse at 8% 8%,rgba(34,197,170,.11),transparent 34%),linear-gradient(145deg,#f8fbfa,#edf7f3)}
         .seo-pages-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+        .seo-pages-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
         .seo-page-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:270px;padding:clamp(24px,3vw,36px);overflow:hidden;border:1px solid #dcece6;border-radius:26px;background:rgba(255,255,255,.92);box-shadow:0 16px 42px rgba(14,62,52,.06);transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
         .seo-page-card:hover{transform:translateY(-5px);border-color:#9bdcca;box-shadow:0 24px 52px rgba(14,62,52,.12)}
         .seo-page-icon{display:grid;place-items:center;width:54px;height:54px;margin-bottom:20px;border-radius:17px;background:linear-gradient(145deg,#dff8ef,#c7f0e4);color:#087f78;font-size:1.55rem;font-weight:900}
@@ -711,6 +712,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
             <div class="seo-pages-grid">
                 <article class="seo-page-card"><span class="seo-page-icon" aria-hidden="true">⌂</span><h3>نرم‌افزار مدیریت ساختمان</h3><p>با امکانات صابخونه برای مدیریت امور ساختمان، پیگیری درخواست‌های ساکنان، اطلاع‌رسانی و هماهنگی مسئولیت‌ها بیشتر آشنا شوید.</p><a class="seo-page-link" href="{{ route('marketing.building-management') }}">آشنایی با نرم‌افزار مدیریت ساختمان <span aria-hidden="true">←</span></a></article>
                 <article class="seo-page-card"><span class="seo-page-icon" aria-hidden="true">₮</span><h3>نرم‌افزار شارژ ساختمان</h3><p>راهکارهای مدیریت شارژ و هزینه‌ها، پیگیری پرداخت‌ها و شفاف‌تر نگه‌داشتن اطلاعات مالی ساختمان را ببینید.</p><a class="seo-page-link" href="{{ route('marketing.building-charges') }}">مشاهدهٔ امکانات شارژ ساختمان <span aria-hidden="true">←</span></a></article>
+                <article class="seo-page-card"><span class="seo-page-icon" aria-hidden="true">✓</span><h3>راهنمای جامع امور شارژ</h3><p>از تکمیل اطلاعات واحدها و تنظیم روش محاسبه تا ثبت هزینه‌ها، بررسی سهم هر واحد، انتشار صورت‌حساب و پیگیری پرداخت‌ها را قدم‌به‌قدم یاد بگیرید.</p><a class="seo-page-link" href="{{ route('marketing.charge-guide') }}">آموزش کامل محاسبه شارژ <span aria-hidden="true">←</span></a></article>
             </div>
         </div>
     </section>
