@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Building;
+use App\Models\AdminUser;
+use App\Services\Payments\PaymentGatewayRegistry;
 use App\Models\SmsLog;
 use App\Models\Subscription;
 use App\Models\SystemErrorLog;
@@ -184,6 +186,50 @@ class SystemDiagnosticsController extends Controller
         } catch (Throwable $exception) {
             $checks[] = ['name' => 'پایگاه داده کاربران و ساختمان‌ها', 'detail' => 'قابل‌خواندن بودن جداول اصلی', 'status' => 'fail', 'message' => 'خواندن یکی از جداول اصلی ناموفق بود.'];
         }
+
+        $mailer = (string) config('mail.default', 'log');
+        $mailConfig = (array) config('mail.mailers.'.$mailer, []);
+        $transport = (string) ($mailConfig['transport'] ?? $mailer);
+        if ($transport === 'smtp') {
+            $host = (string) ($mailConfig['host'] ?? '');
+            $port = (int) ($mailConfig['port'] ?? 0);
+            $socket = false;
+            if ($host !== '' && $port > 0) {
+                $socket = @stream_socket_client('tcp://'.$host.':'.$port, $socketCode, $socketError, 3);
+            }
+            $connected = is_resource($socket);
+            if ($connected) {
+                fclose($socket);
+            }
+            $checks[] = ['name' => 'ایمیل / SMTP', 'detail' => 'بررسی اتصال شبکه به میزبان SMTP؛ بدون ارسال ایمیل', 'status' => $connected ? 'ok' : 'fail', 'message' => $connected ? 'اتصال برقرار است.' : 'اتصال برقرار نشد.'];
+        } else {
+            $checks[] = ['name' => 'ایمیل', 'detail' => 'Mailer فعال: '.$mailer, 'status' => in_array($transport, ['log', 'array'], true) ? 'fail' : 'ok', 'message' => 'این بررسی جایگزین تست ارسال واقعی نیست.'];
+        }
+
+        $checks[] = $this->check('درگاه پرداخت', 'وجود حداقل یک درگاه فعال با اطلاعات پایه', function () {
+            return app(PaymentGatewayRegistry::class)->active() !== [];
+        });
+        $checks[] = $this->check('صف پردازش', 'تنظیم درایور صف و جدول موردنیاز', function () {
+            $driver = (string) config('queue.default', '');
+            if ($driver === '') {
+                return false;
+            }
+            if ($driver === 'database') {
+                return Schema::hasTable((string) config('queue.connections.database.table', 'jobs'));
+            }
+            return $driver !== 'sync';
+        });
+        $checks[] = $this->check('زمان‌بندی Cron', 'آخرین heartbeat زمان‌بندی باید حداکثر سه دقیقه قبل ثبت شده باشد', function () {
+            if (! Schema::hasTable('cron_execution_logs')) {
+                return false;
+            }
+            $heartbeat = DB::table('cron_execution_logs')->where('task_name', 'scheduler:heartbeat')->where('status', 'success')->orderByDesc('finished_at')->value('finished_at');
+            return $heartbeat && ! \\Illuminate\\Support\\Carbon::parse($heartbeat)->lt(now()->subMinutes(3));
+        });
+        $checks[] = $this->check('امنیت پنل ادمین', 'سوپرادمین‌های فعال باید تأیید دومرحله‌ای داشته باشند', function () {
+            return ! AdminUser::query()->where('status', 'active')->where('is_super', true)->where('two_factor_enabled', false)->exists();
+        });
+        $checks[] = $this->check('حالت امن برنامه', 'در محیط عملیاتی APP_DEBUG باید خاموش باشد', fn () => ! (bool) config('app.debug'));
 
         $modules = [
             'ورود و کاربران' => ['users', 'login_otps', 'roles', 'permissions', 'role_permission'],
