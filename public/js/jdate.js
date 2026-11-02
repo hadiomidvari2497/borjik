@@ -121,7 +121,7 @@
     var mOpts = MONTHS.map(function (n, i) { return '<option value="' + (i + 1) + '"' + (i + 1 === v.m ? ' selected' : '') + '>' + n + '</option>'; }).join('');
 
     html += '<div class="jd-head"><button type="button" class="jd-nav" data-go="-1" aria-label="ماه قبل">›</button>' +
-      '<select class="jd-m" aria-label="ماه">' + mOpts + '</select><select class="jd-y" aria-label="سال">' + yOpts + '</select>' +
+      '<select class="jd-m" data-native-select aria-label="ماه">' + mOpts + '</select><select class="jd-y" data-native-select aria-label="سال">' + yOpts + '</select>' +
       '<button type="button" class="jd-nav" data-go="1" aria-label="ماه بعد">‹</button></div>';
     html += '<div class="jd-grid">' + WEEK.map(function (w) { return '<b>' + w + '</b>'; }).join('');
 
