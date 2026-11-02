@@ -30,4 +30,6 @@ class SupportTicket extends Model
     public function building(): BelongsTo { return $this->belongsTo(Building::class); }
     public function assignedAdmin(): BelongsTo { return $this->belongsTo(AdminUser::class, 'assigned_admin_id'); }
     public function messages(): HasMany { return $this->hasMany(SupportMessage::class, 'support_ticket_id'); }
+    public function events(): HasMany { return $this->hasMany(SupportTicketEvent::class, 'support_ticket_id'); }
+    public function resolvedByAdmin(): BelongsTo { return $this->belongsTo(AdminUser::class, 'resolved_by_admin_id'); }
 }
