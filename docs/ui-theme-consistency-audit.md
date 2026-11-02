@@ -36,3 +36,12 @@ Date: 2026-10-19
 - Changes are limited to presentation/CSS; routes, controllers, permissions, data handling, and JavaScript behavior were not intentionally changed.
 - CSS brace balance and key selector presence should be checked in CI, and the rendered pages should still be checked at desktop/mobile widths and in both explicit light/dark modes. A source review alone cannot guarantee pixel-perfect rendering across browsers.
 - This is a first cross-cutting audit of the shared shell and high-visibility views, not a claim that every individual page has been visually inspected in a live browser. The remaining pages should be checked in the next pass using the same theme-token and responsive-layout checklist.
+
+## 2026-11-02 — Light-by-default and dark-theme polish
+
+- **Default theme is now light.** The panels (building and admin) no longer follow the OS `prefers-color-scheme`; dark is only active when the user picks it (`data-theme="dark"`, stored in `localStorage` key `borjik-theme`). The toggle in `public/js/app.js` / `admin.js` only reads/writes `light`/`dark`, and both layouts set `data-theme` in `<head>` to avoid a flash.
+- All former `@media (prefers-color-scheme: dark)` blocks in views and `notify.css` were converted to explicit `:root[data-theme="dark"]` rules (several pages previously had dark styling only under the OS media query, so an explicit dark choice on a light OS was partly unstyled). `tests/Unit/ThemeDefaultTest.php` guards this.
+- **Dark palette refresh** (`public/css/app.css`): layered surfaces (background < panel < card < menus), subtle translucent borders instead of bright ones, softer text (`#e6f1ef`), calmer background glows, layered shadows with a top highlight, dedicated `--field`/`--elev` tokens for inputs and menus, and `--fill-a/--fill-b` for filled brand surfaces so white text keeps adequate contrast (light values unchanged). Semantic colours (danger/warn/ok/info) are brighter in dark.
+- `--surface` / `--surface-2` were referenced by several pages (treasury, maintenance, …) but never defined; they are now defined **in dark only**, so light rendering is unchanged.
+- Known intentional exception: the treasury Jalali year field stays white in dark mode (explicit earlier decision).
+- Not verified in a real browser; please check both themes at desktop/mobile widths.

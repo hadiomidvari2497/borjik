@@ -9,14 +9,18 @@
   if (scrim) scrim.addEventListener('click', function () { drawer(false); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') drawer(false); });
 
-  // حالت تیره و روشن (همان کلید پنل ساختمان تا ترجیح کاربر یکی باشد)
-  try { var t = localStorage.getItem('borjik-theme'); if (t) root.setAttribute('data-theme', t); } catch (e) {}
+  // ---- حالت تیره و روشن (پیش‌فرض: روشن؛ از تنظیم سیستم‌عامل پیروی نمی‌کند)
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+  var lightColor = themeMeta ? themeMeta.getAttribute('content') : null;
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    if (themeMeta && lightColor) themeMeta.setAttribute('content', t === 'dark' ? '#0a1413' : lightColor);
+  }
+  try { var t = localStorage.getItem('borjik-theme'); applyTheme(t === 'dark' ? 'dark' : 'light'); } catch (e) { applyTheme('light'); }
   var tb = $('theme');
   if (tb) tb.addEventListener('click', function () {
-    var cur = root.getAttribute('data-theme');
-    var dark = cur === 'dark' || (!cur && matchMedia('(prefers-color-scheme: dark)').matches);
-    var next = dark ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
     try { localStorage.setItem('borjik-theme', next); } catch (e) {}
   });
 

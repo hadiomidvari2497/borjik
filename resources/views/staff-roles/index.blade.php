@@ -92,26 +92,10 @@
 :root[data-theme="dark"] .role-empty{background:var(--panel);border-color:var(--line);color:var(--muted)}
 :root[data-theme="dark"] .role-empty strong{color:var(--text)}
 :root[data-theme="dark"] .role-name-field input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]) .role-alert.success{background:rgba(47,160,96,.16);color:#91e0ae;border-color:rgba(47,160,96,.3)}
- :root:not([data-theme="light"]) .role-alert.error{background:rgba(224,69,58,.15);color:#ffaaa3;border-color:rgba(255,130,120,.3)}
- :root:not([data-theme="light"]) .role-number,
- :root:not([data-theme="light"]) .role-card-icon{background:var(--brand-soft);color:var(--brand)}
- :root:not([data-theme="light"]) .role-name-field span,
- :root:not([data-theme="light"]) .role-permission-title{color:var(--text)}
- :root:not([data-theme="light"]) .role-group-label{color:var(--muted)}
- :root:not([data-theme="light"]) .role-name-field input,
- :root:not([data-theme="light"]) .role-permission,
- :root:not([data-theme="light"]) .role-card{background:var(--card);color:var(--text);border-color:var(--line)}
- :root:not([data-theme="light"]) .role-permission:hover,
- :root:not([data-theme="light"]) .role-permission:has(input:checked){background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
- :root:not([data-theme="light"]) .role-delete{background:rgba(224,69,58,.14);border-color:rgba(255,130,120,.3);color:#ffaaa3}
- :root:not([data-theme="light"]) .role-default{background:rgba(47,160,96,.16);color:#91e0ae}
- :root:not([data-theme="light"]) .role-empty{background:var(--panel);border-color:var(--line);color:var(--muted)}
- :root:not([data-theme="light"]) .role-empty strong{color:var(--text)}
- :root:not([data-theme="light"]) .role-name-field input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
-}
-
+:root[data-theme="dark"] .role-number,:root[data-theme="dark"] .role-card-icon{background:var(--brand-soft);color:var(--brand)}
+:root[data-theme="dark"] .role-name-field span,:root[data-theme="dark"] .role-permission-title{color:var(--text)}
+:root[data-theme="dark"] .role-name-field input,:root[data-theme="dark"] .role-permission,:root[data-theme="dark"] .role-card{background:var(--card);color:var(--text);border-color:var(--line)}
+:root[data-theme="dark"] .role-permission:hover,:root[data-theme="dark"] .role-permission:has(input:checked){background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
 </style>
 <div class="role-page">
   <section class="role-hero">

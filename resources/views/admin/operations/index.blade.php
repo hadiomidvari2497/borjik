@@ -70,7 +70,6 @@
 .oc-footnote{margin-top:22px;padding:15px 17px;border-radius:13px;border:1px solid rgba(16,185,129,.18);background:rgba(16,185,129,.045)}
 @media(max-width:900px){.oc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.oc-grid,.oc-form{grid-template-columns:1fr}.oc-hero{align-items:flex-start}.oc-page{padding:12px;border-radius:16px}.oc-card{padding:16px}.oc-actions{padding:10px}.oc-actions>.btn,.oc-actions>form{width:100%}.oc-actions>form .btn{width:100%}.oc-actions form>div{width:100%}.oc-table{min-width:760px}}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .oc-good{background:rgba(47,160,96,.18);color:#91e0ae}:root:not([data-theme="light"]) .oc-bad{background:rgba(224,69,58,.18);color:#ffaaa3}:root:not([data-theme="light"]) .oc-warn{background:rgba(232,163,61,.18);color:#f4c775}}
 :root[data-theme="dark"] .oc-good{background:rgba(47,160,96,.18);color:#91e0ae}
 :root[data-theme="dark"] .oc-bad{background:rgba(224,69,58,.18);color:#ffaaa3}
 :root[data-theme="dark"] .oc-warn{background:rgba(232,163,61,.18);color:#f4c775}

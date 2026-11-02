@@ -35,9 +35,6 @@
 .borjik-toast .toast-header { font-weight: 700; }
 .borjik-toast .borjik-toast-title { margin-inline-end: auto; color: var(--bk-accent); }
 .borjik-toast .toast-body { line-height: 1.8; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .borjik-toast .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
-}
 :root[data-theme="dark"] .borjik-toast .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
 
 /* ─── SweetAlert2 ─── */

@@ -102,39 +102,12 @@
 :root[data-theme="dark"] .poll-chip.live{background:rgba(47,160,96,.18);color:#91e0ae}
 :root[data-theme="dark"] .poll-chip.wait{background:rgba(232,163,61,.18);color:#f4c775}
 :root[data-theme="dark"] .poll-chip.closed{background:var(--track);color:var(--muted)}
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]) .poll-section-icon,
- :root:not([data-theme="light"]) .poll-count,
- :root:not([data-theme="light"]) .poll-card-symbol{background:var(--brand-soft);color:var(--brand)}
- :root:not([data-theme="light"]) .poll-page .fld label,
- :root:not([data-theme="light"]) .poll-anonymous strong,
- :root:not([data-theme="light"]) .poll-result-top{color:var(--text)}
- :root:not([data-theme="light"]) .poll-page .fld input:not([type=checkbox]):not([type=radio]),
- :root:not([data-theme="light"]) .poll-page .fld select,
- :root:not([data-theme="light"]) .poll-page .fld textarea,
- :root:not([data-theme="light"]) .poll-option{background:var(--card);color:var(--text);border-color:var(--line)}
- :root:not([data-theme="light"]) .poll-options-builder,
- :root:not([data-theme="light"]) .poll-anonymous,
- :root:not([data-theme="light"]) .poll-meta span,
- :root:not([data-theme="light"]) .poll-state-note,
- :root:not([data-theme="light"]) .poll-empty{background:var(--panel);border-color:var(--line);color:var(--muted)}
- :root:not([data-theme="light"]) .poll-meta{border-color:var(--line);color:var(--muted)}
- :root:not([data-theme="light"]) .poll-option:hover{background:var(--brand-soft);border-color:var(--brand)}
- :root:not([data-theme="light"]) .poll-option:has(input:checked){background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
- :root:not([data-theme="light"]) .poll-track{background:var(--track)}
- :root:not([data-theme="light"]) .poll-result-top b,
- :root:not([data-theme="light"]) .poll-action{color:var(--brand)}
- :root:not([data-theme="light"]) .poll-action{background:var(--brand-soft);border-color:var(--line)}
- :root:not([data-theme="light"]) .poll-action.danger{background:rgba(224,69,58,.14);color:#ffaaa3;border-color:rgba(255,130,120,.3)}
- :root:not([data-theme="light"]) .poll-state-note .dot,
- :root:not([data-theme="light"]) .poll-empty-icon{background:var(--brand-soft);color:var(--brand)}
- :root:not([data-theme="light"]) .poll-empty strong{color:var(--text)}
- :root:not([data-theme="light"]) .poll-errors{background:rgba(224,69,58,.14);border-color:rgba(255,130,120,.3);color:#ffaaa3}
- :root:not([data-theme="light"]) .poll-chip.live{background:rgba(47,160,96,.18);color:#91e0ae}
- :root:not([data-theme="light"]) .poll-chip.wait{background:rgba(232,163,61,.18);color:#f4c775}
- :root:not([data-theme="light"]) .poll-chip.closed{background:var(--track);color:var(--muted)}
-}
-
+:root[data-theme="dark"] .poll-section-icon,:root[data-theme="dark"] .poll-count,:root[data-theme="dark"] .poll-card-symbol{background:var(--brand-soft);color:var(--brand)}
+:root[data-theme="dark"] .poll-page .fld label,:root[data-theme="dark"] .poll-anonymous strong,:root[data-theme="dark"] .poll-result-top{color:var(--text)}
+:root[data-theme="dark"] .poll-page .fld input:not([type=checkbox]):not([type=radio]),:root[data-theme="dark"] .poll-page .fld select,:root[data-theme="dark"] .poll-page .fld textarea,:root[data-theme="dark"] .poll-option{background:var(--card);color:var(--text);border-color:var(--line)}
+:root[data-theme="dark"] .poll-options-builder,:root[data-theme="dark"] .poll-anonymous,:root[data-theme="dark"] .poll-meta span,:root[data-theme="dark"] .poll-state-note,:root[data-theme="dark"] .poll-empty{background:var(--panel);border-color:var(--line);color:var(--muted)}
+:root[data-theme="dark"] .poll-result-top b,:root[data-theme="dark"] .poll-action{color:var(--brand)}
+:root[data-theme="dark"] .poll-state-note .dot,:root[data-theme="dark"] .poll-empty-icon{background:var(--brand-soft);color:var(--brand)}
 </style>
 <div class="poll-page">
     <section class="poll-hero">

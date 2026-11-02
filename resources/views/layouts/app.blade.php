@@ -65,6 +65,7 @@
 }
 
 </style>
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('borjik-theme')==='dark'?'dark':'light')}catch(e){}</script>
 </head>
 <body>
 @include('partials.icons')
