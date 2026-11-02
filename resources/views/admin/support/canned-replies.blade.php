@@ -14,7 +14,7 @@
 </form></div>
 @forelse($replies as $reply)
 <div class="scr-card"><div class="scr-row"><div style="flex:1;min-width:0"><b>{{ $reply->title }}</b><p>{{ $reply->body }}</p></div>
-<form method="POST" action="{{ route('admin.support.canned-replies.destroy',$reply) }}" onsubmit="return confirm('این پاسخ آماده حذف شود؟')">@csrf @method('DELETE')<button class="scr-delete" type="submit">حذف</button></form></div></div>
+<form method="POST" action="{{ route('admin.support.canned-replies.destroy',$reply) }}" data-confirm="این پاسخ آماده حذف شود؟">@csrf @method('DELETE')<button class="scr-delete" type="submit">حذف</button></form></div></div>
 @empty
 <p style="text-align:center;color:var(--muted);padding:24px">هنوز پاسخی ثبت نشده است.</p>
 @endforelse
