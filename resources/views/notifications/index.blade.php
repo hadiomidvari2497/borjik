@@ -26,11 +26,19 @@
   <div class="notice-bar">
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <a class="btn {{ $filter === 'all' ? '' : 'sec' }} sm" href="{{ route('notifications.index') }}">همه</a>
-      <a class="btn {{ $filter === 'unread' ? '' : 'sec' }} sm" href="{{ route('notifications.index', ['filter' => 'unread']) }}">خوانده‌نشده @if($unreadCount > 0)({{ $F::num($unreadCount) }})@endif</a>
+      <a class="btn {{ $filter === 'unread' ? '' : 'sec' }} sm" href="{{ route('notifications.index', array_filter(['filter' => 'unread', 'category' => $category])) }}">خوانده‌نشده @if($unreadCount > 0)({{ $F::num($unreadCount) }})@endif</a>
+    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <a class="btn {{ $category === '' ? '' : 'sec' }} sm" href="{{ route('notifications.index', ['filter' => $filter]) }}">همه دسته‌ها</a>
+      @foreach($categories as $key => $label)
+        @if(($categoryCounts[$key] ?? 0) > 0)
+          <a class="btn {{ $category === $key ? '' : 'sec' }} sm" href="{{ route('notifications.index', array_filter(['filter' => $filter, 'category' => $key])) }}">{{ $label }} <small>({{ $F::num($categoryCounts[$key]) }})</small></a>
+        @endif
+      @endforeach
     </div>
     @if($unreadCount > 0)
       <form method="POST" action="{{ route('notifications.read-all') }}">@csrf
-        <input type="hidden" name="filter" value="{{ $filter === 'unread' ? 'unread' : '' }}">
+        <input type="hidden" name="filter" value="{{ $filter === 'unread' ? 'unread' : '' }}"><input type="hidden" name="category" value="{{ $category }}">
         <button class="btn sec sm" type="submit">همه را خوانده‌شده کن</button>
       </form>
     @endif
@@ -58,7 +66,7 @@
         @if(!$notification->read_at)<span class="notice-new">جدید</span>@endif
       </article>
     @empty
-      <div class="notice-empty">{{ $filter === 'unread' ? 'اعلان خوانده‌نشده‌ای ندارید.' : 'اعلانی برای این ساختمان ندارید.' }}</div>
+      <div class="notice-empty">{{ $category !== '' ? 'در این دسته اعلانی وجود ندارد.' : ($filter === 'unread' ? 'اعلان خوانده‌نشده‌ای ندارید.' : 'اعلانی برای این ساختمان ندارید.') }}</div>
     @endforelse
     @if($notifications->hasPages())
       <div class="req-pagination">{{ $notifications->links() }}</div>
