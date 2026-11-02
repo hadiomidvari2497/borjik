@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminUser;
+use App\Models\SupportAttachment;
 use App\Models\SupportMessage;
 use App\Models\SupportTicket;
+use App\Notifications\SupportTicketNotification;
 use App\Support\CurrentBuilding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -22,13 +26,8 @@ class SupportTicketController extends Controller
 
     public function index(Request $request)
     {
-        $tickets = SupportTicket::query()
-            ->where('user_id', $request->user()->id)
-            ->with('building:id,name')
-            ->withCount('messages')
-            ->latest('updated_at')
-            ->paginate(15)
-            ->withQueryString();
+        $tickets = SupportTicket::query()->where('user_id', $request->user()->id)
+            ->with('building:id,name')->withCount('messages')->latest('updated_at')->paginate(15)->withQueryString();
 
         return view('support.index', ['tickets' => $tickets, 'categories' => self::CATEGORIES]);
     }
@@ -44,6 +43,8 @@ class SupportTicketController extends Controller
             'subject' => ['required', 'string', 'min:5', 'max:180'],
             'category' => ['required', Rule::in(array_keys(self::CATEGORIES))],
             'body' => ['required', 'string', 'min:15', 'max:10000'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx,txt'],
         ]);
 
         $ticket = DB::transaction(function () use ($data, $request, $current) {
@@ -58,23 +59,22 @@ class SupportTicketController extends Controller
                 'last_reply_at' => now(),
             ]);
             $ticket->update(['number' => 'SP-'.now()->format('ym').'-'.str_pad((string) $ticket->id, 6, '0', STR_PAD_LEFT)]);
-            $ticket->messages()->create([
-                'sender_type' => 'user',
-                'sender_id' => $request->user()->id,
-                'body' => trim($data['body']),
+            $message = $ticket->messages()->create([
+                'sender_type' => 'user', 'sender_id' => $request->user()->id, 'body' => trim($data['body']),
             ]);
-
+            $this->saveAttachments($request, $ticket, $message, 'user', (int) $request->user()->id);
             return $ticket;
         });
+
+        $this->notifySupportAdmins($ticket, 'تیکت جدید', 'یک درخواست پشتیبانی جدید ثبت شده است.');
 
         return redirect()->route('support.show', $ticket)->with('success', 'درخواست پشتیبانی شما ثبت شد. شماره پیگیری: '.$ticket->number);
     }
 
     public function show(Request $request, int $ticket)
     {
-        $ticket = SupportTicket::query()
-            ->where('user_id', $request->user()->id)
-            ->with(['building:id,name', 'messages' => fn ($query) => $query->where('is_internal', false)->orderBy('created_at')])
+        $ticket = SupportTicket::query()->where('user_id', $request->user()->id)
+            ->with(['building:id,name', 'messages' => fn ($q) => $q->where('is_internal', false)->with('attachments')->orderBy('created_at')])
             ->findOrFail($ticket);
 
         return view('support.show', compact('ticket'));
@@ -82,19 +82,64 @@ class SupportTicketController extends Controller
 
     public function reply(Request $request, int $ticket)
     {
-        $data = $request->validate(['body' => ['required', 'string', 'min:2', 'max:10000']]);
+        $data = $request->validate([
+            'body' => ['required', 'string', 'min:2', 'max:10000'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx,txt'],
+        ]);
         $ticket = SupportTicket::query()->where('user_id', $request->user()->id)->findOrFail($ticket);
         abort_if(in_array($ticket->status, ['resolved', 'closed'], true), 403, 'این درخواست بسته شده است.');
 
         DB::transaction(function () use ($ticket, $request, $data) {
-            $ticket->messages()->create([
-                'sender_type' => 'user',
-                'sender_id' => $request->user()->id,
-                'body' => trim($data['body']),
+            $message = $ticket->messages()->create([
+                'sender_type' => 'user', 'sender_id' => $request->user()->id, 'body' => trim($data['body']),
             ]);
+            $this->saveAttachments($request, $ticket, $message, 'user', (int) $request->user()->id);
             $ticket->update(['status' => 'open', 'last_reply_at' => now(), 'closed_at' => null]);
         });
 
+        $this->notifySupportAdmins($ticket, 'پاسخ جدید مشتری', 'مشتری در تیکت '.$ticket->number.' پیام جدیدی ارسال کرده است.');
+
         return redirect()->route('support.show', $ticket)->with('success', 'پاسخ شما ثبت شد.');
+    }
+
+    public function download(Request $request, int $attachment)
+    {
+        $file = SupportAttachment::with('ticket')->findOrFail($attachment);
+        abort_unless((int) $file->ticket->user_id === (int) $request->user()->id, 404);
+        return $this->streamAttachment($file);
+    }
+
+    private function saveAttachments(Request $request, SupportTicket $ticket, SupportMessage $message, string $type, int $senderId): void
+    {
+        foreach ($request->file('attachments', []) as $upload) {
+            $path = $upload->store('support/'.$ticket->id, 'local');
+            $message->attachments()->create([
+                'support_ticket_id' => $ticket->id, 'disk' => 'local', 'path' => $path,
+                'original_name' => Str::limit($upload->getClientOriginalName(), 250, ''),
+                'mime' => $upload->getMimeType(), 'size' => $upload->getSize(),
+                'uploader_type' => $type, 'uploader_id' => $senderId,
+            ]);
+        }
+    }
+
+    private function notifySupportAdmins(SupportTicket $ticket, string $title, string $message): void
+    {
+        $admins = $ticket->assigned_admin_id
+            ? AdminUser::whereKey($ticket->assigned_admin_id)->get()
+            : AdminUser::where('status', 'active')->get()->filter(fn ($admin) => $admin->hasPermission('support.manage'));
+        foreach ($admins as $admin) {
+            $admin->notify(new SupportTicketNotification($ticket, $title, $message, route('admin.support.show', $ticket)));
+        }
+    }
+
+    private function streamAttachment(SupportAttachment $file)
+    {
+        abort_unless(Storage::disk($file->disk)->exists($file->path), 404);
+        return Storage::disk($file->disk)->download($file->path, $file->original_name, [
+            'Content-Type' => $file->mime ?: 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 }
