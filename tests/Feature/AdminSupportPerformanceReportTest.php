@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AdminUser;
 use App\Models\SupportMessage;
 use App\Models\SupportTicket;
+use App\Models\SupportTicketEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,7 +46,7 @@ class AdminSupportPerformanceReportTest extends TestCase
             'body' => 'پاسخ آزمایشی',
         ]);
 
-        \\App\\Models\\SupportTicketEvent::create([
+        SupportTicketEvent::create([
             'support_ticket_id' => $ticket->id,
             'event_type' => 'first_response',
             'actor_admin_id' => $admin->id,
