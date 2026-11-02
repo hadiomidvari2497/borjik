@@ -61,6 +61,13 @@ return [
         ],
     ],
     [
+        'title' => 'پشتیبانی مشتریان',
+        'items' => [
+            ['label' => 'مرکز پشتیبانی', 'icon' => 'messages-square', 'route' => 'admin.support.index', 'active' => 'admin.support.*', 'perm' => 'support.manage',
+                'desc' => 'پاسخ‌گویی، اولویت‌بندی و پیگیری درخواست‌های مشتریان صابخونه'],
+        ],
+    ],
+    [
         'title' => 'نظارت و امنیت',
         'items' => [
             ['label' => 'تحلیل رفتار کاربران', 'icon' => 'activity', 'route' => 'admin.analytics.index', 'active' => 'admin.analytics.*', 'perm' => 'stats.view',
