@@ -119,7 +119,7 @@
       if (!event.target.closest('.global-search')) close();
     });
     document.addEventListener('keydown', function (event) {
-      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (!(event.key.toLowerCase() === 'k' && (event.ctrlKey || event.metaKey)) || event.altKey) return;
       var target = event.target;
       if (target && (/INPUT|TEXTAREA|SELECT/.test(target.tagName) || target.isContentEditable)) return;
       event.preventDefault();
