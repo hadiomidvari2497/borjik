@@ -165,3 +165,6 @@
 /* ---------- چاپ فاکتور ---------- */
 @page{size:auto;margin:12mm}
 @media print{html,body{background:#fff!important;color:#111!important;margin:0!important;padding:0!important}body *{visibility:hidden!important}.invoice-page,.invoice-page *{visibility:visible!important}.invoice-page{position:absolute!important;inset:0 auto auto 0!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}.invoice{border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important}.invoice-top{color:#111!important;background:#fff!important;border-bottom:2px solid #0e6a5b;padding:0 0 16px!important}.invoice-top:before{display:none}.invoice-sub{color:#444!important}.invoice-no{color:#0e6a5b!important;background:#fff!important;border-color:#0e6a5b!important}.invoice-brand span{box-shadow:none;border:1px solid #cfe4de}.invoice-body{padding:18px 0 0!important}.invoice-actions{display:none!important}.invoice-item,.invoice-section,.invoice-total{break-inside:avoid}}
+
+/* Respect the native hidden state for dynamically displayed checkout summary rows. */
+.bl-sr[hidden]{display:none!important}
