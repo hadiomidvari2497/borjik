@@ -247,6 +247,8 @@ class SubscriptionController extends Controller
                         'gateway_name' => (string) ($settings['provider_name'] ?? $driver),
                         'list_price' => (int) $plan->price,
                         'plan_discount_amount' => max(0, (int) $plan->price - $baseAmount),
+                        'plan_discount_type' => $plan->discount_type,
+                        'plan_discount_value' => (int) $plan->discount_value,
                         'base_amount' => $baseAmount,
                         'discount_amount' => $discountAmount,
                         'coupon_discount_amount' => $discountAmount,
