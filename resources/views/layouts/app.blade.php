@@ -71,7 +71,7 @@
 .global-search-field svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8}
 .global-search-field input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-size:11px}
 .global-search-field input::placeholder{color:var(--muted,#82918f)}
-.global-search-field kbd{flex:none;padding:2px 6px;border:1px solid var(--gb);border-radius:6px;color:var(--muted);font:10px inherit}
+.global-search-field kbd{flex:none;padding:2px 6px;border:1px solid var(--gb);border-radius:6px;color:var(--muted);font-size:10px}
 .global-search-results{position:absolute;z-index:1000;top:calc(100% + 10px);inset-inline-end:0;width:min(520px,calc(100vw - 32px));max-height:min(65vh,540px);overflow:auto;padding:8px;border:1px solid var(--gb);border-radius:17px;background:var(--panel);box-shadow:0 18px 48px rgba(10,35,35,.18)}
 .global-search-results[hidden]{display:none}
 .global-search-group{padding:10px 10px 5px;color:var(--muted);font-size:10px;font-weight:850}
@@ -127,7 +127,7 @@
       @endif
     </div>
 
-    <label class="side-search" for="side-menu-search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><input id="side-menu-search" type="search" autocomplete="off" placeholder="جست‌وجو در منو..." aria-label="جست‌وجو در منو"><kbd>/</kbd></label>
+    <label class="side-search" for="side-menu-search"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg><input id="side-menu-search" type="search" autocomplete="off" placeholder="جست‌وجو در منو..." aria-label="جست‌وجو در منو"><kbd>Ctrl K</kbd></label>
     <nav class="nav" aria-label="منوی اصلی">
       @foreach($menu as $group)
         <div class="grp">{{ $group['title'] }}</div>
