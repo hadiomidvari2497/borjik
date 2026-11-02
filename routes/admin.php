@@ -49,6 +49,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
             Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:20,1')->name('reply');
             Route::get('/attachments/{attachment}', 'download')->whereNumber('attachment')->name('attachments.download');
+            Route::get('/attachments/{attachment}', 'download')->whereNumber('attachment')->name('attachments.download');
             Route::patch('/{ticket}', 'update')->whereNumber('ticket')->name('update');
         });
         Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->middleware('admin.can:logs.view')->name('activity-logs.index');
