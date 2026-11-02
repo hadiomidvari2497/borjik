@@ -23,6 +23,7 @@ class NotificationController extends Controller
             'contract' => 'قرارداد',
             'expense' => 'هزینه‌ها',
             'system' => 'سایر',
+            'support' => 'پشتیبانی',
         ];
         $category = array_key_exists((string) $request->query('category'), $categories)
             ? (string) $request->query('category')
@@ -80,7 +81,7 @@ class NotificationController extends Controller
         abort_unless($buildingId, 403);
 
         $query = $request->user()->unreadNotifications()->where('data->building_id', $buildingId);
-        $categories = ['invoice', 'payment', 'request', 'contract', 'expense', 'system'];
+        $categories = ['invoice', 'payment', 'request', 'contract', 'expense', 'system', 'support'];
         $category = (string) $request->input('category', '');
         if (in_array($category, $categories, true)) {
             $query->where('data->category', $category);
