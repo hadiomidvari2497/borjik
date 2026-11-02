@@ -47,6 +47,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
     Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     Route::get('/subscription/plans', [SubscriptionController::class, 'show'])->name('subscription.plans');
     Route::post('/subscription/plans/{id}', [SubscriptionController::class, 'subscribe'])->whereNumber('id')->name('subscription.subscribe');
+    Route::post('/subscription/plans/{id}/coupon-preview', [SubscriptionController::class, 'previewCoupon'])->whereNumber('id')->middleware('throttle:30,1')->name('subscription.coupon.preview');
     Route::get('/subscription/payments/{payment}/receipt', [SubscriptionPaymentReceiptController::class, 'show'])->whereNumber('payment')->name('subscription.payment.receipt');
 
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
