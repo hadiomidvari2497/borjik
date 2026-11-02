@@ -36,6 +36,7 @@ class SupportTicketController extends Controller
         $ticketsQuery = SupportTicket::query()
             ->with(['user:id,first_name,last_name,company_name,mobile,person_type', 'building:id,name', 'assignedAdmin:id,name'])
             ->withCount('messages')
+            // Keep all ticket search terms grouped so filters remain conjunctive.
             ->when($term !== '', fn ($query) => $query->where(function ($where) use ($term) {
                 $where->where('number', 'like', '%'.$term.'%')
                     ->orWhere('subject', 'like', '%'.$term.'%')
