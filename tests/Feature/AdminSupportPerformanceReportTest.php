@@ -26,6 +26,7 @@ class AdminSupportPerformanceReportTest extends TestCase
             'number' => 'SP-TEST-000001',
             'user_id' => $this->createUser()->id,
             'assigned_admin_id' => $admin->id,
+            'resolved_by_admin_id' => $admin->id,
             'subject' => 'آزمایش گزارش عملکرد',
             'category' => 'technical',
             'priority' => 'normal',
@@ -44,13 +45,29 @@ class AdminSupportPerformanceReportTest extends TestCase
             'body' => 'پاسخ آزمایشی',
         ]);
 
+        \\App\\Models\\SupportTicketEvent::create([
+            'support_ticket_id' => $ticket->id,
+            'event_type' => 'first_response',
+            'actor_admin_id' => $admin->id,
+            'description' => 'اولین پاسخ',
+            'created_at' => now()->subHours(4),
+        ]);
+        \\App\\Models\\SupportTicketEvent::create([
+            'support_ticket_id' => $ticket->id,
+            'event_type' => 'resolved',
+            'actor_admin_id' => $admin->id,
+            'description' => 'حل تیکت',
+            'created_at' => now(),
+        ]);
+
         $this->actingAs($admin, 'admin')
             ->get(route('admin.support.reports'))
             ->assertOk()
             ->assertSee('گزارش عملکرد پشتیبانی')
             ->assertSee('کارشناس آزمایشی')
             ->assertSee('میانگین زمان اولین پاسخ')
-            ->assertSee('رعایت کلی SLA');
+            ->assertSee('رعایت کلی SLA')
+            ->assertSee('تعداد پاسخ‌ها');
     }
 
     private function createUser(): \App\Models\User
