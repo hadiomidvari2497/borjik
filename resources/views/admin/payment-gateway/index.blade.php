@@ -29,12 +29,25 @@
     </aside>
     <section class="gw-panel">
       <h3 style="margin-top:0">{{ $gatewayId ? 'ویرایش درگاه' : 'تعریف درگاه جدید' }}</h3>
-      <form method="POST" action="{{ $gatewayId ? route('admin.payment-gateway.update-one', ['gatewayId' => $gatewayId]) : route('admin.payment-gateway.store') }}">
+      <form method="POST" enctype="multipart/form-data" action="{{ $gatewayId ? route('admin.payment-gateway.update-one', ['gatewayId' => $gatewayId]) : route('admin.payment-gateway.store') }}">
         @csrf
         @if($gatewayId) @method('PUT') <input type="hidden" name="gateway_id" value="{{ $gatewayId }}"> @endif
         <div class="gw-grid">
           <div class="gw-field full"><label for="gateway_template">قالب درگاه</label><select id="gateway_template" onchange="applyGatewayTemplate(this.value)"><option value="">انتخاب قالب</option><option value="zarinpal" @selected(($gateway['driver'] ?? '') === 'zarinpal')>زرین‌پال</option><option value="bitpay" @selected(($gateway['driver'] ?? '') === 'bitpay')>بیت‌پی ایران</option><option value="custom" @selected(($gateway['driver'] ?? '') === 'custom')>درگاه اختصاصی</option></select></div>
           <div class="gw-field"><label for="provider_name">نام نمایشی *</label><input id="provider_name" name="provider_name" required value="{{ old('provider_name', $gateway['provider_name'] ?? '') }}" placeholder="مثلاً بیت‌پی اصلی"></div>
+          <div class="gw-field full"><label for="logo">لوگوی درگاه پرداخت</label>
+            @if(!empty($gateway['logo_path']))
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:9px">
+                <img src="{{ asset('storage/'.ltrim($gateway['logo_path'], '/')) }}" alt="لوگوی فعلی درگاه" style="width:58px;height:58px;object-fit:contain;padding:6px;border:1px solid var(--line);border-radius:12px;background:#fff">
+                <span class="gw-help">لوگوی فعلی</span>
+              </div>
+            @endif
+            <input id="logo" name="logo" type="file" accept="image/png,image/jpeg,image/webp">
+            @if(!empty($gateway['logo_path']))
+              <label class="gw-secret"><input type="checkbox" name="clear_logo" value="1"> حذف لوگوی فعلی و نمایش حرف اول نام درگاه</label>
+            @endif
+            <small>فرمت‌های مجاز: PNG، JPG و WebP؛ حداکثر حجم ۲ مگابایت. برای تغییر لوگو، فایل جدید را انتخاب کنید.</small>
+          </div>
           <div class="gw-field"><label for="driver">شناسه فنی *</label><select id="driver" name="driver" required><option value="bitpay" @selected(($gateway['driver'] ?? '') === 'bitpay')>bitpay</option><option value="zarinpal" @selected(($gateway['driver'] ?? '') === 'zarinpal')>zarinpal</option><option value="custom" @selected(($gateway['driver'] ?? '') === 'custom')>custom (نیازمند آداپتور)</option></select></div>
           <div class="gw-field"><label for="environment">محیط *</label><select id="environment" name="environment" required><option value="production" @selected(($gateway['environment'] ?? 'production') === 'production')>عملیاتی</option><option value="sandbox" @selected(($gateway['environment'] ?? '') === 'sandbox')>آزمایشی</option></select></div>
           <div class="gw-field"><label for="merchant_id">شناسه پذیرنده</label><input id="merchant_id" name="merchant_id" dir="ltr" value="{{ $gateway['merchant_id'] ?? '' }}"></div>
