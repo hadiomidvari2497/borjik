@@ -224,7 +224,7 @@ class SystemDiagnosticsController extends Controller
                 return false;
             }
             $heartbeat = DB::table('cron_execution_logs')->where('task_name', 'scheduler:heartbeat')->where('status', 'success')->orderByDesc('finished_at')->value('finished_at');
-            return $heartbeat && ! \\Illuminate\\Support\\Carbon::parse($heartbeat)->lt(now()->subMinutes(3));
+            return $heartbeat && ! \Illuminate\Support\Carbon::parse($heartbeat)->lt(now()->subMinutes(3));
         });
         $checks[] = $this->check('امنیت پنل ادمین', 'سوپرادمین‌های فعال باید تأیید دومرحله‌ای داشته باشند', function () {
             return ! AdminUser::query()->where('status', 'active')->where('is_super', true)->where('two_factor_enabled', false)->exists();
