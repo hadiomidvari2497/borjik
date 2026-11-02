@@ -29,6 +29,7 @@ use App\Http\Controllers\Admin\SubscriptionManagementController;
 use App\Http\Controllers\Admin\SubscriptionPaymentReportController;
 use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Admin\SupportTicketController;
+use App\Http\Controllers\Admin\SupportPerformanceReportController;
 use App\Http\Controllers\Admin\FinancialManagementController;
 use App\Http\Controllers\Admin\DiscountCouponController;
 use Illuminate\Support\Facades\Route;
@@ -46,7 +47,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::prefix('support')->name('support.')->middleware('admin.can:support.manage')->controller(SupportTicketController::class)->group(function () {
             Route::get('/', 'index')->name('index');
-            Route::get('/reports', [\\App\\Http\\Controllers\\Admin\\SupportPerformanceReportController::class, 'index'])->name('reports');
+            Route::get('/reports', [SupportPerformanceReportController::class, 'index'])->name('reports');
             Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
             Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:20,1')->name('reply');
             Route::get('/attachments/{attachment}', 'download')->whereNumber('attachment')->name('attachments.download');
