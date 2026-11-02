@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\\Http\\Controllers\\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Support\MobileNumber;
-use App\Support\Totp;
-use Illuminate\Http\Request;
+use App\\Exceptions\\OtpException;
+use App\\Http\\Controllers\\Controller;
+use App\\Models\\User;
+use App\\Services\\Auth\\OtpService;
+use App\\Support\\MobileNumber;
+use App\\Support\\Totp;
+use Illuminate\\Http\\Request;
 
 class TwoFactorController extends Controller
 {
@@ -20,11 +22,9 @@ class TwoFactorController extends Controller
 
     public function verifyChallenge(Request $request)
     {
-        $user = User::findOrFail((int) $request->session()->get('2fa_user_id'));
+        $user = $this->challengeUser($request);
 
-        if ($user->status !== 'active') {
-            $request->session()->forget('2fa_user_id');
-
+        if (! $user) {
             return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
         }
 
@@ -34,9 +34,72 @@ class TwoFactorController extends Controller
             return back()->withErrors(['code' => 'کد تأیید نادرست است.']);
         }
 
-        $request->session()->forget('2fa_user_id');
+        $request->session()->forget(['2fa_user_id', '2fa_sms_requested']);
 
         return PasswordLoginController::finish($request, $user);
+    }
+
+    /**
+     * ارسال کد جایگزین از طریق همان قالب OTP ورود عادی؛ بنابراین متن پیامک دقیقاً
+     * از همان قالب سیستمی/مدیریتی «کد ورود» خوانده می‌شود.
+     */
+    public function requestSmsCode(Request $request, OtpService $otp)
+    {
+        $user = $this->challengeUser($request);
+
+        if (! $user) {
+            return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
+        }
+
+        try {
+            $otp->issue($user->mobile, 'two_factor', $user->id);
+        } catch (OtpException $e) {
+            return back()->withErrors(['code' => $e->getMessage()]);
+        }
+
+        $request->session()->put('2fa_sms_requested', true);
+
+        return back()->with('status', 'کد تأیید دومرحله‌ای از طریق پیامک ارسال شد.');
+    }
+
+    public function verifySmsCode(Request $request, OtpService $otp)
+    {
+        $user = $this->challengeUser($request);
+
+        if (! $user) {
+            return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
+        }
+
+        if (! $request->session()->boolean('2fa_sms_requested')) {
+            return back()->withErrors(['code' => 'ابتدا درخواست ارسال کد پیامکی را ثبت کنید.']);
+        }
+
+        $code = MobileNumber::toLatinDigits((string) $request->input('code'));
+
+        if (! preg_match('/^\\d{6}$/', $code) || ! $otp->verify($user->mobile, $code, 'two_factor')) {
+            return back()->withErrors(['code' => 'کد پیامکی نادرست یا منقضی است.']);
+        }
+
+        $request->session()->forget(['2fa_user_id', '2fa_sms_requested']);
+
+        return PasswordLoginController::finish($request, $user);
+    }
+
+    private function challengeUser(Request $request): ?User
+    {
+        $userId = $request->session()->get('2fa_user_id');
+        if (! $userId) {
+            abort(403);
+        }
+
+        $user = User::find($userId);
+        if (! $user || $user->status !== 'active') {
+            $request->session()->forget(['2fa_user_id', '2fa_sms_requested']);
+
+            return null;
+        }
+
+        return $user;
     }
 
     // ---- فعال‌سازی و غیرفعال‌سازی (کاربر واردشده)
