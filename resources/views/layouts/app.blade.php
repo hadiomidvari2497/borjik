@@ -64,6 +64,26 @@
   .docs-hero,.poll-hero,.cal-hero,.sms-hero,.task-hero,.shift-hero,.notice-hero,.role-hero,.mui-hero,.phonebook-hero{border-radius:22px!important}
 }
 
+
+.global-search{position:relative;display:flex;align-items:center;width:clamp(190px,28vw,360px);margin-inline-end:6px}
+.global-search-field{display:flex;align-items:center;gap:9px;width:100%;height:39px;padding:0 12px;border:1px solid var(--gb);border-radius:13px;background:var(--panel);color:var(--ink);transition:border-color .18s,box-shadow .18s}
+.global-search-field:focus-within{border-color:var(--brand,#278778);box-shadow:0 0 0 3px rgba(39,135,120,.12)}
+.global-search-field svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8}
+.global-search-field input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;font-size:11px}
+.global-search-field input::placeholder{color:var(--muted,#82918f)}
+.global-search-field kbd{flex:none;padding:2px 6px;border:1px solid var(--gb);border-radius:6px;color:var(--muted);font:10px inherit}
+.global-search-results{position:absolute;z-index:1000;top:calc(100% + 10px);inset-inline-end:0;width:min(520px,calc(100vw - 32px));max-height:min(65vh,540px);overflow:auto;padding:8px;border:1px solid var(--gb);border-radius:17px;background:var(--panel);box-shadow:0 18px 48px rgba(10,35,35,.18)}
+.global-search-results[hidden]{display:none}
+.global-search-group{padding:10px 10px 5px;color:var(--muted);font-size:10px;font-weight:850}
+.global-search-result{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:11px;color:var(--ink);text-decoration:none;transition:background .15s}
+.global-search-result:hover,.global-search-result.is-active{background:var(--soft,rgba(39,135,120,.1));color:var(--ink)}
+.global-search-result-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:10px;background:rgba(39,135,120,.1);color:var(--brand,#278778);font-size:17px}
+.global-search-result-copy{display:grid;gap:2px;min-width:0}
+.global-search-result-copy strong{font-size:11px;font-weight:850}
+.global-search-result-copy small{color:var(--muted);font-size:10px}
+.global-search-empty{padding:22px 12px;text-align:center;color:var(--muted);font-size:11px}
+@media(max-width:640px){.global-search{width:min(42vw,190px);margin-inline-end:0}.global-search-field{height:36px;padding:0 9px}.global-search-field kbd{display:none}.global-search-results{position:fixed;top:68px;inset-inline:12px;width:auto;max-height:65vh}}
+
 </style>
 <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('borjik-theme')==='dark'?'dark':'light')}catch(e){}</script>
 </head>
@@ -142,6 +162,15 @@
         {{-- Page titles live in the content panel so they never compete with the page header. --}}
       </div>
       <div class="acts">
+      <div class="global-search">
+        <label class="global-search-field" for="global-search-input">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.2 4.2"></path></svg>
+          <input id="global-search-input" type="search" autocomplete="off" placeholder="جست‌وجو در اطلاعات ساختمان..." aria-label="جست‌وجوی یکپارچه" aria-controls="global-search-results" aria-expanded="false" data-endpoint="{{ route('global-search') }}">
+          <kbd>/</kbd>
+        </label>
+        <div id="global-search-results" class="global-search-results" role="listbox" aria-label="نتایج جست‌وجو" hidden></div>
+      </div>
+
         <a class="ib" href="{{ route('invitations.index') }}" aria-label="دعوت‌نامه‌ها" title="دعوت‌نامه‌ها"><svg class="i"><use href="#inbox"/></svg></a>
         <button class="ib" id="theme" type="button" aria-label="تغییر حالت تیره و روشن"><svg class="i"><use href="#moon"/></svg></button>
         <a class="ib" href="{{ $currentBuilding ? route('notifications.index') : '#' }}" aria-label="اعلان‌ها" title="اعلان‌ها" style="position:relative"><svg class="i"><use href="#bell"/></svg>@php($unreadNotifications = $currentBuilding ? auth()->user()->unreadNotifications()->where('data->building_id', $currentBuilding->id)->count() : 0)@if($unreadNotifications > 0)<span class="bd" style="position:absolute;top:-4px;left:-4px">{{ \App\Support\Fa::num(min($unreadNotifications, 99)) }}</span>@endif</a>
@@ -211,6 +240,7 @@
 <script src="{{ asset('js/jdate.js') }}"></script>
 <script src="{{ asset('js/ui.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
+<script src="{{ asset('js/global-search.js') }}" defer></script>
 <script>
 (() => {
   if (window.__borjikLiveInteractions) return;
