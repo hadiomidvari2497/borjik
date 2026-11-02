@@ -19,7 +19,7 @@
     @foreach($invoices as $i)
       @php $overdue = in_array($i->status->value, ['unpaid', 'partial'], true) && $i->due_date->isPast(); @endphp
       <tr>
-        <td dir="ltr" style="text-align:end">{{ $i->number }}</td>
+        <td dir="ltr" style="text-align:end"><a class="link" href="{{ route('my.invoices.show', $i->id) }}">{{ $i->number }}</a></td>
         <td>{{ $type[$i->type->value] }}</td>
         <td>{{ $i->period ? \App\Support\Fa::MONTHS[$i->period->jalali_month - 1].' '.$F::digits($i->period->jalali_year) : '—' }}</td>
         <td>{{ $i->unit->block->name }} / {{ $F::digits($i->unit->number) }}</td>
