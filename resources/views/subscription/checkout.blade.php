@@ -32,7 +32,7 @@
     @error('coupon_code')<div class="bl-err">{{ $message }}</div>@enderror
 </section>
 <section class="bl-card"><h3><i>۳</i>انتخاب درگاه پرداخت</h3>
-    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}</span><span><b>{{ $gwName }}</b><small>پرداخت آنلاین امن و هدایت به درگاه بانکی</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
+    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); $gwLogo = $gateway['logo_path'] ?? null; @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">@if($gwLogo)<img src="{{ asset('storage/'.ltrim($gwLogo, '/')) }}" alt="" loading="lazy">@else{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}@endif</span><span><b>{{ $gwName }}</b><small>پرداخت آنلاین امن و هدایت به درگاه بانکی</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
     @else<div class="bl-hint">درگاه فعالی برای پرداخت آنلاین تنظیم نشده است.</div>@endif
 </section>
 </div>
