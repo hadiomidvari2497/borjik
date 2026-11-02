@@ -13,7 +13,7 @@
   <form method="POST" action="{{ route('my.payments.store') }}" enctype="multipart/form-data" style="margin-top:10px">@csrf
     <div class="fgrid">
       <div class="fld"><label for="unit_id">واحد *</label>
-        <select id="unit_id" name="unit_id">@foreach($units as $u)<option value="{{ $u->id }}" @selected((int) old('unit_id') === $u->id)>{{ $u->block->name }} / {{ $F::digits($u->number) }}@if(($debts[$u->id] ?? 0) > 0) — بدهی {{ $F::num($debts[$u->id]) }} تومان @endif</option>@endforeach</select>
+        <select id="unit_id" name="unit_id">@foreach($units as $u)<option value="{{ $u->id }}" @selected((int) old('unit_id', $selectedUnitId) === $u->id)>{{ $u->block->name }} / {{ $F::digits($u->number) }}@if(($debts[$u->id] ?? 0) > 0) — بدهی {{ $F::num($debts[$u->id]) }} تومان @endif</option>@endforeach</select>
         @error('unit_id')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld"><label for="amount">مبلغ پرداختی (تومان) *</label><input id="amount" name="amount" inputmode="numeric" value="{{ old('amount') }}" required>@error('amount')<div class="e">{{ $message }}</div>@enderror</div>
       <div class="fld"><label for="paid_at">تاریخ پرداخت (شمسی) *</label><input id="paid_at" name="paid_at" class="jdate" autocomplete="off" placeholder="انتخاب از تقویم" value="{{ old('paid_at', \App\Support\JalaliDate::format(today())) }}" required>@error('paid_at')<div class="e">{{ $message }}</div>@enderror</div>
