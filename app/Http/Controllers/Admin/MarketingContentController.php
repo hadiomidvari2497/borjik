@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
+use App\Support\ContactPhones;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -75,14 +76,28 @@ class MarketingContentController extends Controller
             'contact.title' => ['required', 'string', 'max:180'],
             'contact.description' => ['required', 'string', 'max:1000'],
             'contact.email' => ['nullable', 'email', 'max:120'],
-            'contact.phone' => ['nullable', 'string', 'max:30'],
+            'contact.phones' => ['nullable', 'array', 'max:'.ContactPhones::MAX],
+            'contact.phones.*.label' => ['nullable', 'string', 'max:60'],
+            'contact.phones.*.number' => ['nullable', 'string', 'max:30', 'regex:/^[0-9۰-۹٠-٩+()\-\s.,*#]*$/u'],
             'contact.support_title' => ['required', 'string', 'max:120'],
             'contact.support_description' => ['required', 'string', 'max:300'],
         ], [], [
             'hero.badge' => 'برچسب ابتدای صفحه',
             'hero.title' => 'عنوان اصلی',
             'hero.highlight' => 'عبارت برجسته',
+            'contact.phones.*.label' => 'عنوان شمارهٔ تماس',
+            'contact.phones.*.number' => 'شمارهٔ تماس',
         ]);
+
+        // ردیف‌های خالی حذف می‌شوند و فیلد قدیمی contact.phone دیگر نگه داشته نمی‌شود.
+        $data['contact']['phones'] = array_map(
+            fn (array $row) => ['label' => trim((string) ($row['label'] ?? '')), 'number' => trim((string) $row['number'])],
+            array_values(array_filter(
+                $data['contact']['phones'] ?? [],
+                fn ($row) => is_array($row) && trim((string) ($row['number'] ?? '')) !== ''
+            ))
+        );
+        unset($data['contact']['phone']);
 
         $existingEnamad = data_get(SiteSetting::get('marketing.content', []), 'enamad', []);
         $imagePath = data_get($existingEnamad, 'image_path');
@@ -130,7 +145,7 @@ class MarketingContentController extends Controller
             'articles_description' => 'راهنماهای کوتاه درباره‌ی موضوعاتی که هر مدیر و ساکن ساختمان با آن‌ها روبه‌رو می‌شود.',
             'ads' => ['eyebrow' => 'تبلیغات و معرفی خدمات', 'title' => 'کسب‌وکار شما به جامعه‌ی ساختمان‌ها خدمت می‌کند؟', 'description' => 'این بخش برای معرفی خدمات مرتبط با ساختمان، نگهداری، تعمیرات و زندگی آپارتمانی در نظر گرفته شده است. برای فعال‌سازی همکاری تبلیغاتی با ما در ارتباط باشید.', 'button' => 'درخواست همکاری تبلیغاتی'],
             'partners' => ['eyebrow' => 'همکاران ما', 'title' => 'با همکاری هم، مدیریت ساختمان را بهتر می‌کنیم', 'description' => 'از شرکت‌های خدمات ساختمانی و تعمیر و نگهداری تا کسب‌وکارهای مرتبط؛ این بخش برای معرفی همکاران و راهکارهای مکمل صابخونه آماده شده است.', 'button' => 'پیشنهاد همکاری'],
-            'contact' => ['eyebrow' => 'تماس با ما', 'title' => 'برای شروع همکاری، در ارتباط باشیم', 'description' => 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به صابخونه شروع کنید.', 'email' => (string) SiteSetting::get('support.email', config('mail.from.address', '')), 'phone' => (string) SiteSetting::get('support.phone', ''), 'support_title' => 'پشتیبانی حساب کاربری', 'support_description' => 'برای شروع، وارد سامانه شوید و از امکانات حساب خود استفاده کنید.'],
+            'contact' => ['eyebrow' => 'تماس با ما', 'title' => 'برای شروع همکاری، در ارتباط باشیم', 'description' => 'برای استفاده از سامانه یا پیگیری امور حساب خود، از ورود به صابخونه شروع کنید.', 'email' => (string) SiteSetting::get('support.email', config('mail.from.address', '')), 'phones' => ContactPhones::from(['phone' => (string) SiteSetting::get('support.phone', '')]), 'support_title' => 'پشتیبانی حساب کاربری', 'support_description' => 'برای شروع، وارد سامانه شوید و از امکانات حساب خود استفاده کنید.'],
         ];
     }
 }

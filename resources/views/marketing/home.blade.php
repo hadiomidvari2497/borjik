@@ -136,6 +136,7 @@
         .partner-panel>*{position:relative;z-index:1}
         .contact-card{box-shadow:0 14px 40px rgba(15,56,57,.04)}
         .contact-row{transition:transform .18s ease}.contact-row:hover{transform:translateX(-3px)}
+        .contact-phones{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}.contact-phones li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}.contact-phones small{display:inline}.contact-phones a{font-weight:700;letter-spacing:.02em;text-decoration:none}.contact-phones a:hover{text-decoration:underline}
         .contact-symbol{border:1px solid #d7f0e7}
         @keyframes borjik-float{0%,100%{transform:rotateY(-5deg) rotateZ(-2deg) translateY(0)}50%{transform:rotateY(-3deg) rotateZ(-1deg) translateY(-8px)}}
         @keyframes borjik-note{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
@@ -832,7 +833,10 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                 <div class="contact-row"><span class="contact-symbol">✉</span><div><strong>ارتباط با تیم صابخونه</strong>
                     @if(data_get($content ?? [], 'contact.email'))<a class="contact-email" href="mailto:{{ data_get($content, 'contact.email') }}">{{ data_get($content, 'contact.email') }}</a>@else<small>راه ارتباطی عمومی هنوز در پنل مدیریت ثبت نشده است.</small>@endif
                 </div></div>
-                @if(data_get($content ?? [], 'contact.phone'))<div class="contact-row"><span class="contact-symbol">☎</span><div><strong>شماره تماس</strong><a href="tel:{{ data_get($content, 'contact.phone') }}" dir="ltr">{{ data_get($content, 'contact.phone') }}</a></div></div>@endif
+                @php($contactPhones = \App\Support\ContactPhones::from(data_get($content ?? [], 'contact', [])))
+                @if($contactPhones)<div class="contact-row"><span class="contact-symbol">☎</span><div><strong>{{ count($contactPhones) > 1 ? 'شماره‌های تماس' : 'شماره تماس' }}</strong>
+                    <ul class="contact-phones">@foreach($contactPhones as $phone)<li>@if($phone['label'] !== '')<small>{{ $phone['label'] }}</small>@endif<a href="tel:{{ $phone['href'] }}" dir="ltr">{{ $phone['number'] }}</a></li>@endforeach</ul>
+                </div></div>@endif
                 <div class="contact-row"><span class="contact-symbol">◎</span><div><strong>{{ data_get($content ?? [], 'contact.support_title', 'پشتیبانی حساب کاربری') }}</strong><small>{{ data_get($content ?? [], 'contact.support_description', 'برای شروع، وارد سامانه شوید و از امکانات حساب خود استفاده کنید.') }}</small></div></div>
                 <div class="contact-row"><span class="contact-symbol">↗</span><div><strong>همکاری و تبلیغات</strong><small>{{ data_get($content ?? [], 'partners.description', 'برای پیشنهاد همکاری از راه ارتباطی عمومی صابخونه استفاده کنید.') }}</small></div></div>
             </div>
