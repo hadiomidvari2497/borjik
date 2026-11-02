@@ -46,6 +46,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::prefix('support')->name('support.')->middleware('admin.can:support.manage')->controller(SupportTicketController::class)->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::get('/reports', [\\App\\Http\\Controllers\\Admin\\SupportPerformanceReportController::class, 'index'])->name('reports');
             Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
             Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:20,1')->name('reply');
             Route::get('/attachments/{attachment}', 'download')->whereNumber('attachment')->name('attachments.download');

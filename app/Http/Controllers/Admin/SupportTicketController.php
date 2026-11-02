@@ -26,6 +26,7 @@ class SupportTicketController extends Controller
             'q' => ['nullable','string','max:120'],
             'status' => ['nullable',Rule::in(array_keys(self::STATUSES))],
             'priority' => ['nullable',Rule::in(array_keys(self::PRIORITIES))],
+            'sla' => ['nullable',Rule::in(['overdue','due_soon'])],
         ]);
         $term = trim((string) ($filters['q'] ?? ''));
         $query = SupportTicket::query()

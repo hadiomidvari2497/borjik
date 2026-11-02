@@ -65,6 +65,8 @@ return [
         'items' => [
             ['label' => 'مرکز پشتیبانی', 'icon' => 'inbox', 'route' => 'admin.support.index', 'active' => 'admin.support.*', 'perm' => 'support.manage',
                 'desc' => 'پاسخ‌گویی، اولویت‌بندی و پیگیری درخواست‌های مشتریان صابخونه'],
+            ['label' => 'گزارش عملکرد پشتیبانی', 'icon' => 'activity', 'route' => 'admin.support.reports', 'active' => 'admin.support.reports', 'perm' => 'support.manage',
+                'desc' => 'میانگین زمان پاسخ و حل، عملکرد کارشناسان و رعایت مهلت‌های SLA'],
         ],
     ],
     [
