@@ -63,7 +63,7 @@ return [
     [
         'title' => 'پشتیبانی مشتریان',
         'items' => [
-            ['label' => 'مرکز پشتیبانی', 'icon' => 'messages-square', 'route' => 'admin.support.index', 'active' => 'admin.support.*', 'perm' => 'support.manage',
+            ['label' => 'مرکز پشتیبانی', 'icon' => 'inbox', 'route' => 'admin.support.index', 'active' => 'admin.support.*', 'perm' => 'support.manage',
                 'desc' => 'پاسخ‌گویی، اولویت‌بندی و پیگیری درخواست‌های مشتریان صابخونه'],
         ],
     ],
