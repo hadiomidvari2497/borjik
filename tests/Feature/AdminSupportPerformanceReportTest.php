@@ -53,7 +53,7 @@ class AdminSupportPerformanceReportTest extends TestCase
             'description' => 'اولین پاسخ',
             'created_at' => now()->subHours(4),
         ]);
-        \\App\\Models\\SupportTicketEvent::create([
+        SupportTicketEvent::create([
             'support_ticket_id' => $ticket->id,
             'event_type' => 'resolved',
             'actor_admin_id' => $admin->id,
