@@ -135,6 +135,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
     Route::middleware('can:charge.calculate')->prefix('charges')->name('charges.')->controller(ChargeController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'open')->name('open');
+        Route::get('/{id}/print', 'print')->whereNumber('id')->name('print');
         Route::get('/{id}', 'show')->whereNumber('id')->name('show');
         Route::post('/{id}/calculate', 'calculate')->whereNumber('id')->name('calculate');
         Route::post('/{id}/publish', 'publish')->whereNumber('id')->name('publish');
