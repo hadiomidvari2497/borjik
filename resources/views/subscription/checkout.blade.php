@@ -27,8 +27,8 @@
     </div>
 </section>
 <section class="bl-card"><h3><i>۲</i>کد تخفیف <em>(اختیاری)</em></h3>
-    <div class="bl-field"><input name="coupon_code" value="{{ old('coupon_code') }}" placeholder="کد تخفیف را وارد کنید" autocomplete="off" aria-label="کد تخفیف"><button type="button" onclick="this.closest('section').querySelector('.coupon-hint').textContent='کد هنگام ادامه خرید بررسی می‌شود.'">بررسی کد</button></div>
-    <div class="coupon-hint bl-hint" aria-live="polite">تخفیف معتبر هنگام ادامه خرید محاسبه می‌شود.</div>
+    <div class="bl-field"><input id="coupon-code" name="coupon_code" value="{{ old('coupon_code') }}" placeholder="کد تخفیف را وارد کنید" autocomplete="off" aria-label="کد تخفیف"><button id="apply-coupon" type="button">بررسی و اعمال</button></div>
+    <div id="coupon-hint" class="coupon-hint bl-hint" aria-live="polite">کد را وارد کنید و روی «بررسی و اعمال» بزنید.</div>
     @error('coupon_code')<div class="bl-err">{{ $message }}</div>@enderror
 </section>
 <section class="bl-card"><h3><i>۳</i>انتخاب درگاه پرداخت</h3>
@@ -39,11 +39,93 @@
 <aside class="bl-card bl-sum"><h3>خلاصه سفارش</h3>
     <div class="bl-sr"><span>{{ $hasDiscount ? 'قیمت پلن' : 'مبلغ اشتراک' }}</span><strong>{{ $F::money($hasDiscount ? $plan->price : $eff) }}</strong></div>
     @if($hasDiscount)<div class="bl-sr save"><span>تخفیف پلن</span><strong>−{{ $F::money($savedAmount) }}</strong></div>@endif
-    <div class="bl-sr"><span>تخفیف کد</span><strong>پس از بررسی محاسبه می‌شود</strong></div>
-    <div class="bl-sr total"><span>مبلغ قابل پرداخت</span><strong>{{ $F::money($eff) }}</strong></div>
+    <div class="bl-sr" id="coupon-discount-row" hidden><span>تخفیف کد</span><strong id="coupon-discount-value">−۰ تومان</strong></div>
+    <div class="bl-sr total"><span>مبلغ قابل پرداخت</span><strong id="payable-amount" data-base-amount="{{ $eff }}">{{ $F::money($eff) }}</strong></div>
     <button class="bl-btn" style="width:100%;margin-top:14px" type="submit" @disabled(!$gatewayReady && $eff>0)>ادامه و پرداخت امن <span aria-hidden="true">←</span></button>
     <a class="bl-back" href="{{ route('subscription.show') }}">بازگشت به انتخاب پلن</a>
     <div class="bl-safe"><svg class="i" aria-hidden="true"><use href="#lock"/></svg><span>اطلاعات پرداخت در سمت سرور اعتبارسنجی می‌شود و اشتراک پولی فقط پس از تأیید درگاه فعال خواهد شد.</span></div>
 </aside></div>
 </form></div>
+<script>
+(() => {
+    const input = document.getElementById('coupon-code');
+    const button = document.getElementById('apply-coupon');
+    const hint = document.getElementById('coupon-hint');
+    const discountRow = document.getElementById('coupon-discount-row');
+    const discountValue = document.getElementById('coupon-discount-value');
+    const payable = document.getElementById('payable-amount');
+    if (!input || !button || !hint || !payable) return;
+
+    const baseAmount = Number(payable.dataset.baseAmount || 0);
+    const formatMoney = value => new Intl.NumberFormat('fa-IR').format(Math.max(0, Number(value) || 0)) + ' تومان';
+    let appliedCode = '';
+
+    const resetPreview = () => {
+        appliedCode = '';
+        discountRow.hidden = true;
+        payable.textContent = formatMoney(baseAmount);
+    };
+
+    const applyCoupon = async () => {
+        const code = input.value.trim();
+        if (!code) {
+            resetPreview();
+            hint.textContent = 'کد تخفیف را وارد کنید.';
+            hint.classList.remove('is-success');
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = 'در حال بررسی…';
+        hint.textContent = 'در حال اعتبارسنجی کد تخفیف…';
+        hint.classList.remove('is-success');
+
+        try {
+            const response = await fetch(@json(route('subscription.coupon.preview', ['id' => $plan->id])), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': @json(csrf_token()),
+                },
+                body: JSON.stringify({ coupon_code: code }),
+            });
+            const data = await response.json();
+            if (!response.ok || !data.valid) {
+                resetPreview();
+                hint.textContent = data.message || 'اعمال کد تخفیف ممکن نشد.';
+                return;
+            }
+
+            appliedCode = data.coupon_code;
+            discountRow.hidden = false;
+            discountValue.textContent = '−' + formatMoney(data.discount_amount);
+            payable.textContent = formatMoney(data.payable_amount);
+            hint.textContent = data.message + ' میزان تخفیف: ' + formatMoney(data.discount_amount);
+            hint.classList.add('is-success');
+        } catch (error) {
+            resetPreview();
+            hint.textContent = 'ارتباط با سرور برقرار نشد. دوباره تلاش کنید.';
+        } finally {
+            button.disabled = false;
+            button.textContent = 'بررسی و اعمال';
+        }
+    };
+
+    button.addEventListener('click', applyCoupon);
+    input.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            applyCoupon();
+        }
+    });
+    input.addEventListener('input', () => {
+        if (appliedCode && input.value.trim().toUpperCase() !== appliedCode) {
+            resetPreview();
+            hint.textContent = 'کد تغییر کرده؛ برای محاسبه مبلغ جدید دوباره بررسی کنید.';
+            hint.classList.remove('is-success');
+        }
+    });
+})();
+</script>
 @endsection
