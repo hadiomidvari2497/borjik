@@ -27,12 +27,24 @@ class SupportTicketController extends Controller
             'priority' => ['nullable',Rule::in(array_keys(self::PRIORITIES))],
         ]);
         $term = trim((string) ($filters['q'] ?? ''));
-        $query = SupportTicket::query()->with(['user:id,first_name,last_name,company_name,mobile,person_type','building:id,name','assignedAdmin:id,name'])
+        $query = SupportTicket::query()
+            ->with(['user:id,first_name,last_name,company_name,mobile,person_type', 'building:id,name', 'assignedAdmin:id,name'])
             ->withCount('messages')
-            ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('number','like','%'.$term.'%')->orWhere('subject','like','%'.$term.'%')
-                ->orWhereHas('user',fn ($u) => $u->where('mobile','like','%'.$term.'%')->orWhere('first_name','like','%'.$term.'%')->orWhere('last_name','like','%'.$term.'%')->orWhere('company_name','like','%'.$term.'%')))
-            ->when($filters['status'] ?? null, fn ($q,$v) => $q->where('status',$v))
-            ->when($filters['priority'] ?? null, fn ($q,$v) => $q->where('priority',$v))->latest('updated_at');
+            ->when($term !== '', function ($query) use ($term) {
+                $query->where(function ($where) use ($term) {
+                    $where->where('number', 'like', '%'.$term.'%')
+                        ->orWhere('subject', 'like', '%'.$term.'%')
+                        ->orWhereHas('user', function ($user) use ($term) {
+                            $user->where('mobile', 'like', '%'.$term.'%')
+                                ->orWhere('first_name', 'like', '%'.$term.'%')
+                                ->orWhere('last_name', 'like', '%'.$term.'%')
+                                ->orWhere('company_name', 'like', '%'.$term.'%');
+                        });
+                });
+            })
+            ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
+            ->when($filters['priority'] ?? null, fn ($query, $value) => $query->where('priority', $value))
+            ->latest('updated_at');
         $stats = [
             'total'=>SupportTicket::count(),'open'=>SupportTicket::whereIn('status',['open','in_progress'])->count(),
             'waiting'=>SupportTicket::where('status','waiting_customer')->count(),
