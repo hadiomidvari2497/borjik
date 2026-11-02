@@ -8,6 +8,7 @@ use App\Http\Controllers\ChargeController;
 use App\Http\Controllers\ChargeSettingController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FileController;
@@ -51,6 +52,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
     Route::get('/subscription/payments/{payment}/receipt', [SubscriptionPaymentReceiptController::class, 'show'])->whereNumber('payment')->name('subscription.payment.receipt');
 
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/global-search', GlobalSearchController::class)->middleware('throttle:60,1')->name('global-search');
     Route::get('/operations-center', [OperationsCenterController::class, 'index'])->middleware('can:building.manage')->name('operations-center.index');
     Route::middleware('can:building.manage')->prefix('maintenance')->name('maintenance.')->controller(MaintenanceController::class)->group(function () {
         Route::get('/', 'index')->name('index');
