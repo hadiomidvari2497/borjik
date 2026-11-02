@@ -22,6 +22,7 @@ class MyPaymentController extends Controller
 
         return view('my.payments', [
             'units' => $units,
+            'selectedUnitId' => $units->contains('id', (int) $request->query('unit_id')) ? (int) $request->query('unit_id') : null,
             'debts' => Invoice::whereIn('unit_id', $units->pluck('id'))->whereIn('status', ['unpaid', 'partial'])
                 ->selectRaw('unit_id, sum(amount - paid_amount) as s')->groupBy('unit_id')->pluck('s', 'unit_id'),
             'receipts' => PaymentReceipt::where('user_id', $request->user()->id)->with('unit.block')->orderByDesc('id')->paginate(15),
