@@ -286,7 +286,7 @@ class ContractTest extends TestCase
 
         $this->as($this->manager)->get(route('contracts.print', $rentId))
             ->assertOk()
-            ->assertSee('قرارداد رسمی‌نمای اجاره', false)
+            ->assertSee('قرارداد اجاره ملک', false)
             ->assertSee('مبلغ ودیعه')
             ->assertSee('امضا و اثر انگشت موجر')
             ->assertSee('window.print');
@@ -298,7 +298,7 @@ class ContractTest extends TestCase
 
         $this->as($this->manager)->get(route('contracts.print', $saleId))
             ->assertOk()
-            ->assertSee('قرارداد رسمی‌نمای خرید و فروش', false)
+            ->assertSee('قرارداد خرید و فروش ملک', false)
             ->assertSee('ثمن معامله')
             ->assertSee('امضا و اثر انگشت فروشنده');
     }
