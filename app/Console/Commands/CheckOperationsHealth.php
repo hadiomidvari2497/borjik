@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\OperationsHealthCheck;
 use App\Models\AdminUser;
+use App\Services\Payments\PaymentGatewayRegistry;
 use App\Models\OperationsSetting;
 use App\Models\SmsLog;
 use App\Models\SmsProvider;
@@ -70,7 +71,7 @@ class CheckOperationsHealth extends Command
         $checks['sms'] = ['name' => 'درگاه پیامک', 'status' => $smsProvider ? 'ok' : 'warning', 'detail' => $smsProvider ? 'اتصال پیش‌فرض فعال است؛ برای اطمینان از ارسال، پیامک آزمایشی بفرست.' : 'اتصال پیامکی پیش‌فرض فعال نیست.'];
 
         try {
-            $activeGateways = app(\\App\\Services\\Payments\\PaymentGatewayRegistry::class)->active();
+            $activeGateways = app(PaymentGatewayRegistry::class)->active();
             $checks['payment_gateway'] = ['name' => 'درگاه پرداخت', 'status' => $activeGateways !== [] ? 'ok' : 'warning', 'detail' => $activeGateways !== [] ? count($activeGateways).' درگاه فعال با اطلاعات پایه شناسایی شد؛ تراکنش آزمایشی انجام نشده است.' : 'درگاه پرداخت فعال و کامل شناسایی نشد.'];
         } catch (Throwable $exception) {
             report($exception);
