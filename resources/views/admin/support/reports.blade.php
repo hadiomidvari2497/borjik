@@ -27,23 +27,24 @@
 <h3 class="spr-section">عملکرد به تفکیک کارشناس</h3>
 <div class="spr-wrap">
 <table class="spr-table">
-  <thead><tr><th>کارشناس فعلی</th><th>تیکت‌های منتسب</th><th>پاسخ‌گرفته</th><th>حل‌شده</th><th>میانگین پاسخ اولیه</th><th>میانگین زمان حل</th><th>رعایت SLA</th></tr></thead>
+  <thead><tr><th>کارشناس</th><th>تیکت‌های دارای فعالیت</th><th>تیکت‌های پاسخ‌داده‌شده</th><th>تعداد پاسخ‌ها</th><th>حل‌شده توسط کارشناس</th><th>میانگین پاسخ اولیه</th><th>میانگین زمان حل</th><th>رعایت SLA</th></tr></thead>
   <tbody>
   @forelse($agents as $agent)
     <tr>
       <td><b>{{ $agent['agent_name'] }}</b></td>
       <td>{{ $F::num($agent['tickets']) }}</td>
       <td>{{ $F::num($agent['responded_tickets']) }}</td>
+      <td>{{ $F::num($agent['replied_tickets']) }}</td>
       <td>{{ $F::num($agent['resolved_tickets']) }}</td>
       <td>{{ $agent['avg_first_response_minutes'] === null ? '—' : $F::num($agent['avg_first_response_minutes']).' دقیقه' }}</td>
       <td>{{ $agent['avg_resolution_minutes'] === null ? '—' : $F::num($agent['avg_resolution_minutes']).' دقیقه' }}</td>
       <td>@if($agent['sla_compliance'] === null) — @else <span class="spr-badge">{{ $F::digits(number_format($agent['sla_compliance'],1)) }}٪</span> @endif</td>
     </tr>
   @empty
-    <tr><td colspan="7" class="spr-muted" style="text-align:center;padding:25px">در این بازه تیکتی ثبت نشده است.</td></tr>
+    <tr><td colspan="8" class="spr-muted" style="text-align:center;padding:25px">در این بازه تیکتی ثبت نشده است.</td></tr>
   @endforelse
   </tbody>
 </table>
 </div>
-<p class="spr-note">مبنای انتساب گزارش، کارشناس فعلی ثبت‌شده روی تیکت است؛ چون تاریخچه تغییر مسئول در ساختار فعلی ذخیره نمی‌شود، تیکت‌های ارجاع‌شده در گذشته ممکن است در گزارش به مسئول فعلی منتسب شوند. رعایت SLA از روی زمان‌های ثبت‌شده پاسخ اولیه و پایان رسیدگی و نشانگرهای نقض مهلت محاسبه می‌شود.</p>
+<p class="spr-note">آمار هر کارشناس از رویدادهایی محاسبه می‌شود که خودش انجام داده است؛ بنابراین پاسخ‌دهی و حل تیکت به مسئول فعلی وابسته نیست. رعایت SLA در جدول کارشناسان بر اساس تیکت‌هایی است که همان کارشناس حل کرده است. تاریخچه فقط از زمان استقرار این قابلیت ثبت می‌شود و سابقه رویدادهای قدیمی قابل بازیابی نیست.</p>
 @endsection
