@@ -90,6 +90,27 @@ class PaymentGatewayController extends Controller
             return $old[$field] ?? null;
         };
 
+        $settings = [
+            'provider_name' => trim($data['provider_name']),
+            'driver' => $data['driver'],
+            'environment' => $data['environment'],
+            'api_base_url' => trim((string) ($data['api_base_url'] ?? '')),
+            'merchant_id' => trim((string) ($data['merchant_id'] ?? '')),
+            'api_key' => $secret('api_key', 'clear_api_key'),
+            'api_secret' => $secret('api_secret', 'clear_api_secret'),
+            'webhook_secret' => $secret('webhook_secret', 'clear_webhook_secret'),
+            'active' => $request->boolean('active'),
+            'notes' => trim((string) ($data['notes'] ?? '')),
+            'updated_at' => now()->toIso8601String(),
+        ];
+
+        if ($settings['active'] && $settings['driver'] === 'bitpay' && empty($settings['api_key'])) {
+            throw ValidationException::withMessages(['api_key' => 'برای فعال‌سازی بیت‌پی، کد API را وارد کنید.']);
+        }
+        if ($settings['active'] && $settings['driver'] === 'zarinpal' && empty($settings['merchant_id'])) {
+            throw ValidationException::withMessages(['merchant_id' => 'برای فعال‌سازی زرین‌پال، شناسه پذیرنده لازم است.']);
+        }
+
         $logoPath = $old['logo_path'] ?? null;
         if ($request->boolean('clear_logo')) {
             if (is_string($logoPath) && str_starts_with($logoPath, 'payment-gateway-logos/')) {
@@ -107,28 +128,7 @@ class PaymentGatewayController extends Controller
             }
         }
 
-        $settings = [
-            'provider_name' => trim($data['provider_name']),
-            'driver' => $data['driver'],
-            'environment' => $data['environment'],
-            'api_base_url' => trim((string) ($data['api_base_url'] ?? '')),
-            'merchant_id' => trim((string) ($data['merchant_id'] ?? '')),
-            'api_key' => $secret('api_key', 'clear_api_key'),
-            'api_secret' => $secret('api_secret', 'clear_api_secret'),
-            'webhook_secret' => $secret('webhook_secret', 'clear_webhook_secret'),
-            'logo_path' => $logoPath,
-            'active' => $request->boolean('active'),
-            'notes' => trim((string) ($data['notes'] ?? '')),
-            'updated_at' => now()->toIso8601String(),
-        ];
-
-        if ($settings['active'] && $settings['driver'] === 'bitpay' && empty($settings['api_key'])) {
-            throw ValidationException::withMessages(['api_key' => 'برای فعال‌سازی بیت‌پی، کد API را وارد کنید.']);
-        }
-        if ($settings['active'] && $settings['driver'] === 'zarinpal' && empty($settings['merchant_id'])) {
-            throw ValidationException::withMessages(['merchant_id' => 'برای فعال‌سازی زرین‌پال، شناسه پذیرنده لازم است.']);
-        }
-
+        $settings['logo_path'] = $logoPath;
         $all[$id] = $settings;
         SiteSetting::set(self::KEY, $all, true);
         // Keep the old setting populated for existing integrations and backward compatibility.
