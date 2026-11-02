@@ -17,6 +17,8 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/two-factor/challenge', [TwoFactorController::class, 'challenge'])->name('two-factor.challenge');
     Route::post('/two-factor/challenge', [TwoFactorController::class, 'verifyChallenge'])->middleware('throttle:otp-verify');
+    Route::post('/two-factor/challenge/sms', [TwoFactorController::class, 'requestSmsCode'])->middleware('throttle:otp-send')->name('two-factor.challenge.sms');
+    Route::post('/two-factor/challenge/sms/verify', [TwoFactorController::class, 'verifySmsCode'])->middleware('throttle:otp-verify')->name('two-factor.challenge.sms.verify');
 });
 
 // لینک دعوت (برای مهمان و کاربر واردشده)
