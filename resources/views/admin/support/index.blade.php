@@ -12,6 +12,17 @@
   <div class="sup-kpi"><small>منتظر مشتری</small><strong>{{ $F::num($stats['waiting']) }}</strong></div>
   <div class="sup-kpi"><small>فوری و باز</small><strong>{{ $F::num($stats['urgent']) }}</strong></div>
 </div>
+@if($supportNotifications->isNotEmpty())
+<div class="card" style="padding:13px;margin-bottom:14px;border:1px solid var(--line);border-radius:13px">
+  <strong style="display:block;font-size:12px;margin-bottom:9px">اعلان‌های پشتیبانی</strong>
+  @foreach($supportNotifications as $notice)
+    <a href="{{ data_get($notice->data,'url') }}" style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);text-decoration:none;color:var(--text);font-size:11px">
+      <span><b>{{ data_get($notice->data,'title','به‌روزرسانی تیکت') }}</b> · {{ data_get($notice->data,'message') }}</span>
+      @if(!$notice->read_at)<span class="sup-pill">جدید</span>@endif
+    </a>
+  @endforeach
+</div>
+@endif
 <form class="sup-filter" method="GET">
   <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="شماره، موضوع، نام یا موبایل">
   <select name="status"><option value="">همه وضعیت‌ها</option>@foreach($statuses as $key=>$label)<option value="{{ $key }}" @selected($filters['status']===$key)>{{ $label }}</option>@endforeach</select>
