@@ -25,16 +25,21 @@
 @media(prefers-reduced-motion:reduce){.tr-stat,.tr-btn,.tr-table tbody tr{transition:none}.tr-stat:hover,.tr-btn:hover{transform:none}}
 </style>
 <div class="tr-hero"><div class="tr-hero-copy"><span class="tr-eyebrow">● مدیریت مالی ساختمان</span><h2>خزانه‌داری ساختمان</h2><p>نمایی شفاف از درآمدها، هزینه‌ها و تعهدات مالی ساختمان؛ تراکنش‌ها را ثبت کن، گردش ماهانه را بررسی کن و وضعیت مالی را با اطمینان زیر نظر داشته باش.</p></div><div class="tr-hero-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="7" y="12" width="34" height="27" rx="5"/><path d="M7 19h34M13 8h22M17 27h8M17 32h14"/><circle cx="34" cy="28" r="2"/></svg></div></div>
-<div class="tr-note">دفتر خزانه، تراکنش‌های دستی ثبت‌شده در این بخش را جمع می‌زند. بدهی صورت‌حساب‌ها و فیش‌های تأییدشده در شاخص‌های جداگانه نمایش داده می‌شوند تا با تراکنش‌های دستی دوباره‌شماری نشوند.</div>
+<div class="tr-note">درآمد فیش‌های تأییدشده به‌صورت خودکار و فقط یک‌بار وارد دفتر خزانه می‌شود. ثبت‌های سیستمی به فیش اصلی متصل‌اند و قابل حذف دستی نیستند؛ درآمدهای دیگر و هزینه‌ها را می‌توان جداگانه ثبت کرد.</div>
 <form method="GET" action="{{ route('treasury.index') }}" class="tr-filter"><div><label for="tr-year">سال شمسی</label><input id="tr-year" name="year" type="number" min="1380" max="1500" value="{{ $year }}" required></div><div><label for="tr-month">ماه</label><select id="tr-month" name="month">@for($m=1;$m<=12;$m++)<option value="{{ $m }}" @selected($month===$m)>{{ $monthNames[$m-1] }}</option>@endfor</select></div><button class="tr-btn" type="submit">نمایش گزارش</button></form>
 <div class="tr-stats">
- <div class="tr-stat"><span>درآمد ثبت‌شده در دفتر</span><strong>{{ $money($income) }}</strong><span>ریال · ماه انتخابی</span></div>
+ <div class="tr-stat"><span>کل درآمد دفتر خزانه</span><strong>{{ $money($income) }}</strong><span>شامل فیش‌های تأییدشده</span></div>
  <div class="tr-stat"><span>هزینه ثبت‌شده در دفتر</span><strong>{{ $money($expense) }}</strong><span>ریال · ماه انتخابی</span></div>
  <div class="tr-stat"><span>خالص گردش دفتر</span><strong>{{ $money($net) }}</strong><span>درآمد منهای هزینه</span></div>
  <div class="tr-stat"><span>بدهی باز واحدها</span><strong>{{ $money($debt) }}</strong><span>از صورت‌حساب‌های پرداخت‌نشده</span></div>
  <div class="tr-stat"><span>بدهی سررسیدگذشته</span><strong>{{ $money($overdueDebt) }}</strong><span>ریال</span></div>
- <div class="tr-stat"><span>فیش‌های تأییدشده ماه</span><strong>{{ $money($approvedReceipts) }}</strong><span>ریال · جدا از دفتر دستی</span></div>
+ <div class="tr-stat"><span>درآمد حاصل از فیش‌ها</span><strong>{{ $money($approvedReceipts) }}</strong><span>ریال · داخل درآمد کل</span></div>
 </div>
+@if($receiptLedgerDifference !== 0)
+ <div class="tr-note" style="border-color:#f1d2a2;background:#fff8e9;color:#80551b">مغایرت دفتر و فیش‌ها: {{ $money($receiptLedgerDifference) }} ریال. سوابق فیش‌های تأییدشده و ثبت‌های خودکار خزانه را بررسی کن.</div>
+@else
+ <div class="tr-note">تطبیق فیش‌ها با دفتر خزانه برای این ماه موفق است؛ اختلاف ثبت‌نشده‌ای مشاهده نشد.</div>
+@endif
 <div class="tr-layout">
  <section class="tr-card"><h3>ثبت تراکنش جدید</h3><form method="POST" action="{{ route('treasury.store') }}" class="tr-form">@csrf
   <label for="tr-type">نوع تراکنش *</label><select id="tr-type" name="type" required><option value="income">درآمد / دریافت</option><option value="expense">هزینه / پرداخت</option></select>
@@ -50,7 +55,7 @@
  <section class="tr-card"><h3>گردش مالی {{ $monthNames[$month-1] }} {{ $F::digits($year) }}</h3>
   @if($transactions->isEmpty())<div class="tr-muted" style="padding:20px 0">برای این ماه تراکنشی در دفتر خزانه ثبت نشده است.</div>@else
   <div class="tr-tablewrap"><table class="tr-table"><thead><tr><th>تاریخ</th><th>نوع</th><th>شرح و دسته‌بندی</th><th>مبلغ (ریال)</th><th>روش / مرجع</th><th>عملیات</th></tr></thead><tbody>
-  @foreach($transactions as $transaction)<tr><td>{{ $F::date($transaction->transaction_date,'j F Y') }}</td><td><span class="tr-tag {{ $transaction->type==='income'?'tr-in':'tr-out' }}">{{ $transaction->type==='income'?'درآمد':'هزینه' }}</span></td><td><strong>{{ $transaction->title }}</strong><div class="tr-muted">{{ $transaction->category }}</div>@if($transaction->notes)<div class="tr-muted">{{ $transaction->notes }}</div>@endif</td><td><strong>{{ $money($transaction->amount) }}</strong></td><td>{{ ['cash'=>'نقدی','transfer'=>'انتقال','card'=>'کارت‌خوان','cheque'=>'چک','other'=>'سایر'][$transaction->payment_method] ?? $transaction->payment_method }}<div class="tr-muted">{{ $transaction->reference ?: '—' }}</div></td><td><form method="POST" action="{{ route('treasury.destroy',$transaction) }}" data-confirm="این تراکنش از دفتر خزانه حذف شود؟" data-confirm-title="حذف تراکنش" data-confirm-icon="warning">@csrf @method('DELETE')<button class="tr-btn" type="submit" style="background:#a52b24">حذف</button></form></td></tr>@endforeach
+  @foreach($transactions as $transaction)<tr><td>{{ $F::date($transaction->transaction_date,'j F Y') }}</td><td><span class="tr-tag {{ $transaction->type==='income'?'tr-in':'tr-out' }}">{{ $transaction->type==='income'?'درآمد':'هزینه' }}</span></td><td><strong>{{ $transaction->title }}</strong><div class="tr-muted">{{ $transaction->category }}</div>@if($transaction->notes)<div class="tr-muted">{{ $transaction->notes }}</div>@endif</td><td><strong>{{ $money($transaction->amount) }}</strong></td><td>{{ ['cash'=>'نقدی','transfer'=>'انتقال','card'=>'کارت‌خوان','cheque'=>'چک','other'=>'سایر'][$transaction->payment_method] ?? $transaction->payment_method }}<div class="tr-muted">{{ $transaction->reference ?: '—' }}</div></td><td>@if($transaction->payment_receipt_id)<span class="tr-tag tr-in">ثبت سیستمی</span><span class="tr-muted">متصل به فیش #{{ $F::digits($transaction->payment_receipt_id) }}</span>@else<form method="POST" action="{{ route('treasury.destroy',$transaction) }}" data-confirm="این تراکنش از دفتر خزانه حذف شود؟" data-confirm-title="حذف تراکنش" data-confirm-icon="warning">@csrf @method('DELETE')<button class="tr-btn" type="submit" style="background:#a52b24">حذف</button></form>@endif</td></tr>@endforeach
   </tbody></table></div><div style="margin-top:12px">{{ $transactions->links() }}</div>@endif
  </section>
 </div>

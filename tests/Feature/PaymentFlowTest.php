@@ -23,6 +23,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Morilog\Jalali\Jalalian;
 use Tests\TestCase;
 
 /** ثبت و تأیید فیش، تخصیص به قدیمی‌ترین صورت‌حساب، مازاد و دسترسی به تصویر فیش. */
@@ -191,6 +192,35 @@ class PaymentFlowTest extends TestCase
         $this->assertStringContainsString('تصویر ناخوانا است', end($this->gateway->sent)[1]);
 
         $this->as($this->manager)->post(route('payments.approve', $id))->assertSessionHasErrors('general'); // بعد از رد قابل تأیید نیست
+    }
+
+    public function test_approving_a_receipt_creates_one_protected_treasury_income_and_reconciles(): void
+    {
+        $this->submit(120000);
+        $id = $this->receiptId();
+
+        $this->as($this->manager)->post(route('payments.approve', $id))->assertSessionHasNoErrors();
+
+        $transaction = DB::table('treasury_transactions')->where('payment_receipt_id', $id)->first();
+        $this->assertNotNull($transaction);
+        $this->assertSame($this->building->id, (int) $transaction->building_id);
+        $this->assertSame('income', $transaction->type);
+        $this->assertSame(120000, (int) $transaction->amount);
+        $this->assertSame($this->manager->id, (int) $transaction->recorded_by);
+        $this->assertSame(1, DB::table('treasury_transactions')->where('payment_receipt_id', $id)->count());
+
+        $this->as($this->manager)->post(route('payments.approve', $id))->assertSessionHasErrors('general');
+        $this->assertSame(1, DB::table('treasury_transactions')->where('payment_receipt_id', $id)->count());
+
+        $this->as($this->manager)->delete(route('treasury.destroy', $transaction->id))->assertForbidden();
+        $this->assertNull(DB::table('treasury_transactions')->where('id', $transaction->id)->value('deleted_at'));
+
+        $jalali = Jalalian::now();
+        $this->as($this->manager)->get(route('treasury.index', ['year' => $jalali->getYear(), 'month' => $jalali->getMonth()]))
+            ->assertOk()
+            ->assertSee('کل درآمد دفتر خزانه')
+            ->assertSee('درآمد حاصل از فیش‌ها')
+            ->assertSee('تطبیق فیش‌ها با دفتر خزانه');
     }
 
     public function test_a_receipt_cannot_be_approved_twice(): void

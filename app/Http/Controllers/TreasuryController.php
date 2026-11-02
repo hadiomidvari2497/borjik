@@ -15,16 +15,18 @@ class TreasuryController extends Controller {
   $from=(new Jalalian($year,$month,1))->toCarbon()->startOfDay();
   $to=$from->copy()->addMonthNoOverflow();
   $query=TreasuryTransaction::where('transaction_date','>=',$from->toDateString())->where('transaction_date','<',$to->toDateString());
-  $transactions=(clone $query)->orderByDesc('transaction_date')->orderByDesc('id')->paginate(20)->withQueryString();
+  $transactions=(clone $query)->with('paymentReceipt.unit.block')->orderByDesc('transaction_date')->orderByDesc('id')->paginate(20)->withQueryString();
   $income=(int)(clone $query)->where('type','income')->sum('amount');
   $expense=(int)(clone $query)->where('type','expense')->sum('amount');
+  $receiptIncome=(int)PaymentReceipt::where('status','approved')->whereBetween('paid_at',[$from->toDateString(),$to->copy()->subDay()->toDateString()])->sum('amount');
+  $receiptLedgerIncome=(int)(clone $query)->where('type','income')->whereNotNull('payment_receipt_id')->sum('amount');
+  $receiptLedgerDifference=$receiptIncome-$receiptLedgerIncome;
   $open=Invoice::whereIn('status',['unpaid','partial']);
   $overdue=(clone $open)->whereDate('due_date','<',today());
-  $receipts=(int)PaymentReceipt::where('status','approved')->whereBetween('paid_at',[$from->toDateString(),$to->copy()->subDay()->toDateString()])->sum('amount');
   return view('treasury.index',[
    'transactions'=>$transactions,'year'=>$year,'month'=>$month,'income'=>$income,'expense'=>$expense,'net'=>$income-$expense,
    'debt'=>(int)$open->sum(DB::raw('amount - paid_amount')),'overdueDebt'=>(int)$overdue->sum(DB::raw('amount - paid_amount')),
-   'approvedReceipts'=>$receipts,'F'=>\App\Support\Fa::class,
+   'approvedReceipts'=>$receiptIncome,'receiptLedgerDifference'=>$receiptLedgerDifference,'F'=>\App\Support\Fa::class,
   ]);
  }
  public function store(Request $request) {
@@ -40,7 +42,9 @@ class TreasuryController extends Controller {
   return back()->with('status','تراکنش خزانه ثبت شد.');
  }
  public function destroy(int $id) {
-  TreasuryTransaction::findOrFail($id)->delete();
+  $transaction=TreasuryTransaction::findOrFail($id);
+  abort_if($transaction->payment_receipt_id !== null,403,'درآمد حاصل از فیش تأییدشده قابل حذف نیست.');
+  $transaction->delete();
   return back()->with('status','تراکنش از دفتر خزانه حذف شد.');
  }
 }

@@ -9,4 +9,5 @@ class TreasuryTransaction extends Model {
  protected $guarded = ['id'];
  protected function casts(): array { return ['transaction_date'=>'date','amount'=>'integer']; }
  public function recorder(){ return $this->belongsTo(User::class,'recorded_by'); }
+ public function paymentReceipt(){ return $this->belongsTo(PaymentReceipt::class,'payment_receipt_id'); }
 }

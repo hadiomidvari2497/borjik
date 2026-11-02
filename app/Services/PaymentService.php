@@ -10,6 +10,7 @@ use App\Models\FileLink;
 use App\Models\Invoice;
 use App\Models\PaymentAllocation;
 use App\Models\PaymentReceipt;
+use App\Models\TreasuryTransaction;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\Sms\SmsSender;
@@ -80,11 +81,32 @@ class PaymentService
     public function approve(PaymentReceipt $receipt, User $reviewer): void
     {
         DB::transaction(function () use ($receipt, $reviewer) {
+            // Lock the unit first so simultaneous approvals for the same unit are serialized.
+            $unit = Unit::with('block')->whereKey($receipt->unit_id)->lockForUpdate()->firstOrFail();
             $locked = PaymentReceipt::lockForUpdate()->findOrFail($receipt->id);
             if ($locked->status !== ReceiptStatus::Pending) {
                 throw new DomainException('این فیش قبلاً بررسی شده است.');
             }
+
             $locked->update(['status' => ReceiptStatus::Approved, 'reviewed_by' => $reviewer->id, 'reviewed_at' => now(), 'reject_reason' => null]);
+
+            // Receipt approval and treasury income are one atomic, idempotent operation.
+            TreasuryTransaction::firstOrCreate(
+                ['payment_receipt_id' => $locked->id],
+                [
+                    'building_id' => $locked->building_id,
+                    'type' => 'income',
+                    'category' => 'دریافت فیش پرداخت',
+                    'title' => 'دریافت فیش واحد '.($unit->block?->name ?? '—').' / '.Fa::digits($unit->number),
+                    'amount' => (int) $locked->amount,
+                    'transaction_date' => $locked->paid_at->toDateString(),
+                    'payment_method' => 'transfer',
+                    'reference' => 'فیش #'.$locked->id,
+                    'notes' => 'ثبت خودکار هنگام تأیید فیش پرداخت.',
+                    'recorded_by' => $reviewer->id,
+                ]
+            );
+
             $this->reallocate($locked->unit_id);
         });
 
@@ -111,6 +133,7 @@ class PaymentService
     public function reallocate(int $unitId): void
     {
         DB::transaction(function () use ($unitId) {
+            Unit::whereKey($unitId)->lockForUpdate()->firstOrFail();
             $invoices = Invoice::where('unit_id', $unitId)->whereIn('status', ['unpaid', 'partial'])
                 ->orderBy('due_date')->orderBy('id')->lockForUpdate()->get();
             if ($invoices->isEmpty()) {
