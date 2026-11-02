@@ -7,6 +7,11 @@
     $eff = (int) $plan->effectivePrice();
     $hasDiscount = $plan->discountIsActive() && (int) $plan->price > $eff;
     $savedAmount = $hasDiscount ? (int) $plan->price - $eff : 0;
+    $planDiscountLabel = $hasDiscount
+        ? ($plan->discount_type === 'percent'
+            ? $F::num(min(100, (int) $plan->discount_value)).'٪ تخفیف'
+            : $F::money($savedAmount).' تخفیف')
+        : '';
 @endphp
 <div class="bl bl-co">
 <section class="bl-intro">
@@ -23,7 +28,7 @@
     <div class="bl-chosen"><small class="tag">پلن انتخاب‌شده</small><strong>{{ $plan->name }}</strong>
         <div class="meta"><span>{{ $F::num($plan->units_limit) }} واحد</span><span>{{ $F::num($plan->duration_months) }} ماه اعتبار</span></div>
         <div class="px">@if($eff <= 0)رایگان @else{{ $F::num($eff) }} <small>تومان</small>@endif</div>
-        @if($hasDiscount)<div class="was"><del>{{ $F::money($plan->price) }}</del> · قیمت با تخفیف پلن</div>@endif
+        @if($hasDiscount)<div class="was"><del>{{ $F::money($plan->price) }}</del> · {{ $planDiscountLabel }} ({{ $F::money($savedAmount) }})</div>@endif
     </div>
 </section>
 <section class="bl-card"><h3><i>۲</i>کد تخفیف <em>(اختیاری)</em></h3>
@@ -38,7 +43,7 @@
 </div>
 <aside class="bl-card bl-sum"><h3>خلاصه سفارش</h3>
     <div class="bl-sr"><span>{{ $hasDiscount ? 'قیمت پلن' : 'مبلغ اشتراک' }}</span><strong>{{ $F::money($hasDiscount ? $plan->price : $eff) }}</strong></div>
-    @if($hasDiscount)<div class="bl-sr save"><span>تخفیف پلن</span><strong>−{{ $F::money($savedAmount) }}</strong></div>@endif
+    @if($hasDiscount)<div class="bl-sr save"><span>تخفیف پلن ({{ $planDiscountLabel }})</span><strong>−{{ $F::money($savedAmount) }}</strong></div>@endif
     <div class="bl-sr" id="coupon-discount-row" hidden><span>تخفیف کد</span><strong id="coupon-discount-value">−۰ تومان</strong></div>
     <div class="bl-sr total"><span>مبلغ قابل پرداخت</span><strong id="payable-amount" data-base-amount="{{ $eff }}">{{ $F::money($eff) }}</strong></div>
     <button class="bl-btn" style="width:100%;margin-top:14px" type="submit" @disabled(!$gatewayReady && $eff>0)>ادامه و پرداخت امن <span aria-hidden="true">←</span></button>
