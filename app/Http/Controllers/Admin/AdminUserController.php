@@ -28,7 +28,16 @@ class AdminUserController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.users.index', ['users' => $users, 'q' => $q, 'me' => $this->actor()]);
+        return view('admin.users.index', [
+            'users' => $users,
+            'q' => $q,
+            'me' => $this->actor(),
+            'securityStats' => [
+                'active' => AdminUser::query()->where('status', 'active')->count(),
+                'protected' => AdminUser::query()->where('status', 'active')->where('two_factor_enabled', true)->count(),
+                'unprotectedSuper' => AdminUser::query()->where('status', 'active')->where('is_super', true)->where('two_factor_enabled', false)->count(),
+            ],
+        ]);
     }
 
     public function create()
