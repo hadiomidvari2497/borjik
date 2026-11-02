@@ -32,6 +32,17 @@ class RestoreBorjikBackup extends Command
             return self::FAILURE;
         }
 
+        $archivePath = realpath((string) $run->local_path);
+        $publicPath = realpath(public_path());
+        if (! $archivePath || ($publicPath && ($archivePath === $publicPath || str_starts_with(strtolower($archivePath), strtolower(rtrim($publicPath, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR))))) {
+            $this->error('مسیر بکاپ معتبر نیست یا داخل پوشه عمومی سایت قرار دارد.');
+            return self::FAILURE;
+        }
+        if ($run->size_bytes && filesize($archivePath) !== (int) $run->size_bytes) {
+            $this->error('اندازه فایل بکاپ با مقدار ثبت‌شده مطابقت ندارد.');
+            return self::FAILURE;
+        }
+
         $driver = (string) config('database.default');
         $connection = (array) config('database.connections.'.$driver, []);
         if (! in_array($driver, ['mysql', 'mariadb'], true)) {
@@ -44,7 +55,7 @@ class RestoreBorjikBackup extends Command
         }
 
         $zip = new ZipArchive();
-        if ($zip->open($run->local_path, ZipArchive::CHECKCONS) !== true) {
+        if ($zip->open($archivePath, ZipArchive::CHECKCONS) !== true) {
             $this->error('آرشیو بکاپ خراب یا غیرقابل‌خواندن است.');
             return self::FAILURE;
         }
