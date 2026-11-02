@@ -123,8 +123,32 @@ class DashboardController extends Controller
             ->where('created_at', '>=', $since)->where('created_at', '<=', $now)->count();
         $lifetimeRevenue = (clone $paidPayments)->sum('amount');
 
+        $activeUsers = User::query()->where('status', 'active')
+            ->where('last_login_at', '>=', $now->copy()->subDays(30))->count();
+        $monthlyRevenue = (clone $paidPayments)->whereBetween('paid_at', [$now->copy()->startOfMonth(), $now])->sum('amount');
+        $yearlyRevenue = (clone $paidPayments)->whereBetween('paid_at', [$now->copy()->startOfYear(), $now])->sum('amount');
+
+        $featureTables = [
+            'درخواست‌های پشتیبانی' => 'support_tickets',
+            'درخواست‌های ساختمان' => 'tickets',
+            'نظرسنجی‌ها' => 'polls',
+            'اسناد ثبت‌شده' => 'documents',
+            'رویدادهای تقویم' => 'calendar_events',
+            'تراکنش‌های خزانه' => 'treasury_transactions',
+            'شیفت‌های حراست' => 'security_shifts',
+            'سوابق تعمیر و نگهداری' => 'maintenance_records',
+        ];
+        $featureUsage = [];
+        foreach ($featureTables as $label => $table) {
+            $featureUsage[] = [
+                'label' => $label,
+                'count' => Schema::hasTable($table) ? (int) DB::table($table)->count() : 0,
+            ];
+        }
+
         return view('admin.dashboard', [
             'usersCount' => User::count(),
+            'activeUsers' => $activeUsers,
             'newUsers' => User::where('created_at', '>=', $since)->where('created_at', '<=', $now)->count(),
             'buildingsCount' => Building::count(),
             'newBuildings' => Building::where('created_at', '>=', $since)->where('created_at', '<=', $now)->count(),
@@ -146,6 +170,9 @@ class DashboardController extends Controller
             'pendingPayments' => $pendingPayments,
             'failedPaymentsInPeriod' => $failedPaymentsInPeriod,
             'lifetimeRevenue' => (int) $lifetimeRevenue,
+            'monthlyRevenue' => (int) $monthlyRevenue,
+            'yearlyRevenue' => (int) $yearlyRevenue,
+            'featureUsage' => $featureUsage,
             'trendDays' => $days,
             'trend' => $trend,
             'trendMax' => $trendMax,

@@ -100,6 +100,11 @@
       <small style="color:var(--muted)">تراکنش ناموفق در {{ $F::num($trendDays) }} روز اخیر</small>
     </article>
   </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px;margin-top:10px">
+    <article style="padding:14px;border:1px solid var(--line);border-radius:13px"><small style="color:var(--muted)">درآمد ماه جاری</small><strong style="display:block;font-size:19px;margin-top:7px">{{ $F::money($monthlyRevenue) }}</strong><small style="color:var(--muted)">تومان · از ابتدای ماه</small></article>
+    <article style="padding:14px;border:1px solid var(--line);border-radius:13px"><small style="color:var(--muted)">درآمد سال جاری</small><strong style="display:block;font-size:19px;margin-top:7px">{{ $F::money($yearlyRevenue) }}</strong><small style="color:var(--muted)">تومان · پرداخت‌های موفق</small></article>
+    <article style="padding:14px;border:1px solid var(--line);border-radius:13px"><small style="color:var(--muted)">کاربران فعال در ۳۰ روز</small><strong style="display:block;font-size:19px;margin-top:7px">{{ $F::num($activeUsers) }}</strong><small style="color:var(--muted)">حساب فعال با ورود ثبت‌شده در ۳۰ روز اخیر</small></article>
+  </div>
   <p style="font-size:11px;color:var(--muted);line-height:1.8;margin:11px 0 0">این ارقام فقط پرداخت‌های اشتراک سامانه را شامل می‌شوند و با شارژهای پرداختی ساکنان ساختمان‌ها جمع نمی‌شوند.</p>
 </section>
 
@@ -130,6 +135,14 @@
   </div>
 </section>
 
+<section class="card" style="padding:18px;margin:18px 0">
+  <div style="margin-bottom:12px"><h2 style="font-size:16px;font-weight:850;margin:0 0 4px">میزان استفاده از قابلیت‌ها</h2><p style="font-size:12px;color:var(--muted);margin:0">تعداد رکوردهای ثبت‌شده در ماژول‌های اصلی؛ شاخصی از میزان استفاده، نه تعداد کاربران یکتا</p></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+    @foreach($featureUsage as $feature)
+      <article style="border:1px solid var(--line);border-radius:12px;padding:13px"><small style="color:var(--muted)">{{ $feature['label'] }}</small><strong style="display:block;font-size:20px;margin-top:7px">{{ $F::num($feature['count']) }}</strong></article>
+    @endforeach
+  </div>
+</section>
 <section class="card trend-wrap" style="padding:18px">
   <div class="trend-head">
     <div><h2 style="font-size:16px;font-weight:800;margin:0 0 5px">روند رشد سامانه</h2><div style="font-size:12px;color:var(--muted,#64748b)">مقایسه ثبت‌نام کاربران و ایجاد ساختمان‌ها در بازه انتخابی</div></div>
