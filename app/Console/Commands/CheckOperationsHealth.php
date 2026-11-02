@@ -204,9 +204,9 @@ class CheckOperationsHealth extends Command
             ->filter(fn ($check) => ($check['status'] ?? 'unknown') !== 'ok')
             ->map(fn ($check, $key) => $key.':'.$check['status'])->all();
         $issuesChanged = $previous && $issueState !== $previousIssueState;
-        if ($settings['alert_enabled'] && $settings['alert_mobile'] && (($issuesChanged) || (! $previous && $failed))) {
-            if ($failed) {
-                $issueNames = collect($checks)->filter(fn ($check) => in_array($check['status'], ['fail', 'warning'], true))
+        if ($settings['alert_enabled'] && $settings['alert_mobile'] && (($issuesChanged) || (! $previous && $needsAttention))) {
+            if ($needsAttention) {
+                $issueNames = collect($checks)->filter(fn ($check) => ($check['status'] ?? 'unknown') !== 'ok')
                     ->pluck('name')->implode('، ');
                 $message = 'هشدار صابخونه: نیازمند بررسی: '.$issueNames.'؛ پنل مدیریت > مرکز عملیات را بررسی کنید.';
                 $templateKey = 'operations_alert';
@@ -221,7 +221,7 @@ class CheckOperationsHealth extends Command
         }
 
         $this->info('Health check '.$status.'; record #'.$record->id);
-        return $failed ? self::FAILURE : self::SUCCESS;
+        return $needsAttention ? self::FAILURE : self::SUCCESS;
     }
 
     private function probe(callable $test, string $name): array
