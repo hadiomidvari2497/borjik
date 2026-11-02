@@ -41,6 +41,12 @@
 @php
     $eff = (int) $plan->effectivePrice();
     $hasDiscount = $plan->discountIsActive() && (int) $plan->price > $eff;
+    $planDiscountAmount = $hasDiscount ? (int) $plan->price - $eff : 0;
+    $discountLabel = $hasDiscount
+        ? ($plan->discount_type === 'percent'
+            ? $F::num(min(100, (int) $plan->discount_value)).'٪ تخفیف'
+            : $F::money($planDiscountAmount).' تخفیف')
+        : '';
     $savePct = $hasDiscount ? (int) round((1 - $eff / max(1, (int) $plan->price)) * 100) : 0;
     $perMonth = ($eff > 0 && (int) $plan->duration_months > 1) ? intdiv($eff, (int) $plan->duration_months) : null;
     $isCurrent = $subscription && (int) $subscription->plan_id === (int) $plan->id;
@@ -50,8 +56,14 @@
     <div class="bl-plan-ic" aria-hidden="true"><svg class="i"><use href="#bld"/></svg></div>
     <h3>{{ $plan->name }}</h3>
     <div class="bl-sub">مدیریت ساختمان، ساکنان و امور مالی در یک فضای یکپارچه</div>
-    <div class="bl-price">@if($eff <= 0)رایگان @else{{ $F::num($eff) }} <small>تومان</small>@endif</div>
-    <div class="bl-was">@if($hasDiscount)<del>{{ $F::money($plan->price) }}</del> · قیمت با تخفیف پلن @elseif($perMonth)ماهانه حدود {{ $F::money($perMonth) }} @endif</div>
+    <div class="bl-price">
+        @if($hasDiscount)<del class="bl-price-original">{{ $F::money($plan->price) }}</del>@endif
+        <span class="bl-price-current">@if($eff <= 0)رایگان @else{{ $F::num($eff) }} <small>تومان</small>@endif</span>
+    </div>
+    <div class="bl-was">
+        @if($hasDiscount)<span class="bl-plan-discount-label">{{ $discountLabel }}</span>
+        @elseif($perMonth)ماهانه حدود {{ $F::money($perMonth) }} @endif
+    </div>
     <ul class="bl-feat"><li>ظرفیت {{ $F::num($plan->units_limit) }} واحد</li><li>{{ $F::num($plan->duration_months) }} ماه اعتبار</li><li>مدیریت ساکنان، شارژ و درخواست‌ها</li></ul>
     <a class="bl-btn" href="{{ route('subscription.show', ['checkout' => $plan->id]) }}">{{ $isCurrent ? 'تمدید این پلن' : 'انتخاب پلن و ادامه' }} <span aria-hidden="true">←</span></a>
 </article>
