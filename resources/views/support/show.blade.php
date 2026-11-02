@@ -16,6 +16,7 @@
       <div class="support-message-head"><strong>{{ $message->sender_type === 'admin' ? 'تیم پشتیبانی صابخونه' : 'شما' }}</strong><time>{{ $F::date($message->created_at, 'j F Y · H:i') }}</time></div>
       <div class="support-message-body">{{ $message->body }}</div>
       @foreach($message->attachments as $attachment)<a href="{{ route('support.attachments.download',$attachment) }}" style="display:inline-block;margin-top:9px;font-size:11px">📎 {{ $attachment->original_name }}</a>@endforeach
+      @foreach($message->attachments as $attachment)<a href="{{ route('support.attachments.download',$attachment) }}" style="display:inline-block;margin-top:9px;font-size:11px">📎 {{ $attachment->original_name }}</a>@endforeach
     </article>
   @endforeach
 </div>
