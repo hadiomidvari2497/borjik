@@ -39,15 +39,21 @@ class SupportTicketController extends Controller
             'urgent'=>SupportTicket::where('priority','urgent')->whereNotIn('status',['resolved','closed'])->count(),
             'resolved'=>SupportTicket::whereIn('status',['resolved','closed'])->count(),
         ];
+        $supportNotifications = $request->user('admin')->notifications()
+            ->where('data->category', 'support')->latest()->limit(6)->get();
+
         return view('admin.support.index', [
             'tickets'=>$query->paginate(20)->withQueryString(),
             'filters'=>array_merge(['q'=>'','status'=>'','priority'=>''],$filters),
             'statuses'=>self::STATUSES,'priorities'=>self::PRIORITIES,'stats'=>$stats,
+            'supportNotifications'=>$supportNotifications,
         ]);
     }
 
-    public function show(int $ticket)
+    public function show(Request $request, int $ticket)
     {
+        $request->user('admin')->unreadNotifications()
+            ->where('data->category', 'support')->where('data->ticket_id', $ticket)->update(['read_at' => now()]);
         $ticket = SupportTicket::with(['user','building:id,name','assignedAdmin:id,name','messages'=>fn ($q) => $q->where('is_internal',false)->with('attachments')->orderBy('created_at')])->findOrFail($ticket);
         $admins = AdminUser::where('status','active')->orderBy('name')->get(['id','name']);
         return view('admin.support.show',['ticket'=>$ticket,'statuses'=>self::STATUSES,'priorities'=>self::PRIORITIES,'admins'=>$admins]);
