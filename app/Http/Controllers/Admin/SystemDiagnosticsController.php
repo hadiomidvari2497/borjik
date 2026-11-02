@@ -9,6 +9,7 @@ use App\Services\Payments\PaymentGatewayRegistry;
 use App\Models\SmsLog;
 use App\Models\Subscription;
 use App\Models\SystemErrorLog;
+use App\Models\SmsProvider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -206,6 +207,7 @@ class SystemDiagnosticsController extends Controller
             $checks[] = ['name' => 'ایمیل', 'detail' => 'Mailer فعال: '.$mailer, 'status' => in_array($transport, ['log', 'array'], true) ? 'fail' : 'ok', 'message' => 'این بررسی جایگزین تست ارسال واقعی نیست.'];
         }
 
+        $checks[] = $this->check('درگاه پیامک', 'وجود اتصال پیامکی پیش‌فرض و فعال', fn () => SmsProvider::current() !== null);
         $checks[] = $this->check('درگاه پرداخت', 'وجود حداقل یک درگاه فعال با اطلاعات پایه', function () {
             return app(PaymentGatewayRegistry::class)->active() !== [];
         });
