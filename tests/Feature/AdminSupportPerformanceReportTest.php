@@ -112,6 +112,51 @@ class AdminSupportPerformanceReportTest extends TestCase
         ]);
     }
 
+    public function test_customer_can_rate_a_resolved_ticket_only_once(): void
+    {
+        $user = $this->createUser();
+        $ticket = SupportTicket::create([
+            'number' => 'SP-TEST-RATE-0001',
+            'user_id' => $user->id,
+            'subject' => 'تست ارزیابی رضایت',
+            'category' => 'technical',
+            'priority' => 'normal',
+            'status' => 'resolved',
+            'closed_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('support.feedback', $ticket), ['rating' => 5, 'comment' => 'پاسخ‌گویی عالی بود'])
+            ->assertRedirect(route('support.show', $ticket));
+
+        $this->assertDatabaseHas('support_tickets', [
+            'id' => $ticket->id,
+            'satisfaction_rating' => 5,
+            'satisfaction_comment' => 'پاسخ‌گویی عالی بود',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('support.feedback', $ticket), ['rating' => 3])
+            ->assertStatus(409);
+    }
+
+    public function test_customer_cannot_rate_an_unresolved_ticket(): void
+    {
+        $user = $this->createUser();
+        $ticket = SupportTicket::create([
+            'number' => 'SP-TEST-RATE-0002',
+            'user_id' => $user->id,
+            'subject' => 'تست زمان ارزیابی',
+            'category' => 'technical',
+            'priority' => 'normal',
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('support.feedback', $ticket), ['rating' => 4])
+            ->assertForbidden();
+    }
+
     private function createUser(): \App\Models\User
     {
         return \App\Models\User::create([
