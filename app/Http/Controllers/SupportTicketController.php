@@ -28,7 +28,7 @@ class SupportTicketController extends Controller
     public function index(Request $request)
     {
         $tickets = SupportTicket::query()->where('user_id', $request->user()->id)
-            ->with('building:id,name')->withCount('messages')->latest('updated_at')->paginate(15)->withQueryString();
+            ->with('building:id,name')->withCount(['messages' => fn ($query) => $query->where('is_internal', false)])->latest('updated_at')->paginate(15)->withQueryString();
 
         return view('support.index', ['tickets' => $tickets, 'categories' => self::CATEGORIES]);
     }
