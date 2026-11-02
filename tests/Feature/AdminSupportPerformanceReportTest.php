@@ -54,9 +54,9 @@ class AdminSupportPerformanceReportTest extends TestCase
             ->assertSee('آزمایش گزارش عملکرد');
     }
 
-    private function createUser(): \\App\\Models\\User
+    private function createUser(): \App\Models\User
     {
-        return \\App\\Models\\User::create([
+        return \App\Models\User::create([
             'first_name' => 'کاربر',
             'last_name' => 'آزمایشی',
             'mobile' => '09129990001',
