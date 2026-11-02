@@ -13,9 +13,9 @@
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0">
     <div class="card" style="padding:12px"><small style="color:var(--muted)">مدیران فعال</small><strong style="display:block;font-size:20px;margin-top:5px">{{ $F::num($securityStats['active']) }}</strong></div>
     <div class="card" style="padding:12px"><small style="color:var(--muted)">دارای تأیید دومرحله‌ای</small><strong style="display:block;font-size:20px;margin-top:5px">{{ $F::num($securityStats['protected']) }}</strong></div>
-    <div class="card" style="padding:12px"><small style="color:var(--muted)">سوپرادمین بدون ۲FA</small><strong style="display:block;font-size:20px;margin-top:5px;color:{{ $securityStats['unprotectedSuper'] > 0 ? '#b45309' : 'inherit' }}">{{ $F::num($securityStats['unprotectedSuper']) }}</strong></div>
+    <div class="card" style="padding:12px"><small style="color:var(--muted)">مدیر فعال بدون ۲FA</small><strong style="display:block;font-size:20px;margin-top:5px;color:{{ $securityStats['unprotected'] > 0 ? '#b45309' : 'inherit' }}">{{ $F::num($securityStats['unprotected']) }}</strong></div>
   </div>
-  <p style="font-size:11px;color:var(--muted);line-height:1.8;margin:0 0 12px">برای حساب‌های دارای دسترسی کامل، فعال‌کردن تأیید دومرحله‌ای قویاً توصیه می‌شود. وضعیت هر حساب در جدول مشخص است.</p>
+  <p style="font-size:11px;color:var(--muted);line-height:1.8;margin:0 0 12px">در محیط عملیاتی، فعال‌کردن تأیید دومرحله‌ای برای تمام مدیران الزامی است. حساب‌های بدون ۲FA پس از ورود فقط به صفحه راه‌اندازی دسترسی خواهند داشت.</p>
   <form method="GET" class="fbar" style="margin-bottom:12px">
     <input name="q" value="{{ $q }}" placeholder="جستجوی نام یا نام کاربری" style="max-width:260px">
     <button class="btn sec" type="submit">جستجو</button>

@@ -40,7 +40,7 @@ class DashboardController extends Controller
             }
 
             $trend[] = [
-                'label' => $start->format('m/d'),
+                'label' => \App\Support\Fa::date($start, 'm/d'),
                 'users' => 0,
                 'buildings' => 0,
             ];
@@ -74,15 +74,14 @@ class DashboardController extends Controller
 
         $activeSubs = Subscription::query()->where('status', 'active')->where('expires_at', '>', $now);
 
-        // فقط آخرین اشتراک هر کاربر را بررسی کن تا اشتراک‌های تاریخی هشدار تکراری نسازند.
-        $latestSubscriptionIds = Subscription::query()->selectRaw('MAX(id)')->groupBy('user_id');
-        $expiredSubscriptions = Subscription::query()
-            ->whereIn('id', $latestSubscriptionIds)
-            ->where(function ($query) use ($now) {
-                $query->where('status', '!=', 'active')
-                    ->orWhereNull('expires_at')
-                    ->orWhere('expires_at', '<=', $now);
-            })->count();
+        // اشتراک‌ها به‌ازای هر ساختمان مستقل‌اند؛ شمارش بر اساس مالک، ساختمان منقضی را
+        // در صورت داشتن ساختمان دیگری با اشتراک فعال پنهان می‌کرد.
+        $expiredSubscriptions = Building::query()
+            ->whereNotNull('subscription_id')
+            ->whereDoesntHave('subscription', fn ($subscription) => $subscription
+                ->where('status', 'active')
+                ->where('expires_at', '>', $now))
+            ->count();
 
         $buildingsWithoutValidSubscription = Building::query()
             ->where(function ($query) use ($now) {

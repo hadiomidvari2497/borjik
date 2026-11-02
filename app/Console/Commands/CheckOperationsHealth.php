@@ -90,8 +90,8 @@ class CheckOperationsHealth extends Command
 
         $activeAdmins = AdminUser::query()->where('status', 'active');
         $activeAdminCount = (clone $activeAdmins)->count();
-        $unprotectedSuperAdmins = (clone $activeAdmins)->where('is_super', true)->where('two_factor_enabled', false)->count();
-        $checks['admin_security'] = ['name' => 'امنیت پنل مدیریت', 'status' => $unprotectedSuperAdmins > 0 ? 'warning' : 'ok', 'detail' => 'مدیر فعال: '.$activeAdminCount.'؛ سوپرادمین فعال بدون تأیید دومرحله‌ای: '.$unprotectedSuperAdmins.'.'];
+        $unprotectedAdmins = (clone $activeAdmins)->where('two_factor_enabled', false)->count();
+        $checks['admin_security'] = ['name' => 'امنیت پنل مدیریت', 'status' => $unprotectedAdmins > 0 ? 'warning' : 'ok', 'detail' => 'مدیر فعال: '.$activeAdminCount.'؛ مدیر فعال بدون تأیید دومرحله‌ای: '.$unprotectedAdmins.'.'];
 
         $failed = collect($checks)->contains(fn ($check) => in_array($check['status'], ['fail', 'warning'], true));
         $status = $failed ? 'warning' : 'ok';

@@ -29,6 +29,6 @@ class AdminOperationsHealthCoverageTest extends TestCase
         $this->assertArrayHasKey('queue', $record->checks);
         $this->assertArrayHasKey('admin_security', $record->checks);
         $this->assertSame('warning', $record->checks['admin_security']['status']);
-        $this->assertStringContainsString('سوپرادمین فعال بدون تأیید دومرحله‌ای', $record->checks['admin_security']['detail']);
+        $this->assertStringContainsString('مدیر فعال بدون تأیید دومرحله‌ای', $record->checks['admin_security']['detail']);
     }
 }

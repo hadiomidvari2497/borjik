@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * سوپرادمین در محیط عملیاتی باید پیش از استفاده از سایر بخش‌های پنل، 2FA را فعال کند.
+ * تمام کاربران فعال پنل مدیریت در محیط عملیاتی باید پیش از دسترسی به بخش‌ها 2FA را فعال کنند.
  * مسیر راه‌اندازی، تأیید و خروج همیشه در دسترس می‌مانند تا حساب قفل نشود.
  */
 class EnsureAdminTwoFactor
@@ -20,7 +20,7 @@ class EnsureAdminTwoFactor
         }
 
         $admin = Auth::guard('admin')->user();
-        if (! $admin || ! $admin->is_super || $admin->two_factor_enabled) {
+        if (! $admin || $admin->two_factor_enabled) {
             return $next($request);
         }
 
@@ -35,6 +35,6 @@ class EnsureAdminTwoFactor
         }
 
         return redirect()->route('admin.account.two-factor')
-            ->with('warning', 'برای حفظ امنیت پنل، ابتدا تأیید دومرحله‌ای حساب سوپرادمین را فعال کن.');
+            ->with('warning', 'برای حفظ امنیت پنل مدیریت، ابتدا تأیید دومرحله‌ای حساب خود را فعال کن.');
     }
 }

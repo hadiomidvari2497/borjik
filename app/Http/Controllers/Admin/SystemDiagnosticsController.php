@@ -228,8 +228,8 @@ class SystemDiagnosticsController extends Controller
             $heartbeat = DB::table('cron_execution_logs')->where('task_name', 'scheduler:heartbeat')->where('status', 'success')->orderByDesc('finished_at')->value('finished_at');
             return $heartbeat && ! \Illuminate\Support\Carbon::parse($heartbeat)->lt(now()->subMinutes(3));
         });
-        $checks[] = $this->check('امنیت پنل ادمین', 'سوپرادمین‌های فعال باید تأیید دومرحله‌ای داشته باشند', function () {
-            return ! AdminUser::query()->where('status', 'active')->where('is_super', true)->where('two_factor_enabled', false)->exists();
+        $checks[] = $this->check('امنیت پنل ادمین', 'تمام مدیران فعال باید تأیید دومرحله‌ای داشته باشند', function () {
+            return ! AdminUser::query()->where('status', 'active')->where('two_factor_enabled', false)->exists();
         });
         $checks[] = $this->check('حالت امن برنامه', 'در محیط عملیاتی APP_DEBUG باید خاموش باشد', fn () => ! (bool) config('app.debug'));
 

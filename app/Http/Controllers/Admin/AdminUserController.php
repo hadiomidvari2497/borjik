@@ -35,7 +35,7 @@ class AdminUserController extends Controller
             'securityStats' => [
                 'active' => AdminUser::query()->where('status', 'active')->count(),
                 'protected' => AdminUser::query()->where('status', 'active')->where('two_factor_enabled', true)->count(),
-                'unprotectedSuper' => AdminUser::query()->where('status', 'active')->where('is_super', true)->where('two_factor_enabled', false)->count(),
+                'unprotected' => AdminUser::query()->where('status', 'active')->where('two_factor_enabled', false)->count(),
             ],
         ]);
     }
