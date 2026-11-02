@@ -66,7 +66,7 @@
           <span style="color:var(--success);font-weight:700">فعال است</span>
         </div>
         <p class="hint" style="margin-bottom:12px">برای غیرفعال‌کردن این قابلیت، رمز عبور حساب را وارد کنید.</p>
-        <form method="POST" action="{{ route('profile.two-factor.disable') }}">
+        <form method="POST" action="{{ route('profile.two-factor.disable') }}" data-confirm="تأیید دومرحله‌ای حساب غیرفعال شود؟">
           @csrf
           @method('DELETE')
           <div class="field">
@@ -74,7 +74,7 @@
             <input id="two_factor_disable_password" type="password" name="password" autocomplete="current-password" required>
             @error('password')<div class="err">{{ $message }}</div>@enderror
           </div>
-          <button class="btn" type="submit" onclick="return confirm('تأیید دومرحله‌ای حساب غیرفعال شود؟')">غیرفعال‌کردن تأیید دومرحله‌ای</button>
+          <button class="btn" type="submit">غیرفعال‌کردن تأیید دومرحله‌ای</button>
         </form>
       @else
         <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:14px">
