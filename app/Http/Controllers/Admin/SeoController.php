@@ -57,6 +57,7 @@ class SeoController extends Controller
             $urls[] = ['loc' => $base.'/articles', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/software-building-charges', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/software-building-management', 'lastmod' => null];
+            $urls[] = ['loc' => $base.'/charge-management-guide', 'lastmod' => null];
             Article::query()->where('status', 'published')
                 ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
                 ->orderBy('id')
