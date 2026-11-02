@@ -29,7 +29,7 @@ class AdminTwoFactorEnforcementTest extends TestCase
         $this->actingAs($admin, 'admin')
             ->get(route('admin.account.two-factor'))
             ->assertOk()
-            ->assertSee('کلید محرمانه');
+            ->assertSee('Google Authenticator');
     }
 
     public function test_super_admin_with_two_factor_can_use_admin_panel_and_regular_admin_is_not_forced(): void
