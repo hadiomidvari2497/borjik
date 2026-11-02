@@ -48,6 +48,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('support')->name('support.')->middleware('admin.can:support.manage')->controller(SupportTicketController::class)->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/reports', [SupportPerformanceReportController::class, 'index'])->name('reports');
+            Route::get('/canned-replies', 'cannedReplies')->name('canned-replies');
+            Route::post('/canned-replies', 'storeCannedReply')->middleware('throttle:20,1')->name('canned-replies.store');
+            Route::delete('/canned-replies/{reply}', 'destroyCannedReply')->whereNumber('reply')->name('canned-replies.destroy');
+            Route::post('/{ticket}/internal-note', 'internalNote')->whereNumber('ticket')->middleware('throttle:30,1')->name('internal-note');
             Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
             Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:20,1')->name('reply');
             Route::get('/attachments/{attachment}', 'download')->whereNumber('attachment')->name('attachments.download');
