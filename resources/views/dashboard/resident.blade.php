@@ -12,10 +12,10 @@
 
 <div class="r2">
   <div class="card">
-    <div class="hd"><h2 style="margin:0">صورت‌حساب‌های پرداخت‌نشده</h2></div>
+    <div class="hd" style="gap:10px;flex-wrap:wrap"><h2 style="margin:0">صورت‌حساب‌های پرداخت‌نشده</h2><div style="display:flex;gap:7px;flex-wrap:wrap"><a class="btn sec sm" href="{{ route('my.invoices') }}">همه صورت‌حساب‌ها</a>@can('payment.submit')<a class="btn sm" href="{{ route('my.payments') }}">ثبت پرداخت</a>@endcan</div></div>
     @forelse($unpaid as $inv)
       <div class="kv"><div><b>{{ ['charge' => 'شارژ', 'rent' => 'اجاره', 'penalty' => 'جریمه'][$inv->type->value] }}</b><br><span>سررسید {{ \App\Support\Fa::date($inv->due_date) }}</span></div>
-        <div style="text-align:end"><b>{{ \App\Support\Fa::money($inv->amount - $inv->paid_amount) }}</b>@if($inv->due_date->isPast())<br><span class="pill u">معوق</span>@endif</div></div>
+        <div style="text-align:end"><b>{{ \App\Support\Fa::money($inv->amount - $inv->paid_amount) }}</b>@if($inv->due_date->isPast())<br><span class="pill u">معوق</span>@endif<br><a class="link" href="{{ route('my.invoices.show', $inv->id) }}">جزئیات و پرداخت‌ها ←</a></div></div>
     @empty
       <div class="empty">صورت‌حساب پرداخت‌نشده‌ای ندارید.</div>
     @endforelse
