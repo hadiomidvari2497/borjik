@@ -23,6 +23,96 @@
 @extends('layouts.app')
 @section('title', 'داشبورد')
 @section('content')
+@php
+  $guideSteps = [
+    [
+      'title' => 'تعریف واحدهای ساختمان',
+      'description' => 'بلوک‌ها و واحدها را ثبت کن تا محاسبه شارژ و تخصیص هزینه‌ها بر اساس اطلاعات درست انجام شود.',
+      'done' => $u['total'] > 0,
+      'url' => \Illuminate\Support\Facades\Route::has('units.index') ? route('units.index') : null,
+      'action' => 'مدیریت واحدها',
+    ],
+    [
+      'title' => 'تنظیم روش محاسبه شارژ',
+      'description' => 'مبنای تقسیم هزینه‌ها و تنظیمات دوره شارژ را مشخص کن.',
+      'done' => $p['configured'],
+      'url' => \Illuminate\Support\Facades\Route::has('charge-settings.edit') ? route('charge-settings.edit') : null,
+      'action' => 'تنظیمات شارژ',
+    ],
+    [
+      'title' => 'ثبت هزینه‌های دوره جاری',
+      'description' => 'هزینه‌های جاری و مشترک ساختمان را ثبت کن تا در محاسبه لحاظ شوند.',
+      'done' => $p['expensesCount'] > 0,
+      'url' => \Illuminate\Support\Facades\Route::has('expenses.index') ? route('expenses.index') : null,
+      'action' => 'ثبت هزینه‌ها',
+    ],
+    [
+      'title' => 'محاسبه و انتشار صورتحساب‌ها',
+      'description' => 'پس از کنترل مبالغ و سهم واحدها، صورتحساب دوره را منتشر کن.',
+      'done' => $p['status'] === 'published',
+      'url' => \Illuminate\Support\Facades\Route::has('charges.index') ? route('charges.index') : null,
+      'action' => 'مدیریت شارژ',
+    ],
+  ];
+  $guideDone = collect($guideSteps)->where('done', true)->count();
+  $guideNext = collect($guideSteps)->firstWhere('done', false);
+@endphp
+<style>
+.manager-guide{margin:0 0 16px;padding:17px;border:1px solid var(--line);border-radius:17px;background:var(--card)}
+.manager-guide-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.manager-guide-title{margin:0;font-size:15px;font-weight:900}
+.manager-guide-copy{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.9}
+.manager-guide-progress{display:flex;align-items:center;gap:9px;min-width:150px}
+.manager-guide-track{height:7px;flex:1;overflow:hidden;border-radius:99px;background:var(--line)}
+.manager-guide-track i{display:block;height:100%;border-radius:inherit;background:var(--brand,#278778)}
+.manager-guide-progress strong{font-size:12px;white-space:nowrap}
+.manager-guide-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:15px}
+.manager-guide-step{min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel,transparent)}
+.manager-guide-step-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.manager-guide-check{display:grid;place-items:center;flex:none;width:23px;height:23px;border-radius:50%;background:var(--line);font-size:12px;font-weight:900}
+.manager-guide-step.is-done .manager-guide-check{background:rgba(42,155,143,.14);color:#238779}
+.manager-guide-step b{font-size:12px;line-height:1.7}
+.manager-guide-step p{min-height:54px;margin:0;color:var(--muted);font-size:11px;line-height:1.8}
+.manager-guide-step a{display:inline-flex;margin-top:8px;font-size:11px;font-weight:850;color:var(--brand,#278778);text-decoration:none}
+.manager-guide-next{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:12px;padding:11px 13px;border-radius:11px;background:var(--brand-soft,rgba(42,155,143,.08));font-size:12px}
+.manager-guide-next a{font-weight:850;color:var(--brand,#278778);text-decoration:none}
+@media(max-width:850px){.manager-guide-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.manager-guide{padding:13px}.manager-guide-steps{grid-template-columns:1fr}.manager-guide-step p{min-height:0}.manager-guide-progress{width:100%}}
+</style>
+<section class="manager-guide" aria-labelledby="manager-guide-title">
+  <div class="manager-guide-head">
+    <div>
+      <h2 class="manager-guide-title" id="manager-guide-title">راهنمای راه‌اندازی و مدیریت شارژ</h2>
+      <p class="manager-guide-copy">مراحل اصلی را به‌ترتیب انجام بده؛ وضعیت هر مرحله از اطلاعات فعلی ساختمان محاسبه می‌شود.</p>
+    </div>
+    <div class="manager-guide-progress" aria-label="پیشرفت راه‌اندازی">
+      <div class="manager-guide-track"><i style="width:{{ (int) round($guideDone / count($guideSteps) * 100) }}%"></i></div>
+      <strong>{{ \App\Support\Fa::num($guideDone) }} از {{ \App\Support\Fa::num(count($guideSteps)) }} مرحله</strong>
+    </div>
+  </div>
+  <div class="manager-guide-steps">
+    @foreach($guideSteps as $index => $step)
+      <article class="manager-guide-step {{ $step['done'] ? 'is-done' : '' }}">
+        <div class="manager-guide-step-top">
+          <span class="manager-guide-check" aria-hidden="true">{{ $step['done'] ? '✓' : \App\Support\Fa::num($index + 1) }}</span>
+          <b>{{ $step['title'] }}</b>
+        </div>
+        <p>{{ $step['description'] }}</p>
+        @if($step['url'])
+          <a href="{{ $step['url'] }}">{{ $step['done'] ? 'مشاهده و ویرایش' : $step['action'] }} ←</a>
+        @endif
+      </article>
+    @endforeach
+  </div>
+  @if($guideNext)
+    <div class="manager-guide-next">
+      <span>قدم بعدی پیشنهادی: <strong>{{ $guideNext['title'] }}</strong></span>
+      @if($guideNext['url'])<a href="{{ $guideNext['url'] }}">{{ $guideNext['action'] }} ←</a>@endif
+    </div>
+  @else
+    <div class="manager-guide-next"><strong>مراحل اصلی شارژ تکمیل شده‌اند.</strong><span>برای دوره بعد، هزینه‌ها و تنظیمات را به‌روز نگه دار.</span></div>
+  @endif
+</section>
 
 @if($s['expires'] && $s['expires']->isBefore(now()->addDays(7)))
   <div class="warnbox">اشتراک ساختمان {{ $s['expires']->isPast() ? 'منقضی شده است' : 'تا '.\App\Support\Fa::date($s['expires']).' اعتبار دارد' }}؛ برای ادامه‌ی ثبت اطلاعات جدید آن را تمدید کنید.</div>
