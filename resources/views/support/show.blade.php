@@ -24,7 +24,7 @@
   <form class="support-reply" method="POST" enctype="multipart/form-data" action="{{ route('support.reply', $ticket) }}">@csrf
     <label for="body">پاسخ شما</label><textarea id="body" name="body" required minlength="2" maxlength="10000" placeholder="پیام خودت رو بنویس...">{{ old('body') }}</textarea>
     @error('body')<div style="color:#dc4444;font-size:11px;margin-top:6px">{{ $message }}</div>@enderror
-    <input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:block;margin-top:9px;font-size:11px"><small style="display:block;color:var(--muted);margin-top:5px">حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت</small><input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:block;margin-top:9px;font-size:11px"><small style="display:block;color:var(--muted);margin-top:5px">حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت</small><button type="submit">ارسال پاسخ</button>
+    <input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:block;margin-top:9px;font-size:11px"><small style="display:block;color:var(--muted);margin-top:5px">حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت</small><button type="submit">ارسال پاسخ</button>
   </form>
 @else
   <div style="padding:15px;border-radius:13px;background:rgba(22,131,74,.09);color:var(--ink);font-size:12px">این درخواست بسته شده است. اگر هنوز به راهنمایی نیاز داری، یک درخواست جدید ثبت کن.</div>
