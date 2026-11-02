@@ -225,7 +225,7 @@
     if (scope.querySelectorAll) selects = selects.concat(Array.prototype.slice.call(scope.querySelectorAll(selector)));
 
     selects.forEach(function (select) {
-      if (select.dataset.searchSelectReady === '1' || select.closest('.b-select')) return;
+      if (select.dataset.searchSelectReady === '1' || select.closest('.b-select, .jd-pop')) return; // selectهای ماه/سال تقویم شمسی باید native بمانند
       select.dataset.searchSelectReady = '1';
 
       var wrap = document.createElement('div');
