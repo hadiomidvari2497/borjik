@@ -279,4 +279,28 @@ class ContractTest extends TestCase
 
         $this->as($this->manager)->post(route('contracts.file', $id), ['contract_file' => UploadedFile::fake()->create('x.exe', 10)])->assertSessionHasErrors('contract_file');
     }
+    public function test_managers_can_print_rent_and_sale_contracts_but_unrelated_members_cannot(): void
+    {
+        $this->rent();
+        $rentId = $this->contractId();
+
+        $this->as($this->manager)->get(route('contracts.print', $rentId))
+            ->assertOk()
+            ->assertSee('قرارداد رسمی‌نمای اجاره', false)
+            ->assertSee('مبلغ ودیعه')
+            ->assertSee('امضا و اثر انگشت موجر')
+            ->assertSee('window.print');
+
+        $this->as($this->tenant)->get(route('contracts.print', $rentId))->assertForbidden();
+
+        $this->sale($this->buyer);
+        $saleId = $this->contractId(2);
+
+        $this->as($this->manager)->get(route('contracts.print', $saleId))
+            ->assertOk()
+            ->assertSee('قرارداد رسمی‌نمای خرید و فروش', false)
+            ->assertSee('ثمن معامله')
+            ->assertSee('امضا و اثر انگشت فروشنده');
+    }
+
 }
