@@ -164,6 +164,7 @@ class AdminSupportPerformanceReportTest extends TestCase
             'last_name' => 'آزمایشی',
             'mobile' => '09129990001',
             'status' => 'active',
+            'profile_completed_at' => now(),
         ]);
     }
 }
