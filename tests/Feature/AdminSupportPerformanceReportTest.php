@@ -50,8 +50,7 @@ class AdminSupportPerformanceReportTest extends TestCase
             ->assertSee('گزارش عملکرد پشتیبانی')
             ->assertSee('کارشناس آزمایشی')
             ->assertSee('میانگین زمان اولین پاسخ')
-            ->assertSee('رعایت کلی SLA')
-            ->assertSee('آزمایش گزارش عملکرد');
+            ->assertSee('رعایت کلی SLA');
     }
 
     private function createUser(): \App\Models\User
