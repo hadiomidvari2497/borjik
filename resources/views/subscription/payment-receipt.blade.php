@@ -23,8 +23,10 @@
     $couponDiscount = (int) data_get($payment->raw_response, 'coupon_discount_amount', data_get($payment->raw_response, 'discount_amount', 0));
     $couponCode = (string) data_get($payment->raw_response, 'coupon_code', '');
     $totalDiscount = $planDiscount + $couponDiscount;
-    $planDiscountLabel = $plan?->discount_type === 'percent'
-        ? $F::num(min(100, (int) $plan->discount_value)).'٪'
+    $storedDiscountType = data_get($payment->raw_response, 'plan_discount_type', $plan?->discount_type);
+    $storedDiscountValue = (int) data_get($payment->raw_response, 'plan_discount_value', $plan?->discount_value ?? 0);
+    $planDiscountLabel = $storedDiscountType === 'percent'
+        ? $F::num(min(100, $storedDiscountValue)).'٪'
         : 'مبلغ ثابت';
 @endphp
 <table class="invoice-table"><thead><tr><th>شرح</th><th>ظرفیت</th><th>مدت</th><th>مبلغ</th></tr></thead><tbody><tr><td>{{ $plan?->name ? 'اشتراک '.$plan->name : 'اشتراک صابخونه' }}</td><td>{{ $plan?->units_limit ? $F::num($plan->units_limit).' واحد' : ($sub?->units_limit ? $F::num($sub->units_limit).' واحد' : '—') }}</td><td>{{ $plan?->duration_months ? $F::num($plan->duration_months).' ماه' : '—' }}</td><td>{{ $F::money($listPrice) }}</td></tr></tbody></table>
