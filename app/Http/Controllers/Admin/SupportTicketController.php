@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminUser;
 use App\Models\SupportAttachment;
 use App\Models\SupportTicket;
+use App\Models\SupportTicketEvent;
 use App\Models\User;
 use App\Notifications\SupportTicketNotification;
 use App\Support\SupportSla;
@@ -88,7 +89,7 @@ class SupportTicketController extends Controller
     {
         $request->user('admin')->unreadNotifications()
             ->where('data->category', 'support')->where('data->ticket_id', $ticket)->update(['read_at' => now()]);
-        $ticket = SupportTicket::with(['user','building:id,name','assignedAdmin:id,name','messages'=>fn ($q) => $q->where('is_internal',false)->with('attachments')->orderBy('created_at')])->findOrFail($ticket);
+        $ticket = SupportTicket::with(['user','building:id,name','assignedAdmin:id,name','messages'=>fn ($q) => $q->where('is_internal',false)->with('attachments')->orderBy('created_at'),'events'=>fn ($q) => $q->with(['actorAdmin:id,name','fromAdmin:id,name','toAdmin:id,name'])->orderBy('created_at')])->findOrFail($ticket);
         $admins = AdminUser::where('status','active')->orderBy('name')->get(['id','name']);
         return view('admin.support.show',['ticket'=>$ticket,'statuses'=>self::STATUSES,'priorities'=>self::PRIORITIES,'admins'=>$admins]);
     }
@@ -104,17 +105,32 @@ class SupportTicketController extends Controller
         $admin = $request->user('admin');
         $ticket = SupportTicket::findOrFail($ticket);
         DB::transaction(function () use ($ticket,$admin,$data,$request) {
+            $wasFirstResponse = ! $ticket->first_response_at;
+            $previousStatus = $ticket->status;
+            $previousAssignee = $ticket->assigned_admin_id;
             $message = $ticket->messages()->create(['sender_type'=>'admin','sender_id'=>$admin->id,'body'=>trim($data['body'])]);
             $this->saveAttachments($request,$ticket,$message,'admin',(int)$admin->id);
             $status = $data['status'] ?? 'waiting_customer';
+            $terminal = in_array($status,['resolved','closed'],true);
             $ticket->update([
                 'status'=>$status,'assigned_admin_id'=>$ticket->assigned_admin_id ?: $admin->id,
+                'resolved_by_admin_id'=>$terminal ? ($ticket->resolved_by_admin_id ?: $admin->id) : null,
                 'last_reply_at'=>now(),
                 'first_response_at'=>$ticket->first_response_at ?: now(),
-                'first_response_breached_at'=>!$ticket->first_response_at && $ticket->first_response_due_at && now()->gt($ticket->first_response_due_at) ? ($ticket->first_response_breached_at ?: $ticket->first_response_due_at) : $ticket->first_response_breached_at,
-                'resolution_breached_at'=>in_array($status,['resolved','closed'],true) && $ticket->resolution_due_at && now()->gt($ticket->resolution_due_at) ? ($ticket->resolution_breached_at ?: $ticket->resolution_due_at) : $ticket->resolution_breached_at,
-                'closed_at'=>in_array($status,['resolved','closed'],true) ? now() : null,
+                'first_response_breached_at'=>$wasFirstResponse && $ticket->first_response_due_at && now()->gt($ticket->first_response_due_at) ? ($ticket->first_response_breached_at ?: $ticket->first_response_due_at) : $ticket->first_response_breached_at,
+                'resolution_breached_at'=>$terminal && $ticket->resolution_due_at && now()->gt($ticket->resolution_due_at) ? ($ticket->resolution_breached_at ?: $ticket->resolution_due_at) : $ticket->resolution_breached_at,
+                'closed_at'=>$terminal ? now() : null,
             ]);
+            if (! $previousAssignee && $ticket->assigned_admin_id) {
+                SupportTicketEvent::create(['support_ticket_id'=>$ticket->id,'event_type'=>'assigned','actor_admin_id'=>$admin->id,'from_admin_id'=>null,'to_admin_id'=>$ticket->assigned_admin_id,'description'=>'تخصیص اولیه تیکت به کارشناس']);
+            }
+            SupportTicketEvent::create(['support_ticket_id'=>$ticket->id,'event_type'=>$wasFirstResponse ? 'first_response' : 'reply','actor_admin_id'=>$admin->id,'description'=>$wasFirstResponse ? 'ثبت اولین پاسخ توسط کارشناس' : 'ثبت پاسخ جدید توسط کارشناس']);
+            if ($previousStatus !== $status) {
+                SupportTicketEvent::create(['support_ticket_id'=>$ticket->id,'event_type'=>'status_changed','actor_admin_id'=>$admin->id,'from_status'=>$previousStatus,'to_status'=>$status,'description'=>'تغییر وضعیت تیکت']);
+            }
+            if (! in_array($previousStatus,['resolved','closed'],true) && $terminal) {
+                SupportTicketEvent::create(['support_ticket_id'=>$ticket->id,'event_type'=>'resolved','actor_admin_id'=>$admin->id,'description'=>'پایان رسیدگی و حل تیکت توسط کارشناس']);
+            }
         });
         $ticket->user->notify(new SupportTicketNotification($ticket,'پاسخ پشتیبانی','تیم پشتیبانی صابخونه به تیکت '.$ticket->number.' پاسخ داده است.',route('support.show',$ticket)));
         return redirect()->route('admin.support.show',$ticket)->with('success','پاسخ برای مشتری ثبت شد.');
@@ -128,6 +144,9 @@ class SupportTicketController extends Controller
             'assigned_admin_id'=>['nullable',Rule::exists('admin_users','id')->where('status','active')],
         ]);
         $record = SupportTicket::findOrFail($ticket);
+        $admin = $request->user('admin');
+        $previousAssignee = $record->assigned_admin_id;
+        $previousStatus = $record->status;
         $slaUpdates = [];
         if ($record->priority !== $data['priority']) {
             $slaUpdates = SupportSla::deadlines($data['priority']);
@@ -145,10 +164,21 @@ class SupportTicketController extends Controller
             ...$data,
             ...$slaUpdates,
             'assigned_admin_id'=>$data['assigned_admin_id'] ?? null,
+            'resolved_by_admin_id'=>$terminalStatus ? ($record->resolved_by_admin_id ?: $admin->id) : null,
             'first_response_breached_at'=>!$record->first_response_at && $terminalStatus && $effectiveFirstResponseDue && now()->gt($effectiveFirstResponseDue) ? ($record->first_response_breached_at ?: $effectiveFirstResponseDue) : ($slaUpdates['first_response_breached_at'] ?? $record->first_response_breached_at),
             'resolution_breached_at'=>$terminalStatus && $effectiveResolutionDue && now()->gt($effectiveResolutionDue) ? ($record->resolution_breached_at ?: $effectiveResolutionDue) : ($slaUpdates['resolution_breached_at'] ?? $record->resolution_breached_at),
             'closed_at'=>$terminalStatus ? ($record->closed_at ?: now()) : null,
         ]);
+        $newAssignee = $data['assigned_admin_id'] ?? null;
+        if ((string) $previousAssignee !== (string) $newAssignee) {
+            SupportTicketEvent::create(['support_ticket_id'=>$record->id,'event_type'=>'assigned','actor_admin_id'=>$admin->id,'from_admin_id'=>$previousAssignee,'to_admin_id'=>$newAssignee,'description'=>'تغییر مسئول رسیدگی تیکت']);
+        }
+        if ($previousStatus !== $data['status']) {
+            SupportTicketEvent::create(['support_ticket_id'=>$record->id,'event_type'=>'status_changed','actor_admin_id'=>$admin->id,'from_status'=>$previousStatus,'to_status'=>$data['status'],'description'=>'تغییر وضعیت تیکت']);
+            if (! in_array($previousStatus,['resolved','closed'],true) && $terminalStatus) {
+                SupportTicketEvent::create(['support_ticket_id'=>$record->id,'event_type'=>'resolved','actor_admin_id'=>$admin->id,'description'=>'پایان رسیدگی و حل تیکت توسط کارشناس']);
+            }
+        }
         $record->user->notify(new SupportTicketNotification($record,'به‌روزرسانی تیکت','وضعیت درخواست '.$record->number.' به «'.self::STATUSES[$record->status].'» تغییر کرد.',route('support.show',$record)));
         return redirect()->route('admin.support.show',$record)->with('success','وضعیت، اولویت و مسئول رسیدگی ذخیره شد.');
     }
