@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ChargeMethod;
 use App\Models\Invoice;
 use Illuminate\Http\Request;
 
@@ -28,11 +29,15 @@ class MyInvoiceController extends Controller
 
         $snapshot = $invoice->period?->settings_snapshot ?? [];
         $expenseLines = data_get($snapshot, 'expenses', []);
+        $methodValue = data_get($invoice->breakdown, 'method', data_get($snapshot, 'settings.method'));
+        $methodLabel = is_numeric($methodValue)
+            ? (ChargeMethod::tryFrom((int) $methodValue)?->label() ?? 'روش ثبت‌شده')
+            : (is_string($methodValue) ? $methodValue : null);
 
         return view('my.invoice-show', [
             'invoice' => $invoice,
             'expenseLines' => is_array($expenseLines) ? $expenseLines : [],
-            'method' => data_get($invoice->breakdown, 'method', data_get($snapshot, 'settings.method')),
+            'method' => $methodLabel,
         ]);
     }
 
