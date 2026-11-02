@@ -27,7 +27,7 @@
   @csrf
   <label for="body">پاسخ به مشتری</label><textarea id="body" name="body" required minlength="2" maxlength="10000" placeholder="پاسخ خود را بنویسید...">{{ old('body') }}</textarea>
   <div class="admin-sup-grid"><div><label for="reply_status">وضعیت پس از پاسخ</label><select id="reply_status" name="status">@foreach(['in_progress'=>'در حال بررسی','waiting_customer'=>'منتظر پاسخ مشتری','resolved'=>'حل‌شده','closed'=>'بسته'] as $key=>$label)<option value="{{ $key }}" @selected(old('status','waiting_customer')===$key)>{{ $label }}</option>@endforeach</select></div></div>
-  <input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:block;margin:9px 0;font-size:11px"><small style="display:block;color:var(--muted);margin-bottom:8px">حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت</small><input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:block;margin:9px 0;font-size:11px"><small style="display:block;color:var(--muted);margin-bottom:8px">حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت</small><button type="submit">ارسال پاسخ</button>
+  <input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:block;margin:9px 0;font-size:11px"><small style="display:block;color:var(--muted);margin-bottom:8px">حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت</small><button type="submit">ارسال پاسخ</button>
 </form>
 <form class="admin-sup-form" method="POST" action="{{ route('admin.support.update',$ticket) }}">
   @csrf @method('PATCH')
