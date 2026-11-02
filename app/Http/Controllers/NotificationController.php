@@ -79,9 +79,15 @@ class NotificationController extends Controller
         $buildingId = $current->id();
         abort_unless($buildingId, 403);
 
-        $request->user()->unreadNotifications()->where('data->building_id', $buildingId)->update(['read_at' => now()]);
+        $query = $request->user()->unreadNotifications()->where('data->building_id', $buildingId);
+        $categories = ['invoice', 'payment', 'request', 'contract', 'expense', 'system'];
+        $category = (string) $request->input('category', '');
+        if (in_array($category, $categories, true)) {
+            $query->where('data->category', $category);
+        }
+        $query->update(['read_at' => now()]);
 
-        return redirect()->route('notifications.index', array_filter(['filter' => $request->input('filter')]))
+        return redirect()->route('notifications.index', array_filter(['filter' => $request->input('filter'), 'category' => $category]))
             ->with('status', 'همه‌ی اعلان‌ها خوانده‌شده علامت خورد.');
     }
 }
