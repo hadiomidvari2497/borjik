@@ -110,6 +110,8 @@ class SupportTicketController extends Controller
                 'status'=>$status,'assigned_admin_id'=>$ticket->assigned_admin_id ?: $admin->id,
                 'last_reply_at'=>now(),
                 'first_response_at'=>$ticket->first_response_at ?: now(),
+                'first_response_breached_at'=>!$ticket->first_response_at && $ticket->first_response_due_at && now()->gt($ticket->first_response_due_at) ? ($ticket->first_response_breached_at ?: $ticket->first_response_due_at) : $ticket->first_response_breached_at,
+                'resolution_breached_at'=>in_array($status,['resolved','closed'],true) && $ticket->resolution_due_at && now()->gt($ticket->resolution_due_at) ? ($ticket->resolution_breached_at ?: $ticket->resolution_due_at) : $ticket->resolution_breached_at,
                 'closed_at'=>in_array($status,['resolved','closed'],true) ? now() : null,
             ]);
         });
@@ -135,11 +137,16 @@ class SupportTicketController extends Controller
                 'resolution_breached_at' => null,
             ];
         }
+        $effectiveFirstResponseDue = $slaUpdates['first_response_due_at'] ?? $record->first_response_due_at;
+        $effectiveResolutionDue = $slaUpdates['resolution_due_at'] ?? $record->resolution_due_at;
+        $terminalStatus = in_array($data['status'], ['resolved', 'closed'], true);
         $record->update([
             ...$data,
             ...$slaUpdates,
             'assigned_admin_id'=>$data['assigned_admin_id'] ?? null,
-            'closed_at'=>in_array($data['status'],['resolved','closed'],true) ? ($record->closed_at ?: now()) : null,
+            'first_response_breached_at'=>!$record->first_response_at && $terminalStatus && $effectiveFirstResponseDue && now()->gt($effectiveFirstResponseDue) ? ($record->first_response_breached_at ?: $effectiveFirstResponseDue) : ($slaUpdates['first_response_breached_at'] ?? $record->first_response_breached_at),
+            'resolution_breached_at'=>$terminalStatus && $effectiveResolutionDue && now()->gt($effectiveResolutionDue) ? ($record->resolution_breached_at ?: $effectiveResolutionDue) : ($slaUpdates['resolution_breached_at'] ?? $record->resolution_breached_at),
+            'closed_at'=>$terminalStatus ? ($record->closed_at ?: now()) : null,
         ]);
         $record->user->notify(new SupportTicketNotification($record,'به‌روزرسانی تیکت','وضعیت درخواست '.$record->number.' به «'.self::STATUSES[$record->status].'» تغییر کرد.',route('support.show',$record)));
         return redirect()->route('admin.support.show',$record)->with('success','وضعیت، اولویت و مسئول رسیدگی ذخیره شد.');
