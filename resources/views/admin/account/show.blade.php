@@ -21,6 +21,36 @@
 </div>
 
 <div class="card" style="margin-top:16px">
+  <div class="page-h"><h2>شماره موبایل و ورود پیامکی</h2></div>
+  <p style="line-height:1.9;margin:8px 0 12px">این شماره فقط برای حساب مدیر پنل کل سایت استفاده می‌شود. برای فعال‌کردن پیامک جایگزین Google Authenticator، ابتدا مالکیت شماره را تأیید کنید.</p>
+  <form method="POST" action="{{ route('admin.account.mobile') }}">@csrf
+    <div class="fgrid">
+      <div class="fld"><label for="admin_mobile">شماره موبایل</label><input id="admin_mobile" name="mobile" type="tel" inputmode="tel" dir="ltr" maxlength="16" value="{{ old('mobile', $me->mobile) }}" placeholder="09xxxxxxxxx" required>@error('mobile')<div class="e">{{ $message }}</div>@enderror</div>
+      <div class="fld"><button class="btn" type="submit" style="margin-top:26px">ذخیره شماره</button></div>
+    </div>
+  </form>
+  @if($me->mobile)
+    <p style="margin:10px 0">@if($me->mobile_verified_at)<span class="pill">شماره تأیید شده: {{ $me->mobile }}</span>@else<span class="pill u">شماره تأیید نشده: {{ $me->mobile }}</span>@endif</p>
+    @unless($me->mobile_verified_at)
+      <form method="POST" action="{{ route('admin.account.mobile.request') }}" style="margin-top:10px">@csrf<button class="btn sec" type="submit">ارسال کد تأیید پیامکی</button></form>
+      <form method="POST" action="{{ route('admin.account.mobile.verify') }}" class="fgrid" style="margin-top:12px">@csrf
+        <div class="fld"><label for="mobile_code">کد ۶ رقمی پیامک‌شده</label><input id="mobile_code" name="code" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code" required>@error('mobile_code')<div class="e">{{ $message }}</div>@enderror</div>
+        <div class="fld"><button class="btn" type="submit" style="margin-top:26px">تأیید شماره</button></div>
+      </form>
+    @endunless
+  @endif
+  <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:14px">
+    <h3 style="margin:0 0 8px">ورود با پیامک به‌عنوان روش جایگزین</h3>
+    @if($me->two_factor_sms_enabled)<p><span class="pill">فعال</span> کد پیامکی در صفحه ورود دومرحله‌ای قابل درخواست است.</p>@else<p class="muted">برای استفاده از پیامک، ابتدا Google Authenticator و شماره موبایل را تأیید کنید.</p>@endif
+    @error('sms_two_factor')<div class="e">{{ $message }}</div>@enderror
+    <form method="POST" action="{{ route('admin.account.sms-two-factor') }}" style="margin-top:10px">@csrf
+      <input type="hidden" name="enabled" value="{{ $me->two_factor_sms_enabled ? 0 : 1 }}">
+      <button class="btn {{ $me->two_factor_sms_enabled ? 'sec' : '' }}" type="submit" @if(!$me->two_factor_sms_enabled && (!$me->two_factor_enabled || !$me->mobile_verified_at)) disabled @endif>{{ $me->two_factor_sms_enabled ? 'غیرفعال‌کردن ورود پیامکی' : 'فعال‌سازی ورود پیامکی' }}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
   <div class="page-h"><h2>تغییر رمز عبور</h2></div>
   <form method="POST" action="{{ route('admin.account.password') }}" style="margin-top:12px">
     @csrf

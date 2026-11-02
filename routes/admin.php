@@ -41,6 +41,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:admin-login')->name('login.submit');
         Route::get('/two-factor', [AuthController::class, 'challenge'])->name('two-factor.challenge');
         Route::post('/two-factor', [AuthController::class, 'verifyChallenge'])->middleware('throttle:admin-login')->name('two-factor.verify');
+        Route::post('/two-factor/sms/request', [AuthController::class, 'requestSmsChallenge'])->middleware('throttle:admin-login')->name('two-factor.sms.request');
+        Route::post('/two-factor/sms/verify', [AuthController::class, 'verifySmsChallenge'])->middleware('throttle:admin-login')->name('two-factor.sms.verify');
     });
 
     Route::middleware(['admin', EnsureAdminTwoFactor::class, RecordAdminActivity::class])->group(function () {
@@ -89,6 +91,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('account')->name('account')->controller(AccountController::class)->group(function () {
             Route::get('/', 'show');
             Route::post('/password', 'password')->middleware('throttle:5,1')->name('.password');
+            Route::post('/mobile', 'saveMobile')->middleware('throttle:5,1')->name('.mobile');
+            Route::post('/mobile/request', 'requestMobileVerification')->middleware('throttle:5,1')->name('.mobile.request');
+            Route::post('/mobile/verify', 'verifyMobile')->middleware('throttle:6,1')->name('.mobile.verify');
+            Route::post('/sms-two-factor', 'toggleSmsTwoFactor')->middleware('throttle:5,1')->name('.sms-two-factor');
             Route::get('/two-factor', 'twoFactorSetup')->name('.two-factor');
             Route::post('/two-factor', 'twoFactorConfirm')->middleware('throttle:6,1')->name('.two-factor.confirm');
             Route::delete('/two-factor', 'twoFactorDisable')->middleware('throttle:5,1')->name('.two-factor.disable');
