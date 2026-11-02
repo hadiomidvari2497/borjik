@@ -112,6 +112,34 @@ class SupportTicketController extends Controller
         return redirect()->route('support.show', $ticket)->with('success', 'پاسخ شما ثبت شد.');
     }
 
+    public function feedback(Request $request, int $ticket)
+    {
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $record = DB::transaction(function () use ($request, $ticket, $data) {
+            $record = SupportTicket::query()
+                ->where('user_id', $request->user()->id)
+                ->lockForUpdate()
+                ->findOrFail($ticket);
+
+            abort_unless(in_array($record->status, ['resolved', 'closed'], true), 403, 'امتیازدهی پس از پایان رسیدگی امکان‌پذیر است.');
+            abort_if($record->satisfaction_submitted_at !== null, 409, 'قبلاً برای این درخواست امتیاز ثبت کرده‌اید.');
+
+            $record->update([
+                'satisfaction_rating' => (int) $data['rating'],
+                'satisfaction_comment' => isset($data['comment']) ? trim($data['comment']) : null,
+                'satisfaction_submitted_at' => now(),
+            ]);
+
+            return $record;
+        });
+
+        return redirect()->route('support.show', $record)->with('success', 'از ثبت نظر و ارزیابی شما سپاسگزاریم.');
+    }
+
     public function download(Request $request, int $attachment)
     {
         $file = SupportAttachment::with('ticket')->findOrFail($attachment);

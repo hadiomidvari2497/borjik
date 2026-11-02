@@ -23,6 +23,7 @@
   <div class="spr-kpi"><small>میانگین زمان اولین پاسخ</small><strong>{{ $summary['avg_first_response_minutes'] === null ? '—' : $F::num($summary['avg_first_response_minutes']).' دقیقه' }}</strong></div>
   <div class="spr-kpi"><small>میانگین زمان حل درخواست</small><strong>{{ $summary['avg_resolution_minutes'] === null ? '—' : $F::num($summary['avg_resolution_minutes']).' دقیقه' }}</strong></div>
   <div class="spr-kpi"><small>رعایت کلی SLA</small><strong>{{ $summary['sla_compliance'] === null ? '—' : $F::digits(number_format($summary['sla_compliance'],1)).'٪' }}</strong></div>
+  <div class="spr-kpi"><small>میانگین رضایت مشتریان</small><strong>{{ $satisfaction['average_rating'] === null ? '—' : $F::num($satisfaction['average_rating']).' از ۵' }}</strong><small style="margin-top:5px">{{ $F::num($satisfaction['responses']) }} ارزیابی ثبت‌شده</small></div>
 </div>
 <h3 class="spr-section">عملکرد به تفکیک کارشناس</h3>
 <div class="spr-wrap">

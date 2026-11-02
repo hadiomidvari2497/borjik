@@ -23,6 +23,7 @@ class SupportTicket extends Model
             'first_response_breached_at' => 'datetime',
             'resolution_warning_sent_at' => 'datetime',
             'resolution_breached_at' => 'datetime',
+            'satisfaction_submitted_at' => 'datetime',
         ];
     }
 

@@ -7,6 +7,14 @@
 @media(max-width:600px){.admin-sup-message{max-width:96%}.admin-sup-grid{grid-template-columns:1fr}}
 </style>
 <div class="admin-sup-head"><div><h2>{{ $ticket->subject }}</h2><p>{{ $ticket->number }} · {{ $F::date($ticket->created_at, 'j F Y · H:i') }}</p></div><a class="admin-sup-back" href="{{ route('admin.support.index') }}">بازگشت به فهرست ←</a></div>
+@if($ticket->satisfaction_submitted_at)
+  <section class="admin-sup-form" style="margin-bottom:14px">
+    <b style="font-size:12px">ارزیابی رضایت مشتری</b>
+    <div style="font-size:20px;font-weight:900;margin-top:7px">{{ $ticket->satisfaction_rating }} / ۵</div>
+    @if($ticket->satisfaction_comment)<p style="font-size:11px;line-height:2;margin:7px 0 0">{{ $ticket->satisfaction_comment }}</p>@endif
+    <small style="display:block;color:var(--muted);margin-top:6px">{{ $F::date($ticket->satisfaction_submitted_at,'j F Y · H:i') }}</small>
+  </section>
+@endif
 <div class="admin-sup-meta">
   <div><small>مشتری</small><b>{{ $ticket->user?->display_name ?: $ticket->user?->mobile }}</b><small style="margin-top:4px">{{ $ticket->user?->mobile }}</small></div>
   <div><small>ساختمان مرتبط</small><b>{{ $ticket->building?->name ?? 'بدون ساختمان' }}</b></div>

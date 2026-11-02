@@ -39,6 +39,11 @@ class SupportPerformanceReportController extends Controller
         }
 
         $summary = $this->metricsQuery($from, $to)->first();
+        $satisfaction = DB::table('support_tickets')
+            ->whereBetween('satisfaction_submitted_at', [$from, $to])
+            ->whereNotNull('satisfaction_rating')
+            ->selectRaw('COUNT(*) AS responses, AVG(satisfaction_rating) AS average_rating')
+            ->first();
         $agents = $this->agentActivityQuery($from, $to)
             ->orderByDesc('resolved_tickets')
             ->orderByDesc('replied_tickets')
@@ -48,6 +53,10 @@ class SupportPerformanceReportController extends Controller
 
         return view('admin.support.reports', [
             'summary' => $this->presentMetrics($summary),
+            'satisfaction' => [
+                'responses' => (int) ($satisfaction->responses ?? 0),
+                'average_rating' => $satisfaction->average_rating !== null ? round((float) $satisfaction->average_rating, 2) : null,
+            ],
             'agents' => $agents,
             'filters' => [
                 'from' => $request->query('from', JalaliDate::format($from)),

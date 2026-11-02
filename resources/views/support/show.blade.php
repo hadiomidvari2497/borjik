@@ -29,5 +29,28 @@
 @else
   <div style="padding:15px;border-radius:13px;background:rgba(22,131,74,.09);color:var(--ink);font-size:12px">این درخواست بسته شده است. اگر هنوز به راهنمایی نیاز داری، یک درخواست جدید ثبت کن.</div>
   <a href="{{ route('support.create') }}" style="display:inline-block;margin-top:12px;font-size:12px">ثبت درخواست جدید</a>
+  @if(!$ticket->satisfaction_submitted_at)
+    <form class="support-reply" method="POST" action="{{ route('support.feedback', $ticket) }}" style="margin-top:14px">
+      @csrf
+      <strong style="display:block;font-size:13px;margin-bottom:7px">از رسیدگی تیم پشتیبانی چقدر رضایت داشتی؟</strong>
+      <p style="font-size:11px;color:var(--muted);margin:0 0 12px">امتیازت به بهتر شدن خدمات پشتیبانی کمک می‌کند.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        @foreach([5=>'عالی',4=>'خوب',3=>'متوسط',2=>'ضعیف',1=>'خیلی ضعیف'] as $value=>$label)
+          <label style="display:flex;gap:5px;align-items:center;padding:8px 10px;border:1px solid var(--gb);border-radius:10px;font-size:11px;cursor:pointer">
+            <input type="radio" name="rating" value="{{ $value }}" required @checked(old('rating') == $value)> {{ $value }} · {{ $label }}
+          </label>
+        @endforeach
+      </div>
+      @error('rating')<div style="color:#dc4444;font-size:11px;margin-top:6px">{{ $message }}</div>@enderror
+      <label for="satisfaction_comment" style="display:block;font-size:11px;font-weight:800;margin:12px 0 6px">توضیح بیشتر (اختیاری)</label>
+      <textarea id="satisfaction_comment" name="comment" maxlength="1000" placeholder="اگر پیشنهادی برای بهتر شدن خدمات داری بنویس...">{{ old('comment') }}</textarea>
+      <button type="submit">ثبت ارزیابی</button>
+    </form>
+  @else
+    <div style="padding:14px;border:1px solid var(--gb);border-radius:13px;margin-top:14px">
+      <strong style="font-size:12px">ارزیابی شما ثبت شده است · {{ $ticket->satisfaction_rating }}/۵</strong>
+      @if($ticket->satisfaction_comment)<p style="font-size:11px;line-height:2;margin:7px 0 0;color:var(--muted)">{{ $ticket->satisfaction_comment }}</p>@endif
+    </div>
+  @endif
 @endif
 @endsection

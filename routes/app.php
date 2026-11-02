@@ -49,6 +49,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
         Route::post('/', 'store')->middleware('throttle:20,1')->name('store');
         Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
         Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:30,1')->name('reply');
+        Route::post('/{ticket}/feedback', 'feedback')->whereNumber('ticket')->middleware('throttle:10,1')->name('feedback');
         Route::get('/attachments/{attachment}', 'download')->whereNumber('attachment')->name('attachments.download');
     });
 
