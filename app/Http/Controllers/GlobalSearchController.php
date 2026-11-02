@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\\Controllers;
 
-use App\\Models\\Contract;
-use App\\Models\\Document;
-use App\\Models\\Invoice;
-use App\\Models\\Ticket;
-use App\\Models\\Unit;
-use App\\Models\\UnitParty;
-use App\\Models\\User;
-use App\\Support\\CurrentBuilding;
-use App\\Support\\MobileNumber;
-use Illuminate\\Http\\JsonResponse;
-use Illuminate\\Http\\Request;
+use App\Models\\Contract;
+use App\Models\\Document;
+use App\Models\\Invoice;
+use App\Models\\Ticket;
+use App\Models\\Unit;
+use App\Models\\UnitParty;
+use App\Models\\User;
+use App\Support\\CurrentBuilding;
+use App\Support\\MobileNumber;
+use Illuminate\Http\\JsonResponse;
+use Illuminate\Http\\Request;
 
 class GlobalSearchController extends Controller
 {
@@ -23,7 +23,7 @@ class GlobalSearchController extends Controller
 
         $data = $request->validate(['q' => ['required', 'string', 'min:2', 'max:80']]);
         $term = trim(MobileNumber::toLatinDigits($data['q']));
-        $like = '%'.str_replace(['\\\\', '%', '_'], ['\\\\\\\\', '\\\\%', '\\\\_'], $term).'%';
+        $like = '%'.$term.'%';
         $user = $request->user();
         $results = collect();
 
@@ -36,7 +36,7 @@ class GlobalSearchController extends Controller
             Unit::query()->where('building_id', $buildingId)->with('block')
                 ->where(function ($query) use ($like) {
                     $query->where('number', 'like', $like)
-                        ->orWhereHas('block', fn ($block) => $block->where('name', 'like', $like));
+                        ->orWhereHas('block', fn ($block) => $block->where('number', 'like', $like));
                 })->limit(5)->get()->each(function (Unit $unit) use ($add) {
                     $block = $unit->block?->name ? 'بلوک '.$unit->block->name : 'واحد';
                     $add('واحدها', 'واحد '.$unit->number, $block, route('units.index', ['q' => $unit->number]), 'unit');
@@ -102,10 +102,11 @@ class GlobalSearchController extends Controller
                     $query->whereHas('unit', fn ($unit) => $unit->where('number', 'like', $like))
                         ->orWhereHas('user', fn ($person) => $person->where('first_name', 'like', $like)
                             ->orWhere('last_name', 'like', $like)->orWhere('company_name', 'like', $like));
-                })->latest()->limit(5)->get()->each(function (Contract $contract) use ($add) {
+                })->latest()->limit(5)->get()->each(function (Contract $contract) use ($add, $user) {
                     $unitNumber = $contract->unit?->number ?? '—';
                     $person = $contract->user?->display_name ?? 'طرف قرارداد';
-                    $add('قراردادها', 'قرارداد واحد '.$unitNumber, $person, route('contracts.show', $contract->id), 'contract');
+                    $url = $user->hasPermission('contract.manage') ? route('contracts.show', $contract->id) : route('my.contracts');
+                    $add('قراردادها', 'قرارداد واحد '.$unitNumber, $person, $url, 'contract');
                 });
         }
 
