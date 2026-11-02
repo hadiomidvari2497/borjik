@@ -141,6 +141,29 @@ class ContractController extends Controller
         ]);
     }
 
+    /** نسخه‌ی چاپی قرارداد با اطلاعات طرفین و مشخصات ملک. */
+    public function print(int $id)
+    {
+        $contract = Contract::with(['unit.block', 'unit.building', 'user', 'createdBy'])->findOrFail($id);
+        $owner = UnitParty::with('user')
+            ->where('unit_id', $contract->unit_id)
+            ->where('relation', 'owner')
+            ->whereNull('to_date')
+            ->first()?->user;
+        $seller = null;
+        if ($contract->type === ContractType::Sale) {
+            $seller = UnitParty::with('user')
+                ->where('unit_id', $contract->unit_id)
+                ->where('relation', 'owner')
+                ->whereDate('to_date', $contract->signed_at)
+                ->where('user_id', '!=', $contract->user_id)
+                ->orderByDesc('id')
+                ->first()?->user;
+        }
+
+        return view('contracts.print', compact('contract', 'owner', 'seller'));
+    }
+
     public function end(int $id, ContractService $service)
     {
         try {
