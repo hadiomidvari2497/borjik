@@ -155,6 +155,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
     Route::get('/files/{id}', [FileController::class, 'show'])->whereNumber('id')->name('files.show');
 
     Route::get('/my/invoices', [MyInvoiceController::class, 'index'])->middleware('can:invoice.view.own')->name('my.invoices');
+    Route::get('/my/invoices/{invoice}', [MyInvoiceController::class, 'show'])->whereNumber('invoice')->middleware('can:invoice.view.own')->name('my.invoices.show');
     Route::middleware('can:payment.submit')->group(function () {
         Route::get('/my/payments', [MyPaymentController::class, 'index'])->name('my.payments');
         Route::post('/my/payments', [MyPaymentController::class, 'store'])->name('my.payments.store');
