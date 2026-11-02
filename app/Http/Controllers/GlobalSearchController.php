@@ -38,7 +38,7 @@ class GlobalSearchController extends Controller
                     $query->where('number', 'like', $like)
                         ->orWhereHas('block', fn ($block) => $block->where('number', 'like', $like));
                 })->limit(5)->get()->each(function (Unit $unit) use ($add) {
-                    $block = $unit->block?->name ? 'بلوک '.$unit->block->name : 'واحد';
+                    $block = $unit->block?->number ? 'بلوک '.$unit->block->number : 'واحد';
                     $add('واحدها', 'واحد '.$unit->number, $block, route('units.index', ['q' => $unit->number]), 'unit');
                 });
         } else {
