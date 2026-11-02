@@ -16,7 +16,19 @@
 <div class="invoice-body">
 <div class="invoice-row"><section class="invoice-section"><h3>اطلاعات پرداخت‌کننده</h3><div class="invoice-grid"><div class="invoice-item"><span>نام و نام خانوادگی / نام شرکت</span><strong>{{ $payment->user?->display_name ?: 'کاربر صابخونه' }}</strong></div><div class="invoice-item"><span>شناسه کاربر</span><strong dir="ltr">#{{ $payment->user_id }}</strong></div></div></section><div class="invoice-stamp" aria-label="پرداخت موفق"><span><b>✓</b>پرداخت موفق</span></div></div>
 <section class="invoice-section"><h3>شرح خرید</h3>
-<table class="invoice-table"><thead><tr><th>شرح</th><th>ظرفیت</th><th>مدت</th><th>مبلغ</th></tr></thead><tbody><tr><td>{{ $plan?->name ? 'اشتراک '.$plan->name : 'اشتراک صابخونه' }}</td><td>{{ $plan?->units_limit ? $F::num($plan->units_limit).' واحد' : ($sub?->units_limit ? $F::num($sub->units_limit).' واحد' : '—') }}</td><td>{{ $plan?->duration_months ? $F::num($plan->duration_months).' ماه' : '—' }}</td><td>{{ $F::money($payment->amount) }}</td></tr></tbody></table></section>
+@php
+    $baseAmount = (int) data_get($payment->raw_response, 'base_amount', $payment->amount);
+    $couponDiscount = (int) data_get($payment->raw_response, 'discount_amount', 0);
+    $couponCode = (string) data_get($payment->raw_response, 'coupon_code', '');
+@endphp
+<table class="invoice-table"><thead><tr><th>شرح</th><th>ظرفیت</th><th>مدت</th><th>مبلغ</th></tr></thead><tbody><tr><td>{{ $plan?->name ? 'اشتراک '.$plan->name : 'اشتراک صابخونه' }}</td><td>{{ $plan?->units_limit ? $F::num($plan->units_limit).' واحد' : ($sub?->units_limit ? $F::num($sub->units_limit).' واحد' : '—') }}</td><td>{{ $plan?->duration_months ? $F::num($plan->duration_months).' ماه' : '—' }}</td><td>{{ $F::money($baseAmount) }}</td></tr></tbody></table>
+@if($couponDiscount > 0)
+<div class="invoice-grid" style="margin-top:12px">
+    <div class="invoice-item"><span>کد تخفیف</span><strong dir="ltr">{{ $couponCode ?: '—' }}</strong></div>
+    <div class="invoice-item"><span>میزان تخفیف</span><strong>−{{ $F::money($couponDiscount) }}</strong></div>
+</div>
+@endif
+</section>
 <section class="invoice-section"><h3>جزئیات پرداخت</h3><div class="invoice-grid three">
 <div class="invoice-item"><span>درگاه پرداخت</span><strong>{{ $gw }}</strong></div>
 <div class="invoice-item"><span>شماره پیگیری</span><strong dir="ltr">{{ $payment->ref_id ?: '—' }}</strong></div>
