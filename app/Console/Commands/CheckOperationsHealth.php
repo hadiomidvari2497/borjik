@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\OperationsHealthCheck;
+use App\Models\AdminUser;
 use App\Models\OperationsSetting;
 use App\Models\SmsLog;
 use App\Models\SmsProvider;
@@ -45,6 +46,51 @@ class CheckOperationsHealth extends Command
         $heartbeat = $cronTable ? DB::table('cron_execution_logs')->where('task_name', 'scheduler:heartbeat')->where('status', 'success')->orderByDesc('finished_at')->value('finished_at') : null;
         $cronStatus = ! $cronTable ? 'unknown' : (! $heartbeat ? 'warning' : (\Illuminate\Support\Carbon::parse($heartbeat)->lt(now()->subMinutes(3)) ? 'warning' : 'ok'));
         $checks['scheduler'] = ['name' => 'Cron / Scheduler', 'status' => $cronStatus, 'detail' => $heartbeat ? 'آخرین heartbeat: '.$heartbeat : 'heartbeat ثبت نشده است.'];
+
+        $mailer = (string) config('mail.default', 'log');
+        $mailConfig = (array) config('mail.mailers.'.$mailer, []);
+        $transport = (string) ($mailConfig['transport'] ?? $mailer);
+        if ($transport === 'smtp') {
+            $host = (string) ($mailConfig['host'] ?? '');
+            $port = (int) ($mailConfig['port'] ?? 0);
+            $socket = false;
+            if ($host !== '' && $port > 0) {
+                $socket = @stream_socket_client('tcp://'.$host.':'.$port, $socketCode, $socketError, 3);
+            }
+            $connected = is_resource($socket);
+            if ($connected) {
+                fclose($socket);
+            }
+            $checks['email'] = ['name' => 'ایمیل / SMTP', 'status' => $connected ? 'ok' : 'fail', 'detail' => $connected ? 'اتصال شبکه برقرار است؛ ارسال واقعی ایمیل در این بررسی انجام نمی‌شود.' : 'اتصال SMTP برقرار نشد؛ میزبان، پورت و دسترسی شبکه را بررسی کن.'];
+        } else {
+            $checks['email'] = ['name' => 'ایمیل', 'status' => in_array($transport, ['log', 'array'], true) ? 'warning' : 'unknown', 'detail' => 'Mailer فعال: '.$mailer.'؛ اتصال واقعی از این درایور قابل سنجش نیست.'];
+        }
+
+        $smsProvider = SmsProvider::current();
+        $checks['sms'] = ['name' => 'درگاه پیامک', 'status' => $smsProvider ? 'ok' : 'warning', 'detail' => $smsProvider ? 'اتصال پیش‌فرض فعال است؛ برای اطمینان از ارسال، پیامک آزمایشی بفرست.' : 'اتصال پیامکی پیش‌فرض فعال نیست.'];
+
+        try {
+            $activeGateways = app(\\App\\Services\\Payments\\PaymentGatewayRegistry::class)->active();
+            $checks['payment_gateway'] = ['name' => 'درگاه پرداخت', 'status' => $activeGateways !== [] ? 'ok' : 'warning', 'detail' => $activeGateways !== [] ? count($activeGateways).' درگاه فعال با اطلاعات پایه شناسایی شد؛ تراکنش آزمایشی انجام نشده است.' : 'درگاه پرداخت فعال و کامل شناسایی نشد.'];
+        } catch (Throwable $exception) {
+            report($exception);
+            $checks['payment_gateway'] = ['name' => 'درگاه پرداخت', 'status' => 'fail', 'detail' => 'خواندن تنظیمات درگاه پرداخت ناموفق بود.'];
+        }
+
+        $queueDriver = (string) config('queue.default', '');
+        if ($queueDriver === 'database') {
+            $queueTable = (string) config('queue.connections.database.table', 'jobs');
+            $queueReady = Schema::hasTable($queueTable);
+            $queuedJobs = $queueReady ? (int) DB::table($queueTable)->count() : 0;
+            $checks['queue'] = ['name' => 'صف پردازش', 'status' => ! $queueReady ? 'fail' : ($queuedJobs > 100 ? 'warning' : 'ok'), 'detail' => ! $queueReady ? 'جدول صف دیتابیس وجود ندارد.' : 'درایور database؛ '.$queuedJobs.' کار در انتظار. زنده‌بودن worker از داخل برنامه قابل اثبات نیست.'];
+        } else {
+            $checks['queue'] = ['name' => 'صف پردازش', 'status' => $queueDriver === 'sync' ? 'warning' : ($queueDriver !== '' ? 'unknown' : 'fail'), 'detail' => $queueDriver === 'sync' ? 'درایور sync صف پس‌زمینه ایجاد نمی‌کند.' : 'درایور صف: '.($queueDriver ?: 'تنظیم نشده').'.'];
+        }
+
+        $activeAdmins = AdminUser::query()->where('status', 'active');
+        $activeAdminCount = (clone $activeAdmins)->count();
+        $unprotectedSuperAdmins = (clone $activeAdmins)->where('is_super', true)->where('two_factor_enabled', false)->count();
+        $checks['admin_security'] = ['name' => 'امنیت پنل مدیریت', 'status' => $unprotectedSuperAdmins > 0 ? 'warning' : 'ok', 'detail' => 'مدیر فعال: '.$activeAdminCount.'؛ سوپرادمین فعال بدون تأیید دومرحله‌ای: '.$unprotectedSuperAdmins.'.'];
 
         $failed = collect($checks)->contains(fn ($check) => in_array($check['status'], ['fail', 'warning'], true));
         $status = $failed ? 'warning' : 'ok';
