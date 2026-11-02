@@ -87,10 +87,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::prefix('account')->name('account')->controller(AccountController::class)->group(function () {
             Route::get('/', 'show');
-            Route::post('/password', 'password')->name('.password');
+            Route::post('/password', 'password')->middleware('throttle:5,1')->name('.password');
             Route::get('/two-factor', 'twoFactorSetup')->name('.two-factor');
-            Route::post('/two-factor', 'twoFactorConfirm')->name('.two-factor.confirm');
-            Route::delete('/two-factor', 'twoFactorDisable')->name('.two-factor.disable');
+            Route::post('/two-factor', 'twoFactorConfirm')->middleware('throttle:6,1')->name('.two-factor.confirm');
+            Route::delete('/two-factor', 'twoFactorDisable')->middleware('throttle:5,1')->name('.two-factor.disable');
         });
 
         Route::get('/payment-gateway', [PaymentGatewayController::class, 'edit'])->middleware('admin.can:gateway.manage')->name('payment-gateway.edit');
@@ -190,6 +190,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         Route::get('/building-users', [BuildingUserController::class, 'index'])->middleware('admin.can:users.view')->name('building-users.index');
+        Route::get('/building-users/{user}', [BuildingUserController::class, 'show'])->whereNumber('user')->middleware('admin.can:users.view')->name('building-users.show');
         Route::get('/buildings', [BuildingDirectoryController::class, 'index'])->middleware('admin.can:buildings.view')->name('buildings.index');
 
         Route::prefix('building-tools')->name('building-tools.')->middleware('admin.can:site.settings')->controller(BuildingToolsController::class)->group(function () {

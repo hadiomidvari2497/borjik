@@ -47,7 +47,7 @@
       @foreach($users as $u)
         @php $name = trim((string)$u->display_name) ?: 'کاربر بدون نام'; @endphp
         <tr>
-          <td><div class="bu-user"><div class="bu-avatar">{{ mb_substr($name, 0, 1) }}</div><div><strong>{{ $name }}</strong><small>{{ $u->mobile }}</small><div class="bu-muted" style="margin-top:4px">شناسه: {{ $F::digits($u->id) }}</div></div></div></td>
+          <td><div class="bu-user"><div class="bu-avatar">{{ mb_substr($name, 0, 1) }}</div><div><a href="{{ route('admin.building-users.show', $u->id) }}" style="font-weight:850;text-decoration:none">{{ $name }}</a><small>{{ $u->mobile }}</small><div class="bu-muted" style="margin-top:4px">شناسه: {{ $F::digits($u->id) }}</div></div></div></td>
           <td><span class="bu-status {{ $u->status === 'active' ? 'active' : 'disabled' }}">{{ $u->status === 'active' ? 'فعال' : 'غیرفعال' }}</span></td>
           <td>@if($u->buildingRoles->isEmpty())<span class="bu-muted">هنوز عضویتی ثبت نشده</span>@else<div class="bu-building">
             @foreach($u->buildingRoles as $m)
