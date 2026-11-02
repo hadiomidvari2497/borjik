@@ -12,6 +12,7 @@
   <div><small>ساختمان مرتبط</small><b>{{ $ticket->building?->name ?? 'بدون ساختمان' }}</b></div>
   <div><small>دسته‌بندی</small><b>{{ ['general'=>'عمومی','technical'=>'فنی','billing'=>'اشتراک و پرداخت','account'=>'حساب کاربری','suggestion'=>'پیشنهاد'][$ticket->category] ?? $ticket->category }}</b></div>
   <div><small>مسئول رسیدگی</small><b>{{ $ticket->assignedAdmin?->name ?? 'هنوز ارجاع نشده' }}</b></div>
+  <div><small>حل‌کننده نهایی</small><b>{{ $ticket->resolvedByAdmin?->name ?? 'هنوز مشخص نیست' }}</b></div>
   <div><small>مهلت پاسخ اولیه</small><b>{{ $ticket->first_response_at ? 'پاسخ داده شده' : ($ticket->first_response_due_at ? $F::date($ticket->first_response_due_at,'j F Y · H:i') : 'ثبت نشده') }}</b><small style="margin-top:4px">{{ $ticket->first_response_at ? $F::date($ticket->first_response_at,'j F Y · H:i') : ($ticket->first_response_breached_at ? 'مهلت نقض شده' : 'در انتظار اولین پاسخ') }}</small></div>
   <div><small>مهلت رسیدگی</small><b>{{ $ticket->resolution_due_at ? $F::date($ticket->resolution_due_at,'j F Y · H:i') : 'ثبت نشده' }}</b><small style="margin-top:4px">{{ in_array($ticket->status,['resolved','closed'],true) ? 'پایان یافته' : ($ticket->status==='waiting_customer' ? 'متوقف تا پاسخ مشتری' : ($ticket->resolution_breached_at ? 'مهلت نقض شده' : 'در حال محاسبه')) }}</small></div>
 </div>
@@ -28,7 +29,7 @@
             · {{ $event->fromAdmin?->name ?? 'بدون مسئول' }} ← {{ $event->toAdmin?->name ?? 'بدون مسئول' }}
           @endif
           @if($event->event_type==='status_changed')
-            · {{ $event->from_status }} ← {{ $event->to_status }}
+            · {{ ['open'=>'جدید','in_progress'=>'در حال بررسی','waiting_customer'=>'منتظر پاسخ مشتری','resolved'=>'حل‌شده','closed'=>'بسته'][$event->from_status] ?? $event->from_status }} ← {{ ['open'=>'جدید','in_progress'=>'در حال بررسی','waiting_customer'=>'منتظر پاسخ مشتری','resolved'=>'حل‌شده','closed'=>'بسته'][$event->to_status] ?? $event->to_status }}
           @endif
         </div>
       </div>
