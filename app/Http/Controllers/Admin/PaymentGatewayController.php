@@ -8,6 +8,7 @@ use App\Models\SubscriptionPayment;
 use App\Services\Payments\PaymentGatewayRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class PaymentGatewayController extends Controller
@@ -69,6 +70,8 @@ class PaymentGatewayController extends Controller
             'api_key' => ['nullable', 'string', 'max:2000'],
             'api_secret' => ['nullable', 'string', 'max:2000'],
             'webhook_secret' => ['nullable', 'string', 'max:2000'],
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+            'clear_logo' => ['nullable', 'boolean'],
             'active' => ['nullable', 'boolean'],
             'clear_api_key' => ['nullable', 'boolean'],
             'clear_api_secret' => ['nullable', 'boolean'],
@@ -87,6 +90,23 @@ class PaymentGatewayController extends Controller
             return $old[$field] ?? null;
         };
 
+        $logoPath = $old['logo_path'] ?? null;
+        if ($request->boolean('clear_logo')) {
+            if (is_string($logoPath) && str_starts_with($logoPath, 'payment-gateway-logos/')) {
+                Storage::disk('public')->delete($logoPath);
+            }
+            $logoPath = null;
+        }
+        if ($request->hasFile('logo')) {
+            $newLogoPath = $request->file('logo')->storePublicly('payment-gateway-logos', 'public');
+            if (is_string($newLogoPath) && $newLogoPath !== '') {
+                if (is_string($logoPath) && str_starts_with($logoPath, 'payment-gateway-logos/')) {
+                    Storage::disk('public')->delete($logoPath);
+                }
+                $logoPath = $newLogoPath;
+            }
+        }
+
         $settings = [
             'provider_name' => trim($data['provider_name']),
             'driver' => $data['driver'],
@@ -96,6 +116,7 @@ class PaymentGatewayController extends Controller
             'api_key' => $secret('api_key', 'clear_api_key'),
             'api_secret' => $secret('api_secret', 'clear_api_secret'),
             'webhook_secret' => $secret('webhook_secret', 'clear_webhook_secret'),
+            'logo_path' => $logoPath,
             'active' => $request->boolean('active'),
             'notes' => trim((string) ($data['notes'] ?? '')),
             'updated_at' => now()->toIso8601String(),
