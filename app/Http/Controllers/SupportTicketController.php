@@ -7,6 +7,7 @@ use App\Models\SupportTicket;
 use App\Support\CurrentBuilding;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class SupportTicketController extends Controller
@@ -49,6 +50,7 @@ class SupportTicketController extends Controller
             $ticket = SupportTicket::create([
                 'user_id' => $request->user()->id,
                 'building_id' => $current->id(),
+                'number' => 'TMP'.Str::upper(Str::random(18)),
                 'subject' => trim($data['subject']),
                 'category' => $data['category'],
                 'priority' => 'normal',
