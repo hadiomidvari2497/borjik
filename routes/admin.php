@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\OperationsCenterController;
 use App\Http\Controllers\Admin\HostMonitoringController;
 use App\Http\Controllers\Admin\PerformanceMonitoringController;
 use App\Http\Middleware\RecordAdminActivity;
+use App\Http\Middleware\EnsureAdminTwoFactor;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\BuildingUserController;
@@ -42,7 +43,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/two-factor', [AuthController::class, 'verifyChallenge'])->middleware('throttle:admin-login')->name('two-factor.verify');
     });
 
-    Route::middleware(['admin', \\App\\Http\\Middleware\\EnsureAdminTwoFactor::class, RecordAdminActivity::class])->group(function () {
+    Route::middleware(['admin', EnsureAdminTwoFactor::class, RecordAdminActivity::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::prefix('support')->name('support.')->middleware('admin.can:support.manage')->controller(SupportTicketController::class)->group(function () {
