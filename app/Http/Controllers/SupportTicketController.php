@@ -9,6 +9,7 @@ use App\Models\SupportTicket;
 use App\Notifications\SupportTicketNotification;
 use App\Support\CurrentBuilding;
 use App\Support\SupportSla;
+use App\Support\SupportTicketIntelligence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -65,7 +66,8 @@ class SupportTicketController extends Controller
                 'sender_type' => 'user', 'sender_id' => $request->user()->id, 'body' => trim($data['body']),
             ]);
             $this->saveAttachments($request, $ticket, $message, 'user', (int) $request->user()->id);
-            return $ticket;
+            $ticket->update(app(SupportTicketIntelligence::class)->analyze($ticket));
+            return $ticket->fresh();
         });
 
         $this->notifySupportAdmins($ticket, 'تیکت جدید', 'یک درخواست پشتیبانی جدید ثبت شده است.');

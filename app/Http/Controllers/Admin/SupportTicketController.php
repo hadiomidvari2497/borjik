@@ -31,6 +31,7 @@ class SupportTicketController extends Controller
             'sla' => ['nullable',Rule::in(['overdue','due_soon'])],
             'assignment' => ['nullable',Rule::in(['mine','unassigned','assigned'])],
             'assigned_admin_id' => ['nullable','integer'],
+            'smart_priority' => ['nullable',Rule::in(['low','normal','high','urgent'])],
         ]);
         $term = trim((string) ($filters['q'] ?? ''));
         $query = SupportTicket::query()
@@ -50,6 +51,7 @@ class SupportTicketController extends Controller
             })
             ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
             ->when($filters['priority'] ?? null, fn ($query, $value) => $query->where('priority', $value))
+            ->when($filters['smart_priority'] ?? null, fn ($query, $value) => $query->where('priority_suggestion', $value))
             ->when(($filters['assignment'] ?? '') === 'mine', fn ($query) => $query->where('assigned_admin_id', $request->user('admin')->id))
             ->when(($filters['assignment'] ?? '') === 'unassigned', fn ($query) => $query->whereNull('assigned_admin_id'))
             ->when(($filters['assignment'] ?? '') === 'assigned' && !empty($filters['assigned_admin_id']), fn ($query) => $query->where('assigned_admin_id', $filters['assigned_admin_id']))
@@ -77,6 +79,8 @@ class SupportTicketController extends Controller
             'waiting'=>SupportTicket::where('status','waiting_customer')->count(),
             'urgent'=>SupportTicket::where('priority','urgent')->whereNotIn('status',['resolved','closed'])->count(),
             'resolved'=>SupportTicket::whereIn('status',['resolved','closed'])->count(),
+            'suggested_urgent'=>SupportTicket::where('priority_suggestion','urgent')->whereNotIn('status',['resolved','closed'])->count(),
+            'duplicates'=>SupportTicket::whereNotNull('duplicate_of_ticket_id')->count(),
             'overdue_response'=>SupportTicket::whereIn('status',['open','in_progress'])->whereNull('first_response_at')->whereNotNull('first_response_due_at')->where('first_response_due_at','<=',now())->count(),
             'overdue_resolution'=>SupportTicket::whereIn('status',['open','in_progress'])->whereNotNull('resolution_due_at')->where('resolution_due_at','<=',now())->count(),
         ];
@@ -85,7 +89,7 @@ class SupportTicketController extends Controller
 
         return view('admin.support.index', [
             'tickets'=>$query->paginate(20)->withQueryString(),
-            'filters'=>array_merge(['q'=>'','status'=>'','priority'=>'','sla'=>'','assignment'=>'','assigned_admin_id'=>''],$filters),
+            'filters'=>array_merge(['q'=>'','status'=>'','priority'=>'','smart_priority'=>'','sla'=>'','assignment'=>'','assigned_admin_id'=>''],$filters),
             'statuses'=>self::STATUSES,'priorities'=>self::PRIORITIES,'stats'=>$stats,
             'supportNotifications'=>$supportNotifications,
             'supportAgents'=>AdminUser::where('status','active')->orderBy('name')->get(['id','name']),
@@ -96,7 +100,7 @@ class SupportTicketController extends Controller
     {
         $request->user('admin')->unreadNotifications()
             ->where('data->category', 'support')->where('data->ticket_id', $ticket)->update(['read_at' => now()]);
-        $ticket = SupportTicket::with(['user','building:id,name','assignedAdmin:id,name','resolvedByAdmin:id,name','messages'=>fn ($q) => $q->with('attachments')->orderBy('created_at'),'events'=>fn ($q) => $q->with(['actorAdmin:id,name','fromAdmin:id,name','toAdmin:id,name'])->orderBy('created_at')])->findOrFail($ticket);
+        $ticket = SupportTicket::with(['user','building:id,name','assignedAdmin:id,name','resolvedByAdmin:id,name','duplicateOf:id,number,subject,status','duplicateTickets:id,number,subject,status,duplicate_of_ticket_id','messages'=>fn ($q) => $q->with('attachments')->orderBy('created_at'),'events'=>fn ($q) => $q->with(['actorAdmin:id,name','fromAdmin:id,name','toAdmin:id,name'])->orderBy('created_at')])->findOrFail($ticket);
         $admins = AdminUser::where('status','active')->orderBy('name')->get(['id','name']);
         return view('admin.support.show',['ticket'=>$ticket,'statuses'=>self::STATUSES,'priorities'=>self::PRIORITIES,'admins'=>$admins,'cannedReplies'=>SupportCannedReply::where('is_active',true)->orderBy('title')->get()]);
     }
@@ -232,6 +236,33 @@ class SupportTicketController extends Controller
         }
         $record->user->notify(new SupportTicketNotification($record,'به‌روزرسانی تیکت','وضعیت درخواست '.$record->number.' به «'.self::STATUSES[$record->status].'» تغییر کرد.',route('support.show',$record)));
         return redirect()->route('admin.support.show',$record)->with('success','وضعیت، اولویت و مسئول رسیدگی ذخیره شد.');
+    }
+
+
+    public function applyPrioritySuggestion(Request $request, int $ticket)
+    {
+        $record=SupportTicket::findOrFail($ticket);
+        abort_unless(in_array($record->priority_suggestion,['low','normal','high','urgent'],true),422,'برای این تیکت پیشنهاد اولویت معتبری ثبت نشده است.');
+        $previous=$record->priority; $suggested=$record->priority_suggestion;
+        if($previous===$suggested) return redirect()->route('admin.support.show',$record)->with('success','اولویت فعلی با پیشنهاد هوشمند یکسان است.');
+        $record->update(['priority'=>$suggested,...SupportSla::deadlines($suggested),'first_response_warning_sent_at'=>null,'first_response_breached_at'=>null,'resolution_warning_sent_at'=>null,'resolution_breached_at'=>null]);
+        SupportTicketEvent::create(['support_ticket_id'=>$record->id,'event_type'=>'priority_changed','actor_admin_id'=>$request->user('admin')->id,'description'=>'پذیرش پیشنهاد اولویت هوشمند: '.$previous.' به '.$suggested]);
+        return redirect()->route('admin.support.show',$record)->with('success','اولویت پیشنهادی اعمال شد و مهلت‌های SLA به‌روزرسانی شدند.');
+    }
+
+    public function intelligence()
+    {
+        $clusters=SupportTicket::query()->selectRaw('duplicate_of_ticket_id, COUNT(*) AS related_count')->whereNotNull('duplicate_of_ticket_id')
+            ->groupBy('duplicate_of_ticket_id')->orderByDesc('related_count')->limit(15)->get()
+            ->map(function($row){
+                $original=SupportTicket::query()->with('user:id,first_name,last_name,mobile')->find($row->duplicate_of_ticket_id);
+                if(!$original) return null;
+                return ['ticket'=>$original,'related_count'=>(int)$row->related_count,'total_count'=>(int)$row->related_count+1,
+                    'latest'=>SupportTicket::where('duplicate_of_ticket_id',$original->id)->latest('created_at')->value('created_at')];
+            })->filter()->values();
+        $suggestions=SupportTicket::query()->selectRaw('priority_suggestion, COUNT(*) AS total')->whereNotNull('priority_suggestion')->groupBy('priority_suggestion')->pluck('total','priority_suggestion');
+        return view('admin.support.intelligence',['clusters'=>$clusters,'suggestions'=>$suggestions,
+            'analyzed'=>SupportTicket::whereNotNull('priority_suggestion')->count(),'duplicates'=>SupportTicket::whereNotNull('duplicate_of_ticket_id')->count()]);
     }
 
     public function download(Request $request, int $attachment)
