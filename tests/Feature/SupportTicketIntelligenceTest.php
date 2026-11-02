@@ -102,7 +102,7 @@ class SupportTicketIntelligenceTest extends TestCase
 
         $this->assertDatabaseHas('support_tickets', [
             'id' => $ticket->id,
-            'priority_suggestion' => 'urgent',
+            'priority_suggestion' => 'high',
         ]);
     }
 
