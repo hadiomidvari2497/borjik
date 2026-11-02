@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\Models\\Contract;
-use App\Models\\Document;
-use App\Models\\Invoice;
-use App\Models\\Ticket;
-use App\Models\\Unit;
-use App\Models\\UnitParty;
-use App\Models\\User;
-use App\Support\\CurrentBuilding;
-use App\Support\\MobileNumber;
-use Illuminate\Http\\JsonResponse;
-use Illuminate\Http\\Request;
+use App\Models\Contract;
+use App\Models\Document;
+use App\Models\Invoice;
+use App\Models\Ticket;
+use App\Models\Unit;
+use App\Models\UnitParty;
+use App\Models\User;
+use App\Support\CurrentBuilding;
+use App\Support\MobileNumber;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class GlobalSearchController extends Controller
 {
