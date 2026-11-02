@@ -42,7 +42,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/two-factor', [AuthController::class, 'verifyChallenge'])->middleware('throttle:admin-login')->name('two-factor.verify');
     });
 
-    Route::middleware(['admin', RecordAdminActivity::class])->group(function () {
+    Route::middleware(['admin', \\App\\Http\\Middleware\\EnsureAdminTwoFactor::class, RecordAdminActivity::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::prefix('support')->name('support.')->middleware('admin.can:support.manage')->controller(SupportTicketController::class)->group(function () {
