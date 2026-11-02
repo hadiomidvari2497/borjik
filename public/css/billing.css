@@ -104,7 +104,7 @@
 .bl-gw:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--brand) 50%,var(--line))}
 .bl-gw:has(input:checked){border-color:var(--brand);background:var(--brand-soft);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 12%,transparent)}
 .bl-gw input{position:absolute;opacity:0;pointer-events:none}
-.bl-gw-ic{width:46px;height:46px;display:grid;place-items:center;border-radius:15px;font-size:18px;font-weight:950;color:#fff;background:linear-gradient(145deg,#25cdb1,#087f78)}
+.bl-gw-ic{width:46px;height:46px;flex:none;display:grid;place-items:center;overflow:hidden;border-radius:15px;font-size:18px;font-weight:950;color:#fff;background:linear-gradient(145deg,#25cdb1,#087f78)}.bl-gw-ic img{display:block;width:100%;height:100%;padding:5px;box-sizing:border-box;object-fit:contain;background:#fff}
 .bl-gw b{display:block;font-size:14px}.bl-gw small{display:block;margin-top:3px;font-size:11.5px;color:var(--muted)}
 .bl-gw-tick{margin-inline-start:auto;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;border:2px solid var(--line);color:transparent;font-size:12px;font-weight:950;transition:all .2s}
 .bl-gw:has(input:checked) .bl-gw-tick{color:#fff;border-color:transparent;background:linear-gradient(145deg,#25cdb1,#087f78)}
