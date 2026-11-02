@@ -1,18 +1,17 @@
 <?php
 
-namespace App\\Http\\Controllers\\Auth;
+namespace App\Http\Controllers\Auth;
 
-use App\\Exceptions\\OtpException;
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\User;
-use App\\Services\\Auth\\OtpService;
-use App\\Support\\MobileNumber;
-use App\\Support\\Totp;
-use Illuminate\\Http\\Request;
+use App\Exceptions\OtpException;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Services\Auth\OtpService;
+use App\Support\MobileNumber;
+use App\Support\Totp;
+use Illuminate\Http\Request;
 
 class TwoFactorController extends Controller
 {
-    // ---- مرحله‌ی دوم ورود با رمز عبور
     public function challenge(Request $request)
     {
         abort_unless($request->session()->has('2fa_user_id'), 403);
@@ -23,13 +22,11 @@ class TwoFactorController extends Controller
     public function verifyChallenge(Request $request)
     {
         $user = $this->challengeUser($request);
-
         if (! $user) {
             return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
         }
 
         $code = MobileNumber::toLatinDigits((string) $request->input('code'));
-
         if (! $user->two_factor_secret || ! Totp::verify($user->two_factor_secret, $code)) {
             return back()->withErrors(['code' => 'کد تأیید نادرست است.']);
         }
@@ -40,13 +37,11 @@ class TwoFactorController extends Controller
     }
 
     /**
-     * ارسال کد جایگزین از طریق همان قالب OTP ورود عادی؛ بنابراین متن پیامک دقیقاً
-     * از همان قالب سیستمی/مدیریتی «کد ورود» خوانده می‌شود.
+     * از همان قالب otp ورود عادی استفاده می‌شود تا متن پیامک دقیقاً یکسان بماند.
      */
     public function requestSmsCode(Request $request, OtpService $otp)
     {
         $user = $this->challengeUser($request);
-
         if (! $user) {
             return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
         }
@@ -65,7 +60,6 @@ class TwoFactorController extends Controller
     public function verifySmsCode(Request $request, OtpService $otp)
     {
         $user = $this->challengeUser($request);
-
         if (! $user) {
             return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
         }
@@ -75,7 +69,6 @@ class TwoFactorController extends Controller
         }
 
         $code = MobileNumber::toLatinDigits((string) $request->input('code'));
-
         if (! preg_match('/^\\d{6}$/', $code) || ! $otp->verify($user->mobile, $code, 'two_factor')) {
             return back()->withErrors(['code' => 'کد پیامکی نادرست یا منقضی است.']);
         }
@@ -102,7 +95,6 @@ class TwoFactorController extends Controller
         return $user;
     }
 
-    // ---- فعال‌سازی و غیرفعال‌سازی (کاربر واردشده)
     public function setup(Request $request)
     {
         $secret = $request->session()->get('2fa_setup_secret') ?? tap(Totp::generateSecret(), fn ($s) => $request->session()->put('2fa_setup_secret', $s));
