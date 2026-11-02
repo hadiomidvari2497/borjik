@@ -39,11 +39,12 @@ class SupportPerformanceReportController extends Controller
         }
 
         $summary = $this->metricsQuery($from, $to)->first();
-        $agents = $this->metricsQuery($from, $to, true)
-            ->orderByDesc('tickets')
+        $agents = $this->agentActivityQuery($from, $to)
+            ->orderByDesc('resolved_tickets')
+            ->orderByDesc('replied_tickets')
             ->orderBy('agent_name')
             ->get()
-            ->map(fn ($row) => $this->presentMetrics($row));
+            ->map(fn ($row) => $this->presentAgentActivity($row));
 
         return view('admin.support.reports', [
             'summary' => $this->presentMetrics($summary),
@@ -87,6 +88,53 @@ class SupportPerformanceReportController extends Controller
         }
 
         return $query;
+    }
+
+    private function agentActivityQuery(Carbon $from, Carbon $to): Builder
+    {
+        $driver = DB::connection()->getDriverName();
+        $responseMinutes = $driver === 'sqlite'
+            ? '(julianday(e.created_at) - julianday(t.created_at)) * 1440'
+            : 'TIMESTAMPDIFF(SECOND, t.created_at, e.created_at) / 60';
+        $resolutionMinutes = $driver === 'sqlite'
+            ? '(julianday(e.created_at) - julianday(t.created_at)) * 1440'
+            : 'TIMESTAMPDIFF(SECOND, t.created_at, e.created_at) / 60';
+
+        return DB::table('support_ticket_events as e')
+            ->join('support_tickets as t', 't.id', '=', 'e.support_ticket_id')
+            ->join('admin_users as a', 'a.id', '=', 'e.actor_admin_id')
+            ->whereBetween('e.created_at', [$from, $to])
+            ->whereIn('e.event_type', ['first_response', 'reply', 'resolved'])
+            ->selectRaw("
+                e.actor_admin_id AS agent_id,
+                a.name AS agent_name,
+                COUNT(DISTINCT e.support_ticket_id) AS tickets,
+                COUNT(DISTINCT CASE WHEN e.event_type IN ('first_response','reply') THEN e.support_ticket_id END) AS responded_tickets,
+                COUNT(CASE WHEN e.event_type IN ('first_response','reply') THEN 1 END) AS replied_tickets,
+                COUNT(DISTINCT CASE WHEN e.event_type = 'resolved' THEN e.support_ticket_id END) AS resolved_tickets,
+                AVG(CASE WHEN e.event_type = 'first_response' THEN {$responseMinutes} END) AS avg_first_response_minutes,
+                AVG(CASE WHEN e.event_type = 'resolved' THEN {$resolutionMinutes} END) AS avg_resolution_minutes,
+                SUM(CASE WHEN e.event_type = 'resolved' THEN 1 ELSE 0 END) AS resolution_sla_total,
+                SUM(CASE WHEN e.event_type = 'resolved' AND t.resolution_breached_at IS NULL THEN 1 ELSE 0 END) AS resolution_sla_met
+            ")
+            ->groupBy('e.actor_admin_id', 'a.name');
+    }
+
+    private function presentAgentActivity(object $row): array
+    {
+        $resolutionTotal = (int) ($row->resolution_sla_total ?? 0);
+
+        return [
+            'agent_id' => $row->agent_id,
+            'agent_name' => $row->agent_name,
+            'tickets' => (int) ($row->tickets ?? 0),
+            'responded_tickets' => (int) ($row->responded_tickets ?? 0),
+            'replied_tickets' => (int) ($row->replied_tickets ?? 0),
+            'resolved_tickets' => (int) ($row->resolved_tickets ?? 0),
+            'avg_first_response_minutes' => $row->avg_first_response_minutes !== null ? (float) $row->avg_first_response_minutes : null,
+            'avg_resolution_minutes' => $row->avg_resolution_minutes !== null ? (float) $row->avg_resolution_minutes : null,
+            'sla_compliance' => $resolutionTotal > 0 ? round(((int) $row->resolution_sla_met / $resolutionTotal) * 100, 1) : null,
+        ];
     }
 
     private function presentMetrics(object $row): array
