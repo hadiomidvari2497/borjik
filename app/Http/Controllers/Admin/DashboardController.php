@@ -10,6 +10,7 @@ use App\Models\SystemErrorLog;
 use App\Models\SmsLog;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\SubscriptionPayment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -112,6 +113,14 @@ class DashboardController extends Controller
             ->whereDate('created_at', $now->toDateString())
             ->count();
 
+        $paidPayments = SubscriptionPayment::query()->where('status', 'paid');
+        $paidRevenueInPeriod = (clone $paidPayments)->whereBetween('paid_at', [$since, $now])->sum('amount');
+        $paidTransactionsInPeriod = (clone $paidPayments)->whereBetween('paid_at', [$since, $now])->count();
+        $pendingPayments = SubscriptionPayment::query()->where('status', 'pending')->count();
+        $failedPaymentsInPeriod = SubscriptionPayment::query()->where('status', 'failed')
+            ->where('created_at', '>=', $since)->where('created_at', '<=', $now)->count();
+        $lifetimeRevenue = (clone $paidPayments)->sum('amount');
+
         return view('admin.dashboard', [
             'usersCount' => User::count(),
             'newUsers' => User::where('created_at', '>=', $since)->where('created_at', '<=', $now)->count(),
@@ -130,6 +139,11 @@ class DashboardController extends Controller
             'failedHealthChecksLast7Days' => $failedHealthChecksLast7Days,
             'errorsLast24Hours' => $errorsLast24Hours,
             'errorsToday' => $errorsToday,
+            'paidRevenueInPeriod' => (int) $paidRevenueInPeriod,
+            'paidTransactionsInPeriod' => (int) $paidTransactionsInPeriod,
+            'pendingPayments' => $pendingPayments,
+            'failedPaymentsInPeriod' => $failedPaymentsInPeriod,
+            'lifetimeRevenue' => (int) $lifetimeRevenue,
             'trendDays' => $days,
             'trend' => $trend,
             'trendMax' => $trendMax,
