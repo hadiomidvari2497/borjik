@@ -71,6 +71,47 @@ class AdminSupportPerformanceReportTest extends TestCase
             ->assertSee('تعداد پاسخ‌ها');
     }
 
+    public function test_support_admin_can_add_private_notes_and_manage_canned_replies(): void
+    {
+        $admin = AdminUser::create([
+            'username' => 'support-tools-admin',
+            'name' => 'کارشناس ابزارها',
+            'password' => 'secret-pass-2',
+            'status' => 'active',
+            'is_super' => true,
+        ]);
+        $ticket = SupportTicket::create([
+            'number' => 'SP-TEST-TOOLS-0001',
+            'user_id' => $this->createUser()->id,
+            'subject' => 'تست یادداشت داخلی',
+            'category' => 'technical',
+            'priority' => 'normal',
+            'status' => 'open',
+        ]);
+
+        $this->actingAs($admin, 'admin')
+            ->post(route('admin.support.internal-note', $ticket), ['body' => 'این متن محرمانه تیم است'])
+            ->assertRedirect(route('admin.support.show', $ticket));
+
+        $this->assertDatabaseHas('support_messages', [
+            'support_ticket_id' => $ticket->id,
+            'body' => 'این متن محرمانه تیم است',
+            'is_internal' => true,
+        ]);
+
+        $this->actingAs($admin, 'admin')
+            ->post(route('admin.support.canned-replies.store'), [
+                'title' => 'راهنمای ورود',
+                'body' => 'برای ورود، شماره همراه خود را وارد کنید.',
+            ])
+            ->assertRedirect(route('admin.support.canned-replies'));
+
+        $this->assertDatabaseHas('support_canned_replies', [
+            'title' => 'راهنمای ورود',
+            'is_active' => true,
+        ]);
+    }
+
     private function createUser(): \App\Models\User
     {
         return \App\Models\User::create([
