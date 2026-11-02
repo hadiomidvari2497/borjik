@@ -41,6 +41,11 @@ class MarketingController extends Controller
         return view('marketing.building-charges');
     }
 
+    public function chargeManagementGuide()
+    {
+        return view('marketing.charge-management-guide');
+    }
+
     public function buildingManagement()
     {
         return view('marketing.building-management');
