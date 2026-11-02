@@ -15,6 +15,28 @@
   <div><small>مهلت پاسخ اولیه</small><b>{{ $ticket->first_response_at ? 'پاسخ داده شده' : ($ticket->first_response_due_at ? $F::date($ticket->first_response_due_at,'j F Y · H:i') : 'ثبت نشده') }}</b><small style="margin-top:4px">{{ $ticket->first_response_at ? $F::date($ticket->first_response_at,'j F Y · H:i') : ($ticket->first_response_breached_at ? 'مهلت نقض شده' : 'در انتظار اولین پاسخ') }}</small></div>
   <div><small>مهلت رسیدگی</small><b>{{ $ticket->resolution_due_at ? $F::date($ticket->resolution_due_at,'j F Y · H:i') : 'ثبت نشده' }}</b><small style="margin-top:4px">{{ in_array($ticket->status,['resolved','closed'],true) ? 'پایان یافته' : ($ticket->status==='waiting_customer' ? 'متوقف تا پاسخ مشتری' : ($ticket->resolution_breached_at ? 'مهلت نقض شده' : 'در حال محاسبه')) }}</small></div>
 </div>
+<section class="admin-sup-form" style="margin-top:16px">
+  <b style="display:block;font-size:12px;margin-bottom:12px">تاریخچه ارجاع و اقدامات</b>
+  @forelse($ticket->events as $event)
+    <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)">
+      <span style="width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:var(--brand,#1c4f4a);margin-top:6px"></span>
+      <div style="min-width:0">
+        <b style="font-size:11px">{{ $event->description ?: 'رویداد تیکت' }}</b>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">
+          {{ $event->actorAdmin?->name ?? 'کارشناس حذف‌شده / نامشخص' }} · {{ $F::date($event->created_at,'j F Y · H:i') }}
+          @if($event->event_type==='assigned')
+            · {{ $event->fromAdmin?->name ?? 'بدون مسئول' }} ← {{ $event->toAdmin?->name ?? 'بدون مسئول' }}
+          @endif
+          @if($event->event_type==='status_changed')
+            · {{ $event->from_status }} ← {{ $event->to_status }}
+          @endif
+        </div>
+      </div>
+    </div>
+  @empty
+    <p style="font-size:11px;color:var(--muted);margin:0">برای این تیکت هنوز رویداد تاریخی ثبت نشده است. تاریخچه از زمان استقرار این قابلیت ذخیره می‌شود.</p>
+  @endforelse
+</section>
 <div class="admin-sup-thread">
   @foreach($ticket->messages as $message)
     <article class="admin-sup-message {{ $message->sender_type==='admin'?'admin':'' }}">
