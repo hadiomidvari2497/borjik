@@ -74,6 +74,50 @@ class SubscriptionController extends Controller
         ]);
     }
 
+    /** بررسی زنده کد تخفیف پیش از شروع پرداخت؛ مبلغ نهایی فقط برای نمایش برگردانده می‌شود. */
+    public function previewCoupon(Request $request, int $id)
+    {
+        $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
+        $user = $request->user();
+        $buildingId = app(CurrentBuilding::class)->id();
+        $building = $buildingId ? Building::query()->whereHas('members', fn ($query) => $query
+            ->where('user_id', $user->id)->where('status', 'active')
+            ->whereHas('role', fn ($role) => $role->whereIn('key', ['owner', 'manager'])))->findOrFail($buildingId) : null;
+
+        if (! $building) {
+            return response()->json(['message' => 'ابتدا ساختمان موردنظر را ایجاد یا انتخاب کنید.'], 422);
+        }
+
+        $code = strtoupper(trim((string) $request->input('coupon_code', '')));
+        $baseAmount = (int) $plan->effectivePrice();
+
+        if ($code === '') {
+            return response()->json(['message' => 'کد تخفیف را وارد کنید.'], 422);
+        }
+        if ($baseAmount <= 0) {
+            return response()->json(['message' => 'برای این پلن مبلغی جهت اعمال تخفیف وجود ندارد.'], 422);
+        }
+
+        $coupon = DiscountCoupon::query()->where('code', $code)->first();
+        if (! $coupon || ! $coupon->isAvailableFor($user->id, $plan->id, $baseAmount)) {
+            return response()->json(['message' => 'کد تخفیف نامعتبر، منقضی یا غیرقابل استفاده برای این پلن است.'], 422);
+        }
+
+        $discountAmount = $coupon->discountFor($baseAmount);
+        if ($discountAmount <= 0) {
+            return response()->json(['message' => 'این کد تخفیف برای مبلغ این سفارش تخفیفی ایجاد نمی‌کند.'], 422);
+        }
+
+        return response()->json([
+            'valid' => true,
+            'coupon_code' => $coupon->code,
+            'base_amount' => $baseAmount,
+            'discount_amount' => $discountAmount,
+            'payable_amount' => max(0, $baseAmount - $discountAmount),
+            'message' => 'کد تخفیف با موفقیت اعمال شد.',
+        ]);
+    }
+
     /** پلن رایگان مستقیماً فعال می‌شود؛ پلن پولی فقط با شروع تراکنش واقعی. */
     public function subscribe(Request $request, int $id, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaymentGatewayRegistry $registry)
     {
