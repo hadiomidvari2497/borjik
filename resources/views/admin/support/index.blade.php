@@ -6,6 +6,10 @@
 .sup-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}.sup-kpi{padding:13px;border:1px solid var(--line);border-radius:13px}.sup-kpi small{display:block;color:var(--muted);font-size:11px}.sup-kpi strong{display:block;font-size:22px;margin-top:5px}.sup-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.sup-filter input,.sup-filter select{min-width:150px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:12px}.sup-filter button{border:0;border-radius:10px;padding:9px 15px;background:var(--brand,#1c4f4a);color:#fff;font:inherit;font-size:12px;font-weight:800}.sup-table{width:100%;border-collapse:collapse}.sup-table th,.sup-table td{padding:11px 9px;border-bottom:1px solid var(--line);text-align:right;font-size:11px;vertical-align:middle}.sup-table th{color:var(--muted);font-weight:800}.sup-table a{color:var(--text);text-decoration:none;font-weight:800}.sup-table a:hover{color:var(--brand)}.sup-pill{display:inline-flex;padding:4px 8px;border-radius:999px;background:var(--surface);font-size:10px;white-space:nowrap}.sup-empty{text-align:center;padding:30px;color:var(--muted)}
 @media(max-width:800px){.sup-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.sup-table-wrap{overflow:auto}.sup-table{min-width:760px}}
 </style>
+<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+  <a href="{{ route('admin.support.canned-replies') }}" class="sup-pill" style="text-decoration:none">مدیریت پاسخ‌های آماده</a>
+  <a href="{{ route('admin.support.reports') }}" class="sup-pill" style="text-decoration:none">گزارش عملکرد</a>
+</div>
 <div class="sup-kpis">
   <div class="sup-kpi"><small>کل درخواست‌ها</small><strong>{{ $F::num($stats['total']) }}</strong></div>
   <div class="sup-kpi"><small>در حال رسیدگی</small><strong>{{ $F::num($stats['open']) }}</strong></div>
@@ -29,6 +33,13 @@
   <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="شماره، موضوع، نام یا موبایل">
   <select name="status"><option value="">همه وضعیت‌ها</option>@foreach($statuses as $key=>$label)<option value="{{ $key }}" @selected($filters['status']===$key)>{{ $label }}</option>@endforeach</select>
   <select name="priority"><option value="">همه اولویت‌ها</option>@foreach($priorities as $key=>$label)<option value="{{ $key }}" @selected($filters['priority']===$key)>{{ $label }}</option>@endforeach</select>
+  <select name="assignment">
+    <option value="">همه مسئولیت‌ها</option>
+    <option value="mine" @selected($filters['assignment']==='mine')>تیکت‌های من</option>
+    <option value="unassigned" @selected($filters['assignment']==='unassigned')>بدون مسئول</option>
+    <option value="assigned" @selected($filters['assignment']==='assigned')>کارشناس مشخص</option>
+  </select>
+  <select name="assigned_admin_id"><option value="">همه کارشناسان</option>@foreach($supportAgents as $agent)<option value="{{ $agent->id }}" @selected((string)$filters['assigned_admin_id']===(string)$agent->id)>{{ $agent->name }}</option>@endforeach</select>
   <select name="sla"><option value="">همه مهلت‌ها</option><option value="overdue" @selected($filters['sla']==='overdue')>مهلت گذشته</option><option value="due_soon" @selected($filters['sla']==='due_soon')>نزدیک سررسید</option></select>
   <button type="submit">اعمال فیلتر</button>
   <a href="{{ route('admin.support.index') }}" style="align-self:center;font-size:11px">پاک‌کردن</a>
