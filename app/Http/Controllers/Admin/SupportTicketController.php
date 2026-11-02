@@ -8,6 +8,7 @@ use App\Models\SupportAttachment;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Notifications\SupportTicketNotification;
+use App\Support\SupportSla;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -44,19 +45,39 @@ class SupportTicketController extends Controller
             })
             ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
             ->when($filters['priority'] ?? null, fn ($query, $value) => $query->where('priority', $value))
+            ->when($filters['sla'] ?? null, function ($query, $value) {
+                $query->whereIn('status', ['open', 'in_progress'])->where(function ($slaQuery) use ($value) {
+                    if ($value === 'overdue') {
+                        $slaQuery->where(function ($q) {
+                            $q->whereNull('first_response_at')->whereNotNull('first_response_due_at')->where('first_response_due_at', '<=', now());
+                        })->orWhere(function ($q) {
+                            $q->whereNotNull('resolution_due_at')->where('resolution_due_at', '<=', now());
+                        });
+                    } else {
+                        $limit = now()->addMinutes((int) config('support.sla.warning_minutes', 30));
+                        $slaQuery->where(function ($q) use ($limit) {
+                            $q->whereNull('first_response_at')->whereBetween('first_response_due_at', [now(), $limit]);
+                        })->orWhere(function ($q) use ($limit) {
+                            $q->whereBetween('resolution_due_at', [now(), $limit]);
+                        });
+                    }
+                });
+            })
             ->latest('updated_at');
         $stats = [
             'total'=>SupportTicket::count(),'open'=>SupportTicket::whereIn('status',['open','in_progress'])->count(),
             'waiting'=>SupportTicket::where('status','waiting_customer')->count(),
             'urgent'=>SupportTicket::where('priority','urgent')->whereNotIn('status',['resolved','closed'])->count(),
             'resolved'=>SupportTicket::whereIn('status',['resolved','closed'])->count(),
+            'overdue_response'=>SupportTicket::whereIn('status',['open','in_progress'])->whereNull('first_response_at')->whereNotNull('first_response_due_at')->where('first_response_due_at','<=',now())->count(),
+            'overdue_resolution'=>SupportTicket::whereIn('status',['open','in_progress'])->whereNotNull('resolution_due_at')->where('resolution_due_at','<=',now())->count(),
         ];
         $supportNotifications = $request->user('admin')->notifications()
             ->where('data->category', 'support')->latest()->limit(6)->get();
 
         return view('admin.support.index', [
             'tickets'=>$query->paginate(20)->withQueryString(),
-            'filters'=>array_merge(['q'=>'','status'=>'','priority'=>''],$filters),
+            'filters'=>array_merge(['q'=>'','status'=>'','priority'=>'','sla'=>''],$filters),
             'statuses'=>self::STATUSES,'priorities'=>self::PRIORITIES,'stats'=>$stats,
             'supportNotifications'=>$supportNotifications,
         ]);
@@ -87,7 +108,9 @@ class SupportTicketController extends Controller
             $status = $data['status'] ?? 'waiting_customer';
             $ticket->update([
                 'status'=>$status,'assigned_admin_id'=>$ticket->assigned_admin_id ?: $admin->id,
-                'last_reply_at'=>now(),'closed_at'=>in_array($status,['resolved','closed'],true) ? now() : null,
+                'last_reply_at'=>now(),
+                'first_response_at'=>$ticket->first_response_at ?: now(),
+                'closed_at'=>in_array($status,['resolved','closed'],true) ? now() : null,
             ]);
         });
         $ticket->user->notify(new SupportTicketNotification($ticket,'پاسخ پشتیبانی','تیم پشتیبانی صابخونه به تیکت '.$ticket->number.' پاسخ داده است.',route('support.show',$ticket)));
@@ -102,8 +125,19 @@ class SupportTicketController extends Controller
             'assigned_admin_id'=>['nullable',Rule::exists('admin_users','id')->where('status','active')],
         ]);
         $record = SupportTicket::findOrFail($ticket);
+        $slaUpdates = [];
+        if ($record->priority !== $data['priority']) {
+            $slaUpdates = SupportSla::deadlines($data['priority']);
+            $slaUpdates += [
+                'first_response_warning_sent_at' => null,
+                'first_response_breached_at' => null,
+                'resolution_warning_sent_at' => null,
+                'resolution_breached_at' => null,
+            ];
+        }
         $record->update([
             ...$data,
+            ...$slaUpdates,
             'assigned_admin_id'=>$data['assigned_admin_id'] ?? null,
             'closed_at'=>in_array($data['status'],['resolved','closed'],true) ? ($record->closed_at ?: now()) : null,
         ]);

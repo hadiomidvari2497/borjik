@@ -15,6 +15,7 @@ class SupportTicketNotification extends Notification
         private readonly string $event,
         private readonly string $message,
         private readonly string $url,
+        private readonly ?string $slaEvent = null,
     ) {}
 
     public function via(object $notifiable): array
@@ -31,6 +32,7 @@ class SupportTicketNotification extends Notification
             'ticket_id' => $this->ticket->id,
             'ticket_number' => $this->ticket->number,
             'url' => $this->url,
+            'sla_event' => $this->slaEvent,
         ];
     }
 }

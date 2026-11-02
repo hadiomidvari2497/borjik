@@ -13,7 +13,17 @@ class SupportTicket extends Model
 
     protected function casts(): array
     {
-        return ['last_reply_at' => 'datetime', 'closed_at' => 'datetime'];
+        return [
+            'last_reply_at' => 'datetime',
+            'closed_at' => 'datetime',
+            'first_response_due_at' => 'datetime',
+            'resolution_due_at' => 'datetime',
+            'first_response_at' => 'datetime',
+            'first_response_warning_sent_at' => 'datetime',
+            'first_response_breached_at' => 'datetime',
+            'resolution_warning_sent_at' => 'datetime',
+            'resolution_breached_at' => 'datetime',
+        ];
     }
 
     public function user(): BelongsTo { return $this->belongsTo(User::class); }

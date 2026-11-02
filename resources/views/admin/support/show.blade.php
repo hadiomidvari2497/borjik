@@ -12,13 +12,14 @@
   <div><small>ساختمان مرتبط</small><b>{{ $ticket->building?->name ?? 'بدون ساختمان' }}</b></div>
   <div><small>دسته‌بندی</small><b>{{ ['general'=>'عمومی','technical'=>'فنی','billing'=>'اشتراک و پرداخت','account'=>'حساب کاربری','suggestion'=>'پیشنهاد'][$ticket->category] ?? $ticket->category }}</b></div>
   <div><small>مسئول رسیدگی</small><b>{{ $ticket->assignedAdmin?->name ?? 'هنوز ارجاع نشده' }}</b></div>
+  <div><small>مهلت پاسخ اولیه</small><b>{{ $ticket->first_response_at ? 'پاسخ داده شده' : ($ticket->first_response_due_at ? $F::date($ticket->first_response_due_at,'j F Y · H:i') : 'ثبت نشده') }}</b><small style="margin-top:4px">{{ $ticket->first_response_at ? $F::date($ticket->first_response_at,'j F Y · H:i') : ($ticket->first_response_breached_at ? 'مهلت نقض شده' : 'در انتظار اولین پاسخ') }}</small></div>
+  <div><small>مهلت رسیدگی</small><b>{{ $ticket->resolution_due_at ? $F::date($ticket->resolution_due_at,'j F Y · H:i') : 'ثبت نشده' }}</b><small style="margin-top:4px">{{ in_array($ticket->status,['resolved','closed'],true) ? 'پایان یافته' : ($ticket->status==='waiting_customer' ? 'متوقف تا پاسخ مشتری' : ($ticket->resolution_breached_at ? 'مهلت نقض شده' : 'در حال محاسبه')) }}</small></div>
 </div>
 <div class="admin-sup-thread">
   @foreach($ticket->messages as $message)
     <article class="admin-sup-message {{ $message->sender_type==='admin'?'admin':'' }}">
       <header><strong>{{ $message->sender_type==='admin'?'تیم پشتیبانی':'مشتری' }}</strong><time>{{ $F::date($message->created_at,'j F Y · H:i') }}</time></header>
       <p>{{ $message->body }}</p>
-      @foreach($message->attachments as $attachment)<a href="{{ route('admin.support.attachments.download',$attachment) }}" style="display:inline-block;margin-top:8px;font-size:11px">📎 {{ $attachment->original_name }}</a>@endforeach
       @foreach($message->attachments as $attachment)<a href="{{ route('admin.support.attachments.download',$attachment) }}" style="display:inline-block;margin-top:8px;font-size:11px">📎 {{ $attachment->original_name }}</a>@endforeach
     </article>
   @endforeach

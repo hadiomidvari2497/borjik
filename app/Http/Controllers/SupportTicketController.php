@@ -8,6 +8,7 @@ use App\Models\SupportMessage;
 use App\Models\SupportTicket;
 use App\Notifications\SupportTicketNotification;
 use App\Support\CurrentBuilding;
+use App\Support\SupportSla;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +58,7 @@ class SupportTicketController extends Controller
                 'priority' => 'normal',
                 'status' => 'open',
                 'last_reply_at' => now(),
+                ...SupportSla::deadlines('normal'),
             ]);
             $ticket->update(['number' => 'SP-'.now()->format('ym').'-'.str_pad((string) $ticket->id, 6, '0', STR_PAD_LEFT)]);
             $message = $ticket->messages()->create([
@@ -95,7 +97,14 @@ class SupportTicketController extends Controller
                 'sender_type' => 'user', 'sender_id' => $request->user()->id, 'body' => trim($data['body']),
             ]);
             $this->saveAttachments($request, $ticket, $message, 'user', (int) $request->user()->id);
-            $ticket->update(['status' => 'open', 'last_reply_at' => now(), 'closed_at' => null]);
+            $ticket->update([
+                'status' => 'open',
+                'last_reply_at' => now(),
+                'closed_at' => null,
+                'resolution_due_at' => SupportSla::resolutionDeadline($ticket->priority),
+                'resolution_warning_sent_at' => null,
+                'resolution_breached_at' => null,
+            ]);
         });
 
         $this->notifySupportAdmins($ticket, 'پاسخ جدید مشتری', 'مشتری در تیکت '.$ticket->number.' پیام جدیدی ارسال کرده است.');
