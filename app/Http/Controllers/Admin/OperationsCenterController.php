@@ -166,6 +166,22 @@ class OperationsCenterController extends Controller
         }
     }
 
+    public function downloadBackup(int $backupRun)
+    {
+        $run = BackupRun::query()->findOrFail($backupRun);
+        $path = (string) $run->local_path;
+        abort_unless($run->status === 'success' && $path !== '' && is_file($path) && is_readable($path), 404);
+
+        $archivePath = realpath($path);
+        $publicPath = realpath(public_path());
+        abort_unless($archivePath && (! $publicPath || ($archivePath !== $publicPath && ! str_starts_with(strtolower($archivePath), strtolower(rtrim($publicPath, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR)))), 404);
+
+        return response()->download($archivePath, $run->filename ?: basename($archivePath), [
+            'Content-Type' => 'application/zip',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
     public function checkNow()
     {
         $exit = Artisan::call('borjik:health-check');
