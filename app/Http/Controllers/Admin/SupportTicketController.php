@@ -89,7 +89,7 @@ class SupportTicketController extends Controller
     {
         $request->user('admin')->unreadNotifications()
             ->where('data->category', 'support')->where('data->ticket_id', $ticket)->update(['read_at' => now()]);
-        $ticket = SupportTicket::with(['user','building:id,name','assignedAdmin:id,name','messages'=>fn ($q) => $q->where('is_internal',false)->with('attachments')->orderBy('created_at'),'events'=>fn ($q) => $q->with(['actorAdmin:id,name','fromAdmin:id,name','toAdmin:id,name'])->orderBy('created_at')])->findOrFail($ticket);
+        $ticket = SupportTicket::with(['user','building:id,name','assignedAdmin:id,name','resolvedByAdmin:id,name','messages'=>fn ($q) => $q->where('is_internal',false)->with('attachments')->orderBy('created_at'),'events'=>fn ($q) => $q->with(['actorAdmin:id,name','fromAdmin:id,name','toAdmin:id,name'])->orderBy('created_at')])->findOrFail($ticket);
         $admins = AdminUser::where('status','active')->orderBy('name')->get(['id','name']);
         return view('admin.support.show',['ticket'=>$ticket,'statuses'=>self::STATUSES,'priorities'=>self::PRIORITIES,'admins'=>$admins]);
     }
