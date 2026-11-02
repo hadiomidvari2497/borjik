@@ -85,7 +85,7 @@
     <span class="oc-pill {{ $smsReady ? 'oc-good' : 'oc-warn' }}"><span aria-hidden="true">●</span>{{ $smsReady ? 'اتصال پیامکی آماده است' : 'اتصال پیامکی تنظیم نشده' }}</span>
   </header>
   <div class="oc-grid">
-    <div class="oc-card"><span class="oc-muted">آخرین بررسی سلامت</span><h3 style="margin:8px 0">{{ $lastHealth ? ($lastHealth->status === 'ok' ? 'سالم' : 'نیازمند رسیدگی') : 'هنوز بررسی نشده' }}</h3><span class="oc-muted">{{ $lastHealth ? $F::date($lastHealth->created_at, 'j F Y - H:i:s') : 'برای شروع «بررسی سلامت» را اجرا کن.' }}</span></div>
+    <div class="oc-card"><span class="oc-muted">آخرین بررسی سلامت</span><h3 style="margin:8px 0">{{ $lastHealth ? (['ok'=>'سالم','warning'=>'هشدار','fail'=>'خطا'][$lastHealth->status] ?? 'بررسی‌نشده') : 'هنوز بررسی نشده' }}</h3><span class="oc-muted">{{ $lastHealth ? $F::date($lastHealth->created_at, 'j F Y - H:i:s') : 'برای شروع «بررسی سلامت» را اجرا کن.' }}</span></div>
     <div class="oc-card"><span class="oc-muted">آخرین بکاپ</span><h3 style="margin:8px 0">{{ $lastBackup ? (['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$lastBackup->status] ?? $lastBackup->status) : 'هنوز بکاپی ثبت نشده' }}</h3><span class="oc-muted">{{ $lastBackup?->size_bytes ? $bytes($lastBackup->size_bytes) : 'حجم نامشخص' }} @if($lastBackup?->finished_at) · {{ $F::date($lastBackup->finished_at, 'j F Y - H:i:s') }} @endif</span></div>
     <div class="oc-card"><span class="oc-muted">مقصد ابری</span><h3 style="margin:8px 0">{{ $settings['cloud_enabled'] ? 'OneDrive فعال' : 'غیرفعال' }}</h3><span class="oc-muted">برای نگهداری نسخهٔ خارج از سرور، اتصال rclone را روی VPS آماده کن و سپس بکاپ آزمایشی اجرا کن.</span></div>
   </div>
@@ -140,7 +140,7 @@
   </section>
   <section class="oc-section"><div class="oc-head"><h3 style="margin:0">تاریخچه سلامت</h3><span class="oc-muted">آخرین بررسی‌های زمان‌بندی‌شده</span></div>
     <div class="oc-table-wrap"><table class="oc-table"><thead><tr><th>زمان</th><th>وضعیت کلی</th><th>جزئیات بررسی‌ها</th></tr></thead><tbody>
-    @forelse($health as $record)<tr><td>{{ $F::date($record->created_at, 'j F Y H:i:s') }}</td><td><span class="oc-pill {{ $record->status==='ok'?'oc-good':'oc-bad' }}">{{ $record->status==='ok'?'سالم':'هشدار' }}</span></td><td>@foreach($record->checks as $check)<div><strong>{{ $check['name'] ?? '' }}:</strong> {{ $check['detail'] ?? '' }} <span class="oc-muted">({{ $check['status'] ?? 'unknown' }})</span></div>@endforeach</td></tr>@empty<tr><td colspan="3">هنوز بررسی‌ای ثبت نشده است.</td></tr>@endforelse
+    @forelse($health as $record)<tr><td>{{ $F::date($record->created_at, 'j F Y H:i:s') }}</td><td><span class="oc-pill {{ $record->status==='ok'?'oc-good':($record->status==='fail'?'oc-bad':'oc-warn') }}">{{ (['ok'=>'سالم','warning'=>'هشدار','fail'=>'خطا'][$record->status] ?? 'بررسی‌نشده') }}</span></td><td>@foreach($record->checks as $check)<div><strong>{{ $check['name'] ?? '' }}:</strong> {{ $check['detail'] ?? '' }} <span class="oc-pill {{ ($check['status'] ?? 'unknown') === 'ok' ? 'oc-good' : ((($check['status'] ?? 'unknown') === 'fail') ? 'oc-bad' : 'oc-warn') }}">{{ ['ok'=>'سالم','warning'=>'هشدار','fail'=>'خطا','unknown'=>'بررسی‌نشده'][$check['status'] ?? 'unknown'] ?? 'بررسی‌نشده' }}</span></div>@endforeach</td></tr>@empty<tr><td colspan="3">هنوز بررسی‌ای ثبت نشده است.</td></tr>@endforelse
     </tbody></table></div><div style="margin-top:12px">{{ $health->links() }}</div>
   </section>
   <section class="oc-section" style="border:1px solid var(--line);border-radius:14px;padding:16px">
