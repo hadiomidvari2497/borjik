@@ -43,12 +43,12 @@ use Illuminate\Support\Facades\Route;
 | اگر نباشد فقط این مسیرها مجازند (SetCurrentBuilding).
 */
 Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'subscription.access'])->group(function () {
-    Route::prefix('support')->name('support.')->controller(SupportTicketController::class)->middleware('throttle:30,1')->group(function () {
+    Route::prefix('support')->name('support.')->controller(SupportTicketController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->middleware('throttle:5,1')->name('store');
+        Route::post('/', 'store')->middleware('throttle:20,1')->name('store');
         Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
-        Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:10,1')->name('reply');
+        Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:30,1')->name('reply');
     });
 
     Route::get('/buildings/create', [BuildingController::class, 'create'])->name('buildings.create');
