@@ -114,7 +114,6 @@ class OtpFlowTest extends TestCase
             ->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
-        $this->assertGuest();
     }
 
     public function test_inactive_user_cannot_complete_a_two_factor_challenge(): void
