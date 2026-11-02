@@ -517,7 +517,7 @@
 
     <style>
         /* v3: roles tabs, FAQ, scroll progress, footer logo */
-        .sp{position:fixed;top:0;right:0;left:0;height:3px;z-index:60;transform-origin:right;transform:scaleX(0);background:linear-gradient(90deg,#22c5aa,#f0b95a);pointer-events:none}.sp{animation:homepage-scroll-progress linear both;animation-timeline:scroll(root block)}@keyframes homepage-scroll-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+        .sp{position:fixed;top:0;right:0;left:0;height:3px;z-index:60;transform-origin:right;transform:scaleX(0);background:linear-gradient(90deg,#22c5aa,#f0b95a);pointer-events:none}@supports (animation-timeline:scroll()){.sp{animation:homepage-scroll-progress linear both;animation-timeline:scroll(root block)}}@keyframes homepage-scroll-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
         .roles{background:#fff}
         .role-tabs{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:0 auto 34px;padding:6px;background:#eef7f4;border:1px solid #dcebe6;border-radius:999px;width:fit-content;max-width:100%}
         .role-tab{border:0;background:transparent;font:inherit;font-weight:800;font-size:.92rem;color:#4f6570;padding:10px 24px;border-radius:99px;cursor:pointer;transition:background .25s,color .25s,box-shadow .25s}
