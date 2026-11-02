@@ -9,6 +9,7 @@
 <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
   <a href="{{ route('admin.support.canned-replies') }}" class="sup-pill" style="text-decoration:none">مدیریت پاسخ‌های آماده</a>
   <a href="{{ route('admin.support.reports') }}" class="sup-pill" style="text-decoration:none">گزارش عملکرد</a>
+  <a href="{{ route('admin.support.intelligence') }}" class="sup-pill" style="text-decoration:none">تحلیل هوشمند درخواست‌ها</a>
 </div>
 <div class="sup-kpis">
   <div class="sup-kpi"><small>کل درخواست‌ها</small><strong>{{ $F::num($stats['total']) }}</strong></div>
@@ -17,6 +18,8 @@
   <div class="sup-kpi"><small>فوری و باز</small><strong>{{ $F::num($stats['urgent']) }}</strong></div>
   <div class="sup-kpi"><small>پاسخ اولیه با تأخیر</small><strong style="color:#b45309">{{ $F::num($stats['overdue_response']) }}</strong></div>
   <div class="sup-kpi"><small>رسیدگی با تأخیر</small><strong style="color:#b45309">{{ $F::num($stats['overdue_resolution']) }}</strong></div>
+  <div class="sup-kpi"><small>پیشنهاد اولویت فوری</small><strong style="color:#b91c1c">{{ $F::num($stats['suggested_urgent']) }}</strong></div>
+  <div class="sup-kpi"><small>موارد مشابه شناسایی‌شده</small><strong>{{ $F::num($stats['duplicates']) }}</strong></div>
 </div>
 @if($supportNotifications->isNotEmpty())
 <div class="card" style="padding:13px;margin-bottom:14px;border:1px solid var(--line);border-radius:13px">
@@ -33,6 +36,7 @@
   <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="شماره، موضوع، نام یا موبایل">
   <select name="status"><option value="">همه وضعیت‌ها</option>@foreach($statuses as $key=>$label)<option value="{{ $key }}" @selected($filters['status']===$key)>{{ $label }}</option>@endforeach</select>
   <select name="priority"><option value="">همه اولویت‌ها</option>@foreach($priorities as $key=>$label)<option value="{{ $key }}" @selected($filters['priority']===$key)>{{ $label }}</option>@endforeach</select>
+  <select name="smart_priority"><option value="">همه پیشنهادهای هوشمند</option>@foreach($priorities as $key=>$label)<option value="{{ $key }}" @selected($filters['smart_priority']===$key)>{{ $label }}</option>@endforeach</select>
   <select name="assignment">
     <option value="">همه مسئولیت‌ها</option>
     <option value="mine" @selected($filters['assignment']==='mine')>تیکت‌های من</option>
@@ -45,14 +49,19 @@
   <a href="{{ route('admin.support.index') }}" style="align-self:center;font-size:11px">پاک‌کردن</a>
 </form>
 <div class="card sup-table-wrap" style="overflow:hidden">
-  <table class="sup-table"><thead><tr><th>شماره / موضوع</th><th>مشتری</th><th>ساختمان</th><th>وضعیت</th><th>اولویت</th><th>وضعیت SLA</th><th>آخرین بروزرسانی</th><th>پیام‌ها</th></tr></thead><tbody>
+  <table class="sup-table"><thead><tr><th>شماره / موضوع</th><th>مشتری</th><th>ساختمان</th><th>وضعیت</th><th>اولویت / پیشنهاد</th><th>تشخیص مشابه</th><th>وضعیت SLA</th><th>آخرین بروزرسانی</th><th>پیام‌ها</th></tr></thead><tbody>
   @forelse($tickets as $ticket)
     <tr>
       <td><a href="{{ route('admin.support.show',$ticket) }}">{{ $ticket->number }}</a><div style="margin-top:4px">{{ \Illuminate\Support\Str::limit($ticket->subject,48) }}</div></td>
       <td>{{ $ticket->user?->display_name ?: $ticket->user?->mobile }}</td>
       <td>{{ $ticket->building?->name ?? '—' }}</td>
       <td><span class="sup-pill">{{ $statuses[$ticket->status] ?? $ticket->status }}</span></td>
-      <td><span class="sup-pill">{{ $priorities[$ticket->priority] ?? $ticket->priority }}</span></td>
+      <td><span class="sup-pill">{{ $priorities[$ticket->priority] ?? $ticket->priority }}</span>
+        @if($ticket->priority_suggestion && $ticket->priority_suggestion !== $ticket->priority)
+          <div style="margin-top:5px"><span class="sup-pill" style="background:rgba(37,99,235,.09);color:#1d4ed8">پیشنهاد: {{ $priorities[$ticket->priority_suggestion] ?? $ticket->priority_suggestion }}</span></div>
+        @endif
+      </td>
+      <td>@if($ticket->duplicate_of_ticket_id)<span class="sup-pill" style="background:rgba(217,119,6,.1);color:#92400e">مشابه {{ $ticket->duplicate_match_score }}٪</span>@else<span style="color:var(--muted)">—</span>@endif</td>
       <td>
         @if(in_array($ticket->status,['open','in_progress'],true) && (($ticket->first_response_at===null && $ticket->first_response_due_at?->isPast()) || $ticket->resolution_due_at?->isPast()))
           <span class="sup-pill" style="background:rgba(220,38,38,.1);color:#b91c1c">مهلت گذشته</span>
@@ -68,7 +77,7 @@
       <td>{{ $F::num($ticket->messages_count) }}</td>
     </tr>
   @empty
-    <tr><td colspan="8" class="sup-empty">درخواستی با این مشخصات پیدا نشد.</td></tr>
+    <tr><td colspan="9" class="sup-empty">درخواستی با این مشخصات پیدا نشد.</td></tr>
   @endforelse
   </tbody></table>
 </div>

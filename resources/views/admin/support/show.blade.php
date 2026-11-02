@@ -15,6 +15,34 @@
     <small style="display:block;color:var(--muted);margin-top:6px">{{ $F::date($ticket->satisfaction_submitted_at,'j F Y · H:i') }}</small>
   </section>
 @endif
+@if($ticket->priority_suggestion)
+  <section class="admin-sup-form" style="margin-bottom:14px;border-color:rgba(37,99,235,.25)">
+    <b style="font-size:12px">تحلیل هوشمند تیکت</b>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">
+      <span class="sup-pill" style="background:rgba(37,99,235,.09);color:#1d4ed8">پیشنهاد اولویت: {{ ['low'=>'کم','normal'=>'عادی','high'=>'زیاد','urgent'=>'فوری'][$ticket->priority_suggestion] ?? $ticket->priority_suggestion }}</span>
+      @if($ticket->duplicateOf)
+        <a class="sup-pill" href="{{ route('admin.support.show',$ticket->duplicateOf) }}" style="text-decoration:none">درخواست مشابه: {{ $ticket->duplicateOf->number }} · {{ $ticket->duplicate_match_score }}٪</a>
+      @endif
+    </div>
+    <p style="font-size:11px;color:var(--muted);line-height:1.9;margin:8px 0">{{ $ticket->priority_suggestion_reason }}</p>
+    @if($ticket->priority_suggestion !== $ticket->priority)
+      <form method="POST" action="{{ route('admin.support.apply-priority-suggestion',$ticket) }}">
+        @csrf
+        <button type="submit" style="border:0;border-radius:9px;padding:8px 12px;background:var(--brand,#1c4f4a);color:white;font:inherit;font-size:11px;font-weight:800">اعمال اولویت پیشنهادی</button>
+      </form>
+    @endif
+  </section>
+@endif
+@if($ticket->duplicateTickets->isNotEmpty())
+  <section class="admin-sup-form" style="margin-bottom:14px">
+    <b style="font-size:12px">درخواست‌های مشابه مرتبط</b>
+    @foreach($ticket->duplicateTickets as $related)
+      <div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:11px">
+        <a href="{{ route('admin.support.show',$related) }}">{{ $related->number }} · {{ $related->subject }}</a>
+      </div>
+    @endforeach
+  </section>
+@endif
 <div class="admin-sup-meta">
   <div><small>مشتری</small><b>{{ $ticket->user?->display_name ?: $ticket->user?->mobile }}</b><small style="margin-top:4px">{{ $ticket->user?->mobile }}</small></div>
   <div><small>ساختمان مرتبط</small><b>{{ $ticket->building?->name ?? 'بدون ساختمان' }}</b></div>
