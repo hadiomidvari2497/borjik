@@ -168,3 +168,6 @@
 
 /* Respect the native hidden state for dynamically displayed checkout summary rows. */
 .bl-sr[hidden]{display:none!important}
+
+/* Clear original and discounted subscription plan prices. */
+.bl-price{display:flex;flex-direction:column;align-items:flex-start;gap:2px}.bl-price .bl-price-original{font-size:14px;font-weight:700;color:var(--muted);opacity:.8;text-decoration:line-through}.bl-price .bl-price-current{display:block}.bl-plan-discount-label{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:rgba(34,197,170,.12);color:var(--brand);font-weight:900}
