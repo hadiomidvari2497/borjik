@@ -49,6 +49,7 @@ Route::middleware(['auth', 'profile.complete', 'building', 'building.tool', 'sub
         Route::post('/', 'store')->middleware('throttle:20,1')->name('store');
         Route::get('/{ticket}', 'show')->whereNumber('ticket')->name('show');
         Route::post('/{ticket}/reply', 'reply')->whereNumber('ticket')->middleware('throttle:30,1')->name('reply');
+        Route::get('/attachments/{attachment}', 'download')->whereNumber('attachment')->name('attachments.download');
     });
 
     Route::get('/buildings/create', [BuildingController::class, 'create'])->name('buildings.create');
