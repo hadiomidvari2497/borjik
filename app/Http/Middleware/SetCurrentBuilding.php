@@ -22,6 +22,7 @@ class SetCurrentBuilding
         'buildings.store',
         'invitations.*',
         'profile.*',
+        'support.*',
     ];
 
     public function handle(Request $request, Closure $next): Response
