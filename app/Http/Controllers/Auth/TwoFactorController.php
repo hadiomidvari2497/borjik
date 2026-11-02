@@ -70,7 +70,7 @@ class TwoFactorController extends Controller
             return redirect()->route('login')->withErrors(['mobile' => 'حساب کاربری فعال نیست.']);
         }
 
-        if (! $request->session()->boolean('2fa_sms_requested')) {
+        if (! (bool) $request->session()->get('2fa_sms_requested')) {
             return back()->withErrors(['code' => 'ابتدا درخواست ارسال کد پیامکی را ثبت کنید.']);
         }
 
