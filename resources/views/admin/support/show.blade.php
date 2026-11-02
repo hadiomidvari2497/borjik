@@ -18,19 +18,21 @@
     <article class="admin-sup-message {{ $message->sender_type==='admin'?'admin':'' }}">
       <header><strong>{{ $message->sender_type==='admin'?'تیم پشتیبانی':'مشتری' }}</strong><time>{{ $F::date($message->created_at,'j F Y · H:i') }}</time></header>
       <p>{{ $message->body }}</p>
+      @foreach($message->attachments as $attachment)<a href="{{ route('admin.support.attachments.download',$attachment) }}" style="display:inline-block;margin-top:8px;font-size:11px">📎 {{ $attachment->original_name }}</a>@endforeach
     </article>
   @endforeach
 </div>
-<form class="admin-sup-form" method="POST" action="{{ route('admin.support.reply',$ticket) }}">
+<form class="admin-sup-form" method="POST" enctype="multipart/form-data" action="{{ route('admin.support.reply',$ticket) }}">
   @csrf
   <label for="body">پاسخ به مشتری</label><textarea id="body" name="body" required minlength="2" maxlength="10000" placeholder="پاسخ خود را بنویسید...">{{ old('body') }}</textarea>
   <div class="admin-sup-grid"><div><label for="reply_status">وضعیت پس از پاسخ</label><select id="reply_status" name="status">@foreach(['in_progress'=>'در حال بررسی','waiting_customer'=>'منتظر پاسخ مشتری','resolved'=>'حل‌شده','closed'=>'بسته'] as $key=>$label)<option value="{{ $key }}" @selected(old('status','waiting_customer')===$key)>{{ $label }}</option>@endforeach</select></div></div>
-  <button type="submit">ارسال پاسخ</button>
+  <input type="file" name="attachments[]" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display:block;margin:9px 0;font-size:11px"><small style="display:block;color:var(--muted);margin-bottom:8px">حداکثر ۵ فایل، هرکدام تا ۱۰ مگابایت</small><button type="submit">ارسال پاسخ</button>
 </form>
 <form class="admin-sup-form" method="POST" action="{{ route('admin.support.update',$ticket) }}">
   @csrf @method('PATCH')
   <b style="display:block;font-size:12px;margin-bottom:12px">مدیریت وضعیت و اولویت</b>
   <div class="admin-sup-grid">
+    <div><label for="assigned_admin_id">ارجاع به کارشناس</label><select id="assigned_admin_id" name="assigned_admin_id"><option value="">بدون مسئول مشخص</option>@foreach($admins as $admin)<option value="{{ $admin->id }}" @selected((int)$ticket->assigned_admin_id===(int)$admin->id)>{{ $admin->name }}</option>@endforeach</select></div>
     <div><label for="status">وضعیت</label><select id="status" name="status">@foreach($statuses as $key=>$label)<option value="{{ $key }}" @selected($ticket->status===$key)>{{ $label }}</option>@endforeach</select></div>
     <div><label for="priority">اولویت</label><select id="priority" name="priority">@foreach($priorities as $key=>$label)<option value="{{ $key }}" @selected($ticket->priority===$key)>{{ $label }}</option>@endforeach</select></div>
   </div>
