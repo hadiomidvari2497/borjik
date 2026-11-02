@@ -22,18 +22,9 @@
 :root[data-theme="dark"] .req-status-waiting{background:rgba(164,125,220,.18);color:#d0b5ff}
 :root[data-theme="dark"] .req-overdue,
 :root[data-theme="dark"] .req-priority-urgent{background:rgba(224,69,58,.18);color:#ffaaa3}
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]) .req-status-new{background:rgba(91,143,255,.18);color:#a9c3ff}
- :root:not([data-theme="light"]) .req-status-review,
- :root:not([data-theme="light"]) .req-priority-high{background:rgba(232,163,61,.18);color:#f4c775}
- :root:not([data-theme="light"]) .req-status-doing,
- :root:not([data-theme="light"]) .req-status-done,
- :root:not([data-theme="light"]) .req-priority-low{background:rgba(60,194,179,.16);color:#8ce3d7}
- :root:not([data-theme="light"]) .req-status-waiting{background:rgba(164,125,220,.18);color:#d0b5ff}
- :root:not([data-theme="light"]) .req-overdue,
- :root:not([data-theme="light"]) .req-priority-urgent{background:rgba(224,69,58,.18);color:#ffaaa3}
-}
-
+:root[data-theme="dark"] .req-status-review,:root[data-theme="dark"] .req-priority-high{background:rgba(232,163,61,.18);color:#f4c775}
+:root[data-theme="dark"] .req-status-doing,:root[data-theme="dark"] .req-status-done,:root[data-theme="dark"] .req-priority-low{background:rgba(60,194,179,.16);color:#8ce3d7}
+:root[data-theme="dark"] .req-overdue,:root[data-theme="dark"] .req-priority-urgent{background:rgba(224,69,58,.18);color:#ffaaa3}
 </style>
 <div class="req-page">
   <section class="req-hero">

@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap-toast.rtl.min.css') }}">
 <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('css/notify.css') }}">
-<script>try{var t=localStorage.getItem('borjik-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('borjik-theme')==='dark'?'dark':'light')}catch(e){}</script>
 </head>
 <body class="adm">
 @include('partials.icons')

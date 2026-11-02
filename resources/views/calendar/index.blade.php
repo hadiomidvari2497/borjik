@@ -99,25 +99,8 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
 :root[data-theme="dark"] .cal-event.violet{background:rgba(164,125,220,.18);color:#d0b5ff}
 :root[data-theme="dark"] .cal-filter.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
 :root[data-theme="dark"] .cal-days.mode-day .cal-day{border-color:var(--line)}
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]) .cal-stat-icon{background:var(--brand-soft);color:var(--brand)}
- :root:not([data-theme="light"]) .cal-nav a:hover,
- :root:not([data-theme="light"]) .cal-today:hover{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
- :root:not([data-theme="light"]) .cal-weekdays{background:var(--track)}
- :root:not([data-theme="light"]) .cal-weekdays div,
- :root:not([data-theme="light"]) .cal-day-number{color:var(--muted)}
- :root:not([data-theme="light"]) .cal-day{border-color:var(--line)}
- :root:not([data-theme="light"]) .cal-day.is-today{background:linear-gradient(150deg,rgba(60,194,179,.16),var(--card) 75%)}
- :root:not([data-theme="light"]) .cal-day.is-holiday:not(.is-today){background:rgba(232,163,61,.07)}
- :root:not([data-theme="light"]) .cal-day.is-holiday:not(.is-today) .cal-day-number{color:#f0bd68}
- :root:not([data-theme="light"]) .cal-event.teal{background:rgba(60,194,179,.16);color:#8ce3d7}
- :root:not([data-theme="light"]) .cal-event.blue{background:rgba(91,143,255,.18);color:#a9c3ff}
- :root:not([data-theme="light"]) .cal-event.amber{background:rgba(232,163,61,.17);color:#f4c775}
- :root:not([data-theme="light"]) .cal-event.rose{background:rgba(224,69,90,.17);color:#ffabb4}
- :root:not([data-theme="light"]) .cal-event.violet{background:rgba(164,125,220,.18);color:#d0b5ff}
- :root:not([data-theme="light"]) .cal-filter.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
- :root:not([data-theme="light"]) .cal-days.mode-day .cal-day{border-color:var(--line)}
-}
+:root[data-theme="dark"] .cal-nav a:hover,:root[data-theme="dark"] .cal-today:hover{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+:root[data-theme="dark"] .cal-weekdays div,:root[data-theme="dark"] .cal-day-number{color:var(--muted)}
 </style>
 <div class="calendar-page">
     <section class="cal-hero">
