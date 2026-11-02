@@ -18,14 +18,25 @@
 <section class="invoice-section"><h3>شرح خرید</h3>
 @php
     $baseAmount = (int) data_get($payment->raw_response, 'base_amount', $payment->amount);
-    $couponDiscount = (int) data_get($payment->raw_response, 'discount_amount', 0);
+    $listPrice = (int) data_get($payment->raw_response, 'list_price', $plan?->price ?? $baseAmount);
+    $planDiscount = (int) data_get($payment->raw_response, 'plan_discount_amount', max(0, $listPrice - $baseAmount));
+    $couponDiscount = (int) data_get($payment->raw_response, 'coupon_discount_amount', data_get($payment->raw_response, 'discount_amount', 0));
     $couponCode = (string) data_get($payment->raw_response, 'coupon_code', '');
+    $totalDiscount = $planDiscount + $couponDiscount;
+    $planDiscountLabel = $plan?->discount_type === 'percent'
+        ? $F::num(min(100, (int) $plan->discount_value)).'٪'
+        : 'مبلغ ثابت';
 @endphp
-<table class="invoice-table"><thead><tr><th>شرح</th><th>ظرفیت</th><th>مدت</th><th>مبلغ</th></tr></thead><tbody><tr><td>{{ $plan?->name ? 'اشتراک '.$plan->name : 'اشتراک صابخونه' }}</td><td>{{ $plan?->units_limit ? $F::num($plan->units_limit).' واحد' : ($sub?->units_limit ? $F::num($sub->units_limit).' واحد' : '—') }}</td><td>{{ $plan?->duration_months ? $F::num($plan->duration_months).' ماه' : '—' }}</td><td>{{ $F::money($baseAmount) }}</td></tr></tbody></table>
-@if($couponDiscount > 0)
+<table class="invoice-table"><thead><tr><th>شرح</th><th>ظرفیت</th><th>مدت</th><th>مبلغ</th></tr></thead><tbody><tr><td>{{ $plan?->name ? 'اشتراک '.$plan->name : 'اشتراک صابخونه' }}</td><td>{{ $plan?->units_limit ? $F::num($plan->units_limit).' واحد' : ($sub?->units_limit ? $F::num($sub->units_limit).' واحد' : '—') }}</td><td>{{ $plan?->duration_months ? $F::num($plan->duration_months).' ماه' : '—' }}</td><td>{{ $F::money($listPrice) }}</td></tr></tbody></table>
+@if($planDiscount > 0 || $couponDiscount > 0)
 <div class="invoice-grid" style="margin-top:12px">
-    <div class="invoice-item"><span>کد تخفیف</span><strong dir="ltr">{{ $couponCode ?: '—' }}</strong></div>
-    <div class="invoice-item"><span>میزان تخفیف</span><strong>−{{ $F::money($couponDiscount) }}</strong></div>
+    @if($planDiscount > 0)
+    <div class="invoice-item"><span>تخفیف پلن ({{ $planDiscountLabel }})</span><strong>−{{ $F::money($planDiscount) }}</strong></div>
+    @endif
+    @if($couponDiscount > 0)
+    <div class="invoice-item"><span>کد تخفیف {{ $couponCode ? '('.$couponCode.')' : '' }}</span><strong>−{{ $F::money($couponDiscount) }}</strong></div>
+    @endif
+    <div class="invoice-item"><span>مجموع تخفیف</span><strong>−{{ $F::money($totalDiscount) }}</strong></div>
 </div>
 @endif
 </section>
@@ -37,7 +48,7 @@
 @if($sub?->starts_at && $sub?->expires_at)<div class="invoice-item"><span>دوره اشتراک</span><strong>{{ $F::date($sub->starts_at, 'Y/m/d') }} تا {{ $F::date($sub->expires_at, 'Y/m/d') }}</strong></div>@endif
 <div class="invoice-item"><span>وضعیت</span><strong>تأییدشده توسط درگاه</strong></div>
 </div></section>
-<div class="invoice-total"><span>مبلغ پرداخت‌شده</span><strong>{{ $F::money($payment->amount) }}</strong></div>
+<div class="invoice-total"><span>مبلغ نهایی پس از تخفیف‌ها</span><strong>{{ $F::money($payment->amount) }}</strong></div>
 <p class="invoice-thanks">از اعتماد شما سپاسگزاریم. این فاکتور پس از تأیید پرداخت توسط درگاه صادر شده است.</p>
 <div class="invoice-actions"><button type="button" onclick="window.print()">چاپ فاکتور / ذخیره PDF</button><a class="secondary" href="{{ route('subscription.show') }}">بازگشت به اشتراک‌ها</a></div>
 </div></article></div>
