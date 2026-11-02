@@ -75,16 +75,16 @@ class AuthController extends Controller
         $user = AdminUser::find($pending['id']);
         if (! $user || ! $user->isActive() || ! $user->two_factor_enabled || ! $user->two_factor_sms_enabled
             || ! $user->mobile || ! $user->mobile_verified_at) {
-            return back()->withErrors(['code' => 'ورود پیامکی برای این حساب فعال نیست.']);
+            return back()->with('two_factor_tab', 'sms')->withErrors(['code' => 'ورود پیامکی برای این حساب فعال نیست.']);
         }
 
         try {
             $otp->issue($user->mobile, 'admin_two_factor');
         } catch (OtpException $e) {
-            return back()->withErrors(['code' => $e->getMessage()]);
+            return back()->with('two_factor_tab', 'sms')->withErrors(['code' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'کد ورود پیامکی ارسال شد.');
+        return back()->with('two_factor_tab', 'sms')->with('status', 'کد ورود پیامکی ارسال شد.');
     }
 
     public function verifySmsChallenge(Request $request, OtpService $otp)
@@ -113,7 +113,7 @@ class AuthController extends Controller
             }
             $request->session()->put('admin_2fa', $pending);
 
-            return back()->withErrors(['code' => 'کد پیامکی نادرست یا منقضی شده است.']);
+            return back()->with('two_factor_tab', 'sms')->withErrors(['code' => 'کد پیامکی نادرست یا منقضی شده است.']);
         }
 
         $request->session()->forget('admin_2fa');
@@ -145,7 +145,7 @@ class AuthController extends Controller
             }
             $request->session()->put('admin_2fa', $pending);
 
-            return back()->withErrors(['code' => 'کد تأیید نادرست است.']);
+            return back()->with('two_factor_tab', 'authenticator')->withErrors(['code' => 'کد تأیید نادرست است.']);
         }
 
         $request->session()->forget('admin_2fa');
