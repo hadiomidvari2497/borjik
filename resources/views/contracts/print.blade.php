@@ -66,7 +66,7 @@ body{font-family:Tahoma,"Vazirmatn",sans-serif;color:#172b32;font-size:11px;line
 <header class="header">
     <div class="brand">صابخونه</div>
     <div class="doc-title">
-        <h1>قرارداد رسمی‌نما‌ی {{ $rent ? 'اجاره' : 'خرید و فروش' }} ملک</h1>
+        <h1>قرارداد {{ $rent ? 'اجاره' : 'خرید و فروش' }} ملک</h1>
         <p>متن چاپی قرارداد ثبت‌شده در سامانه مدیریت ساختمان</p>
     </div>
     <div class="serial"><span>شماره قرارداد</span><b>{{ $F::digits($contract->id) }}</b></div>
