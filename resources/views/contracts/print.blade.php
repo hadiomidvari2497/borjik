@@ -1,5 +1,5 @@
 @php
-    $F = \\App\\Support\\Fa::class;
+    $F = \App\Support\Fa::class;
     $rent = $contract->type->value === 'rent';
     $partyName = fn ($person) => $person?->display_name ?: '................................';
     $personAddress = fn ($person) => $person?->address ?: '................................................................';
