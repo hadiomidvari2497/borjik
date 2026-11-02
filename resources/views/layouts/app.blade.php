@@ -140,6 +140,9 @@
         @endforeach
       @endforeach
       <div class="grp">دعوت‌نامه‌ها</div>
+      <a href="{{ route('support.index') }}" @class(['on' => request()->routeIs('support.*')]) @if(request()->routeIs('support.*')) aria-current="page" @endif>
+        <svg class="i"><use href="#messages-square"/></svg>پشتیبانی صابخونه
+      </a>
       <a href="{{ route('invitations.index') }}" @class(['on' => request()->routeIs('invitations.*')]) @if(request()->routeIs('invitations.*')) aria-current="page" @endif>
         <svg class="i"><use href="#inbox"/></svg>دعوت‌نامه‌های من
       </a>
