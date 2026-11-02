@@ -64,7 +64,9 @@
     </script>
     @endif
     <title>{{ $seoTitle }}</title>
-    <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-ExtraBold.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('images/sabkhoneh-mark.webp') }}" as="image" type="image/webp" fetchpriority="high">
     <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-ExtraBold.woff2') }}" as="font" type="font/woff2" crossorigin>
     <style>
         /* Inline font declarations remove the separate CSS request from the homepage critical path. */
@@ -625,6 +627,20 @@
         @media(max-width:700px){.seo-pages-grid{grid-template-columns:1fr;gap:15px}.seo-page-card{min-height:0;padding:24px}.seo-page-card p{margin-bottom:18px}}
         .subscription-promo{padding-top:12px}.subscription-promo-card{display:flex;align-items:center;justify-content:space-between;gap:28px;padding:clamp(26px,4vw,44px);border:1px solid #cfece2;border-radius:28px;background:linear-gradient(115deg,#e5f8f1,#f8fcfa 65%,#eef8f5);box-shadow:0 18px 45px rgba(14,62,52,.07)}.subscription-promo-copy{max-width:760px}.subscription-promo .section-kicker{display:inline-block;margin-bottom:9px;color:#087f78;font-size:.82rem;font-weight:800}.subscription-promo h2{margin:0 0 10px;color:#102d3b;font-size:clamp(1.35rem,2.7vw,2rem);line-height:1.7}.subscription-promo p{margin:0;color:#526b75;line-height:2}.subscription-promo-action{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 20px;border-radius:14px;background:#0b9b87;color:#fff;font-weight:800;box-shadow:0 10px 24px rgba(11,155,135,.2);transition:transform .2s,background .2s}.subscription-promo-action:hover{transform:translateY(-2px);background:#087f78}@media(max-width:700px){.subscription-promo-card{align-items:stretch;flex-direction:column;gap:18px;padding:24px}.subscription-promo-action{width:100%}}
     </style>
+
+    <style>
+        /* PageSpeed: prioritize the first-viewport brand asset and stabilize its box. */
+        .site-header .brand-mark{flex:0 0 43px;width:43px;height:43px;aspect-ratio:1;overflow:hidden}
+        .site-header .brand-mark img{width:100%;height:100%;aspect-ratio:1;object-fit:contain}
+        /* Improve readable contrast for muted copy on light surfaces. */
+        .site-header .nav-links{color:#405761}
+        .mock-sub,.stat small,.floating-note small{color:#536873}
+        .trust-item{color:#405761}
+        .section-head p,.feature-card p,.article-body p,.about-copy>p,.check-list li{color:#4d626d}
+        .article-tag{color:#08756b}
+        /* Keep below-the-fold decorative motion from overriding reduced-motion preferences. */
+        @media(prefers-reduced-motion:reduce){.hero:before,.hero-dust,.orb,.mock-window,.floating-note,.marquee-track{animation:none!important}}
+    </style>
 </head>
 <body>
 @php
@@ -649,7 +665,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 @endphp
 <header class="site-header">
     <div class="wrap nav">
-        <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt="" width="43" height="43" decoding="async" style="display:block;width:100%;height:100%;object-fit:contain"></span><span>صابخونه</span></a>
+        <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt="" width="43" height="43" loading="eager" fetchpriority="high" decoding="async" style="display:block;width:100%;height:100%;aspect-ratio:1;object-fit:contain"></span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
             <a href="#features">امکانات</a><a href="{{ route('marketing.subscription-plans') }}">پلن‌های اشتراک</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
