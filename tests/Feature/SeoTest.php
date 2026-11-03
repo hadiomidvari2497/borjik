@@ -205,6 +205,29 @@ class SeoTest extends TestCase
             ->assertSee('مدیریت اسناد و سوابق مرتبط با ساختمان');
     }
 
+    public function test_articles_link_to_relevant_service_pages_by_topic(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/articles/transparent-building-charges')
+            ->assertOk()
+            ->assertSee('/software-building-charges', false)
+            ->assertSee('/software-building-finance', false)
+            ->assertSee('/building-management-software-comparison', false);
+
+        $this->get('/articles/resident-requests-follow-up')
+            ->assertOk()
+            ->assertSee('/software-building-requests', false)
+            ->assertSee('/software-building-charges', false);
+
+        $this->get('/articles/building-data-privacy-checklist')
+            ->assertOk()
+            ->assertSee('/trust-and-security', false)
+            ->assertSee('/software-building-requests', false);
+    }
+
     public function test_article_related_links_follow_their_content_cluster(): void
     {
         $this->app['env'] = 'production';
