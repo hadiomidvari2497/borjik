@@ -118,10 +118,15 @@
             <h2>چرا صابخونه برای مدیریت ساختمان؟</h2>
             <p class="lead">صابخونه برای سامان‌دهی امور روزمرهٔ ساختمان طراحی شده است؛ از امور مالی و اطلاع‌رسانی تا پیگیری درخواست‌های ساکنان. بخش‌هایی که هر کاربر می‌بیند به نقش و دسترسی تعریف‌شدهٔ او بستگی دارد.</p>
             <div class="links">
-                <a href="{{ route('marketing.building-management') }}">آشنایی با نرم‌افزار مدیریت ساختمان ←</a>
+                <a href="{{ route('marketing.building-management') }}">نرم‌افزار جامع مدیریت ساختمان ←</a>
+                <a href="{{ route('marketing.seo.finance') }}">مدیریت مالی و هزینه‌های ساختمان ←</a>
+                <a href="{{ route('marketing.seo.requests') }}">ثبت و پیگیری درخواست‌های ساکنان ←</a>
+                <a href="{{ route('marketing.seo.comparison') }}">مقایسهٔ نرم‌افزارهای مدیریت ساختمان ←</a>
+                <a href="{{ route('marketing.charge-guide') }}">راهنمای محاسبهٔ شارژ ساختمان ←</a>
+                <a href="{{ route('marketing.subscription-plans') }}">پلن‌ها و قیمت اشتراک صابخونه ←</a>
+                <a href="{{ route('marketing.seo.trust') }}">امنیت و حریم خصوصی اطلاعات ساختمان ←</a>
                 <a href="{{ route('marketing.articles.index') }}">مطالعهٔ راهنماهای مدیریت ساختمان ←</a>
-                <a href="{{ route('marketing.seo.requests') }}">نرم‌افزار ثبت و پیگیری درخواست‌های ساکنان ←</a>
-                <a href="{{ route('marketing.articles.show', 'transparent-building-charges') }}">چطور محاسبهٔ شارژ را شفاف‌تر کنیم؟ ←</a>
+                <a href="{{ route('marketing.articles.show', 'transparent-building-charges') }}">راهنمای شفافیت محاسبهٔ شارژ ←</a>
                 <a href="{{ route('marketing.articles.show', 'resident-requests-follow-up') }}">پیگیری درخواست‌های ساکنان ←</a>
                 <a href="{{ route('home') }}#features">مشاهدهٔ امکانات صابخونه ←</a>
             </div>
