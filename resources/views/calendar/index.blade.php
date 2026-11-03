@@ -33,7 +33,7 @@
 .cal-day:nth-child(7n){border-inline-start:0}.cal-day.is-today{background:linear-gradient(150deg,#f0faf6,#fff 70%)}
 .cal-day.is-today .cal-day-number{background:#176b63;color:#fff;box-shadow:0 3px 8px #176b6330}
 .cal-day-number{display:grid;place-items:center;width:29px;height:29px;border-radius:10px;font-size:12px;font-weight:850;color:#3c5260;margin-bottom:6px}
-.cal-day.is-today .cal-day-number{color:#fff}.cal-day-events{display:grid;gap:4px}
+.cal-day.is-today .cal-day-number{color:#fff}.cal-day.is-today .cal-day-label{color:rgba(255,255,255,.9)}.cal-day-events{display:grid;gap:4px}
 .cal-event{display:block;width:100%;min-width:0;border:0;border-radius:6px;padding:5px 6px;text-align:right;text-decoration:none;font-size:9px;line-height:1.6;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default}
 a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal-event.blue{background:#e9f0ff;color:#345ba7}.cal-event.amber{background:#fff2d9;color:#96620c}.cal-event.rose{background:#ffebeb;color:#ad444c}.cal-event.violet{background:#f1eaff;color:#7550a4}
 .cal-more{font-size:9px;color:var(--cal-muted);padding:3px 5px}
@@ -101,6 +101,28 @@ a.cal-event{cursor:pointer}.cal-event.teal{background:#e4f5ef;color:#176b63}.cal
 :root[data-theme="dark"] .cal-days.mode-day .cal-day{border-color:var(--line)}
 :root[data-theme="dark"] .cal-nav a:hover,:root[data-theme="dark"] .cal-today:hover{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
 :root[data-theme="dark"] .cal-weekdays div,:root[data-theme="dark"] .cal-day-number{color:var(--muted)}
+/* Dark: toolbar, view switch, empty cells, day view and Friday/holiday cells follow the theme. */
+:root[data-theme="dark"] .cal-toolbar{background:var(--card)}
+:root[data-theme="dark"] .cal-card h2,:root[data-theme="dark"] .cal-toolbar h3,:root[data-theme="dark"] .cal-title{color:var(--text)}
+:root[data-theme="dark"] .cal-view-switch{background:var(--field);border-color:var(--line)}
+:root[data-theme="dark"] .cal-view-switch a{color:var(--muted)}
+:root[data-theme="dark"] .cal-view-switch a.active{background:var(--fill-a);color:#fff;box-shadow:none}
+:root[data-theme="dark"] .cal-empty{background:var(--panel);border-color:var(--line)}
+:root[data-theme="dark"] .cal-days.mode-day{background:var(--panel)}
+:root[data-theme="dark"] .cal-days.mode-day .cal-day{background:var(--card)}
+:root[data-theme="dark"] .cal-days.mode-day .cal-day-events.is-timeline{border-top-color:var(--line);background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(6.25% - 1px),var(--line) calc(6.25% - 1px),var(--line) 6.25%)}
+:root[data-theme="dark"] .cal-hour-mark{border-top-color:var(--line)}
+:root[data-theme="dark"] .cal-hour-mark span{background:var(--card);color:var(--muted)}
+:root[data-theme="dark"] .cal-day.is-holiday:not(.is-today) .cal-day-number{background:rgba(232,163,61,.16);color:#f0bd68}
+:root[data-theme="dark"] .cal-day.is-holiday:not(.is-today){background:linear-gradient(160deg,rgba(232,163,61,.09),var(--card) 72%)}
+:root[data-theme="dark"] .cal-day.is-holiday:not(.is-today):before{background:rgba(240,189,104,.55)}
+:root[data-theme="dark"] .cal-day-label{color:var(--muted)}
+:root[data-theme="dark"] .cal-day.is-drop-target{background:var(--brand-soft)!important;outline-color:var(--brand)}
+:root[data-theme="dark"] .cal-day.is-today:after{background:var(--fill-a)}
+:root[data-theme="dark"] .cal-field label{color:var(--muted)}
+:root[data-theme="dark"] .cal-day.is-today .cal-day-label{color:rgba(255,255,255,.9)}
+:root[data-theme="dark"] .cal-day.is-today .cal-day-number{color:#fff}
+:root[data-theme="dark"] .cal-check{color:var(--muted)}
 </style>
 <div class="calendar-page">
     <section class="cal-hero">

@@ -6,7 +6,7 @@
   --shadow:0 6px 20px rgba(31,106,99,.10), 0 1px 3px rgba(31,106,99,.08);
   --field:var(--card); --elev:var(--card);
   --glow1:rgba(42,155,143,.28); --glow2:rgba(31,106,99,.22);
-  --fill-a:#2a9b8f; --fill-b:#1f6a63;
+  --fill-a:#218177; --fill-b:#1f6a63;
   color-scheme:light;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -210,7 +210,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 .btn.membership-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border:1px solid var(--brand);border-radius:999px;background:var(--brand-soft);color:var(--brand-d);font-size:11.5px;font-weight:700;box-shadow:none;white-space:nowrap;transition:transform .16s ease,background .16s ease,color .16s ease}
 :root[data-theme="dark"] .btn.membership-action{color:var(--brand)}
 .btn.membership-action .i{width:15px;height:15px}
-.btn.membership-action:hover{transform:translateY(-1px);background:var(--brand);color:#fff;box-shadow:0 3px 9px rgba(31,106,99,.15)}
+.btn.membership-action:hover{transform:translateY(-1px);background:var(--fill-a);color:#fff;box-shadow:0 3px 9px rgba(31,106,99,.15)}
 @media(max-width:860px){.tbl .act{flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px}.tbl .act form{max-width:100%}.tbl .act>.membership-change{width:auto;min-width:0;flex:0 1 auto}.tbl .act>.membership-change .membership-current{flex:0 0 auto}.tbl .act>.membership-change .membership-action{flex:0 1 auto}}
 @media(prefers-reduced-motion:reduce){.btn.membership-action{transition:none}}
 

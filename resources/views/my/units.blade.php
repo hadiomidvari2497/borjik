@@ -127,6 +127,8 @@
 :root[data-theme="dark"] .mui-hero{background:linear-gradient(120deg,#102a31 0%,#124b49 58%,#1c6657 100%)}
 :root[data-theme="dark"] .mui-unit-top{background:linear-gradient(135deg,#1d2d2e,#1b302c)}
 :root[data-theme="dark"] .mui-person,:root[data-theme="dark"] .mui-unit-footer{background:#1b292a}
+:root[data-theme="dark"] .mui-text-link,:root[data-theme="dark"] .mui-box-head a{color:var(--brand)}
+:root[data-theme="dark"] .mui-text-link:hover{color:#8ae3d6}
 :root[data-theme="dark"] .mui-amenity{background:#1b292a}
 :root[data-theme="dark"] .mui-stat-icon,:root[data-theme="dark"] .mui-quicklink-icon,:root[data-theme="dark"] .mui-contract-icon{background:#213d36}
 :root[data-theme="dark"] .mui-stat:nth-child(2) .mui-stat-icon{background:#3d3020}

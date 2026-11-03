@@ -29,6 +29,8 @@
 @media(max-width:650px){.sd-hero{padding:20px 17px;border-radius:18px;gap:18px}.sd-hero h2{font-size:23px}.sd-hero-side .sd-toolbar{display:grid;grid-template-columns:1fr 1fr}.sd-action{white-space:normal;font-size:11px;padding:8px}.sd-stats{gap:8px;margin:12px 0 21px}.sd-stat{padding:12px 11px;border-radius:14px}.sd-stat strong{font-size:23px}.sd-stat-icon{width:31px;height:31px;border-radius:10px}.sd-stat-icon svg{width:16px;height:16px}.sd-stat-foot{font-size:9px}.sd-incident{padding:13px 13px 13px 14px}.sd-incident-meta{gap:6px}.sd-incident-meta>span:not(:first-child){padding-inline-start:6px}.sd-incident-link{justify-self:start}.sd-filters{grid-template-columns:1fr}.sd-path{max-width:170px}}
 @media(prefers-reduced-motion:reduce){.sd-stat,.sd-incident,.sd-check,.sd-incident-link,.sd-copy{transition:none}.sd-stat:hover,.sd-incident:hover,.sd-check:hover{transform:none}}
 
+:root[data-theme="dark"] .sd-priority{background:rgba(239,95,85,.16);color:#ffaaa3}
+:root[data-theme="dark"] .sd-priority.medium{background:rgba(240,178,78,.16);color:#f4c775}
 </style>
 <div class="card">
   <header class="sd-hero">
