@@ -154,6 +154,9 @@ class SeoTest extends TestCase
                 ->assertSee('"@type":"WebPage"', false)
                 ->assertSee('"@type":"BreadcrumbList"', false)
                 ->assertSee('"@type":"FAQPage"', false);
+                ->assertSee('href="#details"', false)
+                ->assertSee('id="details"', false)
+                ->assertSee('<h1', false);
 
             if ($routeName === 'marketing.seo.comparison') {
                 $response = $this->get(route($routeName));
