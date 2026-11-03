@@ -98,7 +98,7 @@
     @endif
     <title>{{ $seoTitle }}</title>
     <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-ExtraBold.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{{ asset('images/sabkhoneh-mark.webp') }}" as="image" type="image/webp" fetchpriority="high">
     <style>
         /* Inline font declarations remove the separate CSS request from the homepage critical path. */
