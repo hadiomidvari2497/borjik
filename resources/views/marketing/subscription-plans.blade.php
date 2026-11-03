@@ -4,8 +4,49 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b2434">
-    <meta name="description" content="پلن‌های اشتراک صابخونه را مقایسه کنید؛ ظرفیت واحدها، مدت اعتبار و قیمت هر پلن را ببینید. برای خرید، ابتدا ثبت‌نام کنید و از بخش اشتراک‌ها اقدام کنید.">
-    <title>پلن‌های اشتراک | صابخونه</title>
+    @php
+        $seoBase = rtrim((string) \\App\\Models\\SiteSetting::get('seo.site_url', config('app.url')), '/');
+        $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
+        $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL)
+            && strtolower((string) parse_url($seoBase, PHP_URL_SCHEME)) === 'https'
+            && !in_array($seoHost, ['localhost', '127.0.0.1', '::1'], true)
+            && empty(parse_url($seoBase, PHP_URL_USER))
+            && empty(parse_url($seoBase, PHP_URL_PASS))
+            && in_array((string) parse_url($seoBase, PHP_URL_PATH), ['', '/'], true)
+            && parse_url($seoBase, PHP_URL_QUERY) === null
+            && parse_url($seoBase, PHP_URL_FRAGMENT) === null;
+        $seoIndexable = $seoPublic && app()->environment('production') && (bool) \\App\\Models\\SiteSetting::get('seo.indexing_enabled', false);
+        $seoTitle = 'قیمت و پلن‌های اشتراک نرم‌افزار مدیریت ساختمان | صابخونه';
+        $seoDescription = 'تعرفه‌ها و پلن‌های اشتراک صابخونه را مقایسه کنید؛ ظرفیت واحدها، امکانات، مدت اعتبار و قیمت هر پلن را ببینید و متناسب با ساختمان خود انتخاب کنید.';
+        $seoUrl = $seoBase.'/subscription-plans';
+        $seoSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => $seoTitle,
+            'description' => $seoDescription,
+            'url' => $seoUrl,
+            'inLanguage' => 'fa-IR',
+            'isPartOf' => ['@type' => 'WebSite', 'name' => 'صابخونه', 'url' => $seoBase.'/'],
+        ];
+    @endphp
+    <meta name="description" content="{{ $seoDescription }}">
+    <meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
+    <title>{{ $seoTitle }}</title>
+    @if($seoPublic && app()->environment('production'))
+        <link rel="canonical" href="{{ $seoUrl }}">
+        <script type="application/ld+json">{!! json_encode($seoSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
+    @endif
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="صابخونه">
+    <meta property="og:title" content="{{ $seoTitle }}">
+    <meta property="og:description" content="{{ $seoDescription }}">
+    <meta property="og:url" content="{{ $seoUrl }}">
+    <meta property="og:image" content="{{ $seoBase }}/images/og-sabkhoneh.png">
+    <meta property="og:locale" content="fa_IR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $seoTitle }}">
+    <meta name="twitter:description" content="{{ $seoDescription }}">
+    <meta name="twitter:image" content="{{ $seoBase }}/images/og-sabkhoneh.png">
     <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="{{ asset('fonts/vazirmatn/Vazirmatn-Bold.woff2') }}" as="font" type="font/woff2" crossorigin>
