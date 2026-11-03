@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b2434">
 @php
-    $seoBase = rtrim((string) \\App\\Models\\SiteSetting::get('seo.site_url', config('app.url')), '/');
+    $seoBase = rtrim((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), '/');
     $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
     $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL)
         && strtolower((string) parse_url($seoBase, PHP_URL_SCHEME)) === 'https'
@@ -13,7 +13,7 @@
         && empty(parse_url($seoBase, PHP_URL_USER)) && empty(parse_url($seoBase, PHP_URL_PASS))
         && in_array((string) parse_url($seoBase, PHP_URL_PATH), ['', '/'], true)
         && parse_url($seoBase, PHP_URL_QUERY) === null && parse_url($seoBase, PHP_URL_FRAGMENT) === null;
-    $seoIndexable = $seoPublic && app()->environment('production') && (bool) \\App\\Models\\SiteSetting::get('seo.indexing_enabled', false);
+    $seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false);
     $pageUrl = $seoBase.'/'.ltrim($slug, '/');
     $pageSchema = [
         '@context' => 'https://schema.org',
