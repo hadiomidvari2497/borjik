@@ -157,6 +157,18 @@ class MarketingController extends Controller
             'url' => route($item['route']),
         ])->all();
 
+        $topicMap = [
+            'transparent-building-charges' => [['label' => 'شارژ ساختمان', 'route' => 'marketing.building-charges'], ['label' => 'مدیریت مالی ساختمان', 'route' => 'marketing.seo.finance'], ['label' => 'نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management']],
+            'resident-requests-follow-up' => [['label' => 'درخواست ساکنان', 'route' => 'marketing.seo.requests'], ['label' => 'پیگیری تعمیرات ساختمان', 'route' => 'marketing.seo.requests'], ['label' => 'نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management']],
+            'clear-building-communication' => [['label' => 'ارتباط با ساکنان', 'route' => 'marketing.building-management'], ['label' => 'مدیریت مجتمع مسکونی', 'route' => 'marketing.building-management'], ['label' => 'درخواست‌های ساختمان', 'route' => 'marketing.seo.requests']],
+            'building-management-software-selection-guide' => [['label' => 'انتخاب نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.seo.comparison'], ['label' => 'مقایسه نرم‌افزارها', 'route' => 'marketing.seo.comparison'], ['label' => 'مدیریت ساختمان', 'route' => 'marketing.building-management']],
+            'spreadsheet-messenger-or-building-software' => [['label' => 'مقایسه نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.seo.comparison'], ['label' => 'مدیریت ساختمان با اکسل', 'route' => 'marketing.seo.comparison'], ['label' => 'سامانه مدیریت ساختمان', 'route' => 'marketing.building-management']],
+            'building-data-privacy-checklist' => [['label' => 'امنیت اطلاعات ساختمان', 'route' => 'marketing.seo.trust'], ['label' => 'حریم خصوصی ساکنان', 'route' => 'marketing.seo.trust'], ['label' => 'مدیریت ساختمان', 'route' => 'marketing.building-management']],
+        ];
+
+        $articleTopics = collect($topicMap[$article->slug] ?? [['label' => 'مدیریت ساختمان', 'route' => 'marketing.building-management'], ['label' => 'شارژ ساختمان', 'route' => 'marketing.building-charges']])
+            ->map(fn (array $topic) => ['label' => $topic['label'], 'url' => route($topic['route'])])
+            ->all();
         $preferredSlugs = $relatedArticleSlugs[$article->slug] ?? [];
         $relatedArticles = Article::query()
             ->where('status', 'published')
@@ -177,6 +189,6 @@ class MarketingController extends Controller
                 ->get();
         }
 
-        return view('marketing.article', compact('article', 'relatedArticles', 'relatedServiceLinks'));
+        return view('marketing.article', compact('article', 'relatedArticles', 'relatedServiceLinks', 'articleTopics'));
     }
 }
