@@ -57,6 +57,39 @@
         @php
             echo json_encode([
                 '@context' => 'https://schema.org',
+                '@type' => 'WebSite',
+                'name' => 'صابخونه',
+                'url' => $seoBase.'/',
+                'inLanguage' => 'fa-IR',
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        @endphp
+    </script>
+    <script type="application/ld+json">
+        @php
+            echo json_encode([
+                '@context' => 'https://schema.org',
+                '@type' => 'SoftwareApplication',
+                'name' => 'صابخونه',
+                'applicationCategory' => 'BusinessApplication',
+                'operatingSystem' => 'مرورگر وب',
+                'url' => $seoBase.'/',
+                'inLanguage' => 'fa-IR',
+                'description' => $seoDescription,
+                'featureList' => [
+                    'مدیریت شارژ و صورت‌حساب‌های ساختمان',
+                    'ثبت و پیگیری هزینه‌ها و پرداخت‌ها',
+                    'ثبت و ارجاع درخواست‌های ساکنان',
+                    'اطلاع‌رسانی و مدیریت اسناد',
+                    'دسترسی متناسب با نقش کاربران',
+                ],
+                'publisher' => ['@type' => 'Organization', 'name' => 'صابخونه', 'url' => $seoBase.'/'],
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        @endphp
+    </script>
+    <script type="application/ld+json">
+        @php
+            echo json_encode([
+                '@context' => 'https://schema.org',
                 '@type' => 'FAQPage',
                 'mainEntity' => array_map(fn ($f) => ['@type' => 'Question', 'name' => $f['q'], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']]], $faqItems),
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);

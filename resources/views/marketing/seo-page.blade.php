@@ -100,7 +100,7 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 </div></header>
 <main>
 @foreach($page['sections'] as $section)
-<section class="section" id="details"><div class="wrap">
+<section class="section" id="{{ $loop->first ? 'details' : 'details-'.$loop->iteration }}"><div class="wrap">
 <h2>{{ $section['heading'] }}</h2><p class="lead">{{ $section['text'] }}</p>
 <div class="cards">@foreach($section['cards'] as $card)<article class="card"><h3>{{ $card['title'] }}</h3><p>{{ $card['text'] }}</p></article>@endforeach</div>
 </div></section>
