@@ -79,7 +79,8 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 .section{padding:58px 0}.section:nth-child(even){background:#eaf5f1}.section h2{font-size:clamp(1.45rem,3vw,2.15rem);line-height:1.6;margin:0 0 12px}.lead{color:var(--muted);max-width:880px;margin:0 0 24px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:16px}
 .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:23px;box-shadow:0 12px 32px #0b6b5c08}.card h3{font-size:1.04rem;margin:0 0 8px}.card p{font-size:.93rem;color:var(--muted);margin:0}
-.faq-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.faq-list details{background:#fff;border:1px solid var(--line);border-radius:17px;padding:17px 19px}.faq-list summary{cursor:pointer;font-weight:850}.faq-list details p{color:var(--muted);margin:10px 0 0;font-size:.94rem}
+.faq-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.comparison-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 12px 32px #0b6b5c08}.comparison-table{width:100%;min-width:850px;border-collapse:collapse;text-align:right;line-height:1.9}.comparison-table caption{text-align:right;padding:16px 18px;color:var(--muted);font-size:.9rem}.comparison-table th,.comparison-table td{padding:14px 15px;border-bottom:1px solid var(--line);vertical-align:top}.comparison-table thead th{background:#eaf5f1;color:var(--ink);font-weight:900}.comparison-table tbody th{min-width:145px;background:#f8fcfa;font-weight:850}.comparison-table td{font-size:.9rem;color:var(--muted)}.comparison-note{font-size:.85rem;color:var(--muted);margin:12px 2px 0}.faq-list details{background:#fff;border:1px solid var(--line);border-radius:17px;padding:17px 19px}.faq-list summary{cursor:pointer;font-weight:850}.faq-list details p{color:var(--muted);margin:10px 0 0;font-size:.94rem}
 .related{display:flex;flex-wrap:wrap;gap:11px;margin-top:22px}.related a{padding:9px 14px;border:1px solid #cde9df;border-radius:12px;background:#fff;color:var(--deep);font-weight:800;font-size:.9rem}
 .cta{margin-top:30px;padding:26px;border-radius:22px;background:linear-gradient(120deg,#071c28,#0c4a4b);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.cta p{color:#c1d9d9;margin:5px 0 0;font-size:.92rem}.foot{background:#061722;color:#a9c3c7;padding:25px 0;text-align:center;font-size:.88rem}.foot a{color:#8cebd0;text-decoration:underline}
 @media(max-width:700px){.top{padding-bottom:50px}.nav{margin-bottom:34px}.section{padding:42px 0}.faq-list{grid-template-columns:1fr}.cta{padding:21px}.brand{font-size:1rem}}
@@ -105,6 +106,22 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 <div class="cards">@foreach($section['cards'] as $card)<article class="card"><h3>{{ $card['title'] }}</h3><p>{{ $card['text'] }}</p></article>@endforeach</div>
 </div></section>
 @endforeach
+@if(!empty($page['comparison_table']))
+<section class="section" id="comparison"><div class="wrap">
+<h2>جدول مقایسهٔ روش‌ها و امکانات</h2>
+<p class="lead">این جدول تفاوت رویکردها را نشان می‌دهد، نه رتبه‌بندی قطعی محصولات بازار. امکانات هر ارائه‌دهنده را در نسخه و پلنی که قصد خرید آن را دارید، جداگانه بررسی کنید.</p>
+<div class="comparison-wrap" role="region" aria-label="جدول مقایسه روش‌های مدیریت ساختمان" tabindex="0">
+<table class="comparison-table">
+<caption>{{ $page['comparison_table']['caption'] }}</caption>
+<thead><tr>@foreach($page['comparison_table']['headers'] as $header)<th scope="col">{{ $header }}</th>@endforeach</tr></thead>
+<tbody>@foreach($page['comparison_table']['rows'] as $row)
+<tr><th scope="row">{{ $row['معیار'] }}</th><td>{{ $row['اکسل و فایل'] }}</td><td>{{ $row['گروه پیام‌رسان'] }}</td><td>{{ $row['سامانهٔ تخصصی'] }}</td><td>{{ $row['صابخونه'] }}</td></tr>
+@endforeach</tbody>
+</table>
+</div>
+<p class="comparison-note">نکته: وجود یک قابلیت در صفحهٔ معرفی محصول، به‌تنهایی کیفیت اجرا، دسترس‌پذیری در همهٔ پلن‌ها یا تناسب آن با نیاز ساختمان شما را اثبات نمی‌کند.</p>
+</div></section>
+@endif
 @if(!empty($page['market_examples']))
 <section class="section"><div class="wrap">
 <h2>نمونه‌هایی از گزینه‌های بازار ایران</h2>
