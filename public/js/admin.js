@@ -63,4 +63,26 @@
     });
   }
 
+  // حفظ موقع اسکرول منوی کناری پنل مدیریت سایت بین جابه‌جایی صفحات
+  var adminNav = document.querySelector('body.adm #side .nav');
+  if (adminNav) {
+    var sidebarScrollKey = 'borjik-admin-sidebar-scroll';
+    function saveAdminSidebarScroll() {
+      try { sessionStorage.setItem(sidebarScrollKey, String(adminNav.scrollTop)); } catch (e) {}
+    }
+    function restoreAdminSidebarScroll() {
+      try {
+        var saved = sessionStorage.getItem(sidebarScrollKey);
+        if (saved !== null && saved !== '') adminNav.scrollTop = Math.max(0, Number(saved) || 0);
+      } catch (e) {}
+    }
+    restoreAdminSidebarScroll();
+    window.addEventListener('pageshow', restoreAdminSidebarScroll);
+    adminNav.addEventListener('scroll', saveAdminSidebarScroll, { passive: true });
+    adminNav.addEventListener('click', function (event) {
+      if (event.target.closest('a[href]')) saveAdminSidebarScroll();
+    });
+    window.addEventListener('pagehide', saveAdminSidebarScroll);
+  }
+
 })();
