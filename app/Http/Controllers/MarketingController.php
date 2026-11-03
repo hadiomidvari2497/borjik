@@ -139,10 +139,20 @@ class MarketingController extends Controller
             ],
         ];
 
-        $relatedServiceLinks = collect($relatedServiceMap[$article->slug] ?? [
+        $serviceLinks = $relatedServiceMap[$article->slug] ?? [
             ['label' => 'نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
             ['label' => 'مدیریت شارژ و هزینه‌های ساختمان', 'route' => 'marketing.building-charges'],
-        ])->map(fn (array $item) => [
+        ];
+
+        // Every published article should pass clear contextual relevance to the main building-management page.
+        if (! collect($serviceLinks)->contains(fn (array $item) => ($item['route'] ?? null) === 'marketing.building-management')) {
+            array_unshift($serviceLinks, [
+                'label' => 'نرم‌افزار مدیریت ساختمان صابخونه',
+                'route' => 'marketing.building-management',
+            ]);
+        }
+
+        $relatedServiceLinks = collect($serviceLinks)->map(fn (array $item) => [
             'label' => $item['label'],
             'url' => route($item['route']),
         ])->all();
