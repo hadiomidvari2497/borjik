@@ -37,7 +37,8 @@ if ($article->published_at) $seoArticleSchema['datePublished'] = $article->publi
 if ($article->updated_at) $seoArticleSchema['dateModified'] = $article->updated_at->toAtomString();
 if ($seoImage) $seoArticleSchema['image'] = [$seoImage];
 $seoArticleSchema['inLanguage'] = 'fa-IR';
-$seoArticleSchema['wordCount'] = str_word_count(strip_tags((string) $article->body));
+preg_match_all('/[\\p{L}\\p{N}]+/u', strip_tags((string) $article->body), $seoWords);
+$seoArticleSchema['wordCount'] = count($seoWords[0] ?? []);
 $seoArticleSchema['publisher']['logo'] = [
     '@type' => 'ImageObject',
     'url' => $seoBase.'/images/sabkhoneh-mark.png',
