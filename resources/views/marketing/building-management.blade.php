@@ -12,12 +12,17 @@ $seoTitle = 'نرم‌افزار مدیریت ساختمان؛ امور مجتم
 $seoDescription = 'با نرم‌افزار مدیریت ساختمان صابخونه، امور مالی، شارژ، درخواست‌های ساکنان، اطلاع‌رسانی و پیگیری کارهای مجتمع را منظم‌تر و شفاف‌تر مدیریت کنید.';
 $seoUrl = $seoBase.'/software-building-management';
 $faqItems = [
+['q'=>'مدیریت ساختمان شامل چه کارهایی می‌شود؟','a'=>'مدیریت ساختمان مجموعه‌ای از کارهای مالی و اجرایی، رسیدگی به درخواست‌های ساکنان، اطلاع‌رسانی، نگهداری مشاعات و هماهنگی مسئولیت‌ها را دربر می‌گیرد.'],
 ['q'=>'نرم‌افزار مدیریت ساختمان چه کاربردی دارد؟','a'=>'این نرم‌افزار کمک می‌کند امور روزمرهٔ مجتمع، از پیگیری درخواست‌های ساکنان و اطلاع‌رسانی تا سامان‌دهی امور مالی، در یک مسیر مشخص مدیریت شوند.'],
 ['q'=>'آیا صابخونه فقط برای مدیر ساختمان است؟','a'=>'خیر؛ تجربه و امکانات در دسترس بر اساس نقش و سطح دسترسی تعریف‌شده تنظیم می‌شود و می‌تواند برای مدیران، ساکنان و پرسنل مرتبط با ساختمان کاربرد داشته باشد.'],
 ['q'=>'چه تفاوتی بین نرم‌افزار مدیریت ساختمان و نرم‌افزار شارژ ساختمان وجود دارد؟','a'=>'نرم‌افزار شارژ ساختمان بیشتر بر امور مالی و پرداخت‌ها تمرکز دارد؛ نرم‌افزار مدیریت ساختمان دامنهٔ گسترده‌تری دارد و می‌تواند درخواست‌ها، اطلاع‌رسانی و فرایندهای روزمره را نیز پوشش دهد.'],
 ['q'=>'چطور استفاده از صابخونه را شروع کنم؟','a'=>'از طریق ورود به سامانه شروع کنید و اطلاعات ساختمان، واحدها و دسترسی کاربران را مطابق نیاز مجتمع تنظیم کنید.']
 ];
-$schema = ['@context'=>'https://schema.org','@type'=>'WebPage','name'=>$seoTitle,'description'=>$seoDescription,'url'=>$seoUrl,'inLanguage'=>'fa-IR','isPartOf'=>['@type'=>'WebSite','name'=>'صابخونه','url'=>$seoBase.'/'],'about'=>['@type'=>'Thing','name'=>'نرم‌افزار مدیریت ساختمان']];
+$schema = ['@context'=>'https://schema.org','@type'=>'WebPage','name'=>$seoTitle,'description'=>$seoDescription,'url'=>$seoUrl,'inLanguage'=>'fa-IR','isPartOf'=>['@type'=>'WebSite','name'=>'صابخونه','url'=>$seoBase.'/'],'about'=>['@type'=>'Thing','name'=>'مدیریت ساختمان و نرم‌افزار مدیریت ساختمان']];
+$breadcrumbSchema = ['@context'=>'https://schema.org','@type'=>'BreadcrumbList','itemListElement'=>[
+['@type'=>'ListItem','position'=>1,'name'=>'صفحهٔ اصلی','item'=>$seoBase.'/'],
+['@type'=>'ListItem','position'=>2,'name'=>'نرم‌افزار مدیریت ساختمان','item'=>$seoUrl],
+]];
 @endphp
 <title>{{ $seoTitle }}</title><meta name="description" content="{{ $seoDescription }}"><meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
 @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoUrl }}">@endif
@@ -25,6 +30,7 @@ $schema = ['@context'=>'https://schema.org','@type'=>'WebPage','name'=>$seoTitle
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{ $seoTitle }}"><meta name="twitter:description" content="{{ $seoDescription }}"><meta name="twitter:image" content="{{ $seoBase }}/images/og-sabkhoneh.png">
 @if($seoPublic && app()->environment('production'))
 <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
+<script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
 <script type="application/ld+json">{!! json_encode(['@context'=>'https://schema.org','@type'=>'FAQPage','mainEntity'=>array_map(fn($item)=>['@type'=>'Question','name'=>$item['q'],'acceptedAnswer'=>['@type'=>'Answer','text'=>$item['a']]],$faqItems)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
 @endif
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
