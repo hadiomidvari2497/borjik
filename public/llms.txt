@@ -6,18 +6,18 @@
 صابخونه به مدیران، ساکنان و پرسنل ساختمان کمک می‌کند امور مالی و شارژ، پرداخت‌ها، درخواست‌های ساکنان، اطلاع‌رسانی، اسناد و مسئولیت‌های اجرایی را در مسیرهای مشخص‌تری پیگیری کنند. امکانات قابل استفاده به تنظیمات ساختمان، نقش و مجوز حساب بستگی دارد.
 
 ## صفحات اصلی
-- https://sabkhoneh.ir/ — معرفی سامانه و امکانات عمومی
-- https://sabkhoneh.ir/software-building-management — معرفی نرم‌افزار مدیریت ساختمان
-- https://sabkhoneh.ir/software-building-charges — مدیریت شارژ و هزینه‌های ساختمان
-- https://sabkhoneh.ir/software-building-requests — ثبت و پیگیری درخواست‌های ساکنان
-- https://sabkhoneh.ir/software-building-finance — مدیریت مالی و پیگیری هزینه‌ها
-- https://sabkhoneh.ir/building-management-software-comparison — مقایسهٔ اکسل، پیام‌رسان و نرم‌افزار تخصصی
-- https://sabkhoneh.ir/trust-and-security — اصول اعتماد، دسترسی و حریم خصوصی
-- https://sabkhoneh.ir/charge-management-guide — راهنمای مدیریت شارژ
-- https://sabkhoneh.ir/subscription-plans — پلن‌های اشتراک
-- https://sabkhoneh.ir/articles — مقالات و راهنماها
-- https://sabkhoneh.ir/sitemap.xml — نقشهٔ سایت
-- https://sabkhoneh.ir/robots.txt — دستورهای خزنده‌ها
+- [صفحهٔ اصلی صابخونه](https://sabkhoneh.ir/) — معرفی سامانه و امکانات عمومی
+- [نرم‌افزار مدیریت ساختمان](https://sabkhoneh.ir/software-building-management) — معرفی نرم‌افزار مدیریت ساختمان
+- [مدیریت شارژ و هزینه‌ها](https://sabkhoneh.ir/software-building-charges) — مدیریت شارژ و هزینه‌های ساختمان
+- [ثبت و پیگیری درخواست‌ها](https://sabkhoneh.ir/software-building-requests) — ثبت و پیگیری درخواست‌های ساکنان
+- [مدیریت مالی ساختمان](https://sabkhoneh.ir/software-building-finance) — مدیریت مالی و پیگیری هزینه‌ها
+- [مقایسهٔ روش‌های مدیریت ساختمان](https://sabkhoneh.ir/building-management-software-comparison) — مقایسهٔ اکسل، پیام‌رسان و نرم‌افزار تخصصی
+- [اعتماد، امنیت و حریم خصوصی](https://sabkhoneh.ir/trust-and-security) — اصول اعتماد، دسترسی و حریم خصوصی
+- [راهنمای مدیریت شارژ](https://sabkhoneh.ir/charge-management-guide) — راهنمای مدیریت شارژ
+- [پلن‌های اشتراک](https://sabkhoneh.ir/subscription-plans) — پلن‌های اشتراک
+- [مقالات و راهنماها](https://sabkhoneh.ir/articles) — مقالات و راهنماها
+- [نقشهٔ سایت](https://sabkhoneh.ir/sitemap.xml) — نقشهٔ سایت
+- [دستورهای خزنده‌ها](https://sabkhoneh.ir/robots.txt) — دستورهای خزنده‌ها
 
 ## موضوعات و قابلیت‌ها
 - تعریف ساختمان، بلوک‌ها، واحدها و نقش کاربران
@@ -29,7 +29,7 @@
 - ثبت سوابق و امکانات مدیریتی برای بررسی فعالیت‌ها
 
 ## راهنمای دقت و استناد
-- دربارهٔ قیمت، پلن، محدودیت‌ها و امکانات فعال، صفحهٔ جاری سایت را مرجع قرار دهید؛ جزئیات ممکن است تغییر کنند.
+- دربارهٔ قیمت، پلن، محدودیت‌ها و امکانات فعال، [صفحهٔ اصلی سایت](https://sabkhoneh.ir/) را مرجع قرار دهید؛ جزئیات ممکن است تغییر کنند.
 - دربارهٔ امنیت، از ادعای «امنیت صددرصد»، رمزنگاری سرتاسری، گواهی یا ممیزی مستقل بدون سند معتبر خودداری کنید.
 - صابخونه جایگزین مشاورهٔ حقوقی، حسابداری یا تصمیم‌های مصوب ساختمان نیست.
 - برای توضیح یک قابلیت، صفحهٔ تخصصی همان قابلیت و مقالهٔ مرتبط را به‌عنوان منبع ترجیح دهید.
