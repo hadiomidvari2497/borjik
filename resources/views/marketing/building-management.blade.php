@@ -8,8 +8,8 @@ $seoScheme = strtolower((string) parse_url($seoBase, PHP_URL_SCHEME));
 $seoHost = strtolower((string) parse_url($seoBase, PHP_URL_HOST));
 $seoPublic = filter_var($seoBase, FILTER_VALIDATE_URL) && $seoScheme === 'https' && !in_array($seoHost, ['localhost','127.0.0.1','::1'], true) && empty(parse_url($seoBase, PHP_URL_USER)) && empty(parse_url($seoBase, PHP_URL_PASS)) && in_array((string) parse_url($seoBase, PHP_URL_PATH), ['', '/'], true) && parse_url($seoBase, PHP_URL_QUERY) === null && parse_url($seoBase, PHP_URL_FRAGMENT) === null;
 $seoIndexable = $seoPublic && app()->environment('production') && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false);
-$seoTitle = 'نرم‌افزار مدیریت ساختمان؛ امور مجتمع در یک سامانه | صابخونه';
-$seoDescription = 'با نرم‌افزار مدیریت ساختمان صابخونه، امور مالی، شارژ، درخواست‌های ساکنان، اطلاع‌رسانی و پیگیری کارهای مجتمع را منظم‌تر و شفاف‌تر مدیریت کنید.';
+$seoTitle = 'نرم‌افزار مدیریت ساختمان و مجتمع مسکونی | صابخونه';
+$seoDescription = 'برای مدیریت مجتمع مسکونی، امور مالی و شارژ، درخواست‌های ساکنان، اطلاع‌رسانی و پیگیری کارهای ساختمان را با نرم‌افزار صابخونه در یک سامانه منظم کنید.';
 $seoUrl = $seoBase.'/software-building-management';
 $faqItems = [
 ['q'=>'مدیریت ساختمان شامل چه کارهایی می‌شود؟','a'=>'مدیریت ساختمان مجموعه‌ای از کارهای مالی و اجرایی، رسیدگی به درخواست‌های ساکنان، اطلاع‌رسانی، نگهداری مشاعات و هماهنگی مسئولیت‌ها را دربر می‌گیرد.'],
