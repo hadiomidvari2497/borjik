@@ -102,6 +102,7 @@ return [
                 ['q' => 'آیا صابخونه جایگزین بررسی حسابداری می‌شود؟', 'a' => 'خیر؛ سامانه به ثبت و پیگیری اطلاعات کمک می‌کند، اما تطبیق اسناد، تصمیم‌های مالی و رعایت مقررات همچنان بر عهدهٔ مسئولان ساختمان است.'],
             ],
             'related' => [
+                ['label' => 'نرم‌افزار مدیریت ساختمان صابخونه', 'route' => 'marketing.building-management'],
                 ['label' => 'نرم‌افزار شارژ ساختمان', 'route' => 'marketing.building-charges'],
                 ['label' => 'آموزش محاسبهٔ شارژ ساختمان', 'route' => 'marketing.charge-guide'],
                 ['label' => 'مقالهٔ شفافیت محاسبهٔ شارژ', 'route' => 'marketing.articles.show', 'params' => ['slug' => 'transparent-building-charges']],
