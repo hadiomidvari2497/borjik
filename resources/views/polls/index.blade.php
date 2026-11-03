@@ -108,6 +108,11 @@
 :root[data-theme="dark"] .poll-options-builder,:root[data-theme="dark"] .poll-anonymous,:root[data-theme="dark"] .poll-meta span,:root[data-theme="dark"] .poll-state-note,:root[data-theme="dark"] .poll-empty{background:var(--panel);border-color:var(--line);color:var(--muted)}
 :root[data-theme="dark"] .poll-result-top b,:root[data-theme="dark"] .poll-action{color:var(--brand)}
 :root[data-theme="dark"] .poll-state-note .dot,:root[data-theme="dark"] .poll-empty-icon{background:var(--brand-soft);color:var(--brand)}
+/* Dark: ink/line tokens and section headers follow the theme (they were fixed light values). */
+:root[data-theme="dark"] .poll-page{--p-ink:var(--text);--p-muted:var(--muted);--p-line:var(--line);--p-teal:var(--brand);--p-mint:var(--brand-soft)}
+:root[data-theme="dark"] .poll-section-head{background:var(--elev)}
+:root[data-theme="dark"] .poll-section-head h3,:root[data-theme="dark"] .poll-title{color:var(--text)}
+:root[data-theme="dark"] .poll-card:hover{border-color:var(--brand);box-shadow:0 13px 30px rgba(0,0,0,.35)}
 </style>
 <div class="poll-page">
     <section class="poll-hero">

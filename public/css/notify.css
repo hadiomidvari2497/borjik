@@ -61,7 +61,7 @@
   line-height: 1.4;
   cursor: pointer;
 }
-.borjik-swal-confirm { background: var(--brand, #2a9b8f); color: #fff; }
+.borjik-swal-confirm { background: var(--fill-a, #2a9b8f); color: #fff; }
 .borjik-swal-confirm.is-danger { background: var(--danger, #e0453a); }
 .borjik-swal-cancel { background: var(--track, #dde6e4); color: var(--text, #17302d); }
 .borjik-swal-confirm:focus-visible,

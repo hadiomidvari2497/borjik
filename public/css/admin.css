@@ -15,13 +15,16 @@ body.adm .nav a.on svg.i{color:var(--adm-hi)}
 body.adm .me{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 body.adm .me b{color:#fff}
 body.adm .me span{color:rgba(255,255,255,.66)}
-body.adm .side .av{background:var(--brand);color:#fff}
+body.adm .side .av{background:var(--fill-a);color:#fff}
 body.adm .out{background:rgba(255,255,255,.12);color:#ffd5d1}
 body.adm .out:hover{background:rgba(255,255,255,.2)}
 body.adm .tag-adm{display:inline-block;font-size:10.5px;padding:2px 9px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);color:#fff;margin-top:3px}
 
 /* هدر بالا */
 body.adm .top .tag-adm{background:var(--brand-soft);border-color:transparent;color:var(--brand-d);margin:0}
+/* برچسب داخل محتوای صفحه (جدول‌ها و کارت‌ها): متن سفید فقط برای سایدبار تیره است. */
+body.adm .tag-adm:not(.hm){background:var(--brand-soft);border-color:transparent;color:var(--brand-d)}
+:root[data-theme="dark"] body.adm .tag-adm:not(.hm){color:var(--brand)}
 :root[data-theme="dark"] body.adm .top .tag-adm{color:var(--brand)}
 
 /* کارت‌های دسترسی سریع و امنیت */
