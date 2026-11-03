@@ -107,6 +107,46 @@ class MarketingController extends Controller
             'building-data-privacy-checklist' => ['building-management-software-selection-guide', 'spreadsheet-messenger-or-building-software'],
         ];
 
+        $relatedServiceMap = [
+            'transparent-building-charges' => [
+                ['label' => 'نرم‌افزار شارژ و هزینه‌های ساختمان', 'route' => 'marketing.building-charges'],
+                ['label' => 'مدیریت مالی و پرداخت‌های ساختمان', 'route' => 'marketing.seo.finance'],
+                ['label' => 'راهنمای انتخاب نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.seo.comparison'],
+            ],
+            'resident-requests-follow-up' => [
+                ['label' => 'نرم‌افزار ثبت و پیگیری درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+                ['label' => 'امکانات نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
+                ['label' => 'مدیریت مالی و شارژ ساختمان', 'route' => 'marketing.building-charges'],
+            ],
+            'clear-building-communication' => [
+                ['label' => 'ثبت و پیگیری درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+                ['label' => 'امکانات نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
+            ],
+            'building-management-software-selection-guide' => [
+                ['label' => 'مقایسه و انتخاب نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.seo.comparison'],
+                ['label' => 'مدیریت مالی و شارژ ساختمان', 'route' => 'marketing.building-charges'],
+                ['label' => 'مدیریت درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+            ],
+            'spreadsheet-messenger-or-building-software' => [
+                ['label' => 'مقایسه روش‌های مدیریت ساختمان', 'route' => 'marketing.seo.comparison'],
+                ['label' => 'ثبت و پیگیری درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+                ['label' => 'مدیریت مالی و شارژ ساختمان', 'route' => 'marketing.building-charges'],
+            ],
+            'building-data-privacy-checklist' => [
+                ['label' => 'امنیت و حریم خصوصی اطلاعات ساختمان', 'route' => 'marketing.seo.trust'],
+                ['label' => 'مدیریت درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+                ['label' => 'امکانات نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
+            ],
+        ];
+
+        $relatedServiceLinks = collect($relatedServiceMap[$article->slug] ?? [
+            ['label' => 'نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
+            ['label' => 'مدیریت شارژ و هزینه‌های ساختمان', 'route' => 'marketing.building-charges'],
+        ])->map(fn (array $item) => [
+            'label' => $item['label'],
+            'url' => route($item['route']),
+        ])->all();
+
         $preferredSlugs = $relatedArticleSlugs[$article->slug] ?? [];
         $relatedArticles = Article::query()
             ->where('status', 'published')
@@ -127,6 +167,6 @@ class MarketingController extends Controller
                 ->get();
         }
 
-        return view('marketing.article', compact('article', 'relatedArticles'));
+        return view('marketing.article', compact('article', 'relatedArticles', 'relatedServiceLinks'));
     }
 }
