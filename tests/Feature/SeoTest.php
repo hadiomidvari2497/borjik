@@ -303,4 +303,15 @@ class SeoTest extends TestCase
             ->assertDontSee('private-draft-for-seo-test')
             ->assertDontSee('future-article-for-seo-test');
     }
+    public function test_homepage_reserves_trust_badge_space_and_uses_compositor_friendly_hero_motion(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSee('width="110" height="90"', false)
+            ->assertSee('min-height:320px', false)
+            ->assertSee('@keyframes pulse{0%{transform:scale(1);opacity:1}', false)
+            ->assertSee('background-size:220% auto;animation:none', false);
+    }
+
 }
