@@ -36,6 +36,21 @@ $seoArticleSchema = [
 if ($article->published_at) $seoArticleSchema['datePublished'] = $article->published_at->toAtomString();
 if ($article->updated_at) $seoArticleSchema['dateModified'] = $article->updated_at->toAtomString();
 if ($seoImage) $seoArticleSchema['image'] = [$seoImage];
+$seoArticleSchema['inLanguage'] = 'fa-IR';
+$seoArticleSchema['wordCount'] = str_word_count(strip_tags((string) $article->body));
+$seoArticleSchema['publisher']['logo'] = [
+    '@type' => 'ImageObject',
+    'url' => $seoBase.'/images/sabkhoneh-mark.png',
+];
+$seoBreadcrumbSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'BreadcrumbList',
+    'itemListElement' => [
+        ['@type' => 'ListItem', 'position' => 1, 'name' => 'صفحهٔ اصلی', 'item' => $seoBase.'/'],
+        ['@type' => 'ListItem', 'position' => 2, 'name' => 'مقالات و راهنماها', 'item' => $seoBase.'/articles'],
+        ['@type' => 'ListItem', 'position' => 3, 'name' => $article->title, 'item' => $seoBase.'/articles/'.rawurlencode($article->slug)],
+    ],
+];
 @endphp
 <meta name="description" content="{{ $seoDescription }}">
 <meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
@@ -46,6 +61,7 @@ if ($seoImage) $seoArticleSchema['image'] = [$seoImage];
 <meta property="og:url" content="{{ $seoBase }}/articles/{{ rawurlencode($article->slug) }}">
 @if($seoImage)<meta property="og:image" content="{{ $seoImage }}">@endif
 @if($article->published_at)<meta property="article:published_time" content="{{ $article->published_at->toAtomString() }}">@endif
+@if($article->updated_at)<meta property="article:modified_time" content="{{ $article->updated_at->toAtomString() }}">@endif
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $seoTitle }}">
 <meta name="twitter:description" content="{{ $seoDescription }}">
@@ -54,6 +70,7 @@ if ($seoImage) $seoArticleSchema['image'] = [$seoImage];
 @if($article->cover_image)<link rel="preload" as="image" href="{{ $seoImage }}" fetchpriority="high">@endif
 @if($seoPublic && app()->environment('production'))
 <script type="application/ld+json">@php echo json_encode($seoArticleSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); @endphp</script>
+<script type="application/ld+json">@php echo json_encode($seoBreadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); @endphp</script>
 @endif
 <meta name="theme-color" content="#0b2434">
 <title>{{ $seoTitle }}</title><link rel="stylesheet" href="{{ asset('css/fonts.css') }}"><style>
