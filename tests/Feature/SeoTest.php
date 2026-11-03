@@ -158,6 +158,41 @@ class SeoTest extends TestCase
         }
     }
 
+    public function test_building_charges_page_covers_charge_workflow_and_links_to_related_guides(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/software-building-charges')
+            ->assertOk()
+            ->assertSee('<title>نرم‌افزار شارژ ساختمان و مدیریت هزینه‌ها | صابخونه</title>', false)
+            ->assertSee('نرم‌افزار شارژ ساختمان صابخونه روند تعریف واحدها', false)
+            ->assertSee('امکانات مهم در نرم‌افزار شارژ و حسابداری ساختمان')
+            ->assertSee('صدور صورت‌حساب و پیگیری پرداخت')
+            ->assertSee('rel="canonical" href="https://sabkhoneh.ir/software-building-charges"', false)
+            ->assertSee('"@type":"FAQPage"', false)
+            ->assertSee('/software-building-requests', false)
+            ->assertSee('/articles/transparent-building-charges', false);
+    }
+
+    public function test_resident_request_page_targets_request_tracking_and_explains_triage(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/software-building-requests')
+            ->assertOk()
+            ->assertSee('<title>نرم‌افزار ثبت و پیگیری درخواست‌های ساکنان ساختمان | صابخونه</title>', false)
+            ->assertSee('نرم‌افزار مدیریت درخواست‌های ساختمان صابخونه')
+            ->assertSee('درخواست‌های پرتکرار ساختمان را دسته‌بندی و اولویت‌بندی کنید')
+            ->assertSee('برای ثبت درخواست تعمیرات ساختمان چه اطلاعاتی لازم است؟')
+            ->assertSee('/articles/resident-requests-follow-up', false)
+            ->assertSee('/software-building-charges', false)
+            ->assertSee('"@type":"FAQPage"', false);
+    }
+
     public function test_comparison_page_renders_a_fair_method_matrix_and_cost_guidance(): void
     {
         $response = $this->get(route('marketing.seo.comparison'));
