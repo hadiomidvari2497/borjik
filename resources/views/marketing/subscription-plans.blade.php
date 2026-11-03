@@ -19,6 +19,30 @@
         $seoTitle = 'قیمت و پلن‌های اشتراک نرم‌افزار مدیریت ساختمان | صابخونه';
         $seoDescription = 'تعرفه‌ها و پلن‌های اشتراک صابخونه را مقایسه کنید؛ ظرفیت واحدها، امکانات، مدت اعتبار و قیمت هر پلن را ببینید و متناسب با ساختمان خود انتخاب کنید.';
         $seoUrl = $seoBase.'/subscription-plans';
+        $faqItems = [
+            ['q' => 'چطور پلن مناسب ساختمان را انتخاب کنم؟', 'a' => 'تعداد واحدهای ساختمان را با ظرفیت هر پلن مقایسه کنید و مدت اعتبار و قیمت نهایی را هم در نظر بگیرید. پلنی را انتخاب کنید که با نیاز فعلی ساختمان متناسب باشد.'],
+            ['q' => 'قیمت نمایش‌داده‌شده شامل تخفیف است؟', 'a' => 'اگر برای یک پلن تخفیف فعال باشد، قیمت نهایی و درصد تخفیف در کارت همان پلن نمایش داده می‌شود؛ در غیر این صورت قیمت عادی پلن درج شده است.'],
+            ['q' => 'چطور اشتراک صابخونه را خریداری کنم؟', 'a' => 'ابتدا وارد حساب کاربری شوید یا ثبت‌نام کنید. سپس از پنل کاربری به بخش اشتراک‌ها بروید، پلن موردنظر را انتخاب کنید و مراحل خرید را ادامه دهید.'],
+            ['q' => 'مدت اعتبار و ظرفیت هر پلن کجا مشخص شده است؟', 'a' => 'در کارت هر پلن، تعداد واحدهای قابل پشتیبانی و مدت اعتبار به‌صورت جداگانه نمایش داده می‌شود. پیش از انتخاب، هر دو مورد را بررسی کنید.'],
+            ['q' => 'آیا برای خرید اشتراک باید حساب کاربری داشته باشم؟', 'a' => 'بله؛ برای تکمیل خرید باید ابتدا ثبت‌نام کنید و وارد حساب کاربری شوید. ادامهٔ فرایند از بخش اشتراک‌ها در پنل انجام می‌شود.'],
+        ];
+        $seoFaqSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => array_map(fn ($item) => [
+                '@type' => 'Question',
+                'name' => $item['q'],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['a']],
+            ], $faqItems),
+        ];
+        $seoBreadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'صفحهٔ اصلی', 'item' => $seoBase.'/'],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'پلن‌ها و قیمت اشتراک', 'item' => $seoUrl],
+            ],
+        ];
         $seoSchema = [
             '@context' => 'https://schema.org',
             '@type' => 'WebPage',
@@ -35,6 +59,8 @@
     @if($seoPublic && app()->environment('production'))
         <link rel="canonical" href="{{ $seoUrl }}">
         <script type="application/ld+json">{!! json_encode($seoSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
+        <script type="application/ld+json">{!! json_encode($seoBreadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
+        <script type="application/ld+json">{!! json_encode($seoFaqSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
     @endif
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="صابخونه">
@@ -59,9 +85,10 @@
         .hero{position:relative;overflow:hidden;padding:66px 0 78px;background:radial-gradient(ellipse at 8% 8%,#28bda41e,transparent 34%),linear-gradient(135deg,#0b2535 0%,#103b49 58%,#0a6c68 120%);color:#fff}.hero:before,.hero:after{content:"";position:absolute;border:1px solid #ffffff17;border-radius:50%;pointer-events:none}.hero:before{width:440px;height:440px;left:-150px;top:-245px;box-shadow:0 0 0 45px #ffffff06,0 0 0 95px #ffffff04}.hero:after{width:260px;height:260px;right:-100px;bottom:-180px}.hero-inner{position:relative;z-index:1;max-width:800px;margin:auto;text-align:center}.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid #ffffff2c;background:#ffffff12;color:#a5f2e1;border-radius:99px;padding:5px 14px;font-size:.82rem;font-weight:800}.dot{width:7px;height:7px;border-radius:50%;background:#45dfbd;box-shadow:0 0 0 5px #45dfbd20}h1{font-size:clamp(2rem,4.5vw,3.6rem);line-height:1.45;letter-spacing:-1px;margin:18px 0 12px;font-weight:900}h1 span{color:#65e0c5}.hero p{max-width:680px;margin:0 auto;color:#d0e2e4;font-size:1.02rem}.hero-points{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:24px}.hero-points span{padding:7px 13px;border:1px solid #ffffff24;background:#ffffff0b;border-radius:99px;color:#e0f4f0;font-size:.82rem}
         .plans-area{padding:58px 0 76px}.section-head{text-align:center;max-width:680px;margin:0 auto 34px}.section-head small{font-weight:900;color:var(--deep)}.section-head h2{font-size:clamp(1.5rem,3vw,2.2rem);margin:7px 0 8px;line-height:1.5}.section-head p{margin:0;color:var(--muted)}.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:stretch}.plan{position:relative;display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:24px;padding:27px;box-shadow:0 12px 35px #173e3410;overflow:hidden}.plan:nth-child(3n+2){border-color:#81d9c8;box-shadow:0 18px 44px #0e9f8520}.plan:nth-child(3n+2):before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,#37cbb0,#087f78)}.plan-badge{align-self:flex-start;background:#e2f7f0;color:#087f78;border-radius:99px;padding:4px 10px;font-size:.75rem;font-weight:900}.plan-icon{display:grid;place-items:center;width:52px;height:52px;border-radius:17px;background:linear-gradient(145deg,#dff8ef,#effaf6);color:#078775;font-size:1.55rem;margin:18px 0 9px}.plan h3{font-size:1.3rem;margin:0 0 4px}.desc{color:var(--muted);font-size:.85rem;min-height:52px}.price{font-size:1.85rem;font-weight:900;letter-spacing:-.5px;margin:13px 0 0;line-height:1.5}.price small{font-size:.78rem;color:var(--muted);font-weight:700;letter-spacing:0}.discount{min-height:25px;color:#0b927c;font-size:.78rem;font-weight:800}.features{list-style:none;padding:0;margin:20px 0 25px;display:grid;gap:10px}.features li{display:flex;gap:9px;align-items:flex-start;font-size:.88rem;color:#405b66}.check{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:8px;background:#e4f7f0;color:#078775;font-size:.78rem;font-weight:900;margin-top:2px}.plan .btn{width:100%;margin-top:auto}.empty{padding:34px;text-align:center;border:1px dashed #bfd8cf;background:#fff;border-radius:20px;color:var(--muted)}
         .notice-wrap{padding:0 0 74px}.notice{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:20px;padding:26px 29px;border:1px solid #bce8da;border-radius:24px;background:linear-gradient(115deg,#e3f8f0,#f9fffc);box-shadow:0 15px 40px #0b6d5c0b}.notice-icon{width:56px;height:56px;display:grid;place-items:center;border-radius:18px;background:#fff;color:#0a907b;font-size:1.6rem;box-shadow:0 8px 20px #0a907b14}.notice h2{font-size:1.15rem;margin:0 0 5px}.notice p{color:#526d74;margin:0;font-size:.9rem}.notice .btns{display:flex;gap:9px;flex-wrap:wrap}
+        .faq-area{padding:0 0 76px}.faq-head{text-align:center;max-width:700px;margin:0 auto 25px}.faq-head h2{font-size:clamp(1.45rem,3vw,2rem);margin:0 0 8px}.faq-head p{margin:0;color:var(--muted)}.faq-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.faq-list details{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px 19px}.faq-list summary{cursor:pointer;font-weight:850}.faq-list p{color:var(--muted);font-size:.9rem;margin:10px 0 0}
         .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:42px}.step{padding:20px;border:1px solid var(--line);border-radius:18px;background:#fff}.step b{display:block;color:var(--deep);font-size:.85rem}.step h3{font-size:1rem;margin:5px 0}.step p{font-size:.84rem;color:var(--muted);margin:0}.foot{padding:22px 0;background:#0a2230;color:#b7cbd0;font-size:.82rem}.foot-inner{display:flex;justify-content:space-between;gap:15px;align-items:center}.foot a{color:#a5f2e1}
         @media(max-width:900px){.plans{grid-template-columns:repeat(2,minmax(0,1fr))}.notice{grid-template-columns:auto 1fr}.notice .btns{grid-column:1/-1;padding-right:76px}}
-        @media(max-width:620px){.nav{padding:12px 0;min-height:0;align-items:flex-start}.brand{font-size:1rem}.brand img{width:36px;height:36px}.nav-actions{gap:6px}.nav-actions .btn{padding:8px 10px;font-size:.78rem}.nav-actions .light{display:none}.hero{padding:48px 0 55px}.hero p{font-size:.92rem}.plans{grid-template-columns:1fr}.plan{padding:23px}.desc{min-height:0}.plans-area{padding:42px 0 55px}.notice{grid-template-columns:1fr;padding:22px;gap:12px}.notice .btns{padding-right:0;grid-column:auto;display:grid;grid-template-columns:1fr}.steps{grid-template-columns:1fr;margin-top:28px}.foot-inner{align-items:flex-start;flex-direction:column}}
+        @media(max-width:620px){.faq-list{grid-template-columns:1fr}.faq-area{padding-bottom:55px}.nav{padding:12px 0;min-height:0;align-items:flex-start}.brand{font-size:1rem}.brand img{width:36px;height:36px}.nav-actions{gap:6px}.nav-actions .btn{padding:8px 10px;font-size:.78rem}.nav-actions .light{display:none}.hero{padding:48px 0 55px}.hero p{font-size:.92rem}.plans{grid-template-columns:1fr}.plan{padding:23px}.desc{min-height:0}.plans-area{padding:42px 0 55px}.notice{grid-template-columns:1fr;padding:22px;gap:12px}.notice .btns{padding-right:0;grid-column:auto;display:grid;grid-template-columns:1fr}.steps{grid-template-columns:1fr;margin-top:28px}.foot-inner{align-items:flex-start;flex-direction:column}}
         @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
     </style>
 </head>
@@ -130,6 +157,16 @@
                 <article class="step"><b>مرحله ۱</b><h3>ساخت حساب کاربری</h3><p>با ثبت‌نام، حساب خود را بسازید و وارد صابخونه شوید.</p></article>
                 <article class="step"><b>مرحله ۲</b><h3>رفتن به اشتراک‌ها</h3><p>در پنل، بخش اشتراک‌ها را باز کنید و پلن‌ها را دوباره ببینید.</p></article>
                 <article class="step"><b>مرحله ۳</b><h3>انتخاب و تکمیل خرید</h3><p>پلن را انتخاب کنید و در صورت نیاز، پرداخت را از طریق درگاه فعال تکمیل کنید.</p></article>
+            </div>
+        </div>
+    </section>
+    <section class="faq-area">
+        <div class="wrap">
+            <div class="faq-head"><h2>پرسش‌های رایج دربارهٔ پلن‌ها و قیمت اشتراک</h2><p>پیش از انتخاب پلن، پاسخ پرسش‌های متداول را بخوانید.</p></div>
+            <div class="faq-list">
+                @foreach($faqItems as $item)
+                    <details><summary>{{ $item['q'] }}</summary><p>{{ $item['a'] }}</p></details>
+                @endforeach
             </div>
         </div>
     </section>
