@@ -22,7 +22,7 @@
   <div class="sp-head">
     <div>
       <h2>عملکرد تیم پشتیبانی</h2>
-      <p>شاخص‌های پاسخ‌گویی، حل درخواست‌ها و پایبندی به مهلت‌های SLA@if($filters['from'] && $filters['to']) · بازه: {{ $F::digits($filters['from']) }} تا {{ $F::digits($filters['to']) }}@endif</p>
+      <p>شاخص‌های پاسخ‌گویی، حل درخواست‌ها و پایبندی به مهلت‌های SLA @if($filters['from'] && $filters['to'])· بازه: {{ $F::digits($filters['from']) }} تا {{ $F::digits($filters['to']) }} @endif</p>
     </div>
     <div class="sp-actions"><a class="btn sec sm" href="{{ route('admin.support.index') }}">بازگشت به مرکز پشتیبانی</a></div>
   </div>
