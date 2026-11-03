@@ -130,7 +130,7 @@ class SeoTest extends TestCase
         $pages = [
             'marketing.seo.requests' => 'نرم‌افزار مدیریت درخواست‌های ساختمان',
             'marketing.seo.finance' => 'نرم‌افزار مدیریت مالی ساختمان',
-            'marketing.seo.comparison' => 'مدیریت ساختمان با اکسل، پیام‌رسان یا نرم‌افزار تخصصی؟',
+            'marketing.seo.comparison' => 'بهترین نرم‌افزار مدیریت ساختمان را چطور مقایسه و انتخاب کنیم؟',
             'marketing.seo.trust' => 'مرکز اعتماد و شفافیت',
         ];
 
