@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\OperationsCenterController;
 use App\Http\Controllers\Admin\HostMonitoringController;
 use App\Http\Controllers\Admin\PerformanceMonitoringController;
 use App\Http\Middleware\RecordAdminActivity;
+use App\Http\Middleware\EnsureAdminTwoFactor;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\BuildingUserController;
@@ -40,9 +41,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:admin-login')->name('login.submit');
         Route::get('/two-factor', [AuthController::class, 'challenge'])->name('two-factor.challenge');
         Route::post('/two-factor', [AuthController::class, 'verifyChallenge'])->middleware('throttle:admin-login')->name('two-factor.verify');
+        Route::post('/two-factor/sms/request', [AuthController::class, 'requestSmsChallenge'])->middleware('throttle:admin-login')->name('two-factor.sms.request');
+        Route::post('/two-factor/sms/verify', [AuthController::class, 'verifySmsChallenge'])->middleware('throttle:admin-login')->name('two-factor.sms.verify');
     });
 
-    Route::middleware(['admin', RecordAdminActivity::class])->group(function () {
+    Route::middleware(['admin', EnsureAdminTwoFactor::class, RecordAdminActivity::class])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::prefix('support')->name('support.')->middleware('admin.can:support.manage')->controller(SupportTicketController::class)->group(function () {
@@ -77,6 +80,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/operations', [OperationsCenterController::class, 'update'])->middleware('admin.can:site.settings')->name('operations.update');
         Route::post('/operations/backup', [OperationsCenterController::class, 'runBackup'])->middleware('admin.can:site.settings')->middleware('throttle:2,1')->name('operations.backup');
         Route::post('/operations/backups/{backupRun}/verify', [OperationsCenterController::class, 'verifyBackup'])->whereNumber('backupRun')->middleware('admin.can:site.settings')->middleware('throttle:6,1')->name('operations.backups.verify');
+        Route::get('/operations/backups/{backupRun}/download', [OperationsCenterController::class, 'downloadBackup'])->whereNumber('backupRun')->middleware('admin.can:site.settings')->name('operations.backups.download');
         Route::post('/operations/health-check', [OperationsCenterController::class, 'checkNow'])->middleware('admin.can:site.settings')->name('operations.check');
         Route::post('/operations/test-sms', [OperationsCenterController::class, 'testSms'])->middleware('admin.can:site.settings')->middleware('throttle:5,1')->name('operations.test-sms');
         Route::get('/monitoring/host', [HostMonitoringController::class, 'host'])->middleware('admin.can:logs.view')->name('monitoring.host');
@@ -86,10 +90,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::prefix('account')->name('account')->controller(AccountController::class)->group(function () {
             Route::get('/', 'show');
-            Route::post('/password', 'password')->name('.password');
+            Route::post('/password', 'password')->middleware('throttle:5,1')->name('.password');
+            Route::post('/mobile', 'saveMobile')->middleware('throttle:5,1')->name('.mobile');
+            Route::post('/mobile/request', 'requestMobileVerification')->middleware('throttle:5,1')->name('.mobile.request');
+            Route::post('/mobile/verify', 'verifyMobile')->middleware('throttle:6,1')->name('.mobile.verify');
+            Route::post('/sms-two-factor', 'toggleSmsTwoFactor')->middleware('throttle:5,1')->name('.sms-two-factor');
             Route::get('/two-factor', 'twoFactorSetup')->name('.two-factor');
-            Route::post('/two-factor', 'twoFactorConfirm')->name('.two-factor.confirm');
-            Route::delete('/two-factor', 'twoFactorDisable')->name('.two-factor.disable');
+            Route::post('/two-factor', 'twoFactorConfirm')->middleware('throttle:6,1')->name('.two-factor.confirm');
+            Route::delete('/two-factor', 'twoFactorDisable')->middleware('throttle:5,1')->name('.two-factor.disable');
         });
 
         Route::get('/payment-gateway', [PaymentGatewayController::class, 'edit'])->middleware('admin.can:gateway.manage')->name('payment-gateway.edit');
@@ -189,6 +197,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         });
 
         Route::get('/building-users', [BuildingUserController::class, 'index'])->middleware('admin.can:users.view')->name('building-users.index');
+        Route::get('/building-users/{user}', [BuildingUserController::class, 'show'])->whereNumber('user')->middleware('admin.can:users.view')->name('building-users.show');
         Route::get('/buildings', [BuildingDirectoryController::class, 'index'])->middleware('admin.can:buildings.view')->name('buildings.index');
 
         Route::prefix('building-tools')->name('building-tools.')->middleware('admin.can:site.settings')->controller(BuildingToolsController::class)->group(function () {

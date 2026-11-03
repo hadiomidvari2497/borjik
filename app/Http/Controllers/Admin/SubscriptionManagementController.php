@@ -32,7 +32,16 @@ class SubscriptionManagementController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('admin.subscriptions.index', compact('buildings', 'q'));
+        $now = now();
+        $stats = [
+            'total' => Building::query()->count(),
+            'active' => Building::query()->whereHas('subscription', fn ($sub) => $sub->where('status', 'active')->where('expires_at', '>', $now))->count(),
+            'expiring' => Building::query()->whereHas('subscription', fn ($sub) => $sub->where('status', 'active')->whereBetween('expires_at', [$now, $now->copy()->addDays(7)]))->count(),
+            'expired' => Building::query()->whereNotNull('subscription_id')->whereDoesntHave('subscription', fn ($sub) => $sub->where('status', 'active')->where('expires_at', '>', $now))->count(),
+            'none' => Building::query()->whereNull('subscription_id')->count(),
+        ];
+
+        return view('admin.subscriptions.index', compact('buildings', 'q', 'stats'));
     }
 
     public function create(Request $request)

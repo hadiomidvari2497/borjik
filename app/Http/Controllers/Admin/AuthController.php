@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\OtpException;
 use App\Http\Controllers\Controller;
 use App\Models\AdminUser;
+use App\Services\Auth\OtpService;
 use App\Support\MobileNumber;
 use App\Support\Totp;
 use Illuminate\Http\Request;
@@ -11,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    private const CHALLENGE_TTL = 300;      // ثانیه
+    private const CHALLENGE_TTL = 300;
     private const CHALLENGE_MAX_TRIES = 5;
 
     public function showLogin()
@@ -25,29 +27,20 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $data = $request->validate([
-            'username' => ['required', 'string', 'max:60'],
-            'password' => ['required', 'string'],
-        ]);
-
+        $data = $request->validate(['username' => ['required', 'string', 'max:60'], 'password' => ['required', 'string']]);
         $guard = Auth::guard('admin');
         $provider = $guard->getProvider();
         $credentials = ['username' => $data['username'], 'password' => $data['password'], 'status' => 'active'];
-
-        /** @var AdminUser|null $user */
         $user = $provider->retrieveByCredentials($credentials);
 
         if (! $user || ! $provider->validateCredentials($user, $credentials)) {
             return back()->withErrors(['username' => 'نام کاربری یا رمز عبور نادرست است.'])->onlyInput('username');
         }
 
-        // با فعال بودن ۲FA هنوز وارد نمی‌شویم؛ فقط هویت رمز تأیید شده و کد دومرحله‌ای لازم است.
         if ($user->two_factor_enabled && $user->two_factor_secret) {
             $request->session()->put('admin_2fa', [
-                'id' => $user->id,
-                'remember' => $request->boolean('remember'),
-                'expires' => now()->timestamp + self::CHALLENGE_TTL,
-                'tries' => 0,
+                'id' => $user->id, 'remember' => $request->boolean('remember'),
+                'expires' => now()->timestamp + self::CHALLENGE_TTL, 'tries' => 0,
             ]);
 
             return redirect()->route('admin.two-factor.challenge');
@@ -58,11 +51,74 @@ class AuthController extends Controller
 
     public function challenge(Request $request)
     {
-        if (! $this->pendingChallenge($request)) {
+        $pending = $this->pendingChallenge($request);
+        if (! $pending) {
             return redirect()->route('admin.login')->with('error', 'نشست تأیید دومرحله‌ای منقضی شده است؛ دوباره وارد شوید.');
         }
 
-        return view('admin.two-factor');
+        $user = AdminUser::find($pending['id']);
+
+        return view('admin.two-factor', [
+            'smsAvailable' => $user && $user->isActive() && $user->two_factor_enabled
+                && $user->two_factor_sms_enabled && $user->mobile && $user->mobile_verified_at,
+            'maskedMobile' => $user?->mobile ? substr($user->mobile, 0, 4).'*****'.substr($user->mobile, -2) : null,
+        ]);
+    }
+
+    public function requestSmsChallenge(Request $request, OtpService $otp)
+    {
+        $pending = $this->pendingChallenge($request);
+        if (! $pending) {
+            return redirect()->route('admin.login')->with('error', 'نشست تأیید دومرحله‌ای منقضی شده است.');
+        }
+
+        $user = AdminUser::find($pending['id']);
+        if (! $user || ! $user->isActive() || ! $user->two_factor_enabled || ! $user->two_factor_sms_enabled
+            || ! $user->mobile || ! $user->mobile_verified_at) {
+            return back()->with('two_factor_tab', 'sms')->withErrors(['code' => 'ورود پیامکی برای این حساب فعال نیست.']);
+        }
+
+        try {
+            $otp->issue($user->mobile, 'admin_two_factor');
+        } catch (OtpException $e) {
+            return back()->with('two_factor_tab', 'sms')->withErrors(['code' => $e->getMessage()]);
+        }
+
+        return back()->with('two_factor_tab', 'sms')->with('status', 'کد ورود پیامکی ارسال شد.');
+    }
+
+    public function verifySmsChallenge(Request $request, OtpService $otp)
+    {
+        $pending = $this->pendingChallenge($request);
+        if (! $pending) {
+            return redirect()->route('admin.login')->with('error', 'نشست تأیید دومرحله‌ای منقضی شده است.');
+        }
+
+        $data = $request->validate(['code' => ['required', 'string', 'size:6']]);
+        $user = AdminUser::find($pending['id']);
+        if (! $user || ! $user->isActive() || ! $user->two_factor_enabled || ! $user->two_factor_sms_enabled
+            || ! $user->mobile || ! $user->mobile_verified_at) {
+            $request->session()->forget('admin_2fa');
+
+            return redirect()->route('admin.login')->withErrors(['username' => 'ورود ممکن نیست.']);
+        }
+
+        $ok = $otp->verify($user->mobile, MobileNumber::toLatinDigits($data['code']), 'admin_two_factor');
+        if (! $ok) {
+            $pending['tries']++;
+            if ($pending['tries'] >= self::CHALLENGE_MAX_TRIES) {
+                $request->session()->forget('admin_2fa');
+
+                return redirect()->route('admin.login')->with('error', 'تعداد تلاش‌های ناموفق زیاد بود؛ دوباره وارد شوید.');
+            }
+            $request->session()->put('admin_2fa', $pending);
+
+            return back()->with('two_factor_tab', 'sms')->withErrors(['code' => 'کد پیامکی نادرست یا منقضی شده است.']);
+        }
+
+        $request->session()->forget('admin_2fa');
+
+        return $this->finish($request, $user, (bool) $pending['remember']);
     }
 
     public function verifyChallenge(Request $request)
@@ -80,7 +136,6 @@ class AuthController extends Controller
         }
 
         $code = MobileNumber::toLatinDigits((string) $request->input('code'));
-
         if (! Totp::verify($user->two_factor_secret, $code)) {
             $pending['tries']++;
             if ($pending['tries'] >= self::CHALLENGE_MAX_TRIES) {
@@ -90,7 +145,7 @@ class AuthController extends Controller
             }
             $request->session()->put('admin_2fa', $pending);
 
-            return back()->withErrors(['code' => 'کد تأیید نادرست است.']);
+            return back()->with('two_factor_tab', 'authenticator')->withErrors(['code' => 'کد تأیید نادرست است.']);
         }
 
         $request->session()->forget('admin_2fa');
@@ -116,16 +171,10 @@ class AuthController extends Controller
         return redirect()->to($this->landingUrl($request));
     }
 
-    /**
-     * مقصد بعد از ورود: فقط اگر آدرس ذخیره‌شده (url.intended) داخل خود پنل مدیریت باشد.
-     * در غیر این صورت — مثلاً وقتی کاربر قبلاً صفحه‌ی پنل ساختمان را بدون ورود باز کرده و آدرسش در
-     * نشست مانده — ادمین به‌اشتباه به پنل ساختمان‌ها هدایت می‌شد.
-     */
     private function landingUrl(Request $request): string
     {
         $home = route('admin.dashboard');
         $intended = $request->session()->pull('url.intended');
-
         if (! is_string($intended)) {
             return $home;
         }
@@ -137,11 +186,9 @@ class AuthController extends Controller
         return $sameHost && ($path === $base || str_starts_with($path, $base.'/')) ? $intended : $home;
     }
 
-    /** @return array{id:int, remember:bool, expires:int, tries:int}|null */
     private function pendingChallenge(Request $request): ?array
     {
         $pending = $request->session()->get('admin_2fa');
-
         if (! is_array($pending) || ($pending['expires'] ?? 0) < now()->timestamp) {
             $request->session()->forget('admin_2fa');
 

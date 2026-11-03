@@ -85,6 +85,37 @@ class OtpFlowTest extends TestCase
         $this->assertCount(0, $this->gateway->sent);
     }
 
+    public function test_user_can_use_sms_as_a_fallback_for_two_factor_login(): void
+    {
+        $secret = Totp::generateSecret();
+        $user = User::create([
+            'mobile' => '09123334455',
+            'first_name' => 'کاربر',
+            'last_name' => 'آزمایشی',
+            'status' => 'active',
+            'password' => 'correct-password',
+            'two_factor_enabled' => true,
+            'two_factor_secret' => $secret,
+        ]);
+
+        $this->post(route('login.password'), [
+            'mobile' => $user->mobile,
+            'password' => 'correct-password',
+        ])->assertRedirect(route('two-factor.challenge'));
+
+        $this->post(route('two-factor.challenge.sms'))
+            ->assertRedirect()
+            ->assertSessionHas('2fa_sms_requested', true);
+
+        $this->assertCount(1, $this->gateway->sent);
+        $this->assertStringContainsString('کد ورود شما', $this->gateway->sent[0][1]);
+
+        $this->post(route('two-factor.challenge.sms.verify'), ['code' => $this->lastCode()])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertAuthenticatedAs($user);
+    }
+
     public function test_inactive_user_cannot_complete_a_two_factor_challenge(): void
     {
         $secret = Totp::generateSecret();

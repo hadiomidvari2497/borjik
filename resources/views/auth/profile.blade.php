@@ -57,9 +57,33 @@
         </form>
       </div>
     @endif
-    <div class="row" style="margin-top:18px">
-      <span>تأیید دومرحله‌ای: {{ $user->two_factor_enabled ? 'فعال است' : 'غیرفعال' }}</span>
-      @unless($user->two_factor_enabled)<a class="link" href="{{ route('profile.two-factor') }}">فعال‌سازی</a>@endunless
+    <div class="card profile-settings">
+      <h2>امنیت حساب و تأیید دومرحله‌ای</h2>
+      <p class="hint" style="margin-bottom:14px">با فعال‌کردن این قابلیت، پس از واردکردن رمز عبور باید کد برنامه احراز هویت یا کد پیامکی را نیز وارد کنید.</p>
+      @if($user->two_factor_enabled)
+        <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span>تأیید دومرحله‌ای</span>
+          <span style="color:var(--success);font-weight:700">فعال است</span>
+        </div>
+        <p class="hint" style="margin-bottom:12px">برای غیرفعال‌کردن این قابلیت، رمز عبور حساب را وارد کنید.</p>
+        <form method="POST" action="{{ route('profile.two-factor.disable') }}" data-confirm="تأیید دومرحله‌ای حساب غیرفعال شود؟">
+          @csrf
+          @method('DELETE')
+          <div class="field">
+            <label for="two_factor_disable_password">رمز عبور فعلی</label>
+            <input id="two_factor_disable_password" type="password" name="password" autocomplete="current-password" required>
+            @error('password')<div class="err">{{ $message }}</div>@enderror
+          </div>
+          <button class="btn" type="submit">غیرفعال‌کردن تأیید دومرحله‌ای</button>
+        </form>
+      @else
+        <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:14px">
+          <span>تأیید دومرحله‌ای</span>
+          <span style="color:var(--muted);font-weight:700">غیرفعال است</span>
+        </div>
+        <p class="hint" style="margin-bottom:12px">برای افزایش امنیت حساب، تأیید دومرحله‌ای را فعال کنید. پس از ثبت کد برنامه، امکان استفاده از پیامک به‌عنوان روش جایگزین ورود نیز وجود دارد.</p>
+        <a class="btn" href="{{ route('profile.two-factor') }}">فعال‌سازی تأیید دومرحله‌ای</a>
+      @endif
     </div>
   </div>
   <script src="{{ asset('js/jdate.js') }}"></script>

@@ -6,12 +6,39 @@ use App\Http\Controllers\Controller;
 use App\Models\Building;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Subscription;
+use App\Models\SubscriptionPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class BuildingUserController extends Controller
 {
+    public function show(int $user)
+    {
+        $customer = User::query()->with([
+            'buildingRoles.building:id,name,code,created_by,subscription_id',
+            'buildingRoles.role:id,name_fa,key',
+        ])->findOrFail($user);
+
+        $canViewFinance = auth('admin')->user()?->hasPermission('subscriptions.manage') ?? false;
+        $subscriptions = $canViewFinance
+            ? Subscription::query()->with(['plan:id,name,units_limit,duration_months', 'building:id,name,code'])
+                ->where('user_id', $customer->id)->latest('id')->get()
+            : collect();
+        $payments = $canViewFinance
+            ? SubscriptionPayment::query()->where('user_id', $customer->id)->latest('id')->limit(50)->get()
+            : collect();
+
+        return view('admin.building-users.show', [
+            'customer' => $customer,
+            'subscriptions' => $subscriptions,
+            'payments' => $payments,
+            'canViewFinance' => $canViewFinance,
+            'paidTotal' => $canViewFinance ? (int) SubscriptionPayment::query()->where('user_id', $customer->id)->where('status', 'paid')->sum('amount') : null,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $filters = $request->validate([

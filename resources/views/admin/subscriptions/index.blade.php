@@ -10,6 +10,11 @@
   <p style="color:var(--muted);font-size:13px;margin:0 0 14px;line-height:1.8">
     هر ساختمان اشتراک مستقل خودش را دارد. با فعال‌سازی یا تمدید اشتراک، فقط اشتراک همان ساختمان جایگزین می‌شود و وضعیت سایر ساختمان‌های مالک تغییری نمی‌کند.
   </p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:14px 0">
+    @foreach([['کل ساختمان‌ها','total'],['اشتراک فعال','active'],['در آستانه انقضا','expiring'],['منقضی / غیرفعال','expired'],['بدون اشتراک','none']] as [$label,$key])
+      <div class="card" style="padding:12px"><small style="color:var(--muted)">{{ $label }}</small><strong style="display:block;font-size:20px;margin-top:5px">{{ $F::num($stats[$key]) }}</strong></div>
+    @endforeach
+  </div>
   <form method="GET" action="{{ route('admin.subscriptions.index') }}" class="fgrid" style="align-items:end;margin-bottom:16px">
     <div class="fld full">
       <label for="q">جست‌وجوی ساختمان، کد ساختمان یا مالک</label>

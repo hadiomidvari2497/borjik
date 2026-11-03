@@ -13,6 +13,8 @@ use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPayment;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class DashboardController extends Controller
@@ -38,7 +40,7 @@ class DashboardController extends Controller
             }
 
             $trend[] = [
-                'label' => $start->format('m/d'),
+                'label' => \App\Support\Fa::date($start, 'm/d'),
                 'users' => 0,
                 'buildings' => 0,
             ];
@@ -72,15 +74,14 @@ class DashboardController extends Controller
 
         $activeSubs = Subscription::query()->where('status', 'active')->where('expires_at', '>', $now);
 
-        // فقط آخرین اشتراک هر کاربر را بررسی کن تا اشتراک‌های تاریخی هشدار تکراری نسازند.
-        $latestSubscriptionIds = Subscription::query()->selectRaw('MAX(id)')->groupBy('user_id');
-        $expiredSubscriptions = Subscription::query()
-            ->whereIn('id', $latestSubscriptionIds)
-            ->where(function ($query) use ($now) {
-                $query->where('status', '!=', 'active')
-                    ->orWhereNull('expires_at')
-                    ->orWhere('expires_at', '<=', $now);
-            })->count();
+        // اشتراک‌ها به‌ازای هر ساختمان مستقل‌اند؛ شمارش بر اساس مالک، ساختمان منقضی را
+        // در صورت داشتن ساختمان دیگری با اشتراک فعال پنهان می‌کرد.
+        $expiredSubscriptions = Building::query()
+            ->whereNotNull('subscription_id')
+            ->whereDoesntHave('subscription', fn ($subscription) => $subscription
+                ->where('status', 'active')
+                ->where('expires_at', '>', $now))
+            ->count();
 
         $buildingsWithoutValidSubscription = Building::query()
             ->where(function ($query) use ($now) {
@@ -121,8 +122,32 @@ class DashboardController extends Controller
             ->where('created_at', '>=', $since)->where('created_at', '<=', $now)->count();
         $lifetimeRevenue = (clone $paidPayments)->sum('amount');
 
+        $activeUsers = User::query()->where('status', 'active')
+            ->where('last_login_at', '>=', $now->copy()->subDays(30))->count();
+        $monthlyRevenue = (clone $paidPayments)->whereBetween('paid_at', [$now->copy()->startOfMonth(), $now])->sum('amount');
+        $yearlyRevenue = (clone $paidPayments)->whereBetween('paid_at', [$now->copy()->startOfYear(), $now])->sum('amount');
+
+        $featureTables = [
+            'درخواست‌های پشتیبانی' => 'support_tickets',
+            'درخواست‌های ساختمان' => 'tickets',
+            'نظرسنجی‌ها' => 'polls',
+            'اسناد ثبت‌شده' => 'documents',
+            'رویدادهای تقویم' => 'calendar_events',
+            'تراکنش‌های خزانه' => 'treasury_transactions',
+            'شیفت‌های حراست' => 'security_shifts',
+            'سوابق تعمیر و نگهداری' => 'maintenance_records',
+        ];
+        $featureUsage = [];
+        foreach ($featureTables as $label => $table) {
+            $featureUsage[] = [
+                'label' => $label,
+                'count' => Schema::hasTable($table) ? (int) DB::table($table)->count() : 0,
+            ];
+        }
+
         return view('admin.dashboard', [
             'usersCount' => User::count(),
+            'activeUsers' => $activeUsers,
             'newUsers' => User::where('created_at', '>=', $since)->where('created_at', '<=', $now)->count(),
             'buildingsCount' => Building::count(),
             'newBuildings' => Building::where('created_at', '>=', $since)->where('created_at', '<=', $now)->count(),
@@ -144,6 +169,9 @@ class DashboardController extends Controller
             'pendingPayments' => $pendingPayments,
             'failedPaymentsInPeriod' => $failedPaymentsInPeriod,
             'lifetimeRevenue' => (int) $lifetimeRevenue,
+            'monthlyRevenue' => (int) $monthlyRevenue,
+            'yearlyRevenue' => (int) $yearlyRevenue,
+            'featureUsage' => $featureUsage,
             'trendDays' => $days,
             'trend' => $trend,
             'trendMax' => $trendMax,

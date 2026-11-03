@@ -85,7 +85,7 @@
     <span class="oc-pill {{ $smsReady ? 'oc-good' : 'oc-warn' }}"><span aria-hidden="true">●</span>{{ $smsReady ? 'اتصال پیامکی آماده است' : 'اتصال پیامکی تنظیم نشده' }}</span>
   </header>
   <div class="oc-grid">
-    <div class="oc-card"><span class="oc-muted">آخرین بررسی سلامت</span><h3 style="margin:8px 0">{{ $lastHealth ? ($lastHealth->status === 'ok' ? 'سالم' : 'نیازمند رسیدگی') : 'هنوز بررسی نشده' }}</h3><span class="oc-muted">{{ $lastHealth ? $F::date($lastHealth->created_at, 'j F Y - H:i:s') : 'برای شروع «بررسی سلامت» را اجرا کن.' }}</span></div>
+    <div class="oc-card"><span class="oc-muted">آخرین بررسی سلامت</span><h3 style="margin:8px 0">{{ $lastHealth ? (['ok'=>'سالم','warning'=>'هشدار','fail'=>'خطا'][$lastHealth->status] ?? 'بررسی‌نشده') : 'هنوز بررسی نشده' }}</h3><span class="oc-muted">{{ $lastHealth ? $F::date($lastHealth->created_at, 'j F Y - H:i:s') : 'برای شروع «بررسی سلامت» را اجرا کن.' }}</span></div>
     <div class="oc-card"><span class="oc-muted">آخرین بکاپ</span><h3 style="margin:8px 0">{{ $lastBackup ? (['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$lastBackup->status] ?? $lastBackup->status) : 'هنوز بکاپی ثبت نشده' }}</h3><span class="oc-muted">{{ $lastBackup?->size_bytes ? $bytes($lastBackup->size_bytes) : 'حجم نامشخص' }} @if($lastBackup?->finished_at) · {{ $F::date($lastBackup->finished_at, 'j F Y - H:i:s') }} @endif</span></div>
     <div class="oc-card"><span class="oc-muted">مقصد ابری</span><h3 style="margin:8px 0">{{ $settings['cloud_enabled'] ? 'OneDrive فعال' : 'غیرفعال' }}</h3><span class="oc-muted">برای نگهداری نسخهٔ خارج از سرور، اتصال rclone را روی VPS آماده کن و سپس بکاپ آزمایشی اجرا کن.</span></div>
   </div>
@@ -129,7 +129,10 @@
     <div class="oc-table-wrap"><table class="oc-table"><thead><tr><th>زمان</th><th>وضعیت</th><th>فایل</th><th>حجم</th><th>مسیر محلی</th><th>OneDrive</th><th>جزئیات</th><th>آزمایش بازیابی</th></tr></thead><tbody>
     @forelse($backups as $run)<tr><td>{{ $run->started_at ? $F::date($run->started_at, 'j F Y H:i:s') : '—' }}</td><td><span class="oc-pill {{ $run->status==='success'?'oc-good':($run->status==='failed'?'oc-bad':'oc-warn') }}">{{ ['success'=>'موفق','failed'=>'ناموفق','running'=>'در حال اجرا'][$run->status] ?? $run->status }}</span></td><td>{{ $run->filename ?: '—' }}</td><td>{{ $bytes($run->size_bytes) }}</td><td style="direction:ltr;text-align:left;overflow-wrap:anywhere">{{ $run->local_path ?: '—' }}</td><td>{{ $run->cloud_file_id ? 'ارسال شد · '.$run->cloud_file_id : ($settings['cloud_enabled'] ? 'ارسال نشده' : 'غیرفعال') }}</td><td>{{ $run->message ?: '—' }}</td><td>
       @if($run->status === 'success' && $run->local_path)
-        <form method="POST" action="{{ route('admin.operations.backups.verify', $run->id) }}" data-confirm="آرشیو بدون استخراج و بدون تغییر دیتابیس بررسی می‌شود. ادامه می‌دهی؟" data-confirm-title="آزمایش غیرمخرب بکاپ" data-confirm-icon="question">@csrf<button class="btn sec" type="submit" style="white-space:nowrap">بررسی سلامت فایل</button></form>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <a class="btn sec" href="{{ route('admin.operations.backups.download', $run->id) }}" style="white-space:nowrap">دریافت فایل بکاپ</a>
+          <form method="POST" action="{{ route('admin.operations.backups.verify', $run->id) }}" data-confirm="آرشیو بدون استخراج و بدون تغییر دیتابیس بررسی می‌شود. ادامه می‌دهی؟" data-confirm-title="آزمایش غیرمخرب بکاپ" data-confirm-icon="question">@csrf<button class="btn sec" type="submit" style="white-space:nowrap">بررسی سلامت فایل</button></form>
+        </div>
         <div class="oc-muted" style="margin-top:5px">بدون بازنویسی دیتابیس</div>
       @else<span class="oc-muted">فایل محلی قابل آزمایش نیست</span>@endif
     </td></tr>@empty<tr><td colspan="8">هنوز بکاپی ثبت نشده است.</td></tr>@endforelse
@@ -137,8 +140,14 @@
   </section>
   <section class="oc-section"><div class="oc-head"><h3 style="margin:0">تاریخچه سلامت</h3><span class="oc-muted">آخرین بررسی‌های زمان‌بندی‌شده</span></div>
     <div class="oc-table-wrap"><table class="oc-table"><thead><tr><th>زمان</th><th>وضعیت کلی</th><th>جزئیات بررسی‌ها</th></tr></thead><tbody>
-    @forelse($health as $record)<tr><td>{{ $F::date($record->created_at, 'j F Y H:i:s') }}</td><td><span class="oc-pill {{ $record->status==='ok'?'oc-good':'oc-bad' }}">{{ $record->status==='ok'?'سالم':'هشدار' }}</span></td><td>@foreach($record->checks as $check)<div><strong>{{ $check['name'] ?? '' }}:</strong> {{ $check['detail'] ?? '' }} <span class="oc-muted">({{ $check['status'] ?? 'unknown' }})</span></div>@endforeach</td></tr>@empty<tr><td colspan="3">هنوز بررسی‌ای ثبت نشده است.</td></tr>@endforelse
+    @forelse($health as $record)<tr><td>{{ $F::date($record->created_at, 'j F Y H:i:s') }}</td><td><span class="oc-pill {{ $record->status==='ok'?'oc-good':($record->status==='fail'?'oc-bad':'oc-warn') }}">{{ (['ok'=>'سالم','warning'=>'هشدار','fail'=>'خطا'][$record->status] ?? 'بررسی‌نشده') }}</span></td><td>@foreach($record->checks as $check)<div><strong>{{ $check['name'] ?? '' }}:</strong> {{ $check['detail'] ?? '' }} <span class="oc-pill {{ ($check['status'] ?? 'unknown') === 'ok' ? 'oc-good' : ((($check['status'] ?? 'unknown') === 'fail') ? 'oc-bad' : 'oc-warn') }}">{{ ['ok'=>'سالم','warning'=>'هشدار','fail'=>'خطا','unknown'=>'بررسی‌نشده'][$check['status'] ?? 'unknown'] ?? 'بررسی‌نشده' }}</span></div>@endforeach</td></tr>@empty<tr><td colspan="3">هنوز بررسی‌ای ثبت نشده است.</td></tr>@endforelse
     </tbody></table></div><div style="margin-top:12px">{{ $health->links() }}</div>
+  </section>
+  <section class="oc-section" style="border:1px solid var(--line);border-radius:14px;padding:16px">
+    <h3 style="margin:0 0 8px">بازیابی کنترل‌شده در محیط جداگانه</h3>
+    <p class="oc-muted">برای بازیابی، ابتدا دیتابیس خالی جداگانه‌ای در MySQL بساز؛ سپس فایل بکاپ را دریافت کن و دستور زیر را روی سرور اجرا کن. دستور فقط دیتابیس مقصد خالی و متفاوت از دیتابیس فعال را می‌پذیرد و فایل‌های storage را در پوشه خصوصیِ staging استخراج می‌کند.</p>
+    <pre dir="ltr" style="white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px">php artisan borjik:restore BACKUP_RUN_ID --target-database=EMPTY_RESTORE_DB --force</pre>
+    <p class="oc-muted">این عملیات دیتابیس زنده را بازنویسی نمی‌کند. پس از بازیابی، برنامه را در محیط آزمایشی با اتصال دیتابیس مقصد اجرا و صحت ورود، ساختمان‌ها، فایل‌ها و پرداخت‌ها را بررسی کن.</p>
   </section>
   <p class="oc-muted oc-footnote">نکته امنیتی: بکاپ شامل داده‌های خصوصی و فایل‌های بارگذاری‌شده است. مسیر محلی را خارج از public انتخاب کن و دسترسی حساب OneDrive را فقط به افراد مورداعتماد بده و دکمهٔ «بررسی سلامت فایل» یک تمرین غیرمخرب است: ساختار ZIP، manifest و خواندن فایل‌های آرشیو را می‌سنجد و دیتابیس فعال را تغییر نمی‌دهد. برای اثبات بازیابی کامل، فایل را در محیط ایزوله جداگانه بازیابی و برنامه را روی نسخهٔ آزمایشی بررسی کن.</p>
 </div>
