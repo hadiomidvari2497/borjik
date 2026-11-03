@@ -153,7 +153,7 @@ class SeoTest extends TestCase
                 ->assertSee($heading)
                 ->assertSee('"@type":"WebPage"', false)
                 ->assertSee('"@type":"BreadcrumbList"', false)
-                ->assertSee('"@type":"FAQPage"', false);
+                ->assertSee('"@type":"FAQPage"', false)
                 ->assertSee('href="#details"', false)
                 ->assertSee('id="details"', false)
                 ->assertSee('<h1', false);
