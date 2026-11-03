@@ -158,6 +158,18 @@ class SeoTest extends TestCase
         }
     }
 
+    public function test_comparison_page_renders_a_fair_method_matrix_and_cost_guidance(): void
+    {
+        $response = $this->get(route('marketing.seo.comparison'));
+
+        $response->assertOk()
+            ->assertSee('جدول مقایسهٔ روش‌ها و امکانات')
+            ->assertSee('هزینهٔ واقعی نرم‌افزار را چگونه مقایسه کنیم؟')
+            ->assertSee('ساختمان کوچک با امور محدود')
+            ->assertSee('aria-label="جدول مقایسه روش‌های مدیریت ساختمان"', false)
+            ->assertSee('مدیریت اسناد و سوابق مرتبط با ساختمان');
+    }
+
     public function test_article_related_links_follow_their_content_cluster(): void
     {
         $this->app['env'] = 'production';
