@@ -178,7 +178,7 @@ class SeoTest extends TestCase
 
         $this->get('/software-building-charges')
             ->assertOk()
-            ->assertSee('<title>نرم‌افزار شارژ ساختمان و مدیریت هزینه‌ها | صابخونه</title>', false)
+            ->assertSee('<title>نرم‌افزار شارژ ساختمان؛ محاسبه و پیگیری هزینه‌ها | صابخونه</title>', false)
             ->assertSee('نرم‌افزار شارژ ساختمان صابخونه روند تعریف واحدها', false)
             ->assertSee('امکانات مهم در نرم‌افزار شارژ و حسابداری ساختمان')
             ->assertSee('صدور صورت‌حساب و پیگیری پرداخت')
