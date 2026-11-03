@@ -54,6 +54,7 @@ class SeoController extends Controller
         $urls = [];
         if ($enabled) {
             $urls[] = ['loc' => $base.'/', 'lastmod' => null];
+            $urls[] = ['loc' => $base.'/subscription-plans', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/articles', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/software-building-charges', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/software-building-management', 'lastmod' => null];
