@@ -110,6 +110,53 @@ class SeoTest extends TestCase
             ->assertSee('https://sabkhoneh.ir/articles/transparent-building-charges', false);
     }
 
+    public function test_new_seo_landing_pages_are_indexable_with_canonical_and_faq_schema_on_public_production_domain(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $pages = [
+            'marketing.seo.requests' => 'نرم‌افزار مدیریت درخواست‌های ساختمان',
+            'marketing.seo.finance' => 'نرم‌افزار مدیریت مالی ساختمان',
+            'marketing.seo.comparison' => 'مدیریت ساختمان با اکسل، پیام‌رسان یا نرم‌افزار تخصصی؟',
+            'marketing.seo.trust' => 'مرکز اعتماد و شفافیت',
+        ];
+
+        foreach ($pages as $routeName => $heading) {
+            $path = parse_url(route($routeName), PHP_URL_PATH);
+
+            $this->get(route($routeName))
+                ->assertOk()
+                ->assertSee('name="robots" content="index,follow"', false)
+                ->assertSee('rel="canonical" href="https://sabkhoneh.ir'.$path.'"', false)
+                ->assertSee($heading)
+                ->assertSee('"@type":"WebPage"', false)
+                ->assertSee('"@type":"BreadcrumbList"', false)
+                ->assertSee('"@type":"FAQPage"', false);
+        }
+    }
+
+    public function test_new_seo_pages_are_in_sitemap_and_llms_guide_is_available(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/sitemap.xml')
+            ->assertOk()
+            ->assertSee('https://sabkhoneh.ir/software-building-requests')
+            ->assertSee('https://sabkhoneh.ir/software-building-finance')
+            ->assertSee('https://sabkhoneh.ir/building-management-software-comparison')
+            ->assertSee('https://sabkhoneh.ir/trust-and-security')
+            ->assertSee('https://sabkhoneh.ir/articles/building-management-software-selection-guide')
+            ->assertSee('https://sabkhoneh.ir/articles/spreadsheet-messenger-or-building-software')
+            ->assertSee('https://sabkhoneh.ir/articles/building-data-privacy-checklist');
+
+        $this->assertFileExists(public_path('llms.txt'));
+        $this->assertStringContainsString('صابخونه', file_get_contents(public_path('llms.txt')));
+    }
+
     public function test_sitemap_includes_published_articles_but_not_drafts_or_future_articles(): void
     {
         $this->app['env'] = 'production';

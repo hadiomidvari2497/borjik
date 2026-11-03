@@ -20,6 +20,10 @@ Route::get('/charge-management-guide', [MarketingController::class, 'chargeManag
 Route::get('/software-building-management', [MarketingController::class, 'buildingManagement'])->name('marketing.building-management');
 Route::get('/articles', [MarketingController::class, 'articles'])->name('marketing.articles.index');
 Route::get('/articles/{slug}', [MarketingController::class, 'article'])->name('marketing.articles.show');
+Route::get('/software-building-requests', [MarketingController::class, 'seoPage'])->defaults('slug', 'software-building-requests')->name('marketing.seo.requests');
+Route::get('/software-building-finance', [MarketingController::class, 'seoPage'])->defaults('slug', 'software-building-finance')->name('marketing.seo.finance');
+Route::get('/building-management-software-comparison', [MarketingController::class, 'seoPage'])->defaults('slug', 'building-management-software-comparison')->name('marketing.seo.comparison');
+Route::get('/trust-and-security', [MarketingController::class, 'seoPage'])->defaults('slug', 'trust-and-security')->name('marketing.seo.trust');
 
 require __DIR__.'/auth.php';
 require __DIR__.'/app.php';

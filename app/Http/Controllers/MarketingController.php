@@ -51,6 +51,24 @@ class MarketingController extends Controller
         return view('marketing.building-management');
     }
 
+    public function seoPage(string $slug)
+    {
+        $page = config('marketing_seo.pages.'.$slug);
+
+        abort_unless(is_array($page), 404);
+
+        $relatedLinks = collect($page['related'] ?? [])
+            ->map(function (array $item) {
+                return [
+                    'label' => $item['label'],
+                    'url' => route($item['route'], $item['params'] ?? []),
+                ];
+            })
+            ->all();
+
+        return view('marketing.seo-page', compact('page', 'relatedLinks', 'slug'));
+    }
+
     public function enamadImage()
     {
         $path = data_get(SiteSetting::get('marketing.content', []), 'enamad.image_path');
