@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap-toast.rtl.min.css') }}">
 <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 <link rel="stylesheet" href="{{ asset('css/notify.css') }}">
+@stack('styles')
 <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('borjik-theme')==='dark'?'dark':'light')}catch(e){}</script>
 </head>
 <body class="adm">
