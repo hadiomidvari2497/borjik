@@ -91,7 +91,9 @@ class SeoTest extends TestCase
 
         $article = Article::query()->where('slug', 'transparent-building-charges')->firstOrFail();
 
-        $this->get(route('marketing.articles.show', $article->slug))
+        $response = $this->get(route('marketing.articles.show', $article->slug));
+
+        $response
             ->assertOk()
             ->assertSee('name="robots" content="index,follow"', false)
             ->assertSee('rel="canonical" href="https://sabkhoneh.ir/articles/transparent-building-charges"', false)
@@ -102,6 +104,13 @@ class SeoTest extends TestCase
             ->assertSee('"headline":"چطور محاسبهٔ شارژ را شفاف‌تر کنیم؟"', false)
             ->assertSee('"author":{"@type":"Organization","name":"تیم صابخونه"', false)
             ->assertSee('نویسنده: تیم صابخونه', false);
+
+        if ($article->cover_image) {
+            $response->assertSee('rel="preload" as="image"', false)
+                ->assertSee('fetchpriority="high"', false)
+                ->assertSee('width="1200" height="675"', false)
+                ->assertSee('height:clamp(220px,42vw,460px)', false);
+        }
     }
 
     public function test_article_listing_has_unique_metadata_and_collection_structured_data_on_public_production_domain(): void
