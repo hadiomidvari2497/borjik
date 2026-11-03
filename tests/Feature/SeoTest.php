@@ -134,6 +134,16 @@ class SeoTest extends TestCase
                 ->assertSee('"@type":"WebPage"', false)
                 ->assertSee('"@type":"BreadcrumbList"', false)
                 ->assertSee('"@type":"FAQPage"', false);
+
+            if ($routeName === 'marketing.seo.comparison') {
+                $response = $this->get(route($routeName));
+                $response->assertSee('شارژانه')
+                    ->assertSee('هم‌خونه')
+                    ->assertSee('شارژلند')
+                    ->assertSee('https://sharjane.ir/', false)
+                    ->assertSee('https://p-soft.ir/product/hamkhoneh/', false)
+                    ->assertSee('https://sharjland.ir/', false);
+            }
         }
     }
 

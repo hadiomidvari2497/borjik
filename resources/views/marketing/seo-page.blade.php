@@ -105,6 +105,17 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 <div class="cards">@foreach($section['cards'] as $card)<article class="card"><h3>{{ $card['title'] }}</h3><p>{{ $card['text'] }}</p></article>@endforeach</div>
 </div></section>
 @endforeach
+@if(!empty($page['market_examples']))
+<section class="section"><div class="wrap">
+<h2>نمونه‌هایی از گزینه‌های بازار ایران</h2>
+<p class="lead">{{ $page['market_examples']['intro'] }}</p>
+<div class="cards">
+@foreach($page['market_examples']['cards'] as $example)
+<article class="card"><h3>{{ $example['name'] }}</h3><p>{{ $example['text'] }}</p><p style="margin-top:14px"><a href="{{ $example['url'] }}" target="_blank" rel="noopener noreferrer" style="color:var(--deep);font-weight:850;text-decoration:underline">{{ $example['source_label'] }} ↗</a></p></article>
+@endforeach
+</div>
+</div></section>
+@endif
 <section class="section"><div class="wrap">
 <h2>پرسش‌های متداول</h2><div class="faq-list">
 @foreach($page['faqs'] as $faq)<details><summary>{{ $faq['q'] }}</summary><p>{{ $faq['a'] }}</p></details>@endforeach
