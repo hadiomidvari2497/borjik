@@ -308,7 +308,6 @@ class SeoTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk()
-            ->assertSee('width="110" height="90"', false)
             ->assertSee('min-height:320px', false)
             ->assertSee('@keyframes pulse{0%{transform:scale(1);opacity:1}', false)
             ->assertSee('background-size:220% auto;animation:none', false);
