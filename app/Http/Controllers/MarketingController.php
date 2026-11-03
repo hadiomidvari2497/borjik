@@ -98,14 +98,34 @@ class MarketingController extends Controller
             ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
             ->firstOrFail();
 
+        $relatedArticleSlugs = [
+            'transparent-building-charges' => ['building-management-software-selection-guide', 'building-data-privacy-checklist'],
+            'resident-requests-follow-up' => ['building-management-software-selection-guide', 'spreadsheet-messenger-or-building-software'],
+            'clear-building-communication' => ['spreadsheet-messenger-or-building-software', 'building-management-software-selection-guide'],
+            'building-management-software-selection-guide' => ['spreadsheet-messenger-or-building-software', 'building-data-privacy-checklist'],
+            'spreadsheet-messenger-or-building-software' => ['building-management-software-selection-guide', 'building-data-privacy-checklist'],
+            'building-data-privacy-checklist' => ['building-management-software-selection-guide', 'spreadsheet-messenger-or-building-software'],
+        ];
+
+        $preferredSlugs = $relatedArticleSlugs[$article->slug] ?? [];
         $relatedArticles = Article::query()
             ->where('status', 'published')
             ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
-            ->where('slug', '!=', $article->slug)
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->limit(2)
-            ->get();
+            ->whereIn('slug', $preferredSlugs)
+            ->get()
+            ->sortBy(fn (Article $related) => array_search($related->slug, $preferredSlugs, true))
+            ->values();
+
+        if ($relatedArticles->isEmpty()) {
+            $relatedArticles = Article::query()
+                ->where('status', 'published')
+                ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
+                ->where('slug', '!=', $article->slug)
+                ->orderByDesc('published_at')
+                ->orderByDesc('id')
+                ->limit(2)
+                ->get();
+        }
 
         return view('marketing.article', compact('article', 'relatedArticles'));
     }

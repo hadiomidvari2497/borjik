@@ -37,6 +37,12 @@ class SeoTest extends TestCase
         $this->get('/login')
             ->assertOk()
             ->assertSee('name="robots" content="noindex, nofollow"', false);
+
+        foreach (['marketing.seo.requests', 'marketing.seo.finance', 'marketing.seo.comparison', 'marketing.seo.trust'] as $routeName) {
+            $this->get(route($routeName))
+                ->assertOk()
+                ->assertSee('name="robots" content="noindex,nofollow"', false);
+        }
     }
 
     public function test_configured_production_robots_and_sitemap_include_only_public_entry_points(): void
@@ -44,6 +50,11 @@ class SeoTest extends TestCase
         $this->app['env'] = 'production';
         SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
         SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('"@type":"SoftwareApplication"', false)
+            ->assertSee('"@type":"WebSite"', false);
 
         $this->get('/robots.txt')
             ->assertOk()
@@ -145,6 +156,23 @@ class SeoTest extends TestCase
                     ->assertSee('https://sharjland.ir/', false);
             }
         }
+    }
+
+    public function test_article_related_links_follow_their_content_cluster(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/articles/transparent-building-charges')
+            ->assertOk()
+            ->assertSee('/articles/building-management-software-selection-guide', false)
+            ->assertSee('/articles/building-data-privacy-checklist', false);
+
+        $this->get('/articles/resident-requests-follow-up')
+            ->assertOk()
+            ->assertSee('/articles/building-management-software-selection-guide', false)
+            ->assertSee('/articles/spreadsheet-messenger-or-building-software', false);
     }
 
     public function test_new_seo_pages_are_in_sitemap_and_llms_guide_is_available(): void
