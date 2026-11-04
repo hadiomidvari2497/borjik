@@ -1,15 +1,15 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\AdminRole;
-use App\\Models\\AdminUser;
-use App\\Models\\PropertyListing;
-use App\\Models\\PropertyListingCreditTransaction;
-use App\\Models\\PropertyListingPackageOrder;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Models\AdminRole;
+use App\Models\AdminUser;
+use App\Models\PropertyListing;
+use App\Models\PropertyListingCreditTransaction;
+use App\Models\PropertyListingPackageOrder;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class AdminPropertyMarketplaceTest extends TestCase
 {
