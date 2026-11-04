@@ -61,12 +61,15 @@ class PropertyListingController extends Controller
     {
         $data = $this->validated($request);
         $this->authorizeUnitSelection($request, isset($data['unit_id']) ? (int) $data['unit_id'] : null);
-        $this->enforceFreeLimit($request);
         $data['user_id'] = $request->user()->id;
-        $data['photos'] = $this->storePhotos($request);
         $data['status'] = 'active';
 
-        $listing = PropertyListing::create($data);
+        $listing = DB::transaction(function () use ($request, $data) {
+            app(PropertyListingQuota::class)->consumeForNewListing($request->user());
+            $data['photos'] = $this->storePhotos($request);
+
+            return PropertyListing::create($data);
+        });
 
         return redirect()->route('properties.mine')->with('status', 'آگهی شما با موفقیت ثبت و منتشر شد.');
     }
@@ -126,24 +129,6 @@ class PropertyListingController extends Controller
     private function authorizeOwner(Request $request, PropertyListing $listing): void
     {
         abort_unless((int) $listing->user_id === (int) $request->user()->id, 403);
-    }
-
-    private function enforceFreeLimit(Request $request): void
-    {
-        $userId = $request->user()->id;
-        $hasActiveSubscription = Subscription::query()
-            ->where('user_id', $userId)
-            ->where('status', 'active')
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '>', now())
-            ->exists();
-
-        $freeLimit = max(0, (int) SiteSetting::get('property_listings.free_limit', 3));
-        $activeCount = PropertyListing::where('user_id', $userId)->published()->count();
-
-        if (! $hasActiveSubscription && $activeCount >= $freeLimit) {
-            abort(403, 'سقف '.$freeLimit.' آگهی فعال رایگان شما تکمیل شده است. برای ثبت آگهی بیشتر بسته آگهی تهیه کنید یا اشتراک خود را فعال کنید.');
-        }
     }
 
     private function validated(Request $request, ?PropertyListing $listing = null): array
