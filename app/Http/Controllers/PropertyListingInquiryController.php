@@ -14,7 +14,7 @@ class PropertyListingInquiryController extends Controller
     {
         $data = $request->validate([
             'message' => ['required', 'string', 'min:10', 'max:2000'],
-            'share_mobile' => ['nullable', 'accepted'],
+            'share_mobile' => ['sometimes', 'accepted'],
         ]);
 
         $listing = PropertyListing::query()->published()->findOrFail($listingId);
