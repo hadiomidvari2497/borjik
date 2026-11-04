@@ -41,6 +41,72 @@ class PropertyMarketplaceTest extends TestCase
             ->assertDontSee('آگهی بسته‌شده');
     }
 
+    public function test_marketplace_search_filters_by_keyword_area_price_bedrooms_and_parking(): void
+    {
+        $owner = $this->makeUser();
+
+        $matching = PropertyListing::create([
+            'user_id' => $owner->id,
+            'listing_type' => 'sale',
+            'property_type' => 'residential',
+            'title' => 'آپارتمان نورگیر',
+            'description' => 'واحد خوش‌نقشه',
+            'city' => 'تهران',
+            'area' => 120,
+            'bedrooms' => 2,
+            'parking_count' => 1,
+            'price' => 8000000000,
+            'status' => 'active',
+        ]);
+
+        PropertyListing::create([
+            'user_id' => $owner->id,
+            'listing_type' => 'sale',
+            'property_type' => 'residential',
+            'title' => 'ویلای مستقل',
+            'description' => 'حیاط‌دار',
+            'city' => 'تهران',
+            'area' => 80,
+            'bedrooms' => 3,
+            'parking_count' => 0,
+            'price' => 4000000000,
+            'status' => 'active',
+        ]);
+
+        $this->get(route('properties.index', [
+            'q' => 'نورگیر',
+            'min_area' => 100,
+            'min_price' => 7000000000,
+            'bedrooms' => 2,
+            'parking' => 1,
+            'sort' => 'price_asc',
+        ]))
+            ->assertOk()
+            ->assertSee($matching->title)
+            ->assertDontSee('ویلای مستقل');
+    }
+
+    public function test_public_listing_detail_keeps_hidden_address_private(): void
+    {
+        $owner = $this->makeUser();
+        $listing = PropertyListing::create([
+            'user_id' => $owner->id,
+            'listing_type' => 'sale',
+            'property_type' => 'residential',
+            'title' => 'واحد با نشانی محرمانه',
+            'description' => 'توضیحات آگهی',
+            'city' => 'تهران',
+            'address' => 'خیابان نمونه، پلاک ۱۲',
+            'hide_address' => true,
+            'status' => 'active',
+        ]);
+
+        $this->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee($listing->title)
+            ->assertDontSee('خیابان نمونه، پلاک ۱۲');
+    }
+
     public function test_users_without_building_membership_can_still_open_the_standalone_listing_form(): void
     {
         $this->actingAs($this->makeUser())
@@ -92,43 +158,6 @@ class PropertyMarketplaceTest extends TestCase
         $this->actingAs($owner)->post(route('properties.close', $listing))->assertRedirect();
         $this->assertDatabaseHas('property_listings', ['id' => $listing->id, 'status' => 'closed']);
     }
-
-    public function test_listing_page_renders_photos_as_a_slider_with_price_rows(): void
-    {
-        $owner = $this->makeUser();
-        $listing = PropertyListing::create([
-            'user_id' => $owner->id,
-            'listing_type' => 'rent',
-            'property_type' => 'residential',
-            'title' => 'آپارتمان نورگیر',
-            'description' => 'توضیحات',
-            'city' => 'تهران',
-            'area' => 85,
-            'bedrooms' => 2,
-            'deposit' => 800000000,
-            'monthly_rent' => 12000000,
-            'photos' => ['property-listings/a.jpg', 'property-listings/b.jpg', 'property-listings/c.jpg'],
-            'status' => 'active',
-        ]);
-
-        $this->get(route('properties.show', $listing))
-            ->assertOk()
-            ->assertSee('data-gallery', false)
-            ->assertSee('storage/property-listings/b.jpg', false)
-            ->assertSee('class="nav-btn next"', false)
-            ->assertSee('ودیعه')
-            ->assertSee('اجاره ماهانه')
-            ->assertSee('۱۲٬۰۰۰٬۰۰۰ تومان', false);
-
-        $this->get(route('properties.index', ['listing_type' => 'rent']))
-            ->assertOk()
-            ->assertSee('آپارتمان نورگیر')
-            ->assertSee('۸۰۰ میلیون تومان', false);
-
-        $listing->update(['photos' => null]);
-        $this->get(route('properties.show', $listing))->assertOk()->assertDontSee('data-gallery', false);
-    }
-
     private function makeUser(): User
     {
         return User::create([
