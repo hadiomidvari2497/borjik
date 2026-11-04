@@ -87,7 +87,7 @@ class PropertyMarketplaceTest extends TestCase
     private function makeUser(): User
     {
         return User::create([
-            'mobile' => '0912'.str_pad((string) random_int(0, 999999999), 9, '0', STR_PAD_LEFT),
+            'mobile' => '09'.str_pad((string) random_int(0, 999999999), 9, '0', STR_PAD_LEFT),
             'first_name' => 'کاربر',
             'last_name' => 'آزمایشی',
         ]);
