@@ -55,8 +55,11 @@ return [
                 ['q' => 'آیا درخواست‌های ساکنان فقط به مدیر ارجاع می‌شوند؟', 'a' => 'مدیر می‌تواند موضوع را با توجه به نوع درخواست به فرد یا نیروی مرتبط ارجاع دهد و روند رسیدگی را پیگیری کند.']
             ],
             'related' => [
-                ['label' => 'آشنایی با نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
-                ['label' => 'راهنمای شفافیت مالی و شارژ', 'route' => 'marketing.building-charges'],
+                ['label' => 'امکانات نرم‌افزار مدیریت ساختمان صابخونه', 'route' => 'marketing.building-management'],
+                ['label' => 'نرم‌افزار شارژ و مدیریت هزینه‌های ساختمان', 'route' => 'marketing.building-charges'],
+                ['label' => 'مدیریت مالی و گزارش هزینه‌های ساختمان', 'route' => 'marketing.seo.finance'],
+                ['label' => 'مقایسه و انتخاب نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.seo.comparison'],
+                ['label' => 'امنیت و حریم خصوصی اطلاعات ساختمان', 'route' => 'marketing.seo.trust'],
                 ['label' => 'مقالهٔ هیچ درخواست ساکنی نباید گم شود', 'route' => 'marketing.articles.show', 'params' => ['slug' => 'resident-requests-follow-up']],
             ],
         ],
@@ -104,6 +107,9 @@ return [
             'related' => [
                 ['label' => 'نرم‌افزار مدیریت ساختمان صابخونه', 'route' => 'marketing.building-management'],
                 ['label' => 'نرم‌افزار شارژ ساختمان', 'route' => 'marketing.building-charges'],
+                ['label' => 'ثبت و پیگیری درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+                ['label' => 'مقایسه و انتخاب نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.seo.comparison'],
+                ['label' => 'امنیت و حریم خصوصی اطلاعات ساختمان', 'route' => 'marketing.seo.trust'],
                 ['label' => 'آموزش محاسبهٔ شارژ ساختمان', 'route' => 'marketing.charge-guide'],
                 ['label' => 'مقالهٔ شفافیت محاسبهٔ شارژ', 'route' => 'marketing.articles.show', 'params' => ['slug' => 'transparent-building-charges']],
             ],
@@ -229,9 +235,14 @@ return [
                 ],
             ],
             'related' => [
-                ['label' => 'امکانات نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
+                ['label' => 'امکانات نرم‌افزار مدیریت ساختمان صابخونه', 'route' => 'marketing.building-management'],
+                ['label' => 'نرم‌افزار شارژ و مدیریت هزینه‌های ساختمان', 'route' => 'marketing.building-charges'],
+                ['label' => 'مدیریت مالی و گزارش هزینه‌های ساختمان', 'route' => 'marketing.seo.finance'],
+                ['label' => 'ثبت و پیگیری درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+                ['label' => 'راهنمای امنیت و حریم خصوصی اطلاعات ساختمان', 'route' => 'marketing.seo.trust'],
+                ['label' => 'راهنمای محاسبهٔ شارژ ساختمان', 'route' => 'marketing.charge-guide'],
+                ['label' => 'راهنمای انتخاب نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.articles.show', 'params' => ['slug' => 'building-management-software-selection-guide']],
                 ['label' => 'مشاهدهٔ پلن‌های اشتراک', 'route' => 'marketing.subscription-plans'],
-                ['label' => 'راهنمای امنیت و حریم خصوصی', 'route' => 'marketing.seo.trust'],
             ],
         ],
         'trust-and-security' => [
@@ -285,8 +296,10 @@ return [
                 ['q' => 'آیا صابخونه گواهی امنیتی مستقل دارد؟', 'a' => 'در این صفحه ادعای گواهی یا ممیزی مستقل مطرح نمی‌شود. هر گواهی یا ارزیابی رسمی فقط در صورت وجود مدرک معتبر و قابل بررسی باید اعلام شود.'],
             ],
             'related' => [
-                ['label' => 'نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.building-management'],
+                ['label' => 'نرم‌افزار مدیریت ساختمان صابخونه', 'route' => 'marketing.building-management'],
                 ['label' => 'مدیریت درخواست‌های ساکنان', 'route' => 'marketing.seo.requests'],
+                ['label' => 'مدیریت مالی و گزارش هزینه‌های ساختمان', 'route' => 'marketing.seo.finance'],
+                ['label' => 'مقایسه و انتخاب نرم‌افزار مدیریت ساختمان', 'route' => 'marketing.seo.comparison'],
                 ['label' => 'مقالهٔ راهنمای امنیت و حریم خصوصی', 'route' => 'marketing.articles.show', 'params' => ['slug' => 'building-data-privacy-checklist']],
             ],
         ],
