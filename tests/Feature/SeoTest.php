@@ -160,7 +160,12 @@ class SeoTest extends TestCase
 
             if ($routeName === 'marketing.seo.comparison') {
                 $response = $this->get(route($routeName));
-                $response->assertSee('شارژانه')
+                $response->assertSee('مقایسهٔ قابلیت‌های نرم‌افزارهای مدیریت ساختمان در ایران')
+                    ->assertSee('جدول مقایسه قابلیت نرم‌افزارهای مدیریت ساختمان', false)
+                    ->assertSee('پردازش هوشمند')
+                    ->assertSee('ذکر نشده')
+                    ->assertSee('۴ نوامبر ۲۰۲۶')
+                    ->assertSee('شارژانه')
                     ->assertSee('هم‌خونه')
                     ->assertSee('شارژلند')
                     ->assertSee('https://sharjane.ir/', false)
