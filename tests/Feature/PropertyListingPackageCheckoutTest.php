@@ -169,10 +169,11 @@ class PropertyListingPackageCheckoutTest extends TestCase
 
         $this->assertDatabaseCount('property_listings', 4);
         $this->assertSame(0, app(\App\Services\PropertyListingQuota::class)->availableCredits($this->user->id));
+        $publishedListing = PropertyListing::where('title', 'آگهی چهارم با اعتبار خریداری‌شده')->firstOrFail();
         $this->assertDatabaseHas('property_listing_credit_transactions', [
             'user_id' => $this->user->id,
             'package_order_id' => null,
-            'property_listing_id' => null,
+            'property_listing_id' => $publishedListing->id,
             'quantity' => -1,
             'type' => 'consume',
         ]);
