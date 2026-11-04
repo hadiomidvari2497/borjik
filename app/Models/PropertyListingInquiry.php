@@ -27,6 +27,11 @@ class PropertyListingInquiry extends Model
         return $this->belongsTo(User::class, 'sender_user_id');
     }
 
+    public function messages()
+    {
+        return $this->hasMany(PropertyListingChatMessage::class, 'inquiry_id');
+    }
+
     public function recipient(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recipient_user_id');
