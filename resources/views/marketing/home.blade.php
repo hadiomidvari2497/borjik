@@ -568,17 +568,9 @@
         .rm-row{display:flex;justify-content:space-between;align-items:center;gap:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:13px 16px;margin-bottom:10px;color:#e6f4f3;font-size:.9rem}
         .rm-chip{flex:none;font-size:.72rem;padding:3px 11px;border-radius:99px;background:rgba(143,240,216,.16);color:#8ff0d8;font-weight:800}
         .faq{background:#f0f6f4}
-        .faq-list{max-width:820px;margin:0 auto;display:grid;gap:12px}
-        .faq details{background:#fff;border:1px solid #dcebe6;border-radius:18px;transition:box-shadow .3s,border-color .3s}
-        .faq details[open]{border-color:#13a89566;box-shadow:0 18px 40px #0b6b5c1a}
-        .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 22px;font-weight:800;color:#102b3a}
-        .faq summary::-webkit-details-marker{display:none}
-        .faq summary:after{content:"+";flex:none;width:30px;height:30px;display:grid;place-items:center;border-radius:10px;background:#dff5ef;color:#087f78;font-size:1.2rem;transition:transform .3s,background .3s}
-        .faq details[open] summary:after{content:"–";background:linear-gradient(135deg,#25cdb1,#087f78);color:#fff}
-        .faq details p{margin:0;padding:0 22px 20px;color:#5d717b}
         .footer-logo{display:inline-block;margin-top:16px;padding:12px 16px;background:#fff;border-radius:18px;box-shadow:0 14px 34px rgba(0,0,0,.3)}.footer-logo img{display:block;width:170px;height:auto}
         @keyframes fadeup{from{opacity:0;transform:translateY(14px)}}
-        @media(max-width:820px){.role-panel{grid-template-columns:1fr;gap:24px}.role-copy h3{font-size:1.35rem}.role-tab{padding:9px 16px;font-size:.85rem}.faq summary{padding:15px 16px}.faq details p{padding:0 16px 16px}}
+        @media(max-width:820px){.role-panel{grid-template-columns:1fr;gap:24px}.role-copy h3{font-size:1.35rem}.role-tab{padding:9px 16px;font-size:.85rem}}
         @media(prefers-reduced-motion:reduce){.sp{display:none}}
     </style>
     <script>document.documentElement.classList.add('jt')</script>
@@ -675,6 +667,7 @@
         /* Keep below-the-fold decorative motion from overriding reduced-motion preferences. */
         @media(prefers-reduced-motion:reduce){.hero:before,.hero-dust,.orb,.mock-window,.floating-note,.marquee-track{animation:none!important}}
     </style>
+@include('marketing.partials.faq-styles')
 </head>
 <body>
 @php
@@ -870,13 +863,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <section class="content-section faq" id="faq">
         <div class="wrap">
             <div class="section-head"><span class="section-kicker">سوالات متداول</span><h2>پاسخ چند پرسش رایج</h2><p>اگر پاسخ خود را پیدا نکردید، از بخش تماس با ما پیگیری کنید.</p></div>
-            <div class="faq-list">
-                @foreach($faqItems as $faq)<details><summary>{{ $faq['q'] }}</summary><p>{{ $faq['a'] }}</p></details>@endforeach
-                
-                
-                
-                
-            </div>
+            @include('marketing.partials.faq-list', ['items' => $faqItems, 'columns' => 1, 'class' => 'faq-list'])
         </div>
     </section>
 
@@ -906,5 +893,6 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
 </footer>
 <script>(function(){var tabs=[].slice.call(document.querySelectorAll('.role-tab'));function sel(t){tabs.forEach(function(x){var on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;var panel=document.getElementById(x.getAttribute('aria-controls'));if(panel)panel.classList.toggle('on',on)})}tabs.forEach(function(t,i){t.addEventListener('click',function(){sel(t)});t.addEventListener('keydown',function(e){var k=e.key==='ArrowLeft'?1:e.key==='ArrowRight'?-1:0;if(k){var n=tabs[(i+k+tabs.length)%tabs.length];n.focus();sel(n)}})});if(!('CSS' in window)||!CSS.supports('animation-timeline: scroll()')){var sp=document.getElementById('sp'),frame=0;function paint(){frame=0;if(!sp)return;var max=Math.max(1,document.documentElement.scrollHeight-innerHeight);sp.style.transform='scaleX('+Math.min(scrollY/max,1)+')'}function schedule(){if(!frame)frame=requestAnimationFrame(paint)}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});schedule()}})();</script>
 <script>(function(){function idle(fn){if('requestIdleCallback' in window)requestIdleCallback(fn,{timeout:1600});else setTimeout(fn,700)}idle(function(){if(document.documentElement.classList.contains('js')&&'IntersectionObserver' in window){var o=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){entry.target.classList.add('in');o.unobserve(entry.target)}})},{threshold:.12});document.querySelectorAll('.role-tabs,.role-panel.on,.faq-list,.section-head,.feature-grid,.steps,.about-grid,.article-grid,.partner-panel,.contact-grid').forEach(function(node){node.classList.add('rv');o.observe(node)})}if(!document.documentElement.classList.contains('cnt')||!('IntersectionObserver' in window))return;var els=document.querySelectorAll('.count[data-to]');if(!els.length)return;var fa='۰۱۲۳۴۵۶۷۸۹';function num(v){return parseInt(String(v).replace(/[۰-۹]/g,function(c){return fa.indexOf(c)}),10)}var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(!entry.isIntersecting)return;observer.unobserve(entry.target);var el=entry.target,to=num(el.getAttribute('data-to')),start=performance.now();(function animate(now){var progress=Math.min((now-start)/1400,1),value=Math.round(to*(1-Math.pow(1-progress,3)));el.textContent=value.toLocaleString('fa-IR',{useGrouping:false});if(progress<1)requestAnimationFrame(animate);else el.textContent=el.getAttribute('data-to')})(start)})},{threshold:.4});els.forEach(function(node){observer.observe(node)})})})();</script>
+@include('marketing.partials.faq-script')
 </body>
 </html>
