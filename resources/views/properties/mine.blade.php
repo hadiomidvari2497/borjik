@@ -60,9 +60,9 @@
             <tbody>
             @foreach($packageOrders as $order)
                 <tr>
-                    <td>{{ $order->created_at?->format('Y/m/d H:i') }}</td>
+                    <td>{{ $order->created_at ? \\App\\Support\\Fa::date($order->created_at, 'Y/m/d H:i') : '—' }}</td>
                     <td>{{ number_format($order->quantity) }}</td>
-                    <td>{{ number_format($order->amount) }} تومان</td>
+                    <td>{{ \\App\\Support\\Fa::money($order->amount) }}</td>
                     <td>{{ $order->raw_response['gateway_name'] ?? $order->gateway }}</td>
                     <td>{{ ['pending'=>'در انتظار پرداخت','paid'=>'پرداخت موفق','failed'=>'ناموفق'][$order->status] ?? $order->status }}</td>
                     <td>{{ $order->ref_id ?: '—' }}</td>
