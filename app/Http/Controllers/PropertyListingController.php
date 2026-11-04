@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertyListing;
+use App\Models\PropertyListingPackageOrder;
 use App\Models\Subscription;
 use App\Models\SiteSetting;
+use App\Services\PropertyListingQuota;
+use App\Services\Payments\PaymentGatewayRegistry;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use Illuminate\Http\Request;
@@ -40,11 +43,15 @@ class PropertyListingController extends Controller
         return view('properties.show', compact('listing'));
     }
 
-    public function mine(Request $request)
+    public function mine(Request $request, PropertyListingQuota $quota, PaymentGatewayRegistry $gateways)
     {
         $listings = PropertyListing::where('user_id', $request->user()->id)->latest()->paginate(15);
+        $packages = collect(SiteSetting::get('property_listings.packages', []))->filter(fn ($package) => is_array($package) && ! empty($package['active']) && (int) ($package['price'] ?? 0) > 0)->values();
+        $availableCredits = $quota->availableCredits($request->user()->id);
+        $paymentGateways = $gateways->active();
+        $packageOrders = PropertyListingPackageOrder::where('user_id', $request->user()->id)->latest()->limit(8)->get();
 
-        return view('properties.mine', compact('listings'));
+        return view('properties.mine', compact('listings', 'packages', 'availableCredits', 'paymentGateways', 'packageOrders'));
     }
 
     public function create(Request $request)
