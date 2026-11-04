@@ -137,8 +137,11 @@ class PropertyListingController extends Controller
             ->where('expires_at', '>', now())
             ->exists();
 
-        if (! $hasActiveSubscription && PropertyListing::where('user_id', $userId)->published()->count() >= 3) {
-            abort(403, 'سقف ۳ آگهی فعال رایگان شما تکمیل شده است. برای ثبت آگهی بیشتر اشتراک خود را فعال کنید.');
+        $freeLimit = max(0, (int) SiteSetting::get('property_listings.free_limit', 3));
+        $activeCount = PropertyListing::where('user_id', $userId)->published()->count();
+
+        if (! $hasActiveSubscription && $activeCount >= $freeLimit) {
+            abort(403, 'سقف '.$freeLimit.' آگهی فعال رایگان شما تکمیل شده است. برای ثبت آگهی بیشتر بسته آگهی تهیه کنید یا اشتراک خود را فعال کنید.');
         }
     }
 
