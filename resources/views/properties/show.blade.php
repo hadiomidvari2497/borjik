@@ -1,42 +1,118 @@
 @extends('layouts.marketplace')
 @section('title', $listing->title)
 @section('meta_description', \Illuminate\Support\Str::limit(strip_tags($listing->description), 150))
+@push('scripts')<script src="{{ asset('js/marketplace.js') }}?v={{ @filemtime(public_path('js/marketplace.js')) }}" defer></script>@endpush
 @section('content')
-@if(session('status'))<div class="panel" style="margin-bottom:16px">{{ session('status') }}</div>@endif
+@php
+    use App\Support\Fa;
+
+    $photos = $listing->photoUrls();
+    $tagClass = match($listing->listing_type) { 'rent' => 'rent', 'buy_request', 'rent_request' => 'req', default => '' };
+    $facts = array_values(array_filter([
+        $listing->area ? ['i-area', Fa::num((float) $listing->area).' متر', 'متراژ'] : null,
+        $listing->bedrooms !== null ? ['i-bed', Fa::num($listing->bedrooms), 'اتاق خواب'] : null,
+        $listing->bathrooms !== null ? ['i-bath', Fa::num($listing->bathrooms), 'سرویس'] : null,
+        $listing->parking_count !== null ? ['i-car', Fa::num($listing->parking_count), 'پارکینگ'] : null,
+        $listing->floor !== null ? ['i-floor', Fa::num($listing->floor).($listing->total_floors ? ' از '.Fa::num($listing->total_floors) : ''), 'طبقه'] : null,
+        $listing->built_year ? ['i-cal', Fa::digits($listing->built_year), 'سال ساخت'] : null,
+        $listing->document_type ? ['i-doc', $listing->document_type, 'نوع سند'] : null,
+        $listing->allow_exchange ? ['i-swap', 'پذیرفته می‌شود', 'معاوضه'] : null,
+    ]));
+    $ownerName = $listing->user->display_name ?? '';
+@endphp
+
+<nav class="crumbs" aria-label="مسیر">
+    <a href="{{ route('properties.index') }}">آگهی‌ها</a><span class="sep">/</span>
+    @if($listing->city)<a href="{{ route('properties.index', ['city' => $listing->city]) }}">{{ $listing->city }}</a><span class="sep">/</span>@endif
+    <span>{{ \Illuminate\Support\Str::limit($listing->title, 48) }}</span>
+</nav>
+
 <div class="detail">
-    <section class="panel">
-        <div class="photos">
-            @forelse($listing->photos ?? [] as $photo)
-                <img src="{{ asset('storage/'.$photo) }}" alt="{{ $listing->title }}">
-            @empty
-                <div class="photo">تصویری ثبت نشده</div>
-            @endforelse
-        </div>
-    </section>
-    <section class="panel">
-        <div class="muted">{{ $listing->city }} @if($listing->neighborhood) · {{ $listing->neighborhood }} @endif</div>
-        <h1>{{ $listing->title }}</h1>
-        <p>{{ $listing->description }}</p>
-        <hr>
-        <p>متراژ: {{ $listing->area ? number_format((float)$listing->area).' متر' : '—' }}</p>
-        <p>اتاق: {{ $listing->bedrooms ?? '—' }} · طبقه: {{ $listing->floor ?? '—' }} از {{ $listing->total_floors ?? '—' }}</p>
-        <p>پارکینگ: {{ $listing->parking_count ?? '—' }}</p>
-        <p>نوع ملک: {{ ['residential'=>'مسکونی','commercial'=>'تجاری','land'=>'زمین'][$listing->property_type] }}</p>
-        <div class="price">
-            @if($listing->listing_type==='rent')
-                ودیعه {{ number_format((int)$listing->deposit) }} تومان · اجاره {{ number_format((int)$listing->monthly_rent) }} تومان
-            @else
-                {{ $listing->price ? number_format((int)$listing->price).' تومان' : 'توافقی' }}
+    <div class="detail-main">
+        <header class="titlebar">
+            <div class="tags">
+                <span class="tag {{ $tagClass }}">{{ $listing->listingTypeLabel() }}</span>
+                @if($listing->propertyTypeLabel())<span class="tag plain">{{ $listing->propertyTypeLabel() }}</span>@endif
+            </div>
+            <h1>{{ $listing->title }}</h1>
+            <div class="loc"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg>{{ $listing->city }}@if($listing->neighborhood)، {{ $listing->neighborhood }}@endif</div>
+            <div class="price price-inline">
+                @foreach($listing->priceRows() as $row)
+                    <div>@if($row['label'])<small>{{ $row['label'] }}</small>@endif<span>{{ $row['value'] }}</span></div>
+                @endforeach
+            </div>
+        </header>
+
+        @if($photos)
+        <section class="gallery @if(count($photos) < 2) single @endif" data-gallery tabindex="0" aria-roledescription="اسلایدر" aria-label="تصاویر آگهی {{ $listing->title }}">
+            <div class="stage">
+                <div class="track">
+                    @foreach($photos as $i => $url)
+                        <figure class="slide" aria-label="تصویر {{ Fa::num($i + 1) }} از {{ Fa::num(count($photos)) }}">
+                            <img src="{{ $url }}" alt="{{ $listing->title }} — تصویر {{ Fa::num($i + 1) }}" @if($i > 0) loading="lazy" @endif decoding="async" draggable="false">
+                        </figure>
+                    @endforeach
+                </div>
+                <button type="button" class="nav-btn prev" aria-label="تصویر قبلی"><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+                <button type="button" class="nav-btn next" aria-label="تصویر بعدی"><svg class="icon" aria-hidden="true"><use href="#i-chev-l"/></svg></button>
+                <span class="pos" aria-live="polite">{{ Fa::num(1) }} از {{ Fa::num(count($photos)) }}</span>
+                <div class="dots" aria-hidden="true"></div>
+            </div>
+            @if(count($photos) > 1)
+            <div class="thumbs" aria-label="پیش‌نمایش تصاویر">
+                @foreach($photos as $i => $url)
+                    <button type="button" aria-label="نمایش تصویر {{ Fa::num($i + 1) }}" @if($i === 0) aria-current="true" @endif><img src="{{ $url }}" alt="" loading="lazy" decoding="async"></button>
+                @endforeach
+            </div>
             @endif
+        </section>
+        @else
+        <section class="gallery"><div class="gallery-empty"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span>برای این آگهی تصویری ثبت نشده است</span></div></section>
+        @endif
+
+        @if($facts)
+        <section class="panel">
+            <h2>مشخصات ملک</h2>
+            <div class="facts">
+                @foreach($facts as [$icon, $value, $label])
+                    <div class="fact"><svg class="icon" aria-hidden="true"><use href="#{{ $icon }}"/></svg><div><b>{{ $value }}</b><span>{{ $label }}</span></div></div>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
+        <section class="panel">
+            <h2>توضیحات</h2>
+            <p class="desc">{{ $listing->description }}</p>
+            @if($listing->address && ! $listing->hide_address)
+                <p class="loc" style="margin-top:14px"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg>آدرس: {{ $listing->address }}</p>
+            @endif
+        </section>
+    </div>
+
+    <aside class="aside">
+        <div class="pricebox">
+            <div class="price">
+                @foreach($listing->priceRows() as $row)
+                    <div>@if($row['label'])<small>{{ $row['label'] }}</small>@endif<span>{{ $row['value'] }}</span></div>
+                @endforeach
+            </div>
+            <div class="owner">
+                <span class="avatar" aria-hidden="true">{{ \Illuminate\Support\Str::substr($ownerName ?: '؟', 0, 1) }}</span>
+                <div><b>{{ $ownerName }}</b><span class="muted">ثبت‌کننده آگهی</span></div>
+            </div>
+            @auth
+                <p>برای هماهنگی با ثبت‌کننده از طریق اطلاعات تماس حساب کاربری اقدام کنید.</p>
+            @else
+                <a class="btn block lg" href="{{ route('login') }}">برای مشاهده اطلاعات تماس وارد شوید</a>
+            @endauth
         </div>
-        @if($listing->address && !$listing->hide_address)<p>آدرس: {{ $listing->address }}</p>@endif
-        <p class="muted">ثبت‌کننده: {{ $listing->user->display_name }}</p>
+
         @auth
-            <p>برای هماهنگی با ثبت‌کننده از طریق اطلاعات تماس حساب کاربری اقدام کنید.</p>
             @if((int) auth()->id() !== (int) $listing->user_id)
-                <details style="margin-top:20px">
-                    <summary style="cursor:pointer;color:var(--brand-d);font-weight:700">گزارش تخلف یا اطلاعات نادرست</summary>
-                    <form method="POST" action="{{ route('properties.reports.store', $listing->id) }}" class="panel" style="margin-top:12px">
+                <details class="report" @if($errors->any()) open @endif>
+                    <summary>گزارش تخلف یا اطلاعات نادرست</summary>
+                    <form method="POST" action="{{ route('properties.reports.store', $listing->id) }}" class="panel">
                         @csrf
                         <label class="field">دلیل گزارش
                             <select name="reason" required>
@@ -60,9 +136,8 @@
                 </details>
             @endif
         @else
-            <a class="btn" href="{{ route('login') }}">برای مشاهده اطلاعات تماس وارد شوید</a>
-            <p class="muted" style="margin-top:12px">برای گزارش تخلف این آگهی نیز ابتدا وارد حساب کاربری شوید.</p>
+            <p class="muted" style="padding:0 6px">برای گزارش تخلف این آگهی نیز ابتدا وارد حساب کاربری شوید.</p>
         @endauth
-    </section>
+    </aside>
 </div>
 @endsection

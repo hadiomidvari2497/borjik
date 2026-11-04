@@ -4,12 +4,46 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>@yield('title', 'آگهی‌های ملکی') | صابخونه</title>
 <meta name="description" content="@yield('meta_description', 'بازارچه تخصصی خرید، فروش و اجاره ملک در صابخونه')">
+<meta name="theme-color" content="#0f4a45">
 <link rel="canonical" href="{{ url()->current() }}">
+<link rel="icon" href="{{ asset('favicon.ico') }}">
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
-<style>
-*{box-sizing:border-box}body{margin:0;background:#f4f7f6;color:#193b38;font-family:Vazirmatn,Tahoma,sans-serif}a{color:inherit;text-decoration:none}.wrap{width:min(1160px,calc(100% - 32px));margin:auto}.top{background:#123b3b;color:white;padding:17px 0}.topin{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-size:20px;font-weight:900}.nav{display:flex;gap:18px;font-size:13px}.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 17px;border:0;border-radius:12px;background:#217b6d;color:white;font:inherit;font-size:13px;font-weight:800;cursor:pointer}.btn.light{background:#e5f2ef;color:#17675c}.main{padding:30px 0 60px}.hero{padding:28px;border-radius:22px;background:linear-gradient(120deg,#123b3b,#268a78);color:white;margin-bottom:22px}.hero h1{margin:0 0 8px;font-size:27px}.hero p{margin:0;color:#d9eee8;font-size:13px;line-height:2}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:17px}.card{overflow:hidden;background:white;border:1px solid #e1eae7;border-radius:18px;box-shadow:0 8px 25px #173b3510}.photo{height:180px;background:#e7efec;display:grid;place-items:center;color:#78918a}.photo img{width:100%;height:100%;object-fit:cover}.body{padding:16px}.body h3{margin:0 0 8px;font-size:16px}.muted{color:#758984;font-size:12px}.price{margin-top:12px;color:#176b5d;font-weight:900}.filters,.panel{background:white;border:1px solid #e1eae7;border-radius:18px;padding:18px;margin-bottom:18px}.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.field{display:grid;gap:6px;font-size:12px;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid #d9e4e0;border-radius:10px;padding:11px;background:#fff;font:inherit;font-size:13px;color:#193b38}.field textarea{min-height:110px}.actions{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}.error{color:#b42318;font-size:12px}.pagination{margin-top:20px}.detail{display:grid;grid-template-columns:1.2fr 1fr;gap:22px}.photos{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.photos img{width:100%;height:210px;object-fit:cover;border-radius:14px}.photos img:first-child{grid-column:span 2;height:300px}@media(max-width:700px){.detail{grid-template-columns:1fr}.nav{gap:9px}.hero h1{font-size:22px}}
-</style>
+<link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v={{ @filemtime(public_path('css/marketplace.css')) }}">
+@stack('head')
 </head><body>
-<header class="top"><div class="wrap topin"><a class="brand" href="{{ route('properties.index') }}">صابخونه | بازار املاک</a><nav class="nav"><a href="{{ route('properties.index') }}">آگهی‌ها</a>@auth<a href="{{ route('properties.mine') }}">آگهی‌های من</a>@else<a href="{{ route('login') }}">ورود</a>@endauth</nav><a class="btn light" href="{{ route('properties.create') }}">ثبت آگهی رایگان</a></div></header>
-<main class="wrap main">@if(session('status'))<div class="panel">{{ session('status') }}</div>@endif @yield('content')</main>
+{{-- آیکون‌های مشترک؛ با <use href="#i-..."> استفاده می‌شوند --}}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+    <symbol id="i-area" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7M3 15h18M7 9V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v2"/></symbol>
+    <symbol id="i-bath" viewBox="0 0 24 24"><path d="M4 12h16v2a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-2ZM6 12V6a2 2 0 0 1 3.5-1.3M7 19l-1 2M17 19l1 2"/></symbol>
+    <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 16V11l2-5h10l2 5v5M3 16h18v2H3zM7.5 13h.01M16.5 13h.01"/></symbol>
+    <symbol id="i-floor" viewBox="0 0 24 24"><path d="M4 20h16M6 20V9l6-4 6 4v11M10 20v-5h4v5"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7zM14 3v4h4M10 13h5M10 17h5"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+
+<header class="top"><div class="wrap topin">
+    <a class="brand" href="{{ route('properties.index') }}">
+        <img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" width="34" height="34">
+        <span>صابخونه<small>بازار املاک</small></span>
+    </a>
+    <nav class="nav" aria-label="منوی اصلی">
+        <a href="{{ route('properties.index') }}" @if(request()->routeIs('properties.index','properties.show')) aria-current="page" @endif>آگهی‌ها</a>
+        @auth<a href="{{ route('properties.mine') }}" @if(request()->routeIs('properties.mine')) aria-current="page" @endif>آگهی‌های من</a>@else<a href="{{ route('login') }}">ورود</a>@endauth
+    </nav>
+    <a class="btn" href="{{ route('properties.create') }}"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>ثبت آگهی رایگان</a>
+</div></header>
+
+<main class="wrap main">
+    @if(session('status') && ! request()->routeIs('properties.mine'))<div class="flash" role="status">{{ session('status') }}</div>@endif
+    @yield('content')
+</main>
+@stack('scripts')
 </body></html>

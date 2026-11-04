@@ -25,6 +25,21 @@ final class Fa
         return self::num($n).' تومان';
     }
 
+    /** مبلغ خلاصه به تومان؛ مثال: «۵ میلیارد تومان» یا «۲٫۵ میلیون تومان». */
+    public static function short(int|float|null $n): string
+    {
+        $n = (float) ($n ?? 0);
+        foreach ([[1_000_000_000, 'میلیارد'], [1_000_000, 'میلیون']] as [$unit, $name]) {
+            if ($n >= $unit) {
+                $v = rtrim(rtrim(number_format($n / $unit, 1, '.', ''), '0'), '.');
+
+                return self::digits(str_replace('.', '٫', $v)).' '.$name.' تومان';
+            }
+        }
+
+        return self::money($n);
+    }
+
     /** مثال: «۱۸ مهر» با قالب j F. */
     public static function date(CarbonInterface $date, string $format = 'j F'): string
     {
