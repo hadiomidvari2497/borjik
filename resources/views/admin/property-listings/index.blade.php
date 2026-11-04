@@ -3,7 +3,7 @@
 @section('content')
 @php
     $F = \App\Support\Fa::class;
-    $statusLabels = ['active' => 'فعال', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
+    $statusLabels = ['pending' => 'در انتظار تأیید', 'active' => 'فعال', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
     $typeLabels = ['sale' => 'فروش', 'rent' => 'اجاره', 'buy_request' => 'درخواست خرید', 'rent_request' => 'درخواست اجاره'];
 @endphp
 
@@ -20,6 +20,7 @@
 
 <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
     <div class="card"><div class="muted">کل آگهی‌ها</div><div style="font-size:25px;font-weight:800;margin-top:8px">{{ $F::num($listingStats->total ?? 0) }}</div></div>
+    <div class="card"><div class="muted">در انتظار تأیید</div><div style="font-size:25px;font-weight:800;margin-top:8px">{{ $F::num($listingStats->pending ?? 0) }}</div></div>
     <div class="card"><div class="muted">آگهی‌های فعال</div><div style="font-size:25px;font-weight:800;margin-top:8px">{{ $F::num($listingStats->active ?? 0) }}</div></div>
     <div class="card"><div class="muted">غیرفعال / ردشده</div><div style="font-size:25px;font-weight:800;margin-top:8px">{{ $F::num(($listingStats->closed ?? 0) + ($listingStats->rejected ?? 0)) }}</div></div>
     <div class="card"><div class="muted">درآمد بسته‌های آگهی</div><div style="font-size:21px;font-weight:800;margin-top:8px">{{ $F::money($orderStats->revenue ?? 0) }}</div><small class="muted">فقط پرداخت‌های تأییدشده</small></div>

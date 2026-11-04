@@ -98,7 +98,7 @@ class PropertyListingController extends Controller
         $data = $this->validated($request);
         $this->authorizeUnitSelection($request, isset($data['unit_id']) ? (int) $data['unit_id'] : null);
         $data['user_id'] = $request->user()->id;
-        $data['status'] = 'active';
+        $data['status'] = 'pending';
 
         $listing = DB::transaction(function () use ($request, $data) {
             $consumedCredit = app(PropertyListingQuota::class)->consumeForNewListing($request->user());
@@ -112,7 +112,7 @@ class PropertyListingController extends Controller
             return $listing;
         });
 
-        return redirect()->route('properties.mine')->with('status', 'آگهی شما با موفقیت ثبت و منتشر شد.');
+        return redirect()->route('properties.mine')->with('status', 'آگهی شما ثبت شد و پس از تأیید مدیریت در بازارچه نمایش داده می‌شود.');
     }
 
     public function edit(Request $request, PropertyListing $listing)

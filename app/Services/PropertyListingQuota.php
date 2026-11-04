@@ -42,7 +42,11 @@ class PropertyListingQuota
                 return null;
             }
 
-            $activeCount = PropertyListing::query()->where('user_id', $user->id)->published()->count();
+            $activeCount = PropertyListing::query()
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'active'])
+                ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                ->count();
             if ($activeCount < $this->freeLimit()) {
                 return null;
             }

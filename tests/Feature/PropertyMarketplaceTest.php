@@ -35,10 +35,21 @@ class PropertyMarketplaceTest extends TestCase
             'status' => 'closed',
         ]);
 
+        PropertyListing::create([
+            'user_id' => $owner->id,
+            'listing_type' => 'sale',
+            'property_type' => 'residential',
+            'title' => 'آگهی در انتظار تأیید',
+            'description' => 'توضیحات',
+            'city' => 'تهران',
+            'status' => 'pending',
+        ]);
+
         $this->get(route('properties.index'))
             ->assertOk()
             ->assertSee($active->title)
-            ->assertDontSee('آگهی بسته‌شده');
+            ->assertDontSee('آگهی بسته‌شده')
+            ->assertDontSee('آگهی در انتظار تأیید');
     }
 
     public function test_users_without_building_membership_can_still_open_the_standalone_listing_form(): void
@@ -72,6 +83,8 @@ class PropertyMarketplaceTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseCount('property_listings', 3);
+        $this->assertDatabaseHas('property_listings', ['user_id' => $user->id, 'status' => 'pending']);
+        $this->get(route('properties.index'))->assertDontSee('آگهی آزمایشی 1');
     }
 
     public function test_listing_owner_can_close_listing_but_another_user_cannot(): void
