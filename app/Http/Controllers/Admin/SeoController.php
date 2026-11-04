@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\PropertyListing;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
