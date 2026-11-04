@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\PropertyListing;
 use App\Models\PropertyListingCreditTransaction;
 use App\Models\PropertyListingPackageOrder;
-use App\Support\Fa;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
