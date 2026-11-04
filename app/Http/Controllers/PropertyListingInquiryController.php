@@ -14,6 +14,7 @@ class PropertyListingInquiryController extends Controller
     {
         $data = $request->validate([
             'message' => ['required', 'string', 'min:2', 'max:2000'],
+            'share_mobile' => ['sometimes', 'accepted'],
         ]);
 
         $listing = PropertyListing::query()->published()->with('user')->findOrFail($listingId);
@@ -24,7 +25,7 @@ class PropertyListingInquiryController extends Controller
             'sender_user_id' => $request->user()->id,
             'recipient_user_id' => $listing->user_id,
             'sender_name' => $request->user()->display_name,
-            'sender_mobile' => null,
+            'sender_mobile' => $request->boolean('share_mobile') ? $request->user()->mobile : null,
             'message' => $data['message'],
             'status' => 'new',
         ]);
