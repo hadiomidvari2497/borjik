@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnalyticsCollectionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PropertyListingController;
 
 Route::post('/analytics/heartbeat', [AnalyticsCollectionController::class, 'heartbeat'])->middleware('throttle:120,1')->name('analytics.heartbeat');
 Route::post('/analytics/event', [AnalyticsCollectionController::class, 'event'])->middleware('throttle:120,1')->name('analytics.event');
@@ -26,7 +27,6 @@ Route::get('/building-management-software-comparison', [MarketingController::cla
 Route::get('/trust-and-security', [MarketingController::class, 'seoPage'])->defaults('slug', 'trust-and-security')->name('marketing.seo.trust');
 
 
-use App\\Http\\Controllers\\PropertyListingController;
 
 Route::get('/properties', [PropertyListingController::class, 'index'])->name('properties.index');
 Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])->whereNumber('listing')->name('properties.show');
