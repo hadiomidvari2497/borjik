@@ -21,6 +21,7 @@ class PropertyListingInquiryTest extends TestCase
 
         $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
             'message' => 'برای بازدید ملک چه زمانی امکان هماهنگی دارید؟',
+            'share_mobile' => '1',
         ])->assertRedirect();
 
         $inquiry = PropertyListingInquiry::query()->where('sender_user_id', $sender->id)->firstOrFail();
@@ -28,7 +29,7 @@ class PropertyListingInquiryTest extends TestCase
         $this->assertDatabaseHas('property_listing_inquiries', [
             'id' => $inquiry->id,
             'recipient_user_id' => $owner->id,
-            'sender_mobile' => null,
+            'sender_mobile' => $sender->mobile,
             'status' => 'new',
         ]);
         $this->assertDatabaseHas('notifications', [
