@@ -680,7 +680,42 @@
         .article-tag{color:#08756b}
         /* Keep below-the-fold decorative motion from overriding reduced-motion preferences. */
         @media(prefers-reduced-motion:reduce){.hero:before,.hero-dust,.orb,.mock-window,.floating-note,.marquee-track{animation:none!important}}
-    </style>
+    
+        /* Keep the public navigation from colliding with the brand and account actions. */
+        @media (max-width: 1240px) and (min-width: 701px) {
+            .site-header .nav {
+                min-height: 0;
+                flex-wrap: wrap;
+                row-gap: 7px;
+                padding-top: 11px;
+                padding-bottom: 11px;
+            }
+            .site-header .nav-links {
+                order: 3;
+                flex: 1 0 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 7px 20px;
+                padding: 3px 0 5px;
+                white-space: normal;
+            }
+            .site-header .nav-actions { margin-inline-start: auto; }
+        }
+        @media (max-width: 700px) {
+            .site-header .nav-links {
+                order: 3;
+                flex: 1 0 100%;
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overscroll-behavior-inline: contain;
+                scrollbar-width: thin;
+                padding: 5px 1px 9px;
+            }
+            .site-header .nav-links a { flex: 0 0 auto; }
+        }
+</style>
 @include('marketing.partials.faq-styles')
 </head>
 <body>
@@ -708,7 +743,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <div class="wrap nav">
         <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt="" width="43" height="43" loading="eager" fetchpriority="high" decoding="async" style="display:block;width:100%;height:100%;aspect-ratio:1;object-fit:contain"></span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
-            <a href="#features">امکانات</a><a href="{{ route('properties.index') }}">بازار املاک</a><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a><a href="{{ route('marketing.subscription-plans') }}">پلن‌های اشتراک</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
+            <a href="#features">امکانات</a><a href="{{ route('properties.index') }}">بازار املاک</a><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a><a href="{{ route('marketing.subscription-plans') }}">پلن‌های اشتراک</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
         <div class="nav-actions"><a class="btn btn-ghost" href="{{ route('marketing.subscription-plans') }}">مشاهده پلن‌ها</a>@auth<a class="btn btn-primary" href="{{ route('dashboard') }}" title="{{ $authTitle }}">ادامه در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a>@endauth</div>
     </div>
