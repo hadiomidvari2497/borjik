@@ -71,10 +71,15 @@ class PropertyListingController extends Controller
         $data['status'] = 'active';
 
         $listing = DB::transaction(function () use ($request, $data) {
-            app(PropertyListingQuota::class)->consumeForNewListing($request->user());
+            $consumedCredit = app(PropertyListingQuota::class)->consumeForNewListing($request->user());
             $data['photos'] = $this->storePhotos($request);
+            $listing = PropertyListing::create($data);
 
-            return PropertyListing::create($data);
+            if ($consumedCredit) {
+                $consumedCredit->update(['property_listing_id' => $listing->id]);
+            }
+
+            return $listing;
         });
 
         return redirect()->route('properties.mine')->with('status', 'آگهی شما با موفقیت ثبت و منتشر شد.');
