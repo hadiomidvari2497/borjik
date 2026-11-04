@@ -18,7 +18,7 @@ class ZarinpalGateway
             'merchant_id' => (string) $settings['merchant_id'],
             'amount' => $amountRial,
             'callback_url' => $callbackUrl ?? route('payment.gateway.callback', ! empty($settings['_gateway_id']) ? ['gateway_id' => $settings['_gateway_id']] : []),
-            'description' => 'خرید اشتراک برجیک - تراکنش '.$paymentId,
+            'description' => 'پرداخت صابخونه - تراکنش '.$paymentId,
             'metadata' => ['mobile' => (string) $user->mobile, 'email' => (string) ($user->email ?? '')],
         ])->throw()->json();
 
