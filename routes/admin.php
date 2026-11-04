@@ -146,6 +146,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::prefix('property-listings')->name('property-listings.')->middleware('admin.can:marketplace.manage')->controller(PropertyListingManagementController::class)->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::get('/reports', 'reports')->name('reports');
+            Route::patch('/reports/{report}', 'updateReport')->whereNumber('report')->name('reports.update');
             Route::get('/{id}', 'show')->whereNumber('id')->name('show');
             Route::patch('/{id}/status', 'updateStatus')->whereNumber('id')->name('status');
         });
