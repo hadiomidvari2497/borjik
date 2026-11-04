@@ -13,8 +13,6 @@ class NotificationController extends Controller
     public function index(Request $request, CurrentBuilding $current): View
     {
         $buildingId = $current->id();
-        abort_unless($buildingId, 403);
-
         $filter = $request->query('filter') === 'unread' ? 'unread' : 'all';
         $categories = [
             'invoice' => 'صورت‌حساب',
@@ -24,12 +22,18 @@ class NotificationController extends Controller
             'expense' => 'هزینه‌ها',
             'system' => 'سایر',
             'support' => 'پشتیبانی',
+            'marketplace' => 'بازارچه املاک',
         ];
         $category = array_key_exists((string) $request->query('category'), $categories)
             ? (string) $request->query('category')
             : '';
 
-        $base = $request->user()->notifications()->where('data->building_id', $buildingId);
+        $base = $request->user()->notifications()->where(function ($query) use ($buildingId) {
+            $query->whereNull('data->building_id');
+            if ($buildingId) {
+                $query->orWhere('data->building_id', $buildingId);
+            }
+        });
         $query = clone $base;
         if ($filter === 'unread') {
             $query->whereNull('read_at');
@@ -53,10 +57,13 @@ class NotificationController extends Controller
     public function read(Request $request, string $notification, CurrentBuilding $current): RedirectResponse
     {
         $buildingId = $current->id();
-        abort_unless($buildingId, 403);
-
         $item = $request->user()->notifications()
-            ->where('data->building_id', $buildingId)
+            ->where(function ($query) use ($buildingId) {
+                $query->whereNull('data->building_id');
+                if ($buildingId) {
+                    $query->orWhere('data->building_id', $buildingId);
+                }
+            })
             ->whereKey($notification)
             ->firstOrFail();
 
@@ -78,10 +85,13 @@ class NotificationController extends Controller
     public function readAll(Request $request, CurrentBuilding $current): RedirectResponse
     {
         $buildingId = $current->id();
-        abort_unless($buildingId, 403);
-
-        $query = $request->user()->unreadNotifications()->where('data->building_id', $buildingId);
-        $categories = ['invoice', 'payment', 'request', 'contract', 'expense', 'system', 'support'];
+        $query = $request->user()->unreadNotifications()->where(function ($scope) use ($buildingId) {
+            $scope->whereNull('data->building_id');
+            if ($buildingId) {
+                $scope->orWhere('data->building_id', $buildingId);
+            }
+        });
+        $categories = ['invoice', 'payment', 'request', 'contract', 'expense', 'system', 'support', 'marketplace'];
         $category = (string) $request->input('category', '');
         if (in_array($category, $categories, true)) {
             $query->where('data->category', $category);
