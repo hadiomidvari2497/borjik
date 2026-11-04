@@ -29,6 +29,13 @@ return [
         ],
     ],
     [
+        'title' => 'بازارچه املاک',
+        'items' => [
+            ['label' => 'مدیریت آگهی‌های ملکی', 'icon' => 'building-2', 'route' => 'admin.property-listings.index', 'active' => 'admin.property-listings.*', 'perm' => 'marketplace.manage',
+                'desc' => 'رسیدگی به آگهی‌ها، وضعیت انتشار، خرید بسته‌ها و درآمد بازارچه'],
+        ],
+    ],
+    [
         'title' => 'پیامک',
         'items' => [
             ['label' => 'اتصال پیامک', 'icon' => 'msg', 'route' => 'admin.sms.providers.index', 'active' => 'admin.sms.providers.*', 'perm' => 'sms.settings',
