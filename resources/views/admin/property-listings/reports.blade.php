@@ -2,7 +2,7 @@
 @section('title', 'گزارش‌های تخلف بازارچه')
 @section('content')
 @php
-    $F = \\App\\Support\\Fa::class;
+    $F = \App\Support\Fa::class;
     $statusLabels = ['pending' => 'در انتظار بررسی', 'actioned' => 'اقدام انجام شد', 'dismissed' => 'مختومه بدون اقدام'];
     $reasonLabels = ['fraud' => 'احتمال کلاهبرداری', 'incorrect' => 'اطلاعات نادرست', 'duplicate' => 'آگهی تکراری', 'inappropriate' => 'محتوای نامناسب', 'prohibited' => 'مورد غیرمجاز', 'other' => 'سایر موارد'];
 @endphp
