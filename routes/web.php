@@ -36,6 +36,7 @@ Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])-
 Route::middleware('auth')->group(function () {
     Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
     Route::post('/properties/packages/buy', [PropertyListingPackageController::class, 'buy'])->middleware('throttle:10,1')->name('properties.packages.buy');
+    Route::post('/properties/{listing}/reports', [PropertyListingReportController::class, 'store'])->whereNumber('listing')->middleware('throttle:5,10')->name('properties.reports.store');
     Route::get('/properties/create', [PropertyListingController::class, 'create'])->name('properties.create');
     Route::post('/properties', [PropertyListingController::class, 'store'])->middleware('throttle:10,1')->name('properties.store');
     Route::get('/properties/{listing}/edit', [PropertyListingController::class, 'edit'])->whereNumber('listing')->name('properties.edit');
