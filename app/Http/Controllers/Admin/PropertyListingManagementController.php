@@ -97,6 +97,7 @@ class PropertyListingManagementController extends Controller
         ]);
 
         $report = PropertyListingReport::query()->with('reporter')->findOrFail($reportId);
+        abort_unless($report->status === 'pending', 409, 'این گزارش قبلاً بررسی شده است.');
         $report->update([
             'status' => $data['status'],
             'resolution_note' => $data['resolution_note'],
@@ -107,15 +108,19 @@ class PropertyListingManagementController extends Controller
         $message = $data['status'] === 'actioned'
             ? 'گزارش شما بررسی شد و اقدامات لازم انجام شد.'
             : 'گزارش شما بررسی شد؛ تخلفی تشخیص داده نشد.';
-        $report->reporter?->notify(new PropertyListingNotification(
-            'report_reviewed',
-            'گزارش تخلف بررسی شد',
-            $message.' '.$data['resolution_note'],
-            route('properties.mine'),
-            $data['status'] === 'actioned' ? 'success' : 'info',
-            $report->property_listing_id,
-            $report->id
-        ));
+        try {
+            $report->reporter?->notify(new PropertyListingNotification(
+                'report_reviewed',
+                'گزارش تخلف بررسی شد',
+                $message.' '.$data['resolution_note'],
+                route('properties.mine'),
+                $data['status'] === 'actioned' ? 'success' : 'info',
+                $report->property_listing_id,
+                $report->id
+            ));
+        } catch (\\Throwable $notificationError) {
+            report($notificationError);
+        }
 
         return redirect()->route('admin.property-listings.reports', ['status' => $data['status'] === 'actioned' ? 'actioned' : 'dismissed'])
             ->with('status', 'نتیجه بررسی گزارش ثبت و به گزارش‌دهنده اطلاع داده شد.');
@@ -151,9 +156,13 @@ class PropertyListingManagementController extends Controller
                 'closed' => ['آگهی شما غیرفعال شد', 'آگهی «'.$listing->title.'» توسط مدیریت غیرفعال شد.', 'warning'],
                 default => ['آگهی شما رد شد', 'آگهی «'.$listing->title.'» رد شد. دلیل: '.($listing->moderation_note ?: 'برای بررسی بیشتر با پشتیبانی تماس بگیرید.'), 'warning'],
             };
-            $listing->user?->notify(new PropertyListingNotification(
-                'listing_status_changed', $title, $message, route('properties.mine'), $level, $listing->id
-            ));
+            try {
+                $listing->user?->notify(new PropertyListingNotification(
+                    'listing_status_changed', $title, $message, route('properties.mine'), $level, $listing->id
+                ));
+            } catch (\\Throwable $notificationError) {
+                report($notificationError);
+            }
         }
 
         return redirect()->route('admin.property-listings.show', $listing->id)
