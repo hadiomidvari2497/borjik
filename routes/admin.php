@@ -150,7 +150,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::patch('/{id}/status', 'updateStatus')->whereNumber('id')->name('status');
         });
 
-        Route::prefix('property-listings')->name('property-listings.')->middleware('admin.can:plans.manage')->controller(PropertyListingSettingsController::class)->group(function () {
+        Route::prefix('property-listings')->name('property-listings.')->middleware('admin.can:plans.manage,marketplace.manage')->controller(PropertyListingSettingsController::class)->group(function () {
             Route::get('/settings', 'edit')->name('settings');
             Route::put('/settings', 'update')->name('settings.update');
         });
