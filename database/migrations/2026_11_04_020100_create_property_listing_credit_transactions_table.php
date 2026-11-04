@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('description', 255)->nullable();
             $table->timestamps();
             $table->index(['user_id', 'id']);
-            $table->unique(['package_order_id', 'type']);
+            $table->unique(['package_order_id', 'type'], 'pl_credit_order_type_unique');
         });
     }
 
