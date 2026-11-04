@@ -4,9 +4,9 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 @php
     $marketplaceIndexing = app()->environment('production')
-        && (bool) \\App\\Models\\SiteSetting::get('seo.indexing_enabled', false)
-        && filter_var((string) \\App\\Models\\SiteSetting::get('seo.site_url', config('app.url')), FILTER_VALIDATE_URL)
-        && strtolower((string) parse_url((string) \\App\\Models\\SiteSetting::get('seo.site_url', config('app.url')), PHP_URL_SCHEME)) === 'https';
+        && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false)
+        && filter_var((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), FILTER_VALIDATE_URL)
+        && strtolower((string) parse_url((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), PHP_URL_SCHEME)) === 'https';
     $isFilteredMarketplace = request()->routeIs('properties.index') && request()->query() !== [];
     $canonicalUrl = request()->routeIs('properties.index') ? route('properties.index') : url()->current();
 @endphp
