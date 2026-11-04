@@ -12,7 +12,7 @@ class PropertyListing extends Model
         'province', 'city', 'neighborhood', 'address', 'hide_address', 'area',
         'bedrooms', 'bathrooms', 'floor', 'total_floors', 'built_year',
         'document_type', 'amenities', 'price', 'deposit', 'monthly_rent',
-        'allow_exchange', 'photos', 'status', 'expires_at',
+        'allow_exchange', 'photos', 'status', 'expires_at', 'moderation_note', 'moderated_by', 'moderated_at',
     ];
 
     protected function casts(): array
@@ -23,6 +23,7 @@ class PropertyListing extends Model
             'amenities' => 'array',
             'photos' => 'array',
             'expires_at' => 'datetime',
+            'moderated_at' => 'datetime',
             'area' => 'decimal:2',
         ];
     }
