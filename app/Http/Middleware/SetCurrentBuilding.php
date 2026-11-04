@@ -23,6 +23,7 @@ class SetCurrentBuilding
         'invitations.*',
         'profile.*',
         'support.*',
+        'notifications.*',
     ];
 
     public function handle(Request $request, Closure $next): Response
