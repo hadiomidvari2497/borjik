@@ -170,6 +170,28 @@ class SeoTest extends TestCase
         }
     }
 
+    public function test_building_management_landing_page_targets_core_keyword_with_verified_product_workflows(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $this->get('/software-building-management')
+            ->assertOk()
+            ->assertSee('<title>نرم‌افزار مدیریت ساختمان و مجتمع مسکونی | صابخونه</title>', false)
+            ->assertSee('name="description" content="نرم‌افزار مدیریت ساختمان صابخونه برای مدیریت شارژ و هزینه‌ها', false)
+            ->assertSee('rel="canonical" href="https://sabkhoneh.ir/software-building-management"', false)
+            ->assertSee('<h1>نرم‌افزار مدیریت ساختمان صابخونه برای مجتمع‌های مسکونی</h1>', false)
+            ->assertSee('امکانات نرم‌افزار مدیریت ساختمان صابخونه در عمل')
+            ->assertSee('ثبت شارژ، هزینه و تراکنش‌های خزانه')
+            ->assertSee('ثبت، ارجاع و پیگیری درخواست‌ها')
+            ->assertSee('نظرسنجی و رأی‌گیری ساختمان')
+            ->assertSee('قالب‌های پیامک قابل تنظیم')
+            ->assertSee('مشاهدهٔ پلن‌ها')
+            ->assertSee('آیا در صابخونه می‌توان نظرسنجی ساختمان برگزار کرد؟')
+            ->assertSee('"@type":"FAQPage"', false);
+    }
+
     public function test_building_charges_page_covers_charge_workflow_and_links_to_related_guides(): void
     {
         $this->app['env'] = 'production';
