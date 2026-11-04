@@ -115,12 +115,26 @@
         section.content-section{padding:82px 0}.section-head{max-width:690px;margin:0 auto 38px;text-align:center}.section-kicker{color:var(--teal-dark);font-size:.82rem;font-weight:900;letter-spacing:.2px}.section-head h2{font-size:clamp(1.75rem,3vw,2.6rem);line-height:1.5;margin:9px 0 10px;font-weight:950;letter-spacing:-.7px}.section-head p{color:var(--muted);margin:0}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.feature-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:26px;min-height:220px;transition:transform .22s,box-shadow .22s}.feature-card:hover{transform:translateY(-5px);box-shadow:0 20px 40px #173d3410}.feature-icon{width:51px;height:51px;border-radius:17px;display:grid;place-items:center;background:#e4f7f1;color:#078775;font-size:1.45rem;margin-bottom:17px}.feature-card:nth-child(3n+2) .feature-icon{background:#fff3df;color:#ad7517}.feature-card:nth-child(3n) .feature-icon{background:#e9edff;color:#5968bc}.feature-card h3{font-size:1.05rem;margin-bottom:8px}.feature-card p{font-size:.88rem;color:var(--muted);margin-bottom:0}
         .how{background:#0c2737;color:#fff;position:relative;overflow:hidden}.how:after{content:"";position:absolute;width:500px;height:500px;border-radius:50%;border:1px solid #ffffff0c;left:-170px;top:-220px;box-shadow:0 0 0 55px #ffffff05,0 0 0 110px #ffffff04}.how .section-head{position:relative;z-index:1}.how .section-head p{color:#b8c8ce}.how .section-kicker{color:#7de0cd}.steps{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.step{padding:25px;border:1px solid #ffffff1c;background:#ffffff08;border-radius:22px}.step-number{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#1cae9a;color:#fff;font-weight:900;margin-bottom:17px}.step h3{font-size:1.05rem;margin-bottom:7px}.step p{color:#b8c8ce;font-size:.88rem;margin-bottom:0}
         .about-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:55px;align-items:center}.about-visual{border-radius:28px;min-height:340px;padding:32px;background:linear-gradient(145deg,#d8f4eb,#edf9f5);display:flex;align-items:end;position:relative;overflow:hidden}.about-visual:before{content:"ب";position:absolute;inset:0;display:grid;place-items:center;font-size:17rem;font-weight:950;color:#0b9c8410}.about-note{position:relative;background:#fff;border:1px solid #ffffff;border-radius:19px;padding:20px;width:100%;box-shadow:0 15px 35px #0c4b3d12}.about-note strong{display:block;font-size:1.1rem}.about-note p{color:var(--muted);font-size:.86rem;margin:6px 0 0}.about-copy h2{font-size:2.1rem;line-height:1.5;margin:10px 0 15px}.about-copy>p{color:var(--muted)}.check-list{list-style:none;padding:0;margin:23px 0 0;display:grid;gap:12px}.check-list li{display:flex;align-items:flex-start;gap:10px;color:#405b66;font-size:.91rem}.check{flex:0 0 23px;width:23px;height:23px;border-radius:8px;background:#ddf5ed;color:#078775;display:grid;place-items:center;font-weight:900;font-size:.8rem;margin-top:3px}
+        .property-preview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px;text-align:right}
+        .property-preview-card{display:block;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 9px 28px rgba(16,55,48,.055);transition:transform .2s,box-shadow .2s}
+        .property-preview-card:hover{transform:translateY(-4px);box-shadow:0 18px 38px rgba(16,55,48,.11)}
+        .property-preview-photo{height:170px;position:relative;display:grid;place-items:center;overflow:hidden;background:linear-gradient(135deg,#e0f3ed,#f4faf7);color:#168574;font-size:3rem}
+        .property-preview-photo img{width:100%;height:100%;object-fit:cover}
+        .property-preview-type{position:absolute;top:12px;right:12px;padding:5px 10px;border-radius:999px;background:rgba(8,48,48,.82);color:#fff;font-size:.72rem;font-weight:850}
+        .property-preview-body{padding:16px}
+        .property-preview-body h3{margin:0 0 7px;font-size:.98rem;line-height:1.8}
+        .property-preview-body p{margin:0;color:var(--muted);font-size:.8rem}
+        .property-preview-meta{display:grid;gap:7px;margin-top:13px;padding-top:11px;border-top:1px solid var(--line);font-size:.78rem}
+        .property-preview-meta span{color:var(--muted)}
+        .property-preview-meta strong{color:var(--teal-dark);font-size:.82rem}
+        .property-preview-empty{padding:28px;border:1px dashed #b8d8ce;border-radius:18px;background:#fff;text-align:center;color:var(--muted)}
+        .property-preview-actions{display:flex;justify-content:center;gap:11px;flex-wrap:wrap;margin-top:26px}
         .article-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.article-card{border:1px solid var(--line);background:#fff;border-radius:22px;overflow:hidden}.article-art{height:145px;display:grid;place-items:center;background:linear-gradient(135deg,#dff5ee,#f3fbf7);font-size:3.3rem}.article-card:nth-child(2) .article-art{background:linear-gradient(135deg,#fff0d7,#fff8eb)}.article-card:nth-child(3) .article-art{background:linear-gradient(135deg,#e5eaff,#f4f5ff)}.article-body{padding:21px}.article-tag{font-size:.74rem;font-weight:850;color:var(--teal-dark)}.article-body h3{font-size:1rem;line-height:1.8;margin:7px 0}.article-body p{font-size:.85rem;color:var(--muted);margin-bottom:0}
         .partners{padding:0 0 82px}.partner-panel{border-radius:28px;padding:42px;background:linear-gradient(120deg,#e4f8f2,#f4fbf8);border:1px solid #d7eee6;display:grid;grid-template-columns:1fr auto;align-items:center;gap:30px}.partner-panel h2{font-size:1.7rem;margin:0 0 8px}.partner-panel p{color:var(--muted);margin:0;max-width:690px}.partner-actions{display:flex;gap:10px;flex-wrap:wrap}.mini-label{display:inline-block;font-size:.75rem;font-weight:850;color:#087f78;background:#d4f2e8;padding:4px 10px;border-radius:999px;margin-bottom:11px}
         .contact-section{background:#fff;border-top:1px solid var(--line)}.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:45px;align-items:center}.contact-grid h2{font-size:2rem;margin:10px 0}.contact-grid p{color:var(--muted)}.contact-card{padding:25px;border:1px solid var(--line);border-radius:22px;background:#fbfdfc}.contact-row{display:flex;gap:13px;align-items:center;padding:13px 0}.contact-row+.contact-row{border-top:1px solid var(--line)}.contact-symbol{width:42px;height:42px;border-radius:14px;background:#e5f7f1;color:#078775;display:grid;place-items:center;font-size:1.15rem}.contact-row strong{display:block;font-size:.92rem}.contact-row small{display:block;color:var(--muted);font-size:.8rem}.contact-email{color:var(--teal-dark);direction:ltr;display:inline-block}
         footer{background:#091f2c;color:#dce8e9;padding:35px 0 25px}.footer-main{display:flex;align-items:flex-start;justify-content:space-between;gap:35px;padding-bottom:26px}.footer-brand p{color:#a7bbc2;font-size:.83rem;max-width:360px;margin:13px 0 0}.footer-links{display:flex;flex-wrap:wrap;gap:18px;font-size:.83rem;color:#c0d0d4}.footer-links a:hover{color:#7de0cd}.footer-bottom{border-top:1px solid #ffffff19;padding-top:17px;display:flex;justify-content:space-between;gap:15px;color:#9bb0b8;font-size:.77rem}.footer-trust{display:flex;align-items:center;gap:12px;margin-top:22px;padding:13px 15px;width:max-content;max-width:100%;border:1px solid rgba(125,224,205,.22);border-radius:15px;background:rgba(255,255,255,.045)}.footer-trust img{display:block;max-width:110px;max-height:90px;object-fit:contain;border-radius:7px}.footer-trust-label{display:grid;gap:2px}.footer-trust-label strong{font-size:.82rem;color:#e9fffa}.footer-trust-label span{font-size:.72rem;color:#9bbabf}.footer-trust:hover{border-color:rgba(125,224,205,.5);background:rgba(255,255,255,.075)}
-        @media(max-width:900px){.nav-links{gap:12px}.hero-grid{gap:25px}.dashboard-art{min-height:360px}.orb{width:270px;height:270px}.mock-window{padding:16px}.floating-note{left:-5px}.about-grid{gap:30px}.partner-panel{grid-template-columns:1fr}.partner-actions{margin-top:5px}}
-        @media(max-width:700px){.wrap{width:min(100% - 28px,560px)}.nav{min-height:70px;flex-wrap:wrap;padding:10px 0}.nav-links{order:3;width:100%;overflow-x:auto;white-space:nowrap;padding:3px 0 7px;font-size:.82rem}.nav-actions .btn-ghost{display:none}.brand{font-size:1.12rem}.brand-mark{width:38px;height:38px}.nav-actions .btn{padding:9px 12px;font-size:.82rem}.hero{padding:50px 0 35px}.hero-grid{grid-template-columns:1fr;gap:12px}.hero-copy{font-size:1rem}.dashboard-art{min-height:350px;margin-top:3px}.orb{right:10%;width:280px;height:280px}.mock-window{width:min(430px,94%);transform:none}.floating-note{left:0;bottom:13px}.trust-items{grid-template-columns:repeat(2,1fr);gap:13px;padding:18px 0}.trust-item{justify-content:flex-start;font-size:.78rem}.trust-item span{width:31px;height:31px}.content-section,section.content-section{padding:60px 0}.feature-grid,.steps,.article-grid{grid-template-columns:1fr}.feature-card{min-height:0}.section-head{margin-bottom:27px}.about-grid,.contact-grid{grid-template-columns:1fr;gap:27px}.about-visual{min-height:260px}.about-copy h2,.contact-grid h2{font-size:1.7rem}.partner-panel{padding:25px}.partner-panel h2{font-size:1.35rem}.footer-main,.footer-bottom{flex-direction:column}.footer-main{gap:24px}.footer-links{gap:13px}.footer-bottom{gap:5px}}
+        @media(max-width:900px){.property-preview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nav-links{gap:12px}.hero-grid{gap:25px}.dashboard-art{min-height:360px}.orb{width:270px;height:270px}.mock-window{padding:16px}.floating-note{left:-5px}.about-grid{gap:30px}.partner-panel{grid-template-columns:1fr}.partner-actions{margin-top:5px}}
+        @media(max-width:700px){.property-preview-grid{grid-template-columns:1fr}.property-preview-photo{height:195px}.wrap{width:min(100% - 28px,560px)}.nav{min-height:70px;flex-wrap:wrap;padding:10px 0}.nav-links{order:3;width:100%;overflow-x:auto;white-space:nowrap;padding:3px 0 7px;font-size:.82rem}.nav-actions .btn-ghost{display:none}.brand{font-size:1.12rem}.brand-mark{width:38px;height:38px}.nav-actions .btn{padding:9px 12px;font-size:.82rem}.hero{padding:50px 0 35px}.hero-grid{grid-template-columns:1fr;gap:12px}.hero-copy{font-size:1rem}.dashboard-art{min-height:350px;margin-top:3px}.orb{right:10%;width:280px;height:280px}.mock-window{width:min(430px,94%);transform:none}.floating-note{left:0;bottom:13px}.trust-items{grid-template-columns:repeat(2,1fr);gap:13px;padding:18px 0}.trust-item{justify-content:flex-start;font-size:.78rem}.trust-item span{width:31px;height:31px}.content-section,section.content-section{padding:60px 0}.feature-grid,.steps,.article-grid{grid-template-columns:1fr}.feature-card{min-height:0}.section-head{margin-bottom:27px}.about-grid,.contact-grid{grid-template-columns:1fr;gap:27px}.about-visual{min-height:260px}.about-copy h2,.contact-grid h2{font-size:1.7rem}.partner-panel{padding:25px}.partner-panel h2{font-size:1.35rem}.footer-main,.footer-bottom{flex-direction:column}.footer-main{gap:24px}.footer-links{gap:13px}.footer-bottom{gap:5px}}
         @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
     
         /* Homepage visual refresh: a more distinctive, premium first impression. */
@@ -666,7 +680,42 @@
         .article-tag{color:#08756b}
         /* Keep below-the-fold decorative motion from overriding reduced-motion preferences. */
         @media(prefers-reduced-motion:reduce){.hero:before,.hero-dust,.orb,.mock-window,.floating-note,.marquee-track{animation:none!important}}
-    </style>
+    
+        /* Keep the public navigation from colliding with the brand and account actions. */
+        @media (max-width: 1240px) and (min-width: 701px) {
+            .site-header .nav {
+                min-height: 0;
+                flex-wrap: wrap;
+                row-gap: 7px;
+                padding-top: 11px;
+                padding-bottom: 11px;
+            }
+            .site-header .nav-links {
+                order: 3;
+                flex: 1 0 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 7px 20px;
+                padding: 3px 0 5px;
+                white-space: normal;
+            }
+            .site-header .nav-actions { margin-inline-start: auto; }
+        }
+        @media (max-width: 700px) {
+            .site-header .nav-links {
+                order: 3;
+                flex: 1 0 100%;
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overscroll-behavior-inline: contain;
+                scrollbar-width: thin;
+                padding: 5px 1px 9px;
+            }
+            .site-header .nav-links a { flex: 0 0 auto; }
+        }
+</style>
 @include('marketing.partials.faq-styles')
 </head>
 <body>
@@ -694,7 +743,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <div class="wrap nav">
         <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt="" width="43" height="43" loading="eager" fetchpriority="high" decoding="async" style="display:block;width:100%;height:100%;aspect-ratio:1;object-fit:contain"></span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
-            <a href="#features">امکانات</a><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a><a href="{{ route('marketing.subscription-plans') }}">پلن‌های اشتراک</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#ads">تبلیغات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
+            <a href="#features">امکانات</a><a href="{{ route('properties.index') }}">بازار املاک</a><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a><a href="{{ route('marketing.subscription-plans') }}">پلن‌های اشتراک</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
         </nav>
         <div class="nav-actions"><a class="btn btn-ghost" href="{{ route('marketing.subscription-plans') }}">مشاهده پلن‌ها</a>@auth<a class="btn btn-primary" href="{{ route('dashboard') }}" title="{{ $authTitle }}">ادامه در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a>@endauth</div>
     </div>
@@ -738,6 +787,53 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <div class="trust-strip"><div class="wrap trust-items">
         @foreach(data_get($content ?? [], 'trust_items', [['icon'=>'◈','text'=>'شفافیت مالی'],['icon'=>'✓','text'=>'پیگیری درخواست‌ها'],['icon'=>'⌂','text'=>'مناسب انواع ساختمان'],['icon'=>'↗','text'=>'دسترسی ساده و آنلاین']]) as $item)<div class="trust-item"><span>{{ $item['icon'] ?? '✓' }}</span> {{ $item['text'] ?? '' }}</div>@endforeach
     </div></div>
+
+    <section class="content-section marketplace-preview" id="property-marketplace" aria-labelledby="property-marketplace-title">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="section-kicker">بازار املاک صابخونه</span>
+                <h2 id="property-marketplace-title">ملک مناسب بعدی‌ات را اینجا پیدا کن</h2>
+                <p>آگهی‌های خرید، فروش و اجاره ملک؛ قابل مشاهده برای همه، حتی بدون ورود به حساب کاربری.</p>
+            </div>
+            @if(($featuredListings ?? collect())->isNotEmpty())
+                <div class="property-preview-grid">
+                    @foreach($featuredListings as $listing)
+                        <a class="property-preview-card" href="{{ route('properties.show', $listing) }}">
+                            <div class="property-preview-photo">
+                                @if(!empty($listing->photos[0]))
+                                    <img src="{{ asset('storage/'.$listing->photos[0]) }}" alt="{{ $listing->title }}" loading="lazy">
+                                @else
+                                    <span aria-hidden="true">⌂</span>
+                                @endif
+                                <span class="property-preview-type">{{ ['sale'=>'فروش','rent'=>'اجاره','buy_request'=>'درخواست خرید','rent_request'=>'درخواست اجاره'][$listing->listing_type] ?? 'آگهی ملک' }}</span>
+                            </div>
+                            <div class="property-preview-body">
+                                <h3>{{ $listing->title }}</h3>
+                                <p>{{ $listing->city }}@if($listing->neighborhood) · {{ $listing->neighborhood }}@endif</p>
+                                <div class="property-preview-meta">
+                                    @if($listing->area) <span>{{ number_format((float) $listing->area) }} متر</span> @endif
+                                    <strong>
+                                        @if($listing->listing_type === 'rent')
+                                            {{ $listing->deposit ? number_format((int) $listing->deposit).' ودیعه' : 'ودیعه توافقی' }}
+                                            @if($listing->monthly_rent) · {{ number_format((int) $listing->monthly_rent) }} اجاره @endif
+                                        @else
+                                            {{ $listing->price ? number_format((int) $listing->price).' تومان' : 'توافقی' }}
+                                        @endif
+                                    </strong>
+                                </div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @else
+                <div class="property-preview-empty">به‌زودی آگهی‌های جدید اینجا نمایش داده می‌شوند.</div>
+            @endif
+            <div class="property-preview-actions">
+                <a class="btn btn-primary" href="{{ route('properties.index') }}">مشاهده همه آگهی‌های ملکی</a>
+                <a class="btn btn-light" href="{{ route('properties.create') }}">ثبت آگهی رایگان</a>
+            </div>
+        </div>
+    </section>
 
     <section class="content-section" id="features">
         <div class="wrap">

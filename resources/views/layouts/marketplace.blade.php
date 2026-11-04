@@ -2,11 +2,25 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+@php
+    $marketplaceIndexing = app()->environment('production')
+        && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false)
+        && filter_var((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), FILTER_VALIDATE_URL)
+        && strtolower((string) parse_url((string) \App\Models\SiteSetting::get('seo.site_url', config('app.url')), PHP_URL_SCHEME)) === 'https';
+    $isFilteredMarketplace = request()->routeIs('properties.index') && request()->query() !== [];
+    $canonicalUrl = request()->routeIs('properties.index') ? route('properties.index') : url()->current();
+@endphp
 <title>@yield('title', 'آگهی‌های ملکی') | صابخونه</title>
-<meta name="description" content="@yield('meta_description', 'بازارچه تخصصی خرید، فروش و اجاره ملک در صابخونه')">
+<meta name="description" content="@yield('meta_description', 'آگهی‌های خرید، فروش و اجاره ملک در بازار املاک صابخونه؛ مشاهده رایگان آگهی‌ها در شهرها و محله‌های مختلف.')">
+<meta name="robots" content="{{ $marketplaceIndexing && !$isFilteredMarketplace ? 'index,follow,max-image-preview:large' : 'noindex,follow' }}">
 <meta name="theme-color" content="#0f4a45">
-<link rel="canonical" href="{{ url()->current() }}">
+<link rel="canonical" href="{{ $canonicalUrl }}">
 <link rel="icon" href="{{ asset('favicon.ico') }}">
+<meta property="og:type" content="{{ request()->routeIs('properties.show') ? 'article' : 'website' }}">
+<meta property="og:site_name" content="صابخونه">
+<meta property="og:title" content="@yield('title', 'آگهی‌های ملکی') | صابخونه">
+<meta property="og:description" content="@yield('meta_description', 'آگهی‌های خرید، فروش و اجاره ملک در بازار املاک صابخونه')">
+<meta property="og:url" content="{{ $canonicalUrl }}">
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v={{ @filemtime(public_path('css/marketplace.css')) }}">
 @stack('head')
