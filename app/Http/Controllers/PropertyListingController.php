@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -193,7 +194,7 @@ class PropertyListingController extends Controller
      * Unit owners can choose only units linked to them in active unit parties.
      * Creating a listing itself remains independent from building membership.
      */
-    private function availableUnits(Request $request)
+    private function availableUnits(Request $request): Collection
     {
         $memberships = DB::table('building_user_roles as bur')
             ->join('roles as r', 'r.id', '=', 'bur.role_id')
@@ -247,19 +248,19 @@ class PropertyListingController extends Controller
         );
     }
 
-    private function unitAutofillData($units): array
+    private function unitAutofillData(Collection $units): array
     {
         return $units->mapWithKeys(function (Unit $unit) {
             $building = $unit->building;
 
             return [(string) $unit->id => [
                 'area' => $unit->area_m2,
-                'floor' => $unit->getAttribute('floor'),
+                'floor' => $unit->getAttribute('floor') ?? $unit->getAttribute('floor_number'),
                 'bedrooms' => $unit->getAttribute('bedrooms'),
                 'bathrooms' => $unit->getAttribute('bathrooms'),
                 'province' => $building?->province?->name,
                 'city' => $building?->city?->name,
-                'parking_count' => $unit->parkingAssignments()->whereNull('released_at')->count(),
+                'parking_count' => DB::table('parking_assignments')->where('unit_id', $unit->id)->whereNull('released_at')->count(),
             ]];
         })->all();
     }
