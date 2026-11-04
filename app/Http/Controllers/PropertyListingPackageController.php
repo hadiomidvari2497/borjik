@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertyListingPackageOrder;
+use App\Models\SiteSetting;
 use App\Services\Payments\BitpayGateway;
 use App\Services\Payments\PaymentGatewayRegistry;
 use App\Services\Payments\ZarinpalGateway;
