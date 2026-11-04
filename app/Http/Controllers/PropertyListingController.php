@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\PropertyListing;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
