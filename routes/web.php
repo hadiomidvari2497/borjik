@@ -6,6 +6,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnalyticsCollectionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PropertyListingController;
+use App\Http\Controllers\PropertyListingPackageController;
 
 Route::post('/analytics/heartbeat', [AnalyticsCollectionController::class, 'heartbeat'])->middleware('throttle:120,1')->name('analytics.heartbeat');
 Route::post('/analytics/event', [AnalyticsCollectionController::class, 'event'])->middleware('throttle:120,1')->name('analytics.event');
@@ -16,6 +17,7 @@ Route::get('/', [MarketingController::class, 'home'])->name('home');
 Route::get('/subscription-plans', [MarketingController::class, 'subscriptionPlans'])->name('marketing.subscription-plans');
 Route::get('/enamad/image', [MarketingController::class, 'enamadImage'])->name('marketing.enamad.image');
 Route::get('/payment/gateway/callback', [SubscriptionController::class, 'callback'])->name('payment.gateway.callback');
+Route::get('/properties/packages/callback', [PropertyListingPackageController::class, 'callback'])->name('properties.packages.callback');
 Route::get('/software-building-charges', [MarketingController::class, 'buildingCharges'])->name('marketing.building-charges');
 Route::get('/charge-management-guide', [MarketingController::class, 'chargeManagementGuide'])->name('marketing.charge-guide');
 Route::get('/software-building-management', [MarketingController::class, 'buildingManagement'])->name('marketing.building-management');
@@ -33,6 +35,7 @@ Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])-
 
 Route::middleware('auth')->group(function () {
     Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
+    Route::post('/properties/packages/buy', [PropertyListingPackageController::class, 'buy'])->middleware('throttle:10,1')->name('properties.packages.buy');
     Route::get('/properties/create', [PropertyListingController::class, 'create'])->name('properties.create');
     Route::post('/properties', [PropertyListingController::class, 'store'])->middleware('throttle:10,1')->name('properties.store');
     Route::get('/properties/{listing}/edit', [PropertyListingController::class, 'edit'])->whereNumber('listing')->name('properties.edit');

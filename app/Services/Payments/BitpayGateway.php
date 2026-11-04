@@ -11,11 +11,11 @@ use RuntimeException;
 class BitpayGateway
 {
     /** @return array{id_get:string,payment_url:string,response:string} */
-    public function request(int $amountRial, int $paymentId, User $user, ?array $configuredSettings = null): array
+    public function request(int $amountRial, int $paymentId, User $user, ?array $configuredSettings = null, ?string $callbackUrl = null): array
     {
         $settings = $this->settings($configuredSettings);
         $api = $this->secret($settings['api_key'] ?? null);
-        $callback = route('payment.gateway.callback', ! empty($settings['_gateway_id']) ? ['gateway_id' => $settings['_gateway_id']] : []);
+        $callback = $callbackUrl ?? route('payment.gateway.callback', ! empty($settings['_gateway_id']) ? ['gateway_id' => $settings['_gateway_id']] : []);
         $response = Http::asForm()->timeout(20)->post('https://bitpay.ir/payment/gateway-send', [
             'api' => $api,
             'amount' => $amountRial,

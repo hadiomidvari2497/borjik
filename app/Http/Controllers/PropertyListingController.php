@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertyListing;
-use App\Models\Subscription;
+use App\Models\PropertyListingPackageOrder;
 use App\Models\SiteSetting;
+use App\Services\PropertyListingQuota;
+use App\Services\Payments\PaymentGatewayRegistry;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use Illuminate\Http\Request;
@@ -40,11 +42,15 @@ class PropertyListingController extends Controller
         return view('properties.show', compact('listing'));
     }
 
-    public function mine(Request $request)
+    public function mine(Request $request, PropertyListingQuota $quota, PaymentGatewayRegistry $gateways)
     {
         $listings = PropertyListing::where('user_id', $request->user()->id)->latest()->paginate(15);
+        $packages = collect(SiteSetting::get('property_listings.packages', []))->filter(fn ($package) => is_array($package) && ! empty($package['active']) && (int) ($package['price'] ?? 0) > 0)->values();
+        $availableCredits = $quota->availableCredits($request->user()->id);
+        $paymentGateways = $gateways->active();
+        $packageOrders = PropertyListingPackageOrder::where('user_id', $request->user()->id)->latest()->limit(8)->get();
 
-        return view('properties.mine', compact('listings'));
+        return view('properties.mine', compact('listings', 'packages', 'availableCredits', 'paymentGateways', 'packageOrders'));
     }
 
     public function create(Request $request)
@@ -61,12 +67,20 @@ class PropertyListingController extends Controller
     {
         $data = $this->validated($request);
         $this->authorizeUnitSelection($request, isset($data['unit_id']) ? (int) $data['unit_id'] : null);
-        $this->enforceFreeLimit($request);
         $data['user_id'] = $request->user()->id;
-        $data['photos'] = $this->storePhotos($request);
         $data['status'] = 'active';
 
-        $listing = PropertyListing::create($data);
+        $listing = DB::transaction(function () use ($request, $data) {
+            $consumedCredit = app(PropertyListingQuota::class)->consumeForNewListing($request->user());
+            $data['photos'] = $this->storePhotos($request);
+            $listing = PropertyListing::create($data);
+
+            if ($consumedCredit) {
+                $consumedCredit->update(['property_listing_id' => $listing->id]);
+            }
+
+            return $listing;
+        });
 
         return redirect()->route('properties.mine')->with('status', 'آگهی شما با موفقیت ثبت و منتشر شد.');
     }
@@ -126,24 +140,6 @@ class PropertyListingController extends Controller
     private function authorizeOwner(Request $request, PropertyListing $listing): void
     {
         abort_unless((int) $listing->user_id === (int) $request->user()->id, 403);
-    }
-
-    private function enforceFreeLimit(Request $request): void
-    {
-        $userId = $request->user()->id;
-        $hasActiveSubscription = Subscription::query()
-            ->where('user_id', $userId)
-            ->where('status', 'active')
-            ->whereNotNull('expires_at')
-            ->where('expires_at', '>', now())
-            ->exists();
-
-        $freeLimit = max(0, (int) SiteSetting::get('property_listings.free_limit', 3));
-        $activeCount = PropertyListing::where('user_id', $userId)->published()->count();
-
-        if (! $hasActiveSubscription && $activeCount >= $freeLimit) {
-            abort(403, 'سقف '.$freeLimit.' آگهی فعال رایگان شما تکمیل شده است. برای ثبت آگهی بیشتر بسته آگهی تهیه کنید یا اشتراک خود را فعال کنید.');
-        }
     }
 
     private function validated(Request $request, ?PropertyListing $listing = null): array
