@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\PropertyListingPackageOrder;
-use App\\Models\\PropertyListingCreditTransaction;
-use App\\Models\\SiteSetting;
-use App\\Models\\User;
-use App\\Services\\Payments\\BitpayGateway;
-use App\\Services\\Payments\\PaymentGatewayRegistry;
-use App\\Services\\Payments\\ZarinpalGateway;
-use App\\Services\\PropertyListingQuota;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Log;
+use App\Models\PropertyListingPackageOrder;
+use App\Models\PropertyListingCreditTransaction;
+use App\Models\SiteSetting;
+use App\Models\User;
+use App\Services\Payments\BitpayGateway;
+use App\Services\Payments\PaymentGatewayRegistry;
+use App\Services\Payments\ZarinpalGateway;
+use App\Services\PropertyListingQuota;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class PropertyListingPackageController extends Controller
@@ -73,7 +73,7 @@ class PropertyListingPackageController extends Controller
             ]);
 
             return redirect()->away($result['payment_url']);
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             $order->update([
                 'status' => 'failed',
                 'raw_response' => array_merge($order->raw_response ?? [], ['request_error' => mb_substr($e->getMessage(), 0, 500)]),
@@ -158,7 +158,7 @@ class PropertyListingPackageController extends Controller
             });
 
             return redirect()->route('properties.mine')->with('status', 'پرداخت تأیید شد؛ '.$order->quantity.' اعتبار آگهی به حساب شما اضافه شد.');
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             Log::warning('Property listing package payment verification failed', [
                 'order_id' => $order->id,
                 'exception' => $e::class,
