@@ -5,7 +5,7 @@
     $F = \App\Support\Fa::class;
     $typeLabels = ['sale' => 'فروش', 'rent' => 'اجاره', 'buy_request' => 'درخواست خرید', 'rent_request' => 'درخواست اجاره'];
     $propertyLabels = ['residential' => 'مسکونی', 'commercial' => 'تجاری', 'land' => 'زمین'];
-    $statusLabels = ['active' => 'فعال', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
+    $statusLabels = ['pending' => 'در انتظار تأیید', 'active' => 'فعال', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
 @endphp
 <div class="card">
     <div class="page-h">

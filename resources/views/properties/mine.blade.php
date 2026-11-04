@@ -80,7 +80,7 @@
         <article class="card">
             <div class="body">
                 <h3>{{ $listing->title }}</h3>
-                <div class="muted">{{ $listing->city }} · وضعیت: {{ ['active'=>'فعال','closed'=>'غیرفعال','rejected'=>'رد شده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status }}</div>
+                <div class="muted">{{ $listing->city }} · وضعیت: {{ ['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'رد شده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status }}</div>
                 @if($listing->status === 'rejected' && $listing->moderation_note)<p class="muted">توضیح مدیریت: {{ $listing->moderation_note }}</p>@endif
                 <div class="actions">
                     <a class="btn light" href="{{ route('properties.show',$listing) }}">مشاهده</a>

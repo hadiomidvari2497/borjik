@@ -106,6 +106,38 @@ class AdminPropertyMarketplaceTest extends TestCase
             ->assertSee('زرین‌پال');
     }
 
+    public function test_new_listing_stays_hidden_until_admin_approves_it(): void
+    {
+        $admin = $this->admin(super: true);
+        $user = $this->user();
+        $listing = PropertyListing::create([
+            'user_id' => $user->id,
+            'listing_type' => 'sale',
+            'property_type' => 'residential',
+            'title' => 'ملک منتظر تأیید',
+            'description' => 'توضیحات کامل آگهی',
+            'city' => 'تهران',
+            'status' => 'pending',
+        ]);
+
+        $this->get(route('properties.index'))->assertOk()->assertDontSee($listing->title);
+        $this->get(route('properties.show', $listing))->assertNotFound();
+
+        $this->actingAs($admin, 'admin')
+            ->get(route('admin.property-listings.index', ['status' => 'pending']))
+            ->assertOk()
+            ->assertSee($listing->title)
+            ->assertSee('در انتظار تأیید');
+
+        $this->actingAs($admin, 'admin')
+            ->patch(route('admin.property-listings.status', $listing->id), ['status' => 'active'])
+            ->assertRedirect(route('admin.property-listings.show', $listing->id));
+
+        $this->assertDatabaseHas('property_listings', ['id' => $listing->id, 'status' => 'active']);
+        $this->get(route('properties.index'))->assertOk()->assertSee($listing->title);
+        $this->actingAs($user)->get(route('properties.mine'))->assertOk()->assertSee('فعال');
+    }
+
     public function test_admin_can_review_and_change_listing_status_with_audit_note(): void
     {
         $admin = $this->admin(super: true);
