@@ -5,7 +5,7 @@
 <div class="card">
   <div class="page-h">
     <h2>پلن‌های اشتراک</h2>
-    <a class="btn" href="{{ route('admin.plans.create') }}">+ پلن جدید</a>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn sec" href="{{ route('admin.property-listings.settings') }}">تنظیمات بازارچه آگهی</a><a class="btn" href="{{ route('admin.plans.create') }}">+ پلن جدید</a></div>
   </div>
   <p style="color:var(--muted);font-size:13px;margin:0 0 12px;line-height:1.7">
     این پلن‌ها در صفحهٔ اشتراک کاربران نمایش داده می‌شوند. برای پلن رایگان، قیمت را <b>۰</b> بگذارید.
