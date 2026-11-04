@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Services;
+namespace App\Services;
 
-use App\\Models\\PropertyListing;
-use App\\Models\\PropertyListingCreditTransaction;
-use App\\Models\\SiteSetting;
-use App\\Models\\Subscription;
-use App\\Models\\User;
-use Illuminate\\Support\\Facades\\DB;
+use App\Models\PropertyListing;
+use App\Models\PropertyListingCreditTransaction;
+use App\Models\SiteSetting;
+use App\Models\Subscription;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class PropertyListingQuota
 {
@@ -63,9 +63,9 @@ class PropertyListingQuota
 
     public function grantPaidOrder(int $orderId): void
     {
-        $order = \\App\\Models\\PropertyListingPackageOrder::query()->whereKey($orderId)->lockForUpdate()->firstOrFail();
+        $order = \App\Models\PropertyListingPackageOrder::query()->whereKey($orderId)->lockForUpdate()->firstOrFail();
         if ($order->status !== 'paid') {
-            throw new \\RuntimeException('Package order must be paid before granting credits.');
+            throw new \RuntimeException('Package order must be paid before granting credits.');
         }
 
         $exists = PropertyListingCreditTransaction::query()
