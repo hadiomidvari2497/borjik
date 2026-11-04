@@ -27,9 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const details = data[this.value];
         if (!details) return;
         Object.entries(details).forEach(([name, value]) => {
-            if (value === null || value === undefined || value === '') return;
             const field = document.querySelector('[name="' + name + '"]');
-            if (field) field.value = value;
+            if (field) field.value = value ?? '';
         });
     });
 });
