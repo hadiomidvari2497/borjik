@@ -62,10 +62,63 @@ class PropertyListingManagementController extends Controller
         ")->first();
 
         $recentOrders = PropertyListingPackageOrder::query()->with('user')->latest('id')->limit(12)->get();
+        $pendingReports = PropertyListingReport::query()->where('status', 'pending')->count();
 
         return view('admin.property-listings.index', compact(
-            'filters', 'listings', 'listingStats', 'orderStats', 'creditStats', 'recentOrders'
+            'filters', 'listings', 'listingStats', 'orderStats', 'creditStats', 'recentOrders', 'pendingReports'
         ));
+    }
+
+    public function reports(Request $request)
+    {
+        $status = $request->validate([
+            'status' => ['nullable', 'in:pending,actioned,dismissed'],
+        ])['status'] ?? 'pending';
+
+        $reports = PropertyListingReport::query()->with(['listing.user', 'reporter'])
+            ->where('status', $status)
+            ->latest('id')
+            ->paginate(25)
+            ->withQueryString();
+
+        $counts = PropertyListingReport::query()
+            ->selectRaw("status, COUNT(*) AS total")
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return view('admin.property-listings.reports', compact('reports', 'status', 'counts'));
+    }
+
+    public function updateReport(Request $request, int $reportId)
+    {
+        $data = $request->validate([
+            'status' => ['required', 'in:actioned,dismissed'],
+            'resolution_note' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $report = PropertyListingReport::query()->with('reporter')->findOrFail($reportId);
+        $report->update([
+            'status' => $data['status'],
+            'resolution_note' => $data['resolution_note'],
+            'reviewed_by' => $request->user('admin')->id,
+            'reviewed_at' => now(),
+        ]);
+
+        $message = $data['status'] === 'actioned'
+            ? 'گزارش شما بررسی شد و اقدامات لازم انجام شد.'
+            : 'گزارش شما بررسی شد؛ تخلفی تشخیص داده نشد.';
+        $report->reporter?->notify(new PropertyListingNotification(
+            'report_reviewed',
+            'گزارش تخلف بررسی شد',
+            $message.' '.$data['resolution_note'],
+            route('properties.mine'),
+            $data['status'] === 'actioned' ? 'success' : 'info',
+            $report->property_listing_id,
+            $report->id
+        ));
+
+        return redirect()->route('admin.property-listings.reports', ['status' => $data['status'] === 'actioned' ? 'actioned' : 'dismissed'])
+            ->with('status', 'نتیجه بررسی گزارش ثبت و به گزارش‌دهنده اطلاع داده شد.');
     }
 
     public function show(int $id)
