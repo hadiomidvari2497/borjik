@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PropertyListing;
 use App\Models\Subscription;
+use App\Models\SiteSetting;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use Illuminate\Http\Request;
