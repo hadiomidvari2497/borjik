@@ -7,6 +7,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PropertyListing extends Model
 {
+    public const LISTING_TYPES = [
+        'sale' => 'فروش',
+        'rent' => 'اجاره',
+        'buy_request' => 'درخواست خرید',
+        'rent_request' => 'درخواست اجاره',
+    ];
+
+    public const PROPERTY_TYPES = [
+        'residential' => 'مسکونی',
+        'commercial' => 'تجاری',
+        'land' => 'زمین',
+    ];
+
     protected $fillable = [
         'user_id', 'unit_id', 'parking_count', 'listing_type', 'property_type', 'title', 'description',
         'province', 'city', 'neighborhood', 'address', 'hide_address', 'area',
@@ -36,6 +49,64 @@ class PropertyListing extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function listingTypeLabel(): string
+    {
+        return self::LISTING_TYPES[$this->listing_type] ?? '';
+    }
+
+    public function propertyTypeLabel(): string
+    {
+        return self::PROPERTY_TYPES[$this->property_type] ?? '';
+    }
+
+    /** آدرس عمومی تصاویر آگهی به‌صورت آرایه‌ی مرتب. */
+    public function photoUrls(): array
+    {
+        return collect($this->photos ?? [])
+            ->filter(fn ($path) => is_string($path) && $path !== '')
+            ->map(fn (string $path) => asset('storage/'.$path))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * قیمت آماده‌ی نمایش: آرایه‌ای از ردیف‌های برچسب/مقدار.
+     * $short=true مبلغ را خلاصه می‌کند (مثلاً «۵ میلیارد تومان»).
+     *
+     * @return array<int, array{label: ?string, value: string}>
+     */
+    public function priceRows(bool $short = false): array
+    {
+        $fmt = fn ($n) => $short ? \App\Support\Fa::short((int) $n) : \App\Support\Fa::money((int) $n);
+
+        if ($this->listing_type === 'rent') {
+            $rows = [];
+            if ($this->deposit) {
+                $rows[] = ['label' => 'ودیعه', 'value' => $fmt($this->deposit)];
+            }
+            if ($this->monthly_rent) {
+                $rows[] = ['label' => 'اجاره ماهانه', 'value' => $fmt($this->monthly_rent)];
+            }
+
+            return $rows ?: [['label' => null, 'value' => 'توافقی']];
+        }
+
+        $label = $this->listing_type === 'rent_request' ? 'بودجه' : null;
+        if ($this->listing_type === 'rent_request' && ($this->deposit || $this->monthly_rent)) {
+            $rows = [];
+            if ($this->deposit) {
+                $rows[] = ['label' => 'ودیعه', 'value' => $fmt($this->deposit)];
+            }
+            if ($this->monthly_rent) {
+                $rows[] = ['label' => 'اجاره ماهانه', 'value' => $fmt($this->monthly_rent)];
+            }
+
+            return $rows;
+        }
+
+        return [['label' => $label, 'value' => $this->price ? $fmt($this->price) : 'توافقی']];
     }
 
     public function scopePublished($query)

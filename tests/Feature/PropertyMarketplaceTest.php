@@ -92,6 +92,43 @@ class PropertyMarketplaceTest extends TestCase
         $this->actingAs($owner)->post(route('properties.close', $listing))->assertRedirect();
         $this->assertDatabaseHas('property_listings', ['id' => $listing->id, 'status' => 'closed']);
     }
+
+    public function test_listing_page_renders_photos_as_a_slider_with_price_rows(): void
+    {
+        $owner = $this->makeUser();
+        $listing = PropertyListing::create([
+            'user_id' => $owner->id,
+            'listing_type' => 'rent',
+            'property_type' => 'residential',
+            'title' => 'آپارتمان نورگیر',
+            'description' => 'توضیحات',
+            'city' => 'تهران',
+            'area' => 85,
+            'bedrooms' => 2,
+            'deposit' => 800000000,
+            'monthly_rent' => 12000000,
+            'photos' => ['property-listings/a.jpg', 'property-listings/b.jpg', 'property-listings/c.jpg'],
+            'status' => 'active',
+        ]);
+
+        $this->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('data-gallery', false)
+            ->assertSee('storage/property-listings/b.jpg', false)
+            ->assertSee('class="nav-btn next"', false)
+            ->assertSee('ودیعه')
+            ->assertSee('اجاره ماهانه')
+            ->assertSee('۱۲٬۰۰۰٬۰۰۰ تومان', false);
+
+        $this->get(route('properties.index', ['listing_type' => 'rent']))
+            ->assertOk()
+            ->assertSee('آپارتمان نورگیر')
+            ->assertSee('۸۰۰ میلیون تومان', false);
+
+        $listing->update(['photos' => null]);
+        $this->get(route('properties.show', $listing))->assertOk()->assertDontSee('data-gallery', false);
+    }
+
     private function makeUser(): User
     {
         return User::create([
