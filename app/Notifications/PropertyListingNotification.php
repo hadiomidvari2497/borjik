@@ -1,8 +1,8 @@
 <?php
 
-namespace App\\Notifications;
+namespace App\Notifications;
 
-use Illuminate\\Notifications\\Notification;
+use Illuminate\Notifications\Notification;
 
 class PropertyListingNotification extends Notification
 {
