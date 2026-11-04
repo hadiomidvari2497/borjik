@@ -12,6 +12,9 @@
         <article style="max-width:85%;padding:13px 16px;border-radius:14px;background:#edf6f2;align-self:{{ (int) auth()->id() === (int) $inquiry->sender_user_id ? 'flex-start' : 'flex-end' }}">
             <div class="muted" style="font-size:11px;margin-bottom:6px">{{ $inquiry->sender_name }} · {{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d H:i') }}</div>
             <div style="white-space:pre-wrap;line-height:2">{{ $inquiry->message }}</div>
+            @if($inquiry->sender_mobile && (int) auth()->id() === (int) $inquiry->recipient_user_id)
+                <div style="margin-top:8px"><a href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده: {{ $inquiry->sender_mobile }}</a></div>
+            @endif
         </article>
         @foreach($messages as $message)
             <article style="max-width:85%;padding:13px 16px;border-radius:14px;background:{{ (int) $message->sender_user_id === (int) auth()->id() ? '#edf6f2' : '#f5f7f6' }};align-self:{{ (int) $message->sender_user_id === (int) auth()->id() ? 'flex-start' : 'flex-end' }}">
