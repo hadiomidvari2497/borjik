@@ -1,14 +1,14 @@
 <?php
 
-namespace App\\Http\\Controllers\\Admin;
+namespace App\Http\Controllers\Admin;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\PropertyListing;
-use App\\Models\\PropertyListingCreditTransaction;
-use App\\Models\\PropertyListingPackageOrder;
-use App\\Support\\Fa;
-use Illuminate\\Database\\Eloquent\\Builder;
-use Illuminate\\Http\\Request;
+use App\Http\Controllers\Controller;
+use App\Models\PropertyListing;
+use App\Models\PropertyListingCreditTransaction;
+use App\Models\PropertyListingPackageOrder;
+use App\Support\Fa;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 class PropertyListingManagementController extends Controller
 {
@@ -24,7 +24,7 @@ class PropertyListingManagementController extends Controller
             ->when($filters['status'] ?? null, fn (Builder $query, $status) => $query->where('status', $status))
             ->when($filters['listing_type'] ?? null, fn (Builder $query, $type) => $query->where('listing_type', $type))
             ->when(($filters['q'] ?? '') !== '', function (Builder $query) use ($filters) {
-                $like = '%'.addcslashes($filters['q'], '%_\\').'%';
+                $like = '%'.addcslashes($filters['q'], '%_\').'%';
                 $query->where(function (Builder $where) use ($like) {
                     $where->where('title', 'like', $like)
                         ->orWhere('city', 'like', $like)
