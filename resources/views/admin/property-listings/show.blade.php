@@ -2,7 +2,7 @@
 @section('title', 'بررسی آگهی ملکی')
 @section('content')
 @php
-    $F = \\App\\Support\\Fa::class;
+    $F = \App\Support\Fa::class;
     $typeLabels = ['sale' => 'فروش', 'rent' => 'اجاره', 'buy_request' => 'درخواست خرید', 'rent_request' => 'درخواست اجاره'];
     $propertyLabels = ['residential' => 'مسکونی', 'commercial' => 'تجاری', 'land' => 'زمین'];
     $statusLabels = ['active' => 'فعال', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
@@ -49,7 +49,7 @@
         <h3 style="margin-top:18px">تصاویر</h3>
         <div class="grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
             @foreach($listing->photos as $photo)
-                <a href="{{ Storage::disk('public')->url($photo) }}" target="_blank" rel="noopener"><img src="{{ Storage::disk('public')->url($photo) }}" alt="تصویر آگهی" style="width:100%;height:160px;object-fit:cover;border-radius:12px"></a>
+                <a href="{{ \\Illuminate\\Support\\Facades\\Storage::disk('public')->url($photo) }}" target="_blank" rel="noopener"><img src="{{ Storage::disk('public')->url($photo) }}" alt="تصویر آگهی" style="width:100%;height:160px;object-fit:cover;border-radius:12px"></a>
             @endforeach
         </div>
     @endif
