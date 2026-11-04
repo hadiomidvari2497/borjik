@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\PropertyListing;
 use App\Models\PropertyListingPackageOrder;
-use App\Models\Subscription;
 use App\Models\SiteSetting;
 use App\Services\PropertyListingQuota;
 use App\Services\Payments\PaymentGatewayRegistry;
