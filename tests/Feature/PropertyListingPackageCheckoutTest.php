@@ -1,15 +1,15 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\PropertyListing;
-use App\\Models\\PropertyListingCreditTransaction;
-use App\\Models\\PropertyListingPackageOrder;
-use App\\Models\\SiteSetting;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Illuminate\\Support\\Facades\\Http;
-use Tests\\TestCase;
+use App\Models\PropertyListing;
+use App\Models\PropertyListingCreditTransaction;
+use App\Models\PropertyListingPackageOrder;
+use App\Models\SiteSetting;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
 
 class PropertyListingPackageCheckoutTest extends TestCase
 {
@@ -84,7 +84,7 @@ class PropertyListingPackageCheckoutTest extends TestCase
         $order = $this->startPurchase();
 
         $this->assertSame('pending', $order->status);
-        $this->assertSame(0, app(\\App\\Services\\PropertyListingQuota::class)->availableCredits($this->user->id));
+        $this->assertSame(0, app(\App\Services\PropertyListingQuota::class)->availableCredits($this->user->id));
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/payment/request.json')
             && $request['amount'] === 500000);
 
@@ -92,7 +92,7 @@ class PropertyListingPackageCheckoutTest extends TestCase
 
         $this->assertSame('paid', $order->fresh()->status);
         $this->assertSame('778899', (string) $order->fresh()->ref_id);
-        $this->assertSame(1, app(\\App\\Services\\PropertyListingQuota::class)->availableCredits($this->user->id));
+        $this->assertSame(1, app(\App\Services\PropertyListingQuota::class)->availableCredits($this->user->id));
         $this->assertDatabaseHas('property_listing_credit_transactions', [
             'user_id' => $this->user->id,
             'package_order_id' => $order->id,
@@ -106,7 +106,7 @@ class PropertyListingPackageCheckoutTest extends TestCase
             'Status' => 'OK',
         ]));
 
-        $this->assertSame(1, app(\\App\\Services\\PropertyListingQuota::class)->availableCredits($this->user->id));
+        $this->assertSame(1, app(\App\Services\PropertyListingQuota::class)->availableCredits($this->user->id));
         $this->assertSame(1, PropertyListingCreditTransaction::where('package_order_id', $order->id)->count());
         Http::assertSent(fn ($request) => str_ends_with($request->url(), '/payment/verify.json')
             && $request['amount'] === 500000
@@ -134,7 +134,7 @@ class PropertyListingPackageCheckoutTest extends TestCase
         ]))->assertRedirect(route('properties.mine'));
 
         $this->assertSame('failed', $order->fresh()->status);
-        $this->assertSame(0, app(\\App\\Services\\PropertyListingQuota::class)->availableCredits($this->user->id));
+        $this->assertSame(0, app(\App\Services\PropertyListingQuota::class)->availableCredits($this->user->id));
         $this->assertDatabaseCount('property_listing_credit_transactions', 0);
         Http::assertNotSent(fn ($request) => str_ends_with($request->url(), '/payment/verify.json'));
     }
@@ -168,7 +168,7 @@ class PropertyListingPackageCheckoutTest extends TestCase
         ])->assertRedirect(route('properties.mine'));
 
         $this->assertDatabaseCount('property_listings', 4);
-        $this->assertSame(0, app(\\App\\Services\\PropertyListingQuota::class)->availableCredits($this->user->id));
+        $this->assertSame(0, app(\App\Services\PropertyListingQuota::class)->availableCredits($this->user->id));
         $this->assertDatabaseHas('property_listing_credit_transactions', [
             'user_id' => $this->user->id,
             'package_order_id' => null,
