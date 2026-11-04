@@ -71,10 +71,16 @@ class PropertyListingController extends Controller
     {
         $this->authorizeOwner($request, $listing);
         $data = $this->validated($request, $listing);
-        $data['photos'] = array_values(array_merge(
-            array_intersect((array) $request->input('existing_photos', []), $listing->photos ?? []),
-            $this->storePhotos($request)
-        ));
+        $keptPhotos = array_values(array_intersect((array) $request->input('existing_photos', []), $listing->photos ?? []));
+        $newUploads = $request->file('photos', []);
+        if (count($keptPhotos) + count($newUploads) > 12) {
+            abort(422, 'حداکثر ۱۲ تصویر برای هر آگهی مجاز است.');
+        }
+        $removedPhotos = array_diff($listing->photos ?? [], $keptPhotos);
+        foreach ($removedPhotos as $photo) {
+            Storage::disk('public')->delete($photo);
+        }
+        $data['photos'] = array_values(array_merge($keptPhotos, $this->storePhotos($request)));
         $data['status'] = $listing->status;
         $listing->update($data);
 
@@ -115,7 +121,7 @@ class PropertyListingController extends Controller
             ->where('expires_at', '>', now())
             ->exists();
 
-        if (! $hasActiveSubscription && PropertyListing::where('user_id', $userId)->where('status', 'active')->count() >= 3) {
+        if (! $hasActiveSubscription && PropertyListing::where('user_id', $userId)->published()->count() >= 3) {
             abort(403, 'سقف ۳ آگهی فعال رایگان شما تکمیل شده است. برای ثبت آگهی بیشتر اشتراک خود را فعال کنید.');
         }
     }
