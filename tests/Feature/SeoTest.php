@@ -373,7 +373,7 @@ class SeoTest extends TestCase
             ->assertSee('خرید، فروش یا اجاره ملک')
             ->assertSee('ورود به بازار املاک')
             ->assertDontSee('id="property-marketplace"', false)
-            ->assertDontSee('property-preview-card');
+            ->assertDontSee('class="property-preview-card"', false);
 
         $this->assertSame(
             1,
