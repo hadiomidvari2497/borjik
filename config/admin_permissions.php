@@ -19,6 +19,7 @@ return [
             'plans.manage' => 'مدیریت پلن‌ها و تعرفه‌ها',
             'subscriptions.manage' => 'مدیریت اشتراک کاربران',
             'gateway.manage' => 'تنظیمات درگاه پرداخت اشتراک',
+            'marketplace.manage' => 'مدیریت بازارچه آگهی‌های ملکی',
         ],
     ],
     'sms' => [
