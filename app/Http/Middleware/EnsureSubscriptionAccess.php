@@ -19,6 +19,7 @@ class EnsureSubscriptionAccess
         'buildings.create',
         'buildings.store',
         'support.*',
+        'notifications.*',
     ];
 
     public function handle(Request $request, Closure $next): Response
