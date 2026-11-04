@@ -23,6 +23,7 @@ $breadcrumbSchema = ['@context'=>'https://schema.org','@type'=>'BreadcrumbList',
 ['@type'=>'ListItem','position'=>1,'name'=>'صفحهٔ اصلی','item'=>$seoBase.'/'],
 ['@type'=>'ListItem','position'=>2,'name'=>'نرم‌افزار مدیریت ساختمان','item'=>$seoUrl],
 ]];
+$softwareApplicationSchema = ['@context'=>'https://schema.org','@type'=>'SoftwareApplication','name'=>'صابخونه؛ نرم‌افزار مدیریت ساختمان','applicationCategory'=>'BusinessApplication','operatingSystem'=>'Web browser','inLanguage'=>'fa-IR','url'=>$seoUrl,'description'=>$seoDescription,'featureList'=>['مدیریت شارژ و هزینه‌های ساختمان','ثبت درآمد، هزینه و تراکنش‌های خزانه','ثبت، ارجاع و پیگیری درخواست‌های ساکنان','گزارش عملکرد رسیدگی به درخواست‌ها','نظرسنجی و رأی‌گیری ساختمان','مدیریت قالب‌های پیامک','سطح دسترسی متناسب با نقش مدیر، مالک، ساکن و پرسنل'],'provider'=>['@type'=>'Organization','name'=>'صابخونه','url'=>$seoBase.'/']];
 @endphp
 <title>{{ $seoTitle }}</title><meta name="description" content="{{ $seoDescription }}"><meta name="robots" content="{{ $seoIndexable ? 'index,follow' : 'noindex,nofollow' }}">
 @if($seoPublic && app()->environment('production'))<link rel="canonical" href="{{ $seoUrl }}">@endif
@@ -31,6 +32,7 @@ $breadcrumbSchema = ['@context'=>'https://schema.org','@type'=>'BreadcrumbList',
 @if($seoPublic && app()->environment('production'))
 <script type="application/ld+json">{!! json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
 <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
+<script type="application/ld+json">{!! json_encode($softwareApplicationSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
 <script type="application/ld+json">{!! json_encode(['@context'=>'https://schema.org','@type'=>'FAQPage','mainEntity'=>array_map(fn($item)=>['@type'=>'Question','name'=>$item['q'],'acceptedAnswer'=>['@type'=>'Answer','text'=>$item['a']]],$faqItems)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
 @endif
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
