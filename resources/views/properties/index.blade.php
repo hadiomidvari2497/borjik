@@ -1,13 +1,18 @@
 @extends('layouts.marketplace')
 @section('title', 'خرید، فروش و اجاره ملک')
 @section('content')
+<style>
+.search-row.market-search-row{grid-template-columns:1.2fr 1fr 1fr 1fr auto}
+@media(max-width:980px){.search-row.market-search-row{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.search-row.market-search-row{grid-template-columns:1fr}}
+</style>
 @php
     use App\Models\PropertyListing;
     use App\Support\Fa;
 
     $activeType = request('listing_type');
     $tabQuery = fn (?string $type) => route('properties.index', array_filter(array_merge(request()->except(['page', 'listing_type']), ['listing_type' => $type]), fn ($v) => $v !== null && $v !== ''));
-    $hasAdvanced = request()->filled('property_type') || request()->filled('min_area') || request()->filled('max_area');
+    $hasAdvanced = request()->filled('province') || request()->filled('min_area') || request()->filled('max_area') || request()->filled('min_price') || request()->filled('max_price') || request()->filled('bedrooms') || request()->filled('parking');
 @endphp
 
 <section class="hero has-search">
@@ -23,7 +28,8 @@
             <a href="{{ $tabQuery($key) }}" @if($activeType === $key) aria-current="true" @endif>{{ $label }}</a>
         @endforeach
     </div>
-    <div class="search-row">
+    <div class="search-row market-search-row">
+        <label class="field">عبارت جستجو<input name="q" value="{{ request('q') }}" placeholder="عنوان، محله یا توضیحات" autocomplete="off"></label>
         <label class="field">شهر<input name="city" value="{{ request('city') }}" placeholder="مثلاً تهران" autocomplete="off"></label>
         <label class="field">محله<input name="neighborhood" value="{{ request('neighborhood') }}" placeholder="مثلاً ونک" autocomplete="off"></label>
         <label class="field">نوع ملک
@@ -35,10 +41,15 @@
         <button class="btn lg" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>جستجو</button>
     </div>
     <details @if($hasAdvanced) open @endif>
-        <summary>فیلتر متراژ</summary>
+        <summary>فیلترهای بیشتر: استان، قیمت، متراژ و امکانات</summary>
         <div class="fields">
-            <label class="field">حداقل متراژ<input type="number" min="0" name="min_area" value="{{ request('min_area') }}" placeholder="مثلاً ۶۰"></label>
-            <label class="field">حداکثر متراژ<input type="number" min="0" name="max_area" value="{{ request('max_area') }}" placeholder="مثلاً ۱۵۰"></label>
+            <label class="field">استان<input name="province" value="{{ request('province') }}" placeholder="مثلاً تهران"></label>
+            <label class="field">حداقل متراژ<input type="number" min="1" name="min_area" value="{{ request('min_area') }}" placeholder="مثلاً ۶۰"></label>
+            <label class="field">حداکثر متراژ<input type="number" min="1" name="max_area" value="{{ request('max_area') }}" placeholder="مثلاً ۱۵۰"></label>
+            <label class="field">حداقل قیمت / اجاره<input type="number" min="0" name="min_price" value="{{ request('min_price') }}" placeholder="تومان"></label>
+            <label class="field">حداکثر قیمت / اجاره<input type="number" min="0" name="max_price" value="{{ request('max_price') }}" placeholder="تومان"></label>
+            <label class="field">حداقل تعداد اتاق<input type="number" min="0" max="30" name="bedrooms" value="{{ request('bedrooms') }}"></label>
+            <label class="field">پارکینگ<select name="parking"><option value="">مهم نیست</option><option value="1" @selected(request('parking') === '1')>فقط دارای پارکینگ</option></select></label>
         </div>
         <div class="actions"><a class="btn light" href="{{ route('properties.index') }}">پاک‌کردن فیلترها</a></div>
     </details>
@@ -46,7 +57,19 @@
 
 <div class="results-head">
     <h2>{{ $activeType ? 'آگهی‌های '.(PropertyListing::LISTING_TYPES[$activeType] ?? '') : 'تازه‌ترین آگهی‌ها' }}</h2>
-    @if($listings->total() > 0)<span>{{ Fa::num($listings->total()) }} آگهی</span>@endif
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        @if($listings->total() > 0)<span>{{ Fa::num($listings->total()) }} آگهی</span>@endif
+        <form method="GET" action="{{ route('properties.index') }}" style="display:flex;gap:7px;align-items:center">
+            @foreach(request()->except(['sort','page']) as $key=>$value)<input type="hidden" name="{{ $key }}" value="{{ $value }}">@endforeach
+            <label class="sr-only" for="market-sort">مرتب‌سازی</label>
+            <select id="market-sort" name="sort" onchange="this.form.submit()" style="border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;font:inherit;color:var(--ink)">
+                <option value="newest" @selected(request('sort','newest') === 'newest')>جدیدترین</option>
+                <option value="price_asc" @selected(request('sort') === 'price_asc')>ارزان‌ترین</option>
+                <option value="price_desc" @selected(request('sort') === 'price_desc')>گران‌ترین</option>
+                <option value="area_desc" @selected(request('sort') === 'area_desc')>بیشترین متراژ</option>
+            </select>
+        </form>
+    </div>
 </div>
 
 <div class="grid">
