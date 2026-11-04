@@ -212,7 +212,7 @@ class PropertyListingController extends Controller
         }
 
         unset($data['photos']);
-        $data['hide_address'] = $request->boolean('hide_address', true);
+        $data['hide_address'] = $request->boolean('hide_address');
         $data['allow_exchange'] = $request->boolean('allow_exchange');
 
         return $data;
