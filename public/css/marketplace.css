@@ -108,6 +108,9 @@ th{color:var(--mute);font-weight:500;font-size:12px}
 .results-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:6px 2px 16px}
 .results-head h2{font-size:18px;font-weight:800}
 .results-head span{color:var(--mute);font-size:13px}
+.results-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sort select{border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 10px;background:#fff;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.search .fields .span-all{grid-column:1/-1}
 
 /* ───────── کارت آگهی ───────── */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:20px}
@@ -233,7 +236,7 @@ a.card:hover .photo img{transform:scale(1.05)}
   .seg::-webkit-scrollbar{display:none}
   .seg a{white-space:nowrap;flex:none}
   .search .fields{grid-template-columns:1fr 1fr;gap:10px}
-  .search .fields .field:nth-child(3){grid-column:1/-1}
+  .search .fields .field:nth-child(5){grid-column:1/-1}
   .search .actions .btn{flex:1}
   .results-head{margin:2px 2px 12px}
   .results-head h2{font-size:16px}

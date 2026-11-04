@@ -19,16 +19,46 @@ class PropertyListingController extends Controller
 {
     public function index(Request $request)
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:120'],
+            'listing_type' => ['nullable', Rule::in(['sale', 'rent', 'buy_request', 'rent_request'])],
+            'property_type' => ['nullable', Rule::in(['residential', 'commercial', 'land'])],
+            'province' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'neighborhood' => ['nullable', 'string', 'max:120'],
+            'min_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
+            'max_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
+            'min_price' => ['nullable', 'integer', 'min:0'],
+            'max_price' => ['nullable', 'integer', 'min:0'],
+            'bedrooms' => ['nullable', 'integer', 'min:0', 'max:30'],
+            'parking' => ['nullable', 'boolean'],
+            'sort' => ['nullable', Rule::in(['newest', 'price_asc', 'price_desc', 'area_desc'])],
+        ]);
+
         $listings = PropertyListing::query()->published()
-            ->when($request->filled('listing_type'), fn ($q) => $q->where('listing_type', (string) $request->input('listing_type')))
-            ->when($request->filled('property_type'), fn ($q) => $q->where('property_type', (string) $request->input('property_type')))
-            ->when($request->filled('city'), fn ($q) => $q->where('city', 'like', '%'.$request->input('city').'%'))
-            ->when($request->filled('neighborhood'), fn ($q) => $q->where('neighborhood', 'like', '%'.$request->input('neighborhood').'%'))
-            ->when($request->filled('min_area'), fn ($q) => $q->where('area', '>=', (float) $request->input('min_area')))
-            ->when($request->filled('max_area'), fn ($q) => $q->where('area', '<=', (float) $request->input('max_area')))
-            ->when($request->filled('min_price'), fn ($q) => $q->where('price', '>=', (int) $request->input('min_price')))
-            ->when($request->filled('max_price'), fn ($q) => $q->where('price', '<=', (int) $request->input('max_price')))
-            ->latest()
+            ->when(! empty($filters['q']), function ($query) use ($filters) {
+                $term = trim($filters['q']);
+                $query->where(function ($nested) use ($term) {
+                    $nested->where('title', 'like', '%'.$term.'%')
+                        ->orWhere('description', 'like', '%'.$term.'%')
+                        ->orWhere('neighborhood', 'like', '%'.$term.'%');
+                });
+            })
+            ->when(! empty($filters['listing_type']), fn ($q) => $q->where('listing_type', $filters['listing_type']))
+            ->when(! empty($filters['property_type']), fn ($q) => $q->where('property_type', $filters['property_type']))
+            ->when(! empty($filters['province']), fn ($q) => $q->where('province', 'like', '%'.$filters['province'].'%'))
+            ->when(! empty($filters['city']), fn ($q) => $q->where('city', 'like', '%'.$filters['city'].'%'))
+            ->when(! empty($filters['neighborhood']), fn ($q) => $q->where('neighborhood', 'like', '%'.$filters['neighborhood'].'%'))
+            ->when(isset($filters['min_area']), fn ($q) => $q->where('area', '>=', (float) $filters['min_area']))
+            ->when(isset($filters['max_area']), fn ($q) => $q->where('area', '<=', (float) $filters['max_area']))
+            ->when(isset($filters['min_price']), fn ($q) => $q->whereRaw('COALESCE(monthly_rent, price, deposit) >= ?', [(int) $filters['min_price']]))
+            ->when(isset($filters['max_price']), fn ($q) => $q->whereRaw('COALESCE(monthly_rent, price, deposit) <= ?', [(int) $filters['max_price']]))
+            ->when(isset($filters['bedrooms']), fn ($q) => $q->where('bedrooms', '>=', (int) $filters['bedrooms']))
+            ->when(! empty($filters['parking']), fn ($q) => $q->where('parking_count', '>', 0))
+            ->when(($filters['sort'] ?? 'newest') === 'price_asc', fn ($q) => $q->orderByRaw('COALESCE(monthly_rent, price, deposit) IS NULL')->orderByRaw('COALESCE(monthly_rent, price, deposit) ASC'))
+            ->when(($filters['sort'] ?? 'newest') === 'price_desc', fn ($q) => $q->orderByRaw('COALESCE(monthly_rent, price, deposit) DESC'))
+            ->when(($filters['sort'] ?? 'newest') === 'area_desc', fn ($q) => $q->orderByDesc('area'))
+            ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($q) => $q->latest())
             ->paginate(12)
             ->withQueryString();
 
@@ -182,7 +212,7 @@ class PropertyListingController extends Controller
         }
 
         unset($data['photos']);
-        $data['hide_address'] = $request->boolean('hide_address', true);
+        $data['hide_address'] = $request->boolean('hide_address');
         $data['allow_exchange'] = $request->boolean('allow_exchange');
 
         return $data;
