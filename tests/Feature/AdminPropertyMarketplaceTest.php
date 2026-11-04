@@ -127,6 +127,10 @@ class AdminPropertyMarketplaceTest extends TestCase
             ->assertSee('آگهی نیازمند بررسی');
 
         $this->actingAs($admin, 'admin')
+            ->patch(route('admin.property-listings.status', $listing->id), ['status' => 'rejected'])
+            ->assertSessionHasErrors('moderation_note');
+
+        $this->actingAs($admin, 'admin')
             ->patch(route('admin.property-listings.status', $listing->id), [
                 'status' => 'rejected',
                 'moderation_note' => 'اطلاعات آگهی نیازمند اصلاح است.',
