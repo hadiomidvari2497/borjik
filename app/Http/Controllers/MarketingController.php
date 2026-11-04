@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
-use App\Models\PropertyListing;
 use App\Models\SiteSetting;
 use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\Storage;
@@ -14,12 +13,6 @@ class MarketingController extends Controller
     {
         $content = SiteSetting::get('marketing.content', []);
 
-        $featuredListings = PropertyListing::query()
-            ->published()
-            ->latest('updated_at')
-            ->limit(4)
-            ->get();
-
         $articles = Article::query()
             ->where('status', 'published')
             ->where(fn ($query) => $query->whereNull('published_at')->orWhere('published_at', '<=', now()))
@@ -28,7 +21,7 @@ class MarketingController extends Controller
             ->limit(3)
             ->get();
 
-        return view('marketing.home', compact('content', 'articles', 'featuredListings'));
+        return view('marketing.home', compact('content', 'articles'));
     }
 
     public function subscriptionPlans()
