@@ -8,7 +8,6 @@ use App\\Models\\SiteSetting;
 use App\\Models\\Subscription;
 use App\\Models\\User;
 use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Validation\\ValidationException;
 
 class PropertyListingQuota
 {
@@ -50,9 +49,7 @@ class PropertyListingQuota
 
             $credits = $this->availableCredits($user->id);
             if ($credits < 1) {
-                throw ValidationException::withMessages([
-                    'quota' => 'سهمیه آگهی رایگان شما تکمیل شده است. برای انتشار آگهی جدید یک بسته آگهی تهیه کنید.',
-                ]);
+                abort(403, 'سهمیه آگهی رایگان شما تکمیل شده است. برای انتشار آگهی جدید یک بسته آگهی تهیه کنید.');
             }
 
             PropertyListingCreditTransaction::create([
