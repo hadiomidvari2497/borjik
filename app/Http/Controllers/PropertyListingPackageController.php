@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertyListingPackageOrder;
+use App\Notifications\PropertyListingNotification;
 use App\Models\SiteSetting;
 use App\Services\Payments\BitpayGateway;
 use App\Services\Payments\PaymentGatewayRegistry;
@@ -153,6 +154,13 @@ class PropertyListingPackageController extends Controller
                 ]);
 
                 $quota->grantPaidOrder($locked->id);
+                $locked->user?->notify(new PropertyListingNotification(
+                    'package_credits_added',
+                    'اعتبار آگهی به حساب شما اضافه شد',
+                    'پرداخت بسته '.$locked->quantity.' آگهی تأیید شد و اعتبار آن به حساب شما افزوده شد.',
+                    route('properties.mine'),
+                    'success'
+                ));
             });
 
             return redirect()->route('properties.mine')->with('status', 'پرداخت تأیید شد؛ '.$order->quantity.' اعتبار آگهی به حساب شما اضافه شد.');
