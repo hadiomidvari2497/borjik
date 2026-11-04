@@ -7,7 +7,14 @@
 
     $activeType = request('listing_type');
     $tabQuery = fn (?string $type) => route('properties.index', array_filter(array_merge(request()->except(['page', 'listing_type']), ['listing_type' => $type]), fn ($v) => $v !== null && $v !== ''));
-    $hasAdvanced = request()->filled('property_type') || request()->filled('min_area') || request()->filled('max_area');
+    $activeFilters = array_values(array_filter([
+        $activeType ? (PropertyListing::LISTING_TYPES[$activeType] ?? null) : null,
+        request()->filled('city') ? request('city') : null,
+        request()->filled('neighborhood') ? request('neighborhood') : null,
+        request()->filled('property_type') ? (PropertyListing::PROPERTY_TYPES[request('property_type')] ?? null) : null,
+        request()->filled('min_area') ? 'از '.Fa::digits(request('min_area')).' متر' : null,
+        request()->filled('max_area') ? 'تا '.Fa::digits(request('max_area')).' متر' : null,
+    ]));
 @endphp
 
 <section class="hero has-search">
@@ -15,34 +22,42 @@
     <p>آگهی‌های خرید، فروش و اجاره از صاحبان ملک و مشاوران، در یک جا و بدون پیچیدگی.</p>
 </section>
 
-<form class="search" method="GET" action="{{ route('properties.index') }}" role="search" aria-label="جستجوی آگهی">
-    @if($activeType)<input type="hidden" name="listing_type" value="{{ $activeType }}">@endif
-    <div class="seg" role="navigation" aria-label="نوع آگهی">
-        <a href="{{ $tabQuery(null) }}" @if(! $activeType) aria-current="true" @endif>همه آگهی‌ها</a>
-        @foreach(PropertyListing::LISTING_TYPES as $key => $label)
-            <a href="{{ $tabQuery($key) }}" @if($activeType === $key) aria-current="true" @endif>{{ $label }}</a>
-        @endforeach
-    </div>
-    <div class="search-row">
-        <label class="field">شهر<input name="city" value="{{ request('city') }}" placeholder="مثلاً تهران" autocomplete="off"></label>
-        <label class="field">محله<input name="neighborhood" value="{{ request('neighborhood') }}" placeholder="مثلاً ونک" autocomplete="off"></label>
-        <label class="field">نوع ملک
-            <select name="property_type">
-                <option value="">همه</option>
-                @foreach(PropertyListing::PROPERTY_TYPES as $k => $v)<option value="{{ $k }}" @selected(request('property_type') === $k)>{{ $v }}</option>@endforeach
-            </select>
-        </label>
-        <button class="btn lg" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>جستجو</button>
-    </div>
-    <details @if($hasAdvanced) open @endif>
-        <summary>فیلتر متراژ</summary>
-        <div class="fields">
-            <label class="field">حداقل متراژ<input type="number" min="0" name="min_area" value="{{ request('min_area') }}" placeholder="مثلاً ۶۰"></label>
-            <label class="field">حداکثر متراژ<input type="number" min="0" name="max_area" value="{{ request('max_area') }}" placeholder="مثلاً ۱۵۰"></label>
+<details class="search" id="search">
+    <summary>
+        <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+        <span class="sum-text">
+            <b>جستجو و فیلتر آگهی‌ها</b>
+            <small>{{ $activeFilters ? implode(' · ', $activeFilters) : 'نوع آگهی، شهر، محله و متراژ' }}</small>
+        </span>
+        @if($activeFilters)<span class="sum-count">{{ Fa::num(count($activeFilters)) }}</span>@endif
+        <span class="sum-chev" aria-hidden="true"></span>
+    </summary>
+    <form class="search-body" method="GET" action="{{ route('properties.index') }}" role="search" aria-label="جستجوی آگهی">
+        @if($activeType)<input type="hidden" name="listing_type" value="{{ $activeType }}">@endif
+        <div class="seg" role="navigation" aria-label="نوع آگهی">
+            <a href="{{ $tabQuery(null) }}" @if(! $activeType) aria-current="true" @endif>همه آگهی‌ها</a>
+            @foreach(PropertyListing::LISTING_TYPES as $key => $label)
+                <a href="{{ $tabQuery($key) }}" @if($activeType === $key) aria-current="true" @endif>{{ $label }}</a>
+            @endforeach
         </div>
-        <div class="actions"><a class="btn light" href="{{ route('properties.index') }}">پاک‌کردن فیلترها</a></div>
-    </details>
-</form>
+        <div class="fields">
+            <label class="field">شهر<input name="city" value="{{ request('city') }}" placeholder="مثلاً تهران" autocomplete="off"></label>
+            <label class="field">محله<input name="neighborhood" value="{{ request('neighborhood') }}" placeholder="مثلاً ونک" autocomplete="off"></label>
+            <label class="field">نوع ملک
+                <select name="property_type">
+                    <option value="">همه</option>
+                    @foreach(PropertyListing::PROPERTY_TYPES as $k => $v)<option value="{{ $k }}" @selected(request('property_type') === $k)>{{ $v }}</option>@endforeach
+                </select>
+            </label>
+            <label class="field">حداقل متراژ<input type="number" inputmode="numeric" min="0" name="min_area" value="{{ request('min_area') }}" placeholder="مثلاً ۶۰"></label>
+            <label class="field">حداکثر متراژ<input type="number" inputmode="numeric" min="0" name="max_area" value="{{ request('max_area') }}" placeholder="مثلاً ۱۵۰"></label>
+        </div>
+        <div class="actions">
+            <button class="btn lg" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>جستجو</button>
+            @if($activeFilters)<a class="btn light lg" href="{{ route('properties.index') }}">پاک‌کردن فیلترها</a>@endif
+        </div>
+    </form>
+</details>
 
 <div class="results-head">
     <h2>{{ $activeType ? 'آگهی‌های '.(PropertyListing::LISTING_TYPES[$activeType] ?? '') : 'تازه‌ترین آگهی‌ها' }}</h2>
