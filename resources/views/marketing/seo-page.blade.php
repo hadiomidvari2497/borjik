@@ -79,13 +79,13 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 .section{padding:58px 0}.section:nth-child(even){background:#eaf5f1}.section h2{font-size:clamp(1.45rem,3vw,2.15rem);line-height:1.6;margin:0 0 12px}.lead{color:var(--muted);max-width:880px;margin:0 0 24px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:16px}
 .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:23px;box-shadow:0 12px 32px #0b6b5c08}.card h3{font-size:1.04rem;margin:0 0 8px}.card p{font-size:.93rem;color:var(--muted);margin:0}
-.faq-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
-.comparison-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 12px 32px #0b6b5c08}.comparison-table{width:100%;min-width:850px;border-collapse:collapse;text-align:right;line-height:1.9}.comparison-table caption{text-align:right;padding:16px 18px;color:var(--muted);font-size:.9rem}.comparison-table th,.comparison-table td{padding:14px 15px;border-bottom:1px solid var(--line);vertical-align:top}.comparison-table thead th{background:#eaf5f1;color:var(--ink);font-weight:900}.comparison-table tbody th{min-width:145px;background:#f8fcfa;font-weight:850}.comparison-table td{font-size:.9rem;color:var(--muted)}.comparison-note{font-size:.85rem;color:var(--muted);margin:12px 2px 0}.faq-list details{background:#fff;border:1px solid var(--line);border-radius:17px;padding:17px 19px}.faq-list summary{cursor:pointer;font-weight:850}.faq-list details p{color:var(--muted);margin:10px 0 0;font-size:.94rem}
+.comparison-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 12px 32px #0b6b5c08}.comparison-table{width:100%;min-width:850px;border-collapse:collapse;text-align:right;line-height:1.9}.comparison-table caption{text-align:right;padding:16px 18px;color:var(--muted);font-size:.9rem}.comparison-table th,.comparison-table td{padding:14px 15px;border-bottom:1px solid var(--line);vertical-align:top}.comparison-table thead th{background:#eaf5f1;color:var(--ink);font-weight:900}.comparison-table tbody th{min-width:145px;background:#f8fcfa;font-weight:850}.comparison-table td{font-size:.9rem;color:var(--muted)}.comparison-note{font-size:.85rem;color:var(--muted);margin:12px 2px 0}
 .related{display:flex;flex-wrap:wrap;gap:11px;margin-top:22px}.related a{padding:9px 14px;border:1px solid #cde9df;border-radius:12px;background:#fff;color:var(--deep);font-weight:800;font-size:.9rem}
 .cta{margin-top:30px;padding:26px;border-radius:22px;background:linear-gradient(120deg,#071c28,#0c4a4b);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.cta p{color:#c1d9d9;margin:5px 0 0;font-size:.92rem}.foot{background:#061722;color:#a9c3c7;padding:25px 0;text-align:center;font-size:.88rem}.foot a{color:#8cebd0;text-decoration:underline}
-@media(max-width:700px){.top{padding-bottom:50px}.nav{margin-bottom:34px}.section{padding:42px 0}.faq-list{grid-template-columns:1fr}.cta{padding:21px}.brand{font-size:1rem}}
+@media(max-width:700px){.top{padding-bottom:50px}.nav{margin-bottom:34px}.section{padding:42px 0}.cta{padding:21px}.brand{font-size:1rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
+@include('marketing.partials.faq-styles')
 </head>
 <body>
 <header class="top"><div class="wrap">
@@ -134,14 +134,13 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 </div></section>
 @endif
 <section class="section"><div class="wrap">
-<h2>پرسش‌های متداول</h2><div class="faq-list">
-@foreach($page['faqs'] as $faq)<details><summary>{{ $faq['q'] }}</summary><p>{{ $faq['a'] }}</p></details>@endforeach
-</div>
+<h2>پرسش‌های متداول</h2>@include('marketing.partials.faq-list', ['items' => $page['faqs'], 'columns' => 2])
 <h2 style="margin-top:34px">راهنماهای مرتبط</h2>
 <nav class="related" aria-label="پیوندهای مرتبط">@foreach($relatedLinks as $link)<a href="{{ $link['url'] }}">{{ $link['label'] }} ←</a>@endforeach</nav>
 <div class="cta"><div><strong>مدیریت ساختمان را منظم‌تر شروع کنید</strong><p>نیازهای مجتمع خود را بررسی کنید و امکانات صابخونه را با آن‌ها بسنجید.</p></div><a class="btn primary" href="{{ route('login') }}">ورود به صابخونه ←</a></div>
 </div></section>
 </main>
 <footer class="foot"><div class="wrap">© {{ date('Y') }} صابخونه · <a href="{{ route('marketing.articles.index') }}">مقالات و راهنماها</a> · <a href="{{ route('marketing.seo.trust') }}">مرکز اعتماد و امنیت</a> · <a href="{{ route('home') }}">صفحهٔ اصلی</a></div></footer>
+@include('marketing.partials.faq-script')
 </body>
 </html>
