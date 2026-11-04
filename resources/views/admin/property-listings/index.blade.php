@@ -2,7 +2,7 @@
 @section('title', 'مدیریت بازارچه آگهی‌های ملکی')
 @section('content')
 @php
-    $F = \\App\\Support\\Fa::class;
+    $F = \App\Support\Fa::class;
     $statusLabels = ['active' => 'فعال', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
     $typeLabels = ['sale' => 'فروش', 'rent' => 'اجاره', 'buy_request' => 'درخواست خرید', 'rent_request' => 'درخواست اجاره'];
 @endphp
