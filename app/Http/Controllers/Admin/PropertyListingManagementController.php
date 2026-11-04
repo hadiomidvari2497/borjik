@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PropertyListing;
 use App\Models\PropertyListingCreditTransaction;
 use App\Models\PropertyListingPackageOrder;
+use App\Models\PropertyListingReport;
+use App\Notifications\PropertyListingNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -80,13 +82,26 @@ class PropertyListingManagementController extends Controller
             'moderation_note' => ['required_if:status,rejected', 'nullable', 'string', 'max:2000'],
         ]);
 
-        $listing = PropertyListing::query()->findOrFail($id);
+        $listing = PropertyListing::query()->with('user')->findOrFail($id);
+        $previousStatus = $listing->status;
+        $previousNote = $listing->moderation_note;
         $listing->update([
             'status' => $data['status'],
             'moderation_note' => $data['moderation_note'] ?? null,
             'moderated_by' => $request->user('admin')->id,
             'moderated_at' => now(),
         ]);
+
+        if ($previousStatus !== $listing->status || $previousNote !== $listing->moderation_note) {
+            [$title, $message, $level] = match ($listing->status) {
+                'active' => ['آگهی شما فعال شد', 'آگهی «'.$listing->title.'» در بازارچه صابخونه فعال و قابل مشاهده است.', 'success'],
+                'closed' => ['آگهی شما غیرفعال شد', 'آگهی «'.$listing->title.'» توسط مدیریت غیرفعال شد.', 'warning'],
+                default => ['آگهی شما رد شد', 'آگهی «'.$listing->title.'» رد شد. دلیل: '.($listing->moderation_note ?: 'برای بررسی بیشتر با پشتیبانی تماس بگیرید.'), 'warning'],
+            };
+            $listing->user?->notify(new PropertyListingNotification(
+                'listing_status_changed', $title, $message, route('properties.mine'), $level, $listing->id
+            ));
+        }
 
         return redirect()->route('admin.property-listings.show', $listing->id)
             ->with('status', 'وضعیت آگهی با موفقیت به‌روزرسانی شد.');
