@@ -7,7 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-/** اعلان‌های درون‌سامانه‌ای کاربر در ساختمانِ فعال (بند ۴.۱۸): مشاهده، علامت‌گذاری به‌عنوان خوانده‌شده و تاریخچه. */
+/** اعلان‌های درون‌سامانه‌ای حساب کاربری و ساختمان فعال (بند ۴.۱۸): مشاهده، علامت‌گذاری به‌عنوان خوانده‌شده و تاریخچه. */
 class NotificationController extends Controller
 {
     public function index(Request $request, CurrentBuilding $current): View
@@ -43,9 +43,7 @@ class NotificationController extends Controller
         }
         $notifications = $query->latest()->paginate(20)->withQueryString();
 
-        $unreadCount = $request->user()->unreadNotifications()
-            ->where('data->building_id', $buildingId)
-            ->count();
+        $unreadCount = (clone $base)->whereNull('read_at')->count();
         $categoryCounts = [];
         foreach ($categories as $key => $label) {
             $categoryCounts[$key] = (clone $base)->where('data->category', $key)->count();
