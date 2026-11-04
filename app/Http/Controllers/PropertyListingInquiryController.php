@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertyListing;
-use App\Models\PropertyListingChatMessage;
 use App\Models\PropertyListingInquiry;
 use App\Notifications\PropertyListingNotification;
 use Illuminate\Http\Request;
