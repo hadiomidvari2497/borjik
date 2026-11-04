@@ -92,6 +92,9 @@ class PropertyListingPackageCheckoutTest extends TestCase
 
         $this->assertSame('paid', $order->fresh()->status);
         $this->assertSame('778899', (string) $order->fresh()->ref_id);
+        $packageNotification = $this->user->notifications()->where('data->event', 'package_credits_added')->firstOrFail();
+        $this->assertSame('marketplace', $packageNotification->data['category']);
+        $this->assertStringContainsString('اعتبار آن به حساب شما افزوده شد', $packageNotification->data['message']);
         $this->assertSame(1, app(\App\Services\PropertyListingQuota::class)->availableCredits($this->user->id));
         $this->assertDatabaseHas('property_listing_credit_transactions', [
             'user_id' => $this->user->id,

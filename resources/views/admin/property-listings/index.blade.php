@@ -14,6 +14,7 @@
             <p style="color:var(--muted);font-size:13px;line-height:1.8;margin:7px 0 0">رسیدگی به آگهی‌ها، کنترل وضعیت انتشار و پایش خرید بسته‌ها و درآمد بازارچه.</p>
         </div>
         <a class="btn sec sm" href="{{ route('admin.property-listings.settings') }}">تنظیمات سهمیه و بسته‌ها</a>
+        <a class="btn sec sm" href="{{ route('admin.property-listings.reports') }}">گزارش‌های تخلف @if($pendingReports > 0)<span class="pill">{{ $F::num($pendingReports) }}</span>@endif</a>
     </div>
 </div>
 

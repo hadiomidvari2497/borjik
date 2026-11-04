@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\PropertyListing;
 use App\Models\PropertyListingCreditTransaction;
 use App\Models\PropertyListingPackageOrder;
+use App\Models\PropertyListingReport;
+use App\Notifications\PropertyListingNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -60,10 +62,68 @@ class PropertyListingManagementController extends Controller
         ")->first();
 
         $recentOrders = PropertyListingPackageOrder::query()->with('user')->latest('id')->limit(12)->get();
+        $pendingReports = PropertyListingReport::query()->where('status', 'pending')->count();
 
         return view('admin.property-listings.index', compact(
-            'filters', 'listings', 'listingStats', 'orderStats', 'creditStats', 'recentOrders'
+            'filters', 'listings', 'listingStats', 'orderStats', 'creditStats', 'recentOrders', 'pendingReports'
         ));
+    }
+
+    public function reports(Request $request)
+    {
+        $status = $request->validate([
+            'status' => ['nullable', 'in:pending,actioned,dismissed'],
+        ])['status'] ?? 'pending';
+
+        $reports = PropertyListingReport::query()->with(['listing.user', 'reporter'])
+            ->where('status', $status)
+            ->latest('id')
+            ->paginate(25)
+            ->withQueryString();
+
+        $counts = PropertyListingReport::query()
+            ->selectRaw("status, COUNT(*) AS total")
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        return view('admin.property-listings.reports', compact('reports', 'status', 'counts'));
+    }
+
+    public function updateReport(Request $request, int $reportId)
+    {
+        $data = $request->validate([
+            'status' => ['required', 'in:actioned,dismissed'],
+            'resolution_note' => ['required', 'string', 'max:2000'],
+        ]);
+
+        $report = PropertyListingReport::query()->with('reporter')->findOrFail($reportId);
+        abort_unless($report->status === 'pending', 409, 'این گزارش قبلاً بررسی شده است.');
+        $report->update([
+            'status' => $data['status'],
+            'resolution_note' => $data['resolution_note'],
+            'reviewed_by' => $request->user('admin')->id,
+            'reviewed_at' => now(),
+        ]);
+
+        $message = $data['status'] === 'actioned'
+            ? 'گزارش شما بررسی شد و اقدامات لازم انجام شد.'
+            : 'گزارش شما بررسی شد؛ تخلفی تشخیص داده نشد.';
+        try {
+            $report->reporter?->notify(new PropertyListingNotification(
+                'report_reviewed',
+                'گزارش تخلف بررسی شد',
+                $message.' '.$data['resolution_note'],
+                route('properties.mine'),
+                $data['status'] === 'actioned' ? 'success' : 'info',
+                $report->property_listing_id,
+                $report->id
+            ));
+        } catch (\Throwable $notificationError) {
+            report($notificationError);
+        }
+
+        return redirect()->route('admin.property-listings.reports', ['status' => $data['status'] === 'actioned' ? 'actioned' : 'dismissed'])
+            ->with('status', 'نتیجه بررسی گزارش ثبت و به گزارش‌دهنده اطلاع داده شد.');
     }
 
     public function show(int $id)
@@ -80,13 +140,30 @@ class PropertyListingManagementController extends Controller
             'moderation_note' => ['required_if:status,rejected', 'nullable', 'string', 'max:2000'],
         ]);
 
-        $listing = PropertyListing::query()->findOrFail($id);
+        $listing = PropertyListing::query()->with('user')->findOrFail($id);
+        $previousStatus = $listing->status;
+        $previousNote = $listing->moderation_note;
         $listing->update([
             'status' => $data['status'],
             'moderation_note' => $data['moderation_note'] ?? null,
             'moderated_by' => $request->user('admin')->id,
             'moderated_at' => now(),
         ]);
+
+        if ($previousStatus !== $listing->status || $previousNote !== $listing->moderation_note) {
+            [$title, $message, $level] = match ($listing->status) {
+                'active' => ['آگهی شما فعال شد', 'آگهی «'.$listing->title.'» در بازارچه صابخونه فعال و قابل مشاهده است.', 'success'],
+                'closed' => ['آگهی شما غیرفعال شد', 'آگهی «'.$listing->title.'» توسط مدیریت غیرفعال شد.', 'warning'],
+                default => ['آگهی شما رد شد', 'آگهی «'.$listing->title.'» رد شد. دلیل: '.($listing->moderation_note ?: 'برای بررسی بیشتر با پشتیبانی تماس بگیرید.'), 'warning'],
+            };
+            try {
+                $listing->user?->notify(new PropertyListingNotification(
+                    'listing_status_changed', $title, $message, route('properties.mine'), $level, $listing->id
+                ));
+            } catch (\Throwable $notificationError) {
+                report($notificationError);
+            }
+        }
 
         return redirect()->route('admin.property-listings.show', $listing->id)
             ->with('status', 'وضعیت آگهی با موفقیت به‌روزرسانی شد.');
