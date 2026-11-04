@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\PropertyListing;
 use App\Models\Subscription;
+use App\Models\Unit;
+use App\Models\UnitParty;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -42,14 +46,20 @@ class PropertyListingController extends Controller
         return view('properties.mine', compact('listings'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('properties.form', ['listing' => new PropertyListing()]);
+        $units = $this->availableUnits($request);
+        return view('properties.form', [
+            'listing' => new PropertyListing(),
+            'units' => $units,
+            'unitAutofillData' => $this->unitAutofillData($units),
+        ]);
     }
 
     public function store(Request $request)
     {
         $data = $this->validated($request);
+        $this->authorizeUnitSelection($request, isset($data['unit_id']) ? (int) $data['unit_id'] : null);
         $this->enforceFreeLimit($request);
         $data['user_id'] = $request->user()->id;
         $data['photos'] = $this->storePhotos($request);
@@ -64,13 +74,19 @@ class PropertyListingController extends Controller
     {
         $this->authorizeOwner($request, $listing);
 
-        return view('properties.form', compact('listing'));
+        $units = $this->availableUnits($request);
+        return view('properties.form', [
+            'listing' => $listing,
+            'units' => $units,
+            'unitAutofillData' => $this->unitAutofillData($units),
+        ]);
     }
 
     public function update(Request $request, PropertyListing $listing)
     {
         $this->authorizeOwner($request, $listing);
         $data = $this->validated($request, $listing);
+        $this->authorizeUnitSelection($request, isset($data['unit_id']) ? (int) $data['unit_id'] : null);
         $keptPhotos = array_values(array_intersect((array) $request->input('existing_photos', []), $listing->photos ?? []));
         $newUploads = $request->file('photos', []);
         if (count($keptPhotos) + count($newUploads) > 12) {
@@ -129,6 +145,7 @@ class PropertyListingController extends Controller
     private function validated(Request $request, ?PropertyListing $listing = null): array
     {
         $data = $request->validate([
+            'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')],
             'listing_type' => ['required', Rule::in(['sale', 'rent', 'buy_request', 'rent_request'])],
             'property_type' => ['required', Rule::in(['residential', 'commercial', 'land'])],
             'title' => ['required', 'string', 'max:180'],
@@ -139,6 +156,7 @@ class PropertyListingController extends Controller
             'address' => ['nullable', 'string', 'max:500'],
             'hide_address' => ['sometimes', 'boolean'],
             'area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
+            'parking_count' => ['nullable', 'integer', 'min:0', 'max:30'],
             'bedrooms' => ['nullable', 'integer', 'min:0', 'max:30'],
             'bathrooms' => ['nullable', 'integer', 'min:0', 'max:20'],
             'floor' => ['nullable', 'integer', 'min:-5', 'max:300'],
@@ -168,6 +186,91 @@ class PropertyListingController extends Controller
         $data['allow_exchange'] = $request->boolean('allow_exchange');
 
         return $data;
+    }
+
+
+    /**
+     * Building owners/managers can choose every unit in their building.
+     * Unit owners can choose only units linked to them in active unit parties.
+     * Creating a listing itself remains independent from building membership.
+     */
+    private function availableUnits(Request $request): Collection
+    {
+        $memberships = DB::table('building_user_roles as bur')
+            ->join('roles as r', 'r.id', '=', 'bur.role_id')
+            ->where('bur.user_id', $request->user()->id)
+            ->where('bur.status', 'active')
+            ->get(['bur.building_id', 'r.key']);
+
+        $managedBuildingIds = $memberships
+            ->whereIn('key', ['owner', 'manager'])
+            ->pluck('building_id')->unique()->values()->all();
+
+        $unitOwnerBuildingIds = $memberships
+            ->where('key', 'unit_owner')
+            ->pluck('building_id')->unique()->values()->all();
+
+        $ownedUnitIds = $unitOwnerBuildingIds === [] ? [] : UnitParty::withoutGlobalScopes()
+            ->where('user_id', $request->user()->id)
+            ->whereNull('to_date')
+            ->where(fn ($query) => $query->whereNull('from_date')->orWhereDate('from_date', '<=', today()))
+            ->whereIn('building_id', $unitOwnerBuildingIds)
+            ->pluck('unit_id')->unique()->values()->all();
+
+        if ($managedBuildingIds === [] && $ownedUnitIds === []) {
+            return collect();
+        }
+
+        return Unit::withoutGlobalScopes()
+            ->with([
+                'building.city',
+                'building.province',
+                'block' => fn ($query) => $query->withoutGlobalScopes(),
+            ])
+            ->whereNull('deleted_at')
+            ->where(function ($query) use ($managedBuildingIds, $ownedUnitIds) {
+                if ($managedBuildingIds !== []) {
+                    $query->whereIn('building_id', $managedBuildingIds);
+                }
+                if ($ownedUnitIds !== []) {
+                    $method = $managedBuildingIds === [] ? 'whereIn' : 'orWhereIn';
+                    $query->{$method}('id', $ownedUnitIds);
+                }
+            })
+            ->orderBy('building_id')->orderBy('id')->get();
+    }
+
+    private function authorizeUnitSelection(Request $request, ?int $unitId): void
+    {
+        if (! $unitId) {
+            return;
+        }
+
+        abort_unless(
+            $this->availableUnits($request)->contains(fn (Unit $unit) => (int) $unit->id === $unitId),
+            403,
+            'شما به اطلاعات این واحد دسترسی ندارید.'
+        );
+    }
+
+    private function unitAutofillData(Collection $units): array
+    {
+        return $units->mapWithKeys(function (Unit $unit) {
+            $building = $unit->building;
+
+            return [(string) $unit->id => [
+                'area' => $unit->area_m2,
+                'floor' => $unit->getAttribute('floor') ?? $unit->getAttribute('floor_number'),
+                'bedrooms' => $unit->getAttribute('bedrooms'),
+                'bathrooms' => $unit->getAttribute('bathrooms'),
+                'province' => $building?->province?->name,
+                'city' => $building?->city?->name,
+                'parking_count' => DB::table('parking_assignments')
+                    ->where('unit_id', $unit->id)
+                    ->whereNull('released_at')
+                    ->count(),
+            ]];
+        })->all();
     }
 
     private function storePhotos(Request $request): array

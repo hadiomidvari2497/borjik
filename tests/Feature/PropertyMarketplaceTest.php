@@ -41,6 +41,14 @@ class PropertyMarketplaceTest extends TestCase
             ->assertDontSee('آگهی بسته‌شده');
     }
 
+    public function test_users_without_building_membership_can_still_open_the_standalone_listing_form(): void
+    {
+        $this->actingAs($this->makeUser())
+            ->get(route('properties.create'))
+            ->assertOk()
+            ->assertSee('آگهی مستقل (بدون اتصال به واحد)');
+    }
+
     public function test_users_can_publish_three_free_active_listings_but_not_a_fourth(): void
     {
         $user = $this->makeUser();
