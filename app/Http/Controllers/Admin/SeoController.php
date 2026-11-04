@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\PropertyListing;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -56,6 +57,7 @@ class SeoController extends Controller
             $urls[] = ['loc' => $base.'/', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/subscription-plans', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/articles', 'lastmod' => null];
+            $urls[] = ['loc' => $base.'/properties', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/software-building-charges', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/software-building-management', 'lastmod' => null];
             $urls[] = ['loc' => $base.'/charge-management-guide', 'lastmod' => null];
@@ -69,6 +71,17 @@ class SeoController extends Controller
                 ->get(['slug', 'updated_at'])
                 ->each(function ($article) use (&$urls, $base) {
                     $urls[] = ['loc' => $base.'/articles/'.rawurlencode($article->slug), 'lastmod' => optional($article->updated_at)->toAtomString()];
+                });
+
+            PropertyListing::query()->published()
+                ->orderBy('id')
+                ->chunkById(500, function ($listings) use (&$urls, $base) {
+                    foreach ($listings as $listing) {
+                        $urls[] = [
+                            'loc' => $base.'/properties/'.$listing->id,
+                            'lastmod' => optional($listing->updated_at)->toAtomString(),
+                        ];
+                    }
                 });
         }
 
