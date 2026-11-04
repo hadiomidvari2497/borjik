@@ -13,7 +13,7 @@ class PropertyMarketplaceTest extends TestCase
 
     public function test_public_marketplace_shows_only_active_listings(): void
     {
-        $owner = User::factory()->create();
+        $owner = $this->makeUser();
 
         $active = PropertyListing::create([
             'user_id' => $owner->id,
@@ -83,5 +83,13 @@ class PropertyMarketplaceTest extends TestCase
         $this->actingAs($other)->post(route('properties.close', $listing))->assertForbidden();
         $this->actingAs($owner)->post(route('properties.close', $listing))->assertRedirect();
         $this->assertDatabaseHas('property_listings', ['id' => $listing->id, 'status' => 'closed']);
+    }
+    private function makeUser(): User
+    {
+        return User::create([
+            'mobile' => '0912'.str_pad((string) random_int(0, 999999999), 9, '0', STR_PAD_LEFT),
+            'first_name' => 'کاربر',
+            'last_name' => 'آزمایشی',
+        ]);
     }
 }
