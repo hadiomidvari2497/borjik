@@ -140,5 +140,10 @@ class AdminPropertyMarketplaceTest extends TestCase
             'moderated_by' => $admin->id,
         ]);
         $this->assertNotNull($listing->fresh()->moderated_at);
+
+        $this->actingAs($user)->get(route('properties.mine'))
+            ->assertOk()
+            ->assertSee('رد شده')
+            ->assertSee('اطلاعات آگهی نیازمند اصلاح است.');
     }
 }
