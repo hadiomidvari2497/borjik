@@ -75,7 +75,7 @@
             </select>
         </div>
         <div class="fld">
-            <label for="moderation_note">یادداشت مدیر (اختیاری)</label>
+            <label for="moderation_note">یادداشت مدیر (برای رد آگهی الزامی است)</label>
             <textarea id="moderation_note" name="moderation_note" rows="3" maxlength="2000" placeholder="دلیل رد یا توضیح تغییر وضعیت">{{ old('moderation_note', $listing->moderation_note) }}</textarea>
         </div>
         <div class="fbar"><button class="btn" type="submit">ذخیره وضعیت</button></div>
