@@ -33,18 +33,18 @@ class PropertyListingQuota
      * Reserve a purchased credit only when the account has exhausted its free slots.
      * Caller must create the listing in the same database transaction.
      */
-    public function consumeForNewListing(User $user): void
+    public function consumeForNewListing(User $user): ?PropertyListingCreditTransaction
     {
-        DB::transaction(function () use ($user) {
+        return DB::transaction(function () use ($user) {
             User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
 
             if ($this->hasUnlimitedAccess($user->id)) {
-                return;
+                return null;
             }
 
             $activeCount = PropertyListing::query()->where('user_id', $user->id)->published()->count();
             if ($activeCount < $this->freeLimit()) {
-                return;
+                return null;
             }
 
             $credits = $this->availableCredits($user->id);
@@ -52,7 +52,7 @@ class PropertyListingQuota
                 abort(403, 'سهمیه آگهی رایگان شما تکمیل شده است. برای انتشار آگهی جدید یک بسته آگهی تهیه کنید.');
             }
 
-            PropertyListingCreditTransaction::create([
+            return PropertyListingCreditTransaction::create([
                 'user_id' => $user->id,
                 'quantity' => -1,
                 'type' => 'consume',
