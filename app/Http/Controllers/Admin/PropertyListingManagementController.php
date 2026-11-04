@@ -118,7 +118,7 @@ class PropertyListingManagementController extends Controller
                 $report->property_listing_id,
                 $report->id
             ));
-        } catch (\\Throwable $notificationError) {
+        } catch (\Throwable $notificationError) {
             report($notificationError);
         }
 
@@ -160,7 +160,7 @@ class PropertyListingManagementController extends Controller
                 $listing->user?->notify(new PropertyListingNotification(
                     'listing_status_changed', $title, $message, route('properties.mine'), $level, $listing->id
                 ));
-            } catch (\\Throwable $notificationError) {
+            } catch (\Throwable $notificationError) {
                 report($notificationError);
             }
         }
