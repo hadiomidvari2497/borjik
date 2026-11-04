@@ -50,7 +50,7 @@
     </a>
     <nav class="nav" aria-label="منوی اصلی">
         <a href="{{ route('properties.index') }}" @if(request()->routeIs('properties.index','properties.show')) aria-current="page" @endif>آگهی‌ها</a>
-        @auth<a href="{{ route('properties.mine') }}" @if(request()->routeIs('properties.mine')) aria-current="page" @endif>آگهی‌های من</a>@else<a href="{{ route('login') }}">ورود</a>@endauth
+        @auth<a href="{{ route('properties.mine') }}" @if(request()->routeIs('properties.mine')) aria-current="page" @endif>آگهی‌های من</a><a href="{{ route('properties.inquiries.index') }}" @if(request()->routeIs('properties.inquiries.*','properties.chat.*')) aria-current="page" @endif>پیام‌ها</a>@else<a href="{{ route('login') }}">ورود</a>@endauth
     </nav>
     <a class="btn" href="{{ route('properties.create') }}"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>ثبت آگهی رایگان</a>
 </div></header>

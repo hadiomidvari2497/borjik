@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PropertyListingInquiry extends Model
 {
@@ -25,6 +26,11 @@ class PropertyListingInquiry extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_user_id');
+    }
+
+    public function messages(): HasMany
+    {
+        return $this->hasMany(PropertyListingChatMessage::class, 'inquiry_id');
     }
 
     public function recipient(): BelongsTo

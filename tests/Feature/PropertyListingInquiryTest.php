@@ -13,7 +13,7 @@ class PropertyListingInquiryTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_contact_listing_owner_and_mobile_is_shared_only_with_explicit_consent(): void
+    public function test_users_can_start_a_private_conversation_and_exchange_messages(): void
     {
         $owner = $this->makeUser();
         $sender = $this->makeUser();
@@ -21,13 +21,15 @@ class PropertyListingInquiryTest extends TestCase
 
         $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
             'message' => 'برای بازدید ملک چه زمانی امکان هماهنگی دارید؟',
-        ])->assertRedirect(route('properties.show', $listing));
+            'share_mobile' => '1',
+        ])->assertRedirect();
+
+        $inquiry = PropertyListingInquiry::query()->where('sender_user_id', $sender->id)->firstOrFail();
 
         $this->assertDatabaseHas('property_listing_inquiries', [
-            'property_listing_id' => $listing->id,
-            'sender_user_id' => $sender->id,
+            'id' => $inquiry->id,
             'recipient_user_id' => $owner->id,
-            'sender_mobile' => null,
+            'sender_mobile' => $sender->mobile,
             'status' => 'new',
         ]);
         $this->assertDatabaseHas('notifications', [
@@ -35,29 +37,29 @@ class PropertyListingInquiryTest extends TestCase
             'type' => PropertyListingNotification::class,
         ]);
 
-        $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
-            'message' => 'برای بازدید ملک لطفاً با من هماهنگ کنید.',
-            'share_mobile' => '1',
-        ])->assertRedirect(route('properties.show', $listing));
+        $this->actingAs($sender)->get(route('properties.chat.show', $inquiry))
+            ->assertOk()->assertSee($inquiry->message);
 
-        $this->assertDatabaseHas('property_listing_inquiries', [
-            'property_listing_id' => $listing->id,
+        $this->actingAs($sender)->post(route('properties.chat.send', $inquiry), [
+            'body' => 'ممنون، چه ساعتی برای بازدید مناسب است؟',
+        ])->assertRedirect(route('properties.chat.show', $inquiry));
+
+        $this->assertDatabaseHas('property_listing_chat_messages', [
+            'inquiry_id' => $inquiry->id,
             'sender_user_id' => $sender->id,
-            'sender_mobile' => $sender->mobile,
+            'body' => 'ممنون، چه ساعتی برای بازدید مناسب است؟',
         ]);
+
+        $this->actingAs($owner)->get(route('properties.chat.show', $inquiry))
+            ->assertOk()->assertSee('چه ساعتی برای بازدید مناسب است؟');
     }
 
-    public function test_owner_cannot_contact_own_listing_and_only_recipient_can_manage_inquiries(): void
+    public function test_only_conversation_participants_can_read_or_send_messages(): void
     {
         $owner = $this->makeUser();
         $sender = $this->makeUser();
         $stranger = $this->makeUser();
         $listing = $this->makeListing($owner);
-
-        $this->actingAs($owner)->post(route('properties.inquiries.store', $listing), [
-            'message' => 'می‌خواهم درباره این ملک اطلاعات بگیرم.',
-        ])->assertForbidden();
-
         $inquiry = PropertyListingInquiry::create([
             'property_listing_id' => $listing->id,
             'sender_user_id' => $sender->id,
@@ -67,23 +69,26 @@ class PropertyListingInquiryTest extends TestCase
             'status' => 'new',
         ]);
 
-        $this->actingAs($stranger)->patch(route('properties.inquiries.update', $inquiry), [
-            'status' => 'contacted',
+        $this->actingAs($stranger)->get(route('properties.chat.show', $inquiry))->assertForbidden();
+        $this->actingAs($stranger)->post(route('properties.chat.send', $inquiry), [
+            'body' => 'پیام غیرمجاز',
         ])->assertForbidden();
 
         $this->actingAs($owner)->get(route('properties.inquiries.index'))
-            ->assertOk()
-            ->assertSee($sender->display_name)
-            ->assertSee($listing->title);
+            ->assertOk()->assertSee($sender->display_name)->assertSee($listing->title);
+    }
 
-        $this->actingAs($owner)->patch(route('properties.inquiries.update', $inquiry), [
-            'status' => 'contacted',
-        ])->assertRedirect();
+    public function test_listing_phone_is_hidden_by_default_and_can_be_opted_in(): void
+    {
+        $owner = $this->makeUser();
+        $listing = $this->makeListing($owner);
 
-        $this->assertDatabaseHas('property_listing_inquiries', [
-            'id' => $inquiry->id,
-            'status' => 'contacted',
-        ]);
+        $this->get(route('properties.show', $listing))->assertOk()->assertDontSee('tel:'.$owner->mobile);
+
+        $listing->update(['show_phone' => true]);
+        $this->get(route('properties.show', $listing))->assertOk()
+            ->assertSee('tel:'.$owner->mobile)
+            ->assertSee('sms:'.$owner->mobile);
     }
 
     private function makeListing(User $owner): PropertyListing

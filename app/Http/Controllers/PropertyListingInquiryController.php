@@ -13,12 +13,12 @@ class PropertyListingInquiryController extends Controller
     public function store(Request $request, int $listingId)
     {
         $data = $request->validate([
-            'message' => ['required', 'string', 'min:10', 'max:2000'],
+            'message' => ['required', 'string', 'min:2', 'max:2000'],
             'share_mobile' => ['sometimes', 'accepted'],
         ]);
 
-        $listing = PropertyListing::query()->published()->findOrFail($listingId);
-        abort_if((int) $listing->user_id === (int) $request->user()->id, 403, 'برای آگهی خودتان نمی‌توانید درخواست تماس ثبت کنید.');
+        $listing = PropertyListing::query()->published()->with('user')->findOrFail($listingId);
+        abort_if((int) $listing->user_id === (int) $request->user()->id, 403);
 
         $inquiry = PropertyListingInquiry::create([
             'property_listing_id' => $listing->id,
@@ -32,31 +32,79 @@ class PropertyListingInquiryController extends Controller
 
         $listing->user->notify(new PropertyListingNotification(
             event: 'inquiry_received',
-            title: 'درخواست تماس جدید برای آگهی',
-            message: $inquiry->sender_name.' برای آگهی «'.$listing->title.'» پیام فرستاده است.',
-            url: route('properties.inquiries.index'),
+            title: 'پیام جدید درباره آگهی',
+            message: $request->user()->display_name.' برای آگهی «'.$listing->title.'» پیام فرستاده است.',
+            url: route('properties.chat.show', $inquiry),
             level: 'info',
             listingId: $listing->id,
         ));
 
-        return redirect()->route('properties.show', $listing)
-            ->with('status', 'درخواست شما برای ثبت‌کننده آگهی ارسال شد.');
+        return redirect()->route('properties.chat.show', $inquiry)
+            ->with('status', 'گفتگوی شما آغاز شد. می‌توانید پیام‌های بیشتری ارسال کنید.');
     }
 
     public function index(Request $request)
     {
+        $userId = $request->user()->id;
         $inquiries = PropertyListingInquiry::query()
-            ->where('recipient_user_id', $request->user()->id)
-            ->with(['listing', 'sender'])
-            ->latest()
+            ->where(fn ($query) => $query->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId))
+            ->with(['listing', 'sender', 'recipient'])
+            ->withMax('messages', 'created_at')
+            ->latest('updated_at')
             ->paginate(15);
 
-        PropertyListingInquiry::query()
-            ->where('recipient_user_id', $request->user()->id)
+        return view('properties.inquiries', compact('inquiries'));
+    }
+
+    public function show(Request $request, PropertyListingInquiry $inquiry)
+    {
+        $this->authorizeParticipant($request, $inquiry);
+
+        if ((int) $inquiry->recipient_user_id === (int) $request->user()->id) {
+            $inquiry->forceFill(['read_at' => now()])->save();
+        }
+
+        $inquiry->messages()
+            ->where('sender_user_id', '!=', $request->user()->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        return view('properties.inquiries', compact('inquiries'));
+        $inquiry->load(['listing', 'sender', 'recipient']);
+        $messages = $inquiry->messages()->with('sender')->oldest()->get();
+
+        return view('properties.chat', compact('inquiry', 'messages'));
+    }
+
+    public function send(Request $request, PropertyListingInquiry $inquiry)
+    {
+        $this->authorizeParticipant($request, $inquiry);
+        abort_if($inquiry->status === 'closed', 403, 'این گفتگو بسته شده است.');
+
+        $data = $request->validate([
+            'body' => ['required', 'string', 'min:1', 'max:2000'],
+        ]);
+
+        $message = $inquiry->messages()->create([
+            'sender_user_id' => $request->user()->id,
+            'body' => trim($data['body']),
+        ]);
+
+        $recipientId = (int) $request->user()->id === (int) $inquiry->sender_user_id
+            ? $inquiry->recipient_user_id
+            : $inquiry->sender_user_id;
+        $recipient = $recipientId === (int) $inquiry->recipient_user_id ? $inquiry->recipient : $inquiry->sender;
+
+        $inquiry->forceFill(['updated_at' => now()])->save();
+        $recipient->notify(new PropertyListingNotification(
+            event: 'chat_message_received',
+            title: 'پیام جدید در گفتگوی آگهی',
+            message: $request->user()->display_name.' پیام جدیدی برای شما فرستاد.',
+            url: route('properties.chat.show', $inquiry),
+            level: 'info',
+            listingId: $inquiry->property_listing_id,
+        ));
+
+        return redirect()->route('properties.chat.show', $inquiry)->with('status', 'پیام ارسال شد.');
     }
 
     public function update(Request $request, PropertyListingInquiry $inquiry)
@@ -69,6 +117,14 @@ class PropertyListingInquiryController extends Controller
 
         $inquiry->update(['status' => $data['status'], 'read_at' => $inquiry->read_at ?? now()]);
 
-        return back()->with('status', 'وضعیت درخواست به‌روزرسانی شد.');
+        return back()->with('status', 'وضعیت گفتگو به‌روزرسانی شد.');
+    }
+
+    private function authorizeParticipant(Request $request, PropertyListingInquiry $inquiry): void
+    {
+        abort_unless(
+            in_array((int) $request->user()->id, [(int) $inquiry->sender_user_id, (int) $inquiry->recipient_user_id], true),
+            403
+        );
     }
 }

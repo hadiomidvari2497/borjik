@@ -102,26 +102,33 @@
                 <span class="avatar" aria-hidden="true">{{ \Illuminate\Support\Str::substr($ownerName ?: '؟', 0, 1) }}</span>
                 <div><b>{{ $ownerName }}</b><span class="muted">ثبت‌کننده آگهی</span></div>
             </div>
+            @if($listing->show_phone && $listing->user?->mobile)
+                @php($publicPhone = preg_replace('/[^0-9+]/', '', (string) $listing->user->mobile))
+                <div class="actions" style="margin:12px 0">
+                    <a class="btn block lg" href="tel:{{ $publicPhone }}">تماس با فروشنده · {{ $listing->user->mobile }}</a>
+                    <a class="btn light block lg" href="sms:{{ $publicPhone }}">ارسال پیامک</a>
+                </div>
+            @endif
             @auth
                 @if((int) auth()->id() === (int) $listing->user_id)
-                    <p>این آگهی متعلق به شماست. درخواست‌های تماس را از بخش مدیریت درخواست‌ها پیگیری کنید.</p>
-                    <a class="btn block lg" href="{{ route('properties.inquiries.index') }}">مشاهده درخواست‌های تماس</a>
+                    <p>این آگهی متعلق به شماست.</p>
+                    <a class="btn block lg" href="{{ route('properties.inquiries.index') }}">مشاهده گفتگوها</a>
                 @else
                     <form method="POST" action="{{ route('properties.inquiries.store', $listing) }}">
                         @csrf
-                        <label class="field">پیام شما به ثبت‌کننده آگهی
-                            <textarea name="message" rows="4" minlength="10" maxlength="2000" required placeholder="مثلاً برای بازدید ملک چه زمانی امکان هماهنگی دارید؟">{{ old('message') }}</textarea>
+                        <label class="field">پیام شما
+                            <textarea name="message" rows="4" minlength="2" maxlength="2000" required placeholder="سلام، درباره این ملک می‌خواستم بیشتر بدانم...">{{ old('message') }}</textarea>
                         </label>
                         @error('message')<p class="error">{{ $message }}</p>@enderror
                         <label style="display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.8;margin:10px 0">
                             <input type="checkbox" name="share_mobile" value="1" @checked(old('share_mobile'))>
-                            اجازه می‌دهم شماره موبایل حسابم فقط برای پاسخ به همین درخواست در اختیار ثبت‌کننده آگهی قرار بگیرد.
+                            در صورت تمایل، شماره موبایل من هم برای طرف مقابل نمایش داده شود.
                         </label>
-                        <button class="btn block lg" type="submit">ارسال درخواست تماس</button>
+                        <button class="btn block lg" type="submit">شروع گفتگو با فروشنده</button>
                     </form>
                 @endif
             @else
-                <a class="btn block lg" href="{{ route('login') }}">برای ارسال درخواست تماس وارد شوید</a>
+                <a class="btn block lg" href="{{ route('login') }}">برای گفتگو با فروشنده وارد شوید</a>
             @endauth
         </div>
 

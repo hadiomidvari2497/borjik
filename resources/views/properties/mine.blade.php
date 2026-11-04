@@ -6,7 +6,7 @@
     <p>مدیریت آگهی‌ها و اعتبارهای حساب کاربری شما.</p>
     <div class="actions">
         <a class="btn light" href="{{ route('properties.create') }}">ثبت آگهی جدید</a>
-        <a class="btn light" href="{{ route('properties.inquiries.index') }}">درخواست‌های تماس</a>
+        <a class="btn light" href="{{ route('properties.inquiries.index') }}">پیام‌ها و گفتگوها</a>
         <span class="btn light">اعتبار خریداری‌شده: {{ number_format($availableCredits) }} آگهی</span>
     </div>
 </section>
