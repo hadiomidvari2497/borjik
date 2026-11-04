@@ -1,0 +1,6 @@
+@extends('layouts.marketplace')
+@section('title','آگهی‌های من')
+@section('content')
+<section class="hero"><h1>آگهی‌های من</h1><p>مدیریت آگهی‌هایی که با حساب کاربری خود ثبت کرده‌اید.</p><div class="actions"><a class="btn light" href="{{ route('properties.create') }}">ثبت آگهی جدید</a></div></section>
+<div class="grid">@forelse($listings as $listing)<article class="card"><div class="body"><h3>{{ $listing->title }}</h3><div class="muted">{{ $listing->city }} · وضعیت: {{ ['active'=>'فعال','closed'=>'غیرفعال','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status }}</div><div class="actions"><a class="btn light" href="{{ route('properties.show',$listing) }}">مشاهده</a><a class="btn" href="{{ route('properties.edit',$listing) }}">ویرایش</a><form method="POST" action="{{ route('properties.close',$listing) }}">@csrf<button class="btn light">غیرفعال‌سازی</button></form><form method="POST" action="{{ route('properties.destroy',$listing) }}" onsubmit="return confirm('آگهی حذف شود؟')">@csrf @method('DELETE')<button class="btn light">حذف</button></form></div></div></article>@empty<div class="panel">هنوز آگهی ثبت نکرده‌اید.</div>@endforelse</div><div class="pagination">{{ $listings->links() }}</div>
+@endsection
