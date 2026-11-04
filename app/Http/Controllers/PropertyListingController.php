@@ -6,9 +6,9 @@ use App\Models\PropertyListing;
 use App\Models\Subscription;
 use App\Models\Unit;
 use App\Models\UnitParty;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -213,6 +213,7 @@ class PropertyListingController extends Controller
         $ownedUnitIds = $unitOwnerBuildingIds === [] ? [] : UnitParty::withoutGlobalScopes()
             ->where('user_id', $request->user()->id)
             ->whereNull('to_date')
+            ->where(fn ($query) => $query->whereNull('from_date')->orWhereDate('from_date', '<=', today()))
             ->whereIn('building_id', $unitOwnerBuildingIds)
             ->pluck('unit_id')->unique()->values()->all();
 
