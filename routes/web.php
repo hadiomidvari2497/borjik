@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\AnalyticsCollectionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PropertyListingController;
 
 Route::post('/analytics/heartbeat', [AnalyticsCollectionController::class, 'heartbeat'])->middleware('throttle:120,1')->name('analytics.heartbeat');
 Route::post('/analytics/event', [AnalyticsCollectionController::class, 'event'])->middleware('throttle:120,1')->name('analytics.event');
@@ -24,6 +25,21 @@ Route::get('/software-building-requests', [MarketingController::class, 'seoPage'
 Route::get('/software-building-finance', [MarketingController::class, 'seoPage'])->defaults('slug', 'software-building-finance')->name('marketing.seo.finance');
 Route::get('/building-management-software-comparison', [MarketingController::class, 'seoPage'])->defaults('slug', 'building-management-software-comparison')->name('marketing.seo.comparison');
 Route::get('/trust-and-security', [MarketingController::class, 'seoPage'])->defaults('slug', 'trust-and-security')->name('marketing.seo.trust');
+
+
+
+Route::get('/properties', [PropertyListingController::class, 'index'])->name('properties.index');
+Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])->whereNumber('listing')->name('properties.show');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
+    Route::get('/properties/create', [PropertyListingController::class, 'create'])->name('properties.create');
+    Route::post('/properties', [PropertyListingController::class, 'store'])->middleware('throttle:10,1')->name('properties.store');
+    Route::get('/properties/{listing}/edit', [PropertyListingController::class, 'edit'])->whereNumber('listing')->name('properties.edit');
+    Route::put('/properties/{listing}', [PropertyListingController::class, 'update'])->whereNumber('listing')->name('properties.update');
+    Route::delete('/properties/{listing}', [PropertyListingController::class, 'destroy'])->whereNumber('listing')->name('properties.destroy');
+    Route::post('/properties/{listing}/close', [PropertyListingController::class, 'close'])->whereNumber('listing')->name('properties.close');
+});
 
 require __DIR__.'/auth.php';
 require __DIR__.'/app.php';
