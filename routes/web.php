@@ -15,7 +15,7 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap
 Route::get('/', [MarketingController::class, 'home'])->name('home');
 Route::get('/subscription-plans', [MarketingController::class, 'subscriptionPlans'])->name('marketing.subscription-plans');
 Route::get('/enamad/image', [MarketingController::class, 'enamadImage'])->name('marketing.enamad.image');
-Route::get('/payment/gateway/callback', [SubscriptionController::class, 'callback'])->name('payment.gateway.callback');
+Route::get('/payment/gateway/callback', [SubscriptionController::class, 'callback'])->name('payment.gateway.callback');\nRoute::get('/properties/packages/callback', [PropertyListingPackageController::class, 'callback'])->name('properties.packages.callback');
 Route::get('/software-building-charges', [MarketingController::class, 'buildingCharges'])->name('marketing.building-charges');
 Route::get('/charge-management-guide', [MarketingController::class, 'chargeManagementGuide'])->name('marketing.charge-guide');
 Route::get('/software-building-management', [MarketingController::class, 'buildingManagement'])->name('marketing.building-management');
@@ -32,7 +32,7 @@ Route::get('/properties', [PropertyListingController::class, 'index'])->name('pr
 Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])->whereNumber('listing')->name('properties.show');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
+    Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');\n    Route::post('/properties/packages/buy', [PropertyListingPackageController::class, 'buy'])->middleware('throttle:10,1')->name('properties.packages.buy');
     Route::get('/properties/create', [PropertyListingController::class, 'create'])->name('properties.create');
     Route::post('/properties', [PropertyListingController::class, 'store'])->middleware('throttle:10,1')->name('properties.store');
     Route::get('/properties/{listing}/edit', [PropertyListingController::class, 'edit'])->whereNumber('listing')->name('properties.edit');
