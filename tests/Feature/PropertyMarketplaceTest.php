@@ -43,7 +43,7 @@ class PropertyMarketplaceTest extends TestCase
 
     public function test_users_can_publish_three_free_active_listings_but_not_a_fourth(): void
     {
-        $user = User::factory()->create();
+        $user = $this->makeUser();
         $this->actingAs($user);
 
         $payload = [
@@ -68,8 +68,8 @@ class PropertyMarketplaceTest extends TestCase
 
     public function test_listing_owner_can_close_listing_but_another_user_cannot(): void
     {
-        $owner = User::factory()->create();
-        $other = User::factory()->create();
+        $owner = $this->makeUser();
+        $other = $this->makeUser();
         $listing = PropertyListing::create([
             'user_id' => $owner->id,
             'listing_type' => 'sale',
