@@ -1,6 +1,6 @@
 @extends('layouts.marketplace')
 @section('title', $listing->title)
-@section('meta_description', \\Illuminate\\Support\\Str::limit(strip_tags($listing->description), 150))
+@section('meta_description', \Illuminate\Support\Str::limit(strip_tags($listing->description), 150))
 @section('content')
 @if(session('status'))<div class="panel" style="margin-bottom:16px">{{ session('status') }}</div>@endif
 <div class="detail">
