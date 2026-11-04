@@ -137,10 +137,10 @@ class PropertyListingPackageController extends Controller
                 return redirect()->route('properties.mine')->with('error', 'درگاه پرداخت را تأیید نکرد؛ هیچ اعتباری اضافه نشد.');
             }
 
-            DB::transaction(function () use ($order, $verification, $authority, $transId, $isBitpay, $quota) {
+            $newlyPaid = DB::transaction(function () use ($order, $verification, $authority, $transId, $isBitpay, $quota) {
                 $locked = PropertyListingPackageOrder::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'paid') {
-                    return;
+                    return false;
                 }
                 if ($locked->status !== 'pending') {
                     throw new RuntimeException('Package order is no longer pending.');
@@ -154,14 +154,23 @@ class PropertyListingPackageController extends Controller
                 ]);
 
                 $quota->grantPaidOrder($locked->id);
-                $locked->user?->notify(new PropertyListingNotification(
-                    'package_credits_added',
-                    'اعتبار آگهی به حساب شما اضافه شد',
-                    'پرداخت بسته '.$locked->quantity.' آگهی تأیید شد و اعتبار آن به حساب شما افزوده شد.',
-                    route('properties.mine'),
-                    'success'
-                ));
+
+                return true;
             });
+
+            if ($newlyPaid) {
+                try {
+                    $order->user?->notify(new PropertyListingNotification(
+                        'package_credits_added',
+                        'اعتبار آگهی به حساب شما اضافه شد',
+                        'پرداخت بسته '.$order->quantity.' آگهی تأیید شد و اعتبار آن به حساب شما افزوده شد.',
+                        route('properties.mine'),
+                        'success'
+                    ));
+                } catch (\\Throwable $notificationError) {
+                    report($notificationError);
+                }
+            }
 
             return redirect()->route('properties.mine')->with('status', 'پرداخت تأیید شد؛ '.$order->quantity.' اعتبار آگهی به حساب شما اضافه شد.');
         } catch (\Throwable $e) {
