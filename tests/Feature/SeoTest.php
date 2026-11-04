@@ -189,7 +189,9 @@ class SeoTest extends TestCase
             ->assertSee('قالب‌های پیامک قابل تنظیم')
             ->assertSee('مشاهدهٔ پلن‌ها')
             ->assertSee('آیا در صابخونه می‌توان نظرسنجی ساختمان برگزار کرد؟')
-            ->assertSee('"@type":"FAQPage"', false);
+            ->assertSee('"@type":"FAQPage"', false)
+            ->assertSee('"@type":"SoftwareApplication"', false)
+            ->assertSee('صابخونه؛ نرم‌افزار مدیریت ساختمان');
     }
 
     public function test_building_charges_page_covers_charge_workflow_and_links_to_related_guides(): void
