@@ -133,6 +133,22 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 </div>
 </div></section>
 @endif
+@if(!empty($page['market_comparison_table']))
+<section class="section" id="product-comparison"><div class="wrap">
+<h2>مقایسهٔ قابلیت‌های نرم‌افزارهای مدیریت ساختمان در ایران</h2>
+<p class="lead">این جدول بر اساس توضیحات منتشرشده در صفحات رسمی محصولات تنظیم شده است. «ذکر نشده» به معنی نبود قطعی قابلیت نیست؛ ممکن است قابلیت در نسخهٔ دیگری وجود داشته باشد یا در صفحهٔ معرفی توضیح داده نشده باشد. پیش از خرید، امکانات پلن موردنظر را در دموی همان محصول بررسی کنید.</p>
+<div class="comparison-wrap" role="region" aria-label="جدول مقایسه قابلیت نرم‌افزارهای مدیریت ساختمان" tabindex="0">
+<table class="comparison-table">
+<caption>{{ $page['market_comparison_table']['caption'] }}</caption>
+<thead><tr>@foreach($page['market_comparison_table']['headers'] as $header)<th scope="col">{{ $header }}</th>@endforeach</tr></thead>
+<tbody>@foreach($page['market_comparison_table']['rows'] as $row)
+<tr>@foreach($row as $index => $cell)@if($index === 0)<th scope="row">{{ $cell }}</th>@else<td>{{ $cell }}</td>@endif @endforeach</tr>
+@endforeach</tbody>
+</table>
+</div>
+<p class="comparison-note">منابع بررسی: @foreach($page['market_comparison_table']['sources'] as $source)<a href="{{ $source['url'] }}" target="_blank" rel="noopener noreferrer">{{ $source['label'] }}</a>@if(!$loop->last) · @endif @endforeach. اطلاعات و پلن‌ها ممکن است تغییر کنند؛ تاریخ بررسی در عنوان جدول درج شده است.</p>
+</div></section>
+@endif
 <section class="section"><div class="wrap">
 <h2>پرسش‌های متداول</h2>@include('marketing.partials.faq-list', ['items' => $page['faqs'], 'columns' => 2])
 <h2 style="margin-top:34px">راهنماهای مرتبط</h2>
