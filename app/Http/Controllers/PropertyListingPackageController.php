@@ -167,7 +167,7 @@ class PropertyListingPackageController extends Controller
                         route('properties.mine'),
                         'success'
                     ));
-                } catch (\\Throwable $notificationError) {
+                } catch (\Throwable $notificationError) {
                     report($notificationError);
                 }
             }
