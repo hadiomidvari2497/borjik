@@ -77,7 +77,7 @@ class PropertyListingManagementController extends Controller
     {
         $data = $request->validate([
             'status' => ['required', 'in:active,closed,rejected'],
-            'moderation_note' => ['nullable', 'string', 'max:2000'],
+            'moderation_note' => ['required_if:status,rejected', 'nullable', 'string', 'max:2000'],
         ]);
 
         $listing = PropertyListing::query()->findOrFail($id);
