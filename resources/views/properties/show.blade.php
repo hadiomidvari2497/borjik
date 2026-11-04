@@ -3,6 +3,7 @@
 @section('meta_description', \Illuminate\Support\Str::limit(strip_tags($listing->description), 150))
 @push('scripts')<script src="{{ asset('js/marketplace.js') }}?v={{ @filemtime(public_path('js/marketplace.js')) }}" defer></script>@endpush
 @section('content')
+@if(session('status'))<div class="notice" style="margin-bottom:16px">{{ session('status') }}</div>@endif
 @php
     use App\Support\Fa;
 
@@ -102,9 +103,25 @@
                 <div><b>{{ $ownerName }}</b><span class="muted">ثبت‌کننده آگهی</span></div>
             </div>
             @auth
-                <p>برای هماهنگی با ثبت‌کننده از طریق اطلاعات تماس حساب کاربری اقدام کنید.</p>
+                @if((int) auth()->id() === (int) $listing->user_id)
+                    <p>این آگهی متعلق به شماست. درخواست‌های تماس را از بخش مدیریت درخواست‌ها پیگیری کنید.</p>
+                    <a class="btn block lg" href="{{ route('properties.inquiries.index') }}">مشاهده درخواست‌های تماس</a>
+                @else
+                    <form method="POST" action="{{ route('properties.inquiries.store', $listing) }}">
+                        @csrf
+                        <label class="field">پیام شما به ثبت‌کننده آگهی
+                            <textarea name="message" rows="4" minlength="10" maxlength="2000" required placeholder="مثلاً برای بازدید ملک چه زمانی امکان هماهنگی دارید؟">{{ old('message') }}</textarea>
+                        </label>
+                        @error('message')<p class="error">{{ $message }}</p>@enderror
+                        <label style="display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.8;margin:10px 0">
+                            <input type="checkbox" name="share_mobile" value="1" @checked(old('share_mobile'))>
+                            اجازه می‌دهم شماره موبایل حسابم فقط برای پاسخ به همین درخواست در اختیار ثبت‌کننده آگهی قرار بگیرد.
+                        </label>
+                        <button class="btn block lg" type="submit">ارسال درخواست تماس</button>
+                    </form>
+                @endif
             @else
-                <a class="btn block lg" href="{{ route('login') }}">برای مشاهده اطلاعات تماس وارد شوید</a>
+                <a class="btn block lg" href="{{ route('login') }}">برای ارسال درخواست تماس وارد شوید</a>
             @endauth
         </div>
 
