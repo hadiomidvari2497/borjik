@@ -33,7 +33,7 @@ return [
         'items' => [
             ['label' => 'مدیریت آگهی‌های ملکی', 'icon' => 'building-2', 'route' => 'admin.property-listings.index', 'active' => 'admin.property-listings.*', 'perm' => 'marketplace.manage',
                 'desc' => 'رسیدگی به آگهی‌ها، وضعیت انتشار، خرید بسته‌ها و درآمد بازارچه'],
-            ['label' => 'تنظیمات بازارچه آگهی', 'icon' => 'settings', 'route' => 'admin.property-listings.settings', 'active' => 'admin.property-listings.settings*', 'perm' => 'marketplace.manage',
+            ['label' => 'تنظیمات بازارچه آگهی', 'icon' => 'set', 'route' => 'admin.property-listings.settings', 'active' => 'admin.property-listings.settings*', 'perm' => 'marketplace.manage',
                 'desc' => 'تعیین سهمیه رایگان و قیمت بسته‌های اعتبار آگهی'],
         ],
     ],
