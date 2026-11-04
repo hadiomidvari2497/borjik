@@ -142,7 +142,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/{id}/toggle', 'toggle')->whereNumber('id')->name('toggle');
         });
 
-        Route::prefix('property-listings')->name('property-listings.')->middleware('admin.can:plans.manage')->controller(PropertyListingSettingsController::class)->group(function () {\n            Route::get('/settings', 'edit')->name('settings');\n            Route::put('/settings', 'update')->name('settings.update');\n        });\n\n        Route::prefix('plans')->name('plans.')->middleware('admin.can:plans.manage')->controller(SubscriptionPlanController::class)->group(function () {
+        Route::prefix('property-listings')->name('property-listings.')->middleware('admin.can:plans.manage')->controller(PropertyListingSettingsController::class)->group(function () {
+            Route::get('/settings', 'edit')->name('settings');
+            Route::put('/settings', 'update')->name('settings.update');
+        });
+
+        Route::prefix('plans')->name('plans.')->middleware('admin.can:plans.manage')->controller(SubscriptionPlanController::class)->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');
