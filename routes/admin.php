@@ -33,6 +33,7 @@ use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\SupportPerformanceReportController;
 use App\Http\Controllers\Admin\FinancialManagementController;
 use App\Http\Controllers\Admin\DiscountCouponController;
+use App\Http\Controllers\Admin\PropertyListingSettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->group(function () {
