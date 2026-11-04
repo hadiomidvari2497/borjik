@@ -27,7 +27,7 @@
 <section class="form-section"><h2>توضیحات و تصاویر</h2><div class="fields">
 <label class="field">توضیحات کامل<textarea name="description" required maxlength="10000">{{ old('description',$listing->description) }}</textarea><span class="form-help">ویژگی‌های مهم ملک و شرایط معامله را دقیق بنویسید.</span></label>
 <label class="field">افزودن تصاویر (حداکثر ۱۲ عکس، هرکدام تا ۵ مگابایت)<input id="property-photos" type="file" name="photos[]" accept="image/jpeg,image/png,image/webp" multiple><span class="form-help">فرمت‌های مجاز: JPG، PNG و WebP</span></label>
-</div><div id="photo-preview" class="photo-preview" aria-live="polite"></div>
+</div><div id="photo-error" class="error" role="status" aria-live="polite"></div><div id="photo-preview" class="photo-preview" aria-live="polite"></div>
 @if($listing->photos)
     <h3 style="font-size:13px;margin:18px 0 8px">تصاویر فعلی؛ برای نگه‌داشتن تیک را روشن بگذارید</h3>
     @foreach($listing->photos as $photo)
@@ -45,9 +45,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (photoInput && preview) {
         photoInput.addEventListener('change', function () {
             preview.replaceChildren();
+            const error = document.getElementById('photo-error');
+            if (error) error.textContent = '';
             const files = Array.from(this.files || []);
             if (files.length > 12) {
-                alert('حداکثر ۱۲ تصویر می‌توانید انتخاب کنید.');
+                if (error) error.textContent = 'حداکثر ۱۲ تصویر می‌توانید انتخاب کنید.';
                 this.value = '';
                 return;
             }
