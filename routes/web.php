@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PropertyListingController;
 use App\Http\Controllers\PropertyListingPackageController;
 use App\Http\Controllers\PropertyListingReportController;
+use App\Http\Controllers\PropertyListingInquiryController;
 
 Route::post('/analytics/heartbeat', [AnalyticsCollectionController::class, 'heartbeat'])->middleware('throttle:120,1')->name('analytics.heartbeat');
 Route::post('/analytics/event', [AnalyticsCollectionController::class, 'event'])->middleware('throttle:120,1')->name('analytics.event');
@@ -36,6 +37,9 @@ Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])-
 
 Route::middleware('auth')->group(function () {
     Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
+    Route::get('/my/property-inquiries', [PropertyListingInquiryController::class, 'index'])->name('properties.inquiries.index');
+    Route::patch('/my/property-inquiries/{inquiry}', [PropertyListingInquiryController::class, 'update'])->whereNumber('inquiry')->name('properties.inquiries.update');
+    Route::post('/properties/{listing}/inquiries', [PropertyListingInquiryController::class, 'store'])->whereNumber('listing')->middleware('throttle:5,10')->name('properties.inquiries.store');
     Route::post('/properties/packages/buy', [PropertyListingPackageController::class, 'buy'])->middleware('throttle:10,1')->name('properties.packages.buy');
     Route::post('/properties/{listing}/reports', [PropertyListingReportController::class, 'store'])->whereNumber('listing')->middleware('throttle:5,10')->name('properties.reports.store');
     Route::get('/properties/create', [PropertyListingController::class, 'create'])->name('properties.create');
