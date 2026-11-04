@@ -25,7 +25,7 @@
             <div class="actions">
                 <a class="btn" href="{{ route('properties.chat.show', $inquiry) }}">باز کردن گفتگو</a>
                 @if($isOwner && $inquiry->sender_mobile)
-                    <a class="btn light" href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده</a>
+                    <a class="btn light" href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده · {{ $inquiry->sender_mobile }}</a>
                 @endif
             </div>
         </article>
