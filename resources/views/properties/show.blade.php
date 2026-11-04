@@ -120,6 +120,10 @@
                             <textarea name="message" rows="4" minlength="2" maxlength="2000" required placeholder="سلام، درباره این ملک می‌خواستم بیشتر بدانم...">{{ old('message') }}</textarea>
                         </label>
                         @error('message')<p class="error">{{ $message }}</p>@enderror
+                        <label style="display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.8;margin:10px 0">
+                            <input type="checkbox" name="share_mobile" value="1" @checked(old('share_mobile'))>
+                            در صورت تمایل، شماره موبایل من هم برای طرف مقابل نمایش داده شود.
+                        </label>
                         <button class="btn block lg" type="submit">شروع گفتگو با فروشنده</button>
                     </form>
                 @endif
