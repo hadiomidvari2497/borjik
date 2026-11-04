@@ -222,7 +222,11 @@ class PropertyListingController extends Controller
         }
 
         return Unit::withoutGlobalScopes()
-            ->with(['building.city', 'building.province', 'block'])
+            ->with([
+                'building.city',
+                'building.province',
+                'block' => fn ($query) => $query->withoutGlobalScopes(),
+            ])
             ->whereNull('deleted_at')
             ->where(function ($query) use ($managedBuildingIds, $ownedUnitIds) {
                 if ($managedBuildingIds !== []) {
@@ -261,7 +265,10 @@ class PropertyListingController extends Controller
                 'bathrooms' => $unit->getAttribute('bathrooms'),
                 'province' => $building?->province?->name,
                 'city' => $building?->city?->name,
-                'parking_count' => DB::table('parking_assignments')->where('unit_id', $unit->id)->whereNull('released_at')->count(),
+                'parking_count' => DB::table('parking_assignments')
+                    ->where('unit_id', $unit->id)
+                    ->whereNull('released_at')
+                    ->count(),
             ]];
         })->all();
     }
