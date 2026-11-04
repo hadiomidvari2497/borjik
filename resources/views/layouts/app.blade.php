@@ -142,10 +142,10 @@
         <svg class="i"><use href="#building-2"/></svg>مشاهده آگهی‌های ملکی
       </a>
       <a href="{{ route('properties.mine') }}" @class(['on' => request()->routeIs('properties.mine', 'properties.create', 'properties.edit')]) @if(request()->routeIs('properties.mine', 'properties.create', 'properties.edit')) aria-current="page" @endif>
-        <svg class="i"><use href="#file-text"/></svg>آگهی‌های من
+        <svg class="i"><use href="#doc"/></svg>آگهی‌های من
       </a>
       <a href="{{ route('properties.create') }}" @class(['on' => request()->routeIs('properties.create')]) @if(request()->routeIs('properties.create')) aria-current="page" @endif>
-        <svg class="i"><use href="#plus-circle"/></svg>ثبت آگهی جدید
+        <svg class="i"><use href="#plus"/></svg>ثبت آگهی جدید
       </a>
       <div class="grp">دعوت‌نامه‌ها</div>
       <a href="{{ route('support.index') }}" @class(['on' => request()->routeIs('support.*')]) @if(request()->routeIs('support.*')) aria-current="page" @endif>
