@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\SupportPerformanceReportController;
 use App\Http\Controllers\Admin\FinancialManagementController;
 use App\Http\Controllers\Admin\DiscountCouponController;
 use App\Http\Controllers\Admin\PropertyListingSettingsController;
+use App\Http\Controllers\Admin\PropertyListingManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -141,6 +142,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/{id}/edit', 'edit')->whereNumber('id')->name('edit');
             Route::put('/{id}', 'update')->whereNumber('id')->name('update');
             Route::post('/{id}/toggle', 'toggle')->whereNumber('id')->name('toggle');
+        });
+
+        Route::prefix('property-listings')->name('property-listings.')->middleware('admin.can:marketplace.manage')->controller(PropertyListingManagementController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{id}', 'show')->whereNumber('id')->name('show');
+            Route::patch('/{id}/status', 'updateStatus')->whereNumber('id')->name('status');
         });
 
         Route::prefix('property-listings')->name('property-listings.')->middleware('admin.can:plans.manage')->controller(PropertyListingSettingsController::class)->group(function () {
