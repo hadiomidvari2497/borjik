@@ -29,8 +29,6 @@ class PropertyListingInquiryController extends Controller
             ->first();
 
         if ($inquiry) {
-            // If the seller previously closed the thread, reopen it and preserve
-            // the new contact message in the conversation history.
             if ($inquiry->status === 'closed') {
                 $inquiry->forceFill(['status' => 'new', 'updated_at' => now()])->save();
                 $inquiry->messages()->create([
@@ -77,10 +75,15 @@ class PropertyListingInquiryController extends Controller
 
     public function index(Request $request)
     {
-        $userId = $request->user()->id;
+        $userId = (int) $request->user()->id;
         $inquiries = PropertyListingInquiry::query()
             ->where(fn ($query) => $query->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId))
-            ->with(['listing', 'sender', 'recipient'])
+            ->with(['listing', 'sender', 'recipient', 'messages' => fn ($query) => $query->latest('id')->limit(1)])
+            ->withCount([
+                'messages as unread_messages_count' => fn ($query) => $query
+                    ->where('sender_user_id', '!=', $userId)
+                    ->whereNull('read_at'),
+            ])
             ->withMax('messages', 'created_at')
             ->latest('updated_at')
             ->paginate(15);
