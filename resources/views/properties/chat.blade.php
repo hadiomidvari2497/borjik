@@ -30,13 +30,16 @@
 .chat-message-meta{display:flex;align-items:center;gap:8px;font-size:10px;color:#71867b;margin-bottom:5px}
 .chat-message-body{white-space:pre-wrap;font-size:13px}
 .chat-message-time{font-size:10px;color:#81938a;text-align:left;margin-top:4px;display:flex;align-items:center;justify-content:flex-start;gap:7px}
-.chat-reply-preview{padding:7px 10px;margin:0 0 8px;border-right:3px solid #279466;border-radius:8px;background:rgba(20,120,75,.07);font-size:11px;color:#587467}
+.chat-reply-preview{display:block;width:100%;text-align:right;padding:7px 10px;margin:0 0 8px;border:0;border-right:3px solid #279466;border-radius:8px;background:rgba(20,120,75,.07);font:inherit;font-size:11px;color:#587467;cursor:pointer;transition:background .2s,box-shadow .2s}
+.chat-reply-preview:hover{background:rgba(20,120,75,.13)}
 .chat-reply-preview strong{display:block;font-size:10px;margin-bottom:2px}
+.chat-message.is-targeted{animation:chat-target-pulse 1.8s ease;border-radius:18px}
+@keyframes chat-target-pulse{0%,100%{box-shadow:0 3px 12px rgba(20,45,32,.045)}25%,65%{box-shadow:0 0 0 4px rgba(33,149,101,.28),0 8px 24px rgba(20,120,75,.15)}}
 .chat-reply-btn{border:0;background:transparent;color:#287c59;font-size:10px;font-weight:800;cursor:pointer;padding:3px 0;margin-top:3px}
 .chat-read-receipt{font-size:13px;letter-spacing:-3px;color:#87968e;direction:ltr}
 .chat-read-receipt.is-read{color:#168bce}
 .chat-reply-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin-bottom:10px;border-right:3px solid #21966a;border-radius:10px;background:#f1f8f4;font-size:11px;color:#315d48}
-.chat-reply-bar button{border:0;background:transparent;color:#68766f;font-size:18px;cursor:pointer}
+.chat-reply-bar button{flex:0 0 30px;width:30px;height:30px;display:grid;place-items:center;border:0;border-radius:8px;background:transparent;color:#68766f;font-size:20px;line-height:1;cursor:pointer}.chat-reply-bar button:hover{background:rgba(0,0,0,.06)}.chat-reply-bar[hidden]{display:none!important}
 .chat-initial-message{border:1px dashed rgba(29,120,79,.24)}
 .chat-composer-wrap{padding:15px 18px 17px;border-top:1px solid var(--line);background:#fff}
 .chat-composer{display:flex;align-items:flex-end;gap:10px}
@@ -94,7 +97,9 @@
                     <div class="chat-message-meta">{{ $message->sender->display_name }} <span>·</span> {{ \App\Support\Fa::date($message->created_at, 'Y/m/d H:i') }}</div>
                     <div class="chat-message-body">{{ $message->body }}</div>
                     @if($message->replyTo)
-                        <div class="chat-reply-preview"><strong>در پاسخ به {{ $message->replyTo->sender?->display_name ?? 'کاربر' }}</strong>{{ \Illuminate\Support\Str::limit($message->replyTo->body, 100) }}</div>
+                        <button type="button" class="chat-reply-preview" data-jump-to="{{ $message->replyTo->id }}" aria-label="رفتن به پیام اصلی">
+                            <strong>در پاسخ به {{ $message->replyTo->sender?->display_name ?? 'کاربر' }}</strong>{{ \Illuminate\Support\Str::limit($message->replyTo->body, 100) }}
+                        </button>
                     @endif
                     <div class="chat-message-time">{{ \App\Support\Fa::date($message->created_at, 'H:i') }} @if((int) $message->sender_user_id === (int) auth()->id())<span class="chat-read-receipt {{ $message->read_at ? 'is-read' : '' }}" data-receipt-id="{{ $message->id }}" title="{{ $message->read_at ? 'خوانده شده' : 'ارسال شده' }}">✓{{ $message->read_at ? '✓' : '' }}</span>@endif</div>
                     <button type="button" class="chat-reply-btn" data-reply-id="{{ $message->id }}" data-reply-sender="{{ $message->sender?->display_name ?? '' }}" data-reply-body="{{ $message->body }}">↩ پاسخ</button>
@@ -158,8 +163,11 @@ document.addEventListener('DOMContentLoaded', () => {
         body.textContent = message.body || '';
         article.append(meta);
         if (message.reply) {
-            const quote = document.createElement('div');
+            const quote = document.createElement('button');
+            quote.type = 'button';
             quote.className = 'chat-reply-preview';
+            quote.dataset.jumpTo = message.reply.id;
+            quote.setAttribute('aria-label', 'رفتن به پیام اصلی');
             const quoteTitle = document.createElement('strong');
             quoteTitle.textContent = 'در پاسخ به ' + (message.reply.sender_name || 'کاربر');
             quote.append(quoteTitle, document.createTextNode(message.reply.body || ''));
@@ -219,7 +227,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function clearReplyTarget() {
+        replyInput.value = '';
+        replyBar.hidden = true;
+        replyLabel.textContent = '';
+    }
+
     thread.addEventListener('click', event => {
+        const jump = event.target.closest('[data-jump-to]');
+        if (jump) {
+            const target = thread.querySelector('[data-message-id="' + jump.dataset.jumpTo + '"]');
+            if (target) {
+                target.scrollIntoView({behavior: 'smooth', block: 'center'});
+                target.classList.remove('is-targeted');
+                requestAnimationFrame(() => target.classList.add('is-targeted'));
+                window.setTimeout(() => target.classList.remove('is-targeted'), 1900);
+            }
+            return;
+        }
+
         const button = event.target.closest('[data-reply-id]');
         if (!button) return;
         replyInput.value = button.dataset.replyId;
@@ -227,9 +253,13 @@ document.addEventListener('DOMContentLoaded', () => {
         replyBar.hidden = false;
         textarea.focus();
     });
-    document.getElementById('chat-reply-cancel')?.addEventListener('click', () => {
-        replyInput.value = '';
-        replyBar.hidden = true;
+
+    const cancelReplyButton = document.getElementById('chat-reply-cancel');
+    cancelReplyButton?.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        clearReplyTarget();
+        textarea.focus();
     });
 
     form.addEventListener('submit', async event => {
@@ -258,8 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             appendMessage(data.message);
             textarea.value = '';
-            replyInput.value = '';
-            replyBar.hidden = true;
+            clearReplyTarget();
             status.textContent = 'پیام با موفقیت ارسال شد.';
             textarea.focus();
         } catch (error) {
