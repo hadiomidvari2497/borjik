@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PropertyListingChatMessage extends Model
 {
-    protected $fillable = ['inquiry_id', 'sender_user_id', 'body', 'read_at'];
+    protected $fillable = ['inquiry_id', 'sender_user_id', 'body', 'read_at', 'reply_to_message_id'];
 
     protected function casts(): array
     {
@@ -39,7 +39,18 @@ class PropertyListingChatMessage extends Model
             'sender_user_id' => $this->sender_user_id,
             'sender_name' => $senderName ?? $this->sender?->display_name ?? '',
             'time' => \App\Support\Fa::date($this->created_at, 'Y/m/d H:i'),
+            'reply' => $this->replyTo ? [
+                'id' => $this->replyTo->id,
+                'body' => $this->replyTo->body,
+                'sender_name' => $this->replyTo->sender?->display_name ?? '',
+            ] : null,
+            'read_at' => $this->read_at?->toISOString(),
             'attachments' => $this->attachments->map->toPayload()->values()->all(),
         ];
+    }
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reply_to_message_id');
     }
 }

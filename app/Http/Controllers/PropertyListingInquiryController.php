@@ -32,8 +32,6 @@ class PropertyListingInquiryController extends Controller
             ->first();
 
         if ($inquiry) {
-            // If the seller previously closed the thread, reopen it and preserve
-            // the new contact message in the conversation history.
             if ($inquiry->status === 'closed') {
                 $inquiry->forceFill(['status' => 'new', 'updated_at' => now()])->save();
                 $inquiry->messages()->create([
@@ -80,7 +78,7 @@ class PropertyListingInquiryController extends Controller
 
     public function index(Request $request)
     {
-        $userId = $request->user()->id;
+        $userId = (int) $request->user()->id;
         $inquiries = PropertyListingInquiry::query()
             ->where(fn ($query) => $query->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId))
             ->with(['listing', 'sender', 'recipient', 'latestMessage.attachments'])
@@ -108,7 +106,7 @@ class PropertyListingInquiryController extends Controller
             ->update(['read_at' => now()]);
 
         $inquiry->load(['listing', 'sender', 'recipient']);
-        $messages = $inquiry->messages()->with(['sender', 'attachments'])->oldest()->get();
+        $messages = $inquiry->messages()->with(['sender', 'attachments', 'replyTo.sender'])->oldest()->get();
 
         return view('properties.chat', compact('inquiry', 'messages'));
     }
@@ -120,6 +118,7 @@ class PropertyListingInquiryController extends Controller
 
         $data = $request->validate([
             'body' => ['required_without:attachments', 'nullable', 'string', 'max:2000'],
+            'reply_to_message_id' => ['nullable', 'integer', 'min:1'],
             'attachments' => ['nullable', 'array', 'max:5'],
             'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,webp,pdf'],
         ], [
@@ -131,10 +130,13 @@ class PropertyListingInquiryController extends Controller
             'attachments.*.uploaded' => 'آپلود فایل انجام نشد؛ حجم آن بیش از حد مجاز است.',
         ]);
 
+        $replyTo = !empty($data['reply_to_message_id']) ? $inquiry->messages()->with('sender')->findOrFail($data['reply_to_message_id']) : null;
         $message = $inquiry->messages()->create([
             'sender_user_id' => $request->user()->id,
             'body' => trim((string) ($data['body'] ?? '')),
+            'reply_to_message_id' => $replyTo?->id,
         ]);
+        $message->load(['sender', 'replyTo.sender']);
 
         foreach ($request->file('attachments', []) as $upload) {
             $message->attachments()->create([
@@ -175,19 +177,22 @@ class PropertyListingInquiryController extends Controller
         $this->authorizeParticipant($request, $inquiry);
 
         $afterId = max(0, (int) $request->query('after_id', 0));
+        $inquiry->messages()
+            ->where('sender_user_id', '!=', $request->user()->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         $messages = $inquiry->messages()
-            ->with(['sender', 'attachments'])
+            ->with(['sender', 'attachments', 'replyTo.sender'])
             ->where('id', '>', $afterId)
             ->oldest('id')
             ->limit(100)
             ->get();
 
-        $messages->where('sender_user_id', '!=', $request->user()->id)
-            ->whereNull('read_at')
-            ->each(fn ($message) => $message->forceFill(['read_at' => now()])->save());
-
         return response()->json([
             'messages' => $messages->map(fn ($message) => $message->toPayload())->values(),
+            'read_message_ids' => $inquiry->messages()->where('sender_user_id', $request->user()->id)->whereNotNull('read_at')->pluck('id'),
+            'initial_message_read' => (int) $inquiry->sender_user_id === (int) $request->user()->id && (bool) $inquiry->read_at,
             'closed' => $inquiry->status === 'closed',
         ]);
     }

@@ -194,3 +194,29 @@ body.is-chat{background:#dfe9e6}
   .convo-side .convo-time{order:2}
   .inbox-head .btn{padding:9px 16px}
 }
+
+/* پاسخ و تیک خوانده‌شدن */
+.msg-foot{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.msg.has-media .msg-foot{padding:0 9px}
+.msg-foot .msg-time{margin:0}
+.msg-reply{order:3;margin-inline-end:auto;width:24px;height:24px;border:0;border-radius:50%;padding:0;display:grid;place-items:center;background:transparent;color:inherit;opacity:0;cursor:pointer;transition:opacity .15s,background .15s}
+.msg-reply .icon{width:14px;height:14px}
+.msg:hover .msg-reply,.msg-reply:focus-visible{opacity:.75}
+.msg-reply:hover{background:rgba(127,127,127,.2);opacity:1}
+@media(hover:none){.msg-reply{opacity:.55}}
+.tick{font-size:11px;letter-spacing:-2px;opacity:.7}
+.tick.is-read{opacity:1;color:#8ff0d8}
+.theirs .tick.is-read{color:#1b9a85}
+.reply-quote{display:block;width:100%;margin:0 0 5px;padding:5px 10px;border:0;border-inline-start:3px solid #7fe0c9;border-radius:8px;background:rgba(255,255,255,.14);color:inherit;font:inherit;font-size:12px;line-height:1.6;text-align:start;cursor:pointer}
+.theirs .reply-quote{background:var(--brand-50);border-color:var(--brand)}
+.reply-quote b{display:block;font-size:11.5px}
+.reply-quote span{display:block;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg.flash{animation:flash 1.4s ease-out}
+@keyframes flash{0%,40%{box-shadow:0 0 0 4px rgba(42,168,147,.5)}100%{box-shadow:0 0 0 0 rgba(42,168,147,0)}}
+.reply-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:6px 8px 6px 10px;border-inline-start:3px solid var(--brand);border-radius:10px;background:var(--brand-50);color:var(--brand-d);font-size:12px}
+.reply-bar[hidden]{display:none}
+.reply-bar>.icon{flex:none;width:16px;height:16px}
+.reply-bar span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reply-bar span b{margin-inline-end:4px}
+.reply-bar button{flex:none;width:24px;height:24px;border:0;border-radius:50%;padding:0;display:grid;place-items:center;background:transparent;color:inherit;cursor:pointer}
+.reply-bar button .icon{width:13px;height:13px;stroke-width:2.4}

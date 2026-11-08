@@ -80,6 +80,24 @@ class PropertyListingInquiryTest extends TestCase
             ->count());
     }
 
+    public function test_repeated_chat_entry_requests_are_not_blocked_after_five_attempts(): void
+    {
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $listing = $this->makeListing($owner);
+
+        for ($attempt = 1; $attempt <= 6; $attempt++) {
+            $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
+                'message' => 'برای ادامه گفتگو مراجعه کردم.',
+            ])->assertRedirect();
+        }
+
+        $this->assertSame(1, PropertyListingInquiry::query()
+            ->where('property_listing_id', $listing->id)
+            ->where('sender_user_id', $sender->id)
+            ->count());
+    }
+
     public function test_contacting_again_reopens_a_closed_conversation_and_keeps_the_new_message(): void
     {
         $owner = $this->makeUser();
@@ -312,6 +330,26 @@ class PropertyListingInquiryTest extends TestCase
             ->assertDontSee('class="top"', false);
 
         $this->actingAs($owner)->get(route('properties.inquiries.index'))->assertOk()->assertSee('تصویر');
+    }
+
+    public function test_replies_and_read_receipts_work_together_with_attachments(): void
+    {
+        Storage::fake('local');
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $inquiry = $this->makeInquiry($owner, $sender);
+        $first = $inquiry->messages()->create(['sender_user_id' => $sender->id, 'body' => 'سلام']);
+
+        $this->actingAs($owner)->postJson(route('properties.chat.send', $inquiry), [
+            'body' => 'پاسخ',
+            'reply_to_message_id' => $first->id,
+            'attachments' => [UploadedFile::fake()->image('a.png')],
+        ])->assertCreated()->assertJsonPath('message.reply.id', $first->id)->assertJsonCount(1, 'message.attachments');
+
+        $this->actingAs($sender)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => $first->id]))
+            ->assertJsonPath('messages.0.reply.body', 'سلام');
+        $this->actingAs($owner)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => 99999]))
+            ->assertJsonPath('read_message_ids.0', $first->id);
     }
 
     private function makeListing(User $owner): PropertyListing

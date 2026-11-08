@@ -134,9 +134,29 @@
     node.dataset.messageId = message.id;
     node.dataset.sender = sender;
     node.dataset.day = day;
+    if (message.reply) {
+      var q = el('button', 'reply-quote');
+      q.type = 'button'; q.dataset.jumpTo = message.reply.id;
+      q.setAttribute('aria-label', 'رفتن به پیام اصلی');
+      q.append(el('b', null, message.reply.sender_name || 'کاربر'), el('span', null, (message.reply.body || 'پیوست').slice(0, 100)));
+      node.appendChild(q);
+    }
     buildAttachments(node, message.attachments || []);
     if (message.body) { node.appendChild(el('div', 'msg-body', message.body)); }
-    node.appendChild(el('time', 'msg-time', hm));
+    var foot = el('div', 'msg-foot');
+    var rb = el('button', 'msg-reply'); rb.type = 'button';
+    rb.dataset.replyId = message.id;
+    rb.dataset.replySender = mine ? 'شما' : (message.sender_name || 'کاربر');
+    rb.dataset.replyBody = message.body || 'پیوست';
+    rb.setAttribute('aria-label', 'پاسخ به این پیام');
+    rb.appendChild(icon('i-reply'));
+    foot.append(rb, el('time', 'msg-time', hm));
+    if (mine) {
+      var tick = el('span', 'tick' + (message.read_at ? ' is-read' : ''), message.read_at ? '✓✓' : '✓');
+      tick.dataset.receiptId = message.id;
+      foot.appendChild(tick);
+    }
+    node.appendChild(foot);
     thread.appendChild(node);
 
     lastId = Math.max(lastId, Number(message.id) || 0);
@@ -144,6 +164,21 @@
 
     if (stick) { toBottom(true); } else if (!mine) { setPending(pending + 1); }
   }
+
+  function markRead(t) {
+    if (!t || t.classList.contains('is-read')) { return; }
+    t.textContent = '✓✓'; t.classList.add('is-read'); t.title = 'خوانده شده';
+  }
+
+  /* پرش به پیام اصلی هنگام کلیک روی نقل‌قول */
+  thread.addEventListener('click', function (e) {
+    var q = e.target.closest('[data-jump-to]');
+    if (!q) { return; }
+    var target = thread.querySelector('.msg[data-message-id="' + q.dataset.jumpTo + '"]');
+    if (!target) { return; }
+    target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    target.classList.remove('flash'); void target.offsetWidth; target.classList.add('flash');
+  });
 
   function lockAsClosed() {
     if (form) { form.hidden = true; }
@@ -161,6 +196,8 @@
     }).then(function (r) { return r.ok ? r.json() : null; }).then(function (data) {
       if (!data) { return; }
       (data.messages || []).forEach(appendMessage);
+      (data.read_message_ids || []).forEach(function (id) { markRead(thread.querySelector('[data-receipt-id="' + id + '"]')); });
+      if (data.initial_message_read) { markRead(document.getElementById('initial-read-receipt')); }
       if (data.closed) { lockAsClosed(); }
     }).catch(function () {}).then(function () { polling = false; schedule(); });
   }
@@ -241,6 +278,20 @@
     var tray = document.getElementById('chat-tray');
     var staged = [];
     var sending = false;
+    var replyInput = form.querySelector('input[name="reply_to_message_id"]');
+    var replyBar = document.getElementById('chat-reply-bar');
+    var replyLabel = document.getElementById('chat-reply-label');
+    var clearReply = function () { replyInput.value = ''; replyBar.hidden = true; replyLabel.textContent = ''; };
+    document.getElementById('chat-reply-cancel').addEventListener('click', clearReply);
+    thread.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-reply-id]');
+      if (!b || form.hidden) { return; }
+      replyInput.value = b.dataset.replyId;
+      replyLabel.textContent = '';
+      replyLabel.append(el('b', null, b.dataset.replySender || 'کاربر'), document.createTextNode(' ' + String(b.dataset.replyBody || '').slice(0, 110)));
+      replyBar.hidden = false;
+      textarea.focus();
+    });
 
     var showError = function (t) { if (errBox) { errBox.textContent = t || ''; } };
 
@@ -333,6 +384,7 @@
 
       var data = new FormData();
       data.append('body', body);
+      if (replyInput.value) { data.append('reply_to_message_id', replyInput.value); }
       staged.forEach(function (s) { data.append('attachments[]', s.file); });
 
       var xhr = new XMLHttpRequest();
@@ -353,7 +405,7 @@
           appendMessage(res.message);
           textarea.value = '';
           staged.forEach(function (s) { if (s.preview) { URL.revokeObjectURL(s.preview); } });
-          staged = []; renderTray();
+          staged = []; renderTray(); clearReply();
           if (!window.matchMedia('(hover: none)').matches) { textarea.focus(); }
         } else {
           var text = res.message;

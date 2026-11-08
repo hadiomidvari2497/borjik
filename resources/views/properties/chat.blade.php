@@ -19,10 +19,13 @@
 
     // خط زمانی: پیام اولیه‌ی گفتگو + پیام‌های بعدی (با پیوست‌ها)
     $timeline = collect([[
-        'id' => 0, 'sender' => (int) $inquiry->sender_user_id, 'body' => (string) $inquiry->message, 'at' => $inquiry->created_at, 'attachments' => [],
+        'id' => 0, 'sender' => (int) $inquiry->sender_user_id, 'body' => (string) $inquiry->message, 'at' => $inquiry->created_at, 'attachments' => [], 'reply' => null,
+        'read' => (bool) $inquiry->read_at,
     ]])->concat($messages->map(fn ($m) => [
         'id' => $m->id, 'sender' => (int) $m->sender_user_id, 'body' => (string) $m->body, 'at' => $m->created_at,
         'attachments' => $m->attachments->map->toPayload()->all(),
+        'reply' => $m->replyTo ? ['id' => $m->replyTo->id, 'body' => $m->replyTo->body, 'sender_name' => $m->replyTo->sender?->display_name ?? ''] : null,
+        'read' => (bool) $m->read_at,
     ]))->map(fn ($row) => $row + ['day' => Fa::date($row['at'], 'Y/m/d')])->values();
 @endphp
 @include('properties.partials.chat-icons')
@@ -75,6 +78,8 @@
 
     <form id="chat-composer" class="composer" method="POST" action="{{ route('properties.chat.send', $inquiry) }}" enctype="multipart/form-data" @if($closed) hidden @endif>
         @csrf
+        <div class="reply-bar" id="chat-reply-bar" hidden><svg class="icon" aria-hidden="true"><use href="#i-reply"/></svg><span id="chat-reply-label"></span><button type="button" id="chat-reply-cancel" aria-label="لغو پاسخ"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+        <input type="hidden" name="reply_to_message_id" value="">
         <div class="tray" id="chat-tray" hidden></div>
         <div class="composer-row">
             <input id="chat-file" class="sr-only" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" tabindex="-1">
