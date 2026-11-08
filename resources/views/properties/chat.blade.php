@@ -6,7 +6,7 @@
     $chatPartner = $isInitiator ? $inquiry->recipient->display_name : $inquiry->sender_name;
 @endphp
 <style>
-.chat-page{max-width:980px;margin:0 auto;padding-bottom:35px}
+.chat-page{max-width:1040px;margin:0 auto;padding:0 0 18px;min-height:calc(100dvh - 110px);display:flex;flex-direction:column}
 .chat-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;flex-wrap:wrap}
 .chat-back{display:inline-flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:700}
 .chat-back:hover{color:#168653}
@@ -55,7 +55,7 @@
 .chat-notice{margin:0 0 14px}
 
 /* Messaging-app visual refresh */
-.chat-page{max-width:1040px;padding-bottom:42px}
+.chat-page{max-width:1040px;padding:0;min-height:calc(100dvh - 110px)}
 .chat-topbar{margin-bottom:18px}
 .chat-back{padding:9px 13px;border:1px solid var(--line);border-radius:12px;background:var(--panel,#fff);transition:all .18s}
 .chat-back:hover{background:#edf7f1;border-color:#c9e5d4}
@@ -66,14 +66,14 @@
 .chat-listing-label:before{content:"";width:4px;height:14px;border-radius:4px;background:#279466}
 .chat-listing-title{font-size:14px}
 .chat-state-pill{padding:6px 10px;font-weight:750}
-.chat-shell{border:1px solid #e2ebe5;border-radius:22px;background:#fff;box-shadow:0 18px 55px rgba(22,65,43,.09);display:flex;flex-direction:column}
+.chat-shell{border:1px solid #e2ebe5;border-radius:22px;background:#fff;box-shadow:0 18px 55px rgba(22,65,43,.09);display:flex;flex:1;min-height:0;flex-direction:column}
 .chat-header{position:relative;padding:16px 21px;background:#fff;border-bottom:1px solid #eaf0ec}
 .chat-partner-avatar{width:48px;height:48px;flex-basis:48px;border-radius:50%;border:3px solid #f1f8f3;box-shadow:0 0 0 1px #dcece2;font-size:19px}
 .chat-partner-name{font-size:15px;letter-spacing:-.2px}
 .chat-partner-sub{display:flex;align-items:center;gap:6px;color:#788980}
 .chat-online-dot{width:7px;height:7px;background:#269568;margin:0}
 .chat-header>.btn{border-radius:11px;padding:9px 13px}
-.chat-thread{height:min(62vh,680px);min-height:360px;gap:17px;padding:25px clamp(16px,5vw,54px);background-color:#f8fbf9;background-image:radial-gradient(#dce9e0 0.7px,transparent .7px);background-size:18px 18px;scrollbar-width:thin;scrollbar-color:#c8d9ce transparent}
+.chat-thread{height:auto;min-height:0;flex:1;gap:17px;padding:25px clamp(16px,5vw,54px);background-color:#f8fbf9;background-image:radial-gradient(#dce9e0 0.7px,transparent .7px);background-size:18px 18px;scrollbar-width:thin;scrollbar-color:#c8d9ce transparent}
 .chat-message{max-width:min(76%,610px);padding:11px 15px 8px;border:1px solid transparent;border-radius:18px;box-shadow:0 3px 10px rgba(24,57,39,.055);transition:box-shadow .18s,transform .18s}
 .chat-message:hover{box-shadow:0 7px 20px rgba(24,57,39,.09)}
 .chat-message.mine{background:#e1f3e7;border-color:#d5eadc;border-bottom-right-radius:5px}
@@ -98,18 +98,35 @@
 .chat-status{min-height:15px}
 .chat-reply-bar{border-radius:12px;background:#f0f8f3}
 .chat-closed{border-radius:0 0 22px 22px;background:#f8faf8}
-@media(min-width:900px){.chat-shell{min-height:590px}.chat-thread{height:min(62vh,680px)}}
+@media(min-width:900px){.chat-shell{min-height:0}}
+/* Chat route behaves like a dedicated messaging app: the document never scrolls. */
+body:has(.chat-page){height:100%;min-height:100dvh;overflow:hidden;background:#f4f8f5}
+body:has(.chat-page)>.top{display:none}
+body:has(.chat-page)>.main{width:100%;max-width:none;height:100dvh;min-height:0;margin:0;padding:12px clamp(10px,2vw,28px) 14px;overflow:hidden;display:flex;flex-direction:column}
+body:has(.chat-page) .chat-page{width:100%;max-width:1180px;min-height:0;height:100%;flex:1;margin:0 auto;overflow:hidden}
+body:has(.chat-page) .chat-topbar{flex:0 0 auto;margin-bottom:10px}
+body:has(.chat-page) .chat-shell{flex:1;min-height:0;overflow:hidden}
+body:has(.chat-page) .chat-thread{flex:1;min-height:0;height:auto;overflow-y:auto;overscroll-behavior:contain}
+body:has(.chat-page) .chat-composer-wrap{flex:0 0 auto}
 @media(max-width:600px){
- .chat-page{padding-bottom:20px}
+ body:has(.chat-page)>.main{padding:0;height:100dvh}
+ body:has(.chat-page) .chat-page{padding:0}
+ body:has(.chat-page) .chat-topbar{display:none}
+ body:has(.chat-page) .chat-shell{border:0;border-radius:0;box-shadow:none;height:100%;height:100dvh}
+ body:has(.chat-page) .chat-header{padding:10px 12px;gap:9px;min-height:68px}
+ body:has(.chat-page) .chat-thread{padding:14px 11px;gap:12px}
+ body:has(.chat-page) .chat-composer-wrap{padding:9px 10px max(10px,env(safe-area-inset-bottom));border-radius:0}
+ body:has(.chat-page) .chat-closed{border-radius:0}
+ .chat-page{padding-bottom:0}
  .chat-listing-card{padding:12px 13px;border-radius:14px;align-items:flex-start}
  .chat-listing-meta{font-size:10px}
  .chat-shell{border-radius:17px}
  .chat-header{padding:13px}
  .chat-partner-avatar{width:42px;height:42px;flex-basis:42px}
  .chat-partner-sub{font-size:10px;line-height:1.6}
- .chat-thread{height:58vh;min-height:300px;padding:17px 12px;gap:14px}
+ .chat-thread{height:auto;min-height:0;padding:14px 11px;gap:12px;flex:1}
  .chat-message{max-width:91%;padding:10px 12px}
- .chat-composer-wrap{padding:11px 12px;border-radius:0 0 17px 17px}
+ .chat-composer-wrap{padding:9px 10px max(10px,env(safe-area-inset-bottom));border-radius:0}
  .chat-composer{align-items:stretch;flex-direction:row}
  .chat-composer .field{flex:1}
  .chat-composer textarea{min-height:48px}
@@ -117,30 +134,19 @@
  .chat-topbar{margin-bottom:10px}
  .chat-topbar>.muted{font-size:10px}
 }
-@media(max-width:380px){.chat-composer{flex-direction:column}.chat-send-btn{width:100%}.chat-listing-card{gap:8px}.chat-state-pill{font-size:10px}}
+@media(max-width:380px){.chat-composer{flex-direction:row}.chat-send-btn{width:auto;min-width:72px}.chat-listing-card{gap:8px}.chat-state-pill{font-size:10px}}
 </style>
 <div class="chat-page">
-    <div class="chat-topbar">
-        <a class="chat-back" href="{{ route('properties.inquiries.index') }}">→ بازگشت به همه گفتگوها</a>
-        <span class="muted" style="font-size:11px">گفتگوی امن بازار املاک صابخونه</span>
-    </div>
     @if(session('status'))<div class="notice chat-notice">{{ session('status') }}</div>@endif
-
-    <section class="chat-listing-card">
-        <div>
-            <div class="chat-listing-label">موضوع گفتگو · آگهی موردنظر</div>
-            <a class="chat-listing-title" href="{{ route('properties.show', $inquiry->listing) }}">{{ $inquiry->listing->title }}</a>
-            <div class="chat-listing-meta">شروع گفتگو: {{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d') }}</div>
-        </div>
-        <span class="chat-state-pill {{ $inquiry->status === 'closed' ? 'closed' : '' }}">{{ ['new'=>'گفتگوی جدید','contacted'=>'در حال گفتگو','closed'=>'گفتگوی بسته‌شده'][$inquiry->status] ?? $inquiry->status }}</span>
-    </section>
 
     <section class="chat-shell">
         <header class="chat-header">
+            <a class="chat-back" href="{{ route('properties.inquiries.index') }}" aria-label="بازگشت به گفتگوها" style="padding:8px 10px;flex:0 0 auto">→</a>
             <div class="chat-partner-avatar">{{ mb_substr($chatPartner ?: '؟', 0, 1) }}</div>
             <div class="chat-partner-info">
                 <div class="chat-partner-name">{{ $chatPartner }}</div>
-                <div class="chat-partner-sub"><span class="chat-online-dot"></span>مکالمه درباره آگهی · ارتباط امن در صابخونه</div>
+                <a class="chat-partner-sub chat-listing-title" style="display:block;font-size:11px;font-weight:650;margin-top:4px" href="{{ route('properties.show', $inquiry->listing) }}">{{ $inquiry->listing->title }}</a>
+                <div class="chat-partner-sub"><span class="chat-online-dot"></span>{{ ['new'=>'گفتگوی جدید','contacted'=>'در حال گفتگو','closed'=>'گفتگوی بسته‌شده'][$inquiry->status] ?? $inquiry->status }} · {{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d') }}</div>
             </div>
             @if(!$isInitiator && $inquiry->sender_mobile)
                 <a class="btn light" style="font-size:12px" href="tel:{{ $inquiry->sender_mobile }}">تماس</a>
