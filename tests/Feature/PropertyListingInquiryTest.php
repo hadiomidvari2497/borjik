@@ -78,6 +78,24 @@ class PropertyListingInquiryTest extends TestCase
             ->count());
     }
 
+    public function test_repeated_chat_entry_requests_are_not_blocked_after_five_attempts(): void
+    {
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $listing = $this->makeListing($owner);
+
+        for ($attempt = 1; $attempt <= 6; $attempt++) {
+            $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
+                'message' => 'برای ادامه گفتگو مراجعه کردم.',
+            ])->assertRedirect();
+        }
+
+        $this->assertSame(1, PropertyListingInquiry::query()
+            ->where('property_listing_id', $listing->id)
+            ->where('sender_user_id', $sender->id)
+            ->count());
+    }
+
     public function test_contacting_again_reopens_a_closed_conversation_and_keeps_the_new_message(): void
     {
         $owner = $this->makeUser();
