@@ -104,7 +104,47 @@ class PropertyListingInquiryController extends Controller
             listingId: $inquiry->property_listing_id,
         ));
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => [
+                    'id' => $message->id,
+                    'body' => $message->body,
+                    'sender_user_id' => $message->sender_user_id,
+                    'sender_name' => $request->user()->display_name,
+                    'time' => \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i'),
+                ],
+            ], 201);
+        }
+
         return redirect()->route('properties.chat.show', $inquiry)->with('status', 'پیام ارسال شد.');
+    }
+
+    public function messages(Request $request, PropertyListingInquiry $inquiry)
+    {
+        $this->authorizeParticipant($request, $inquiry);
+
+        $afterId = max(0, (int) $request->query('after_id', 0));
+        $messages = $inquiry->messages()
+            ->with('sender')
+            ->where('id', '>', $afterId)
+            ->oldest('id')
+            ->limit(100)
+            ->get();
+
+        $messages->where('sender_user_id', '!=', $request->user()->id)
+            ->whereNull('read_at')
+            ->each(fn ($message) => $message->forceFill(['read_at' => now()])->save());
+
+        return response()->json([
+            'messages' => $messages->map(fn ($message) => [
+                'id' => $message->id,
+                'body' => $message->body,
+                'sender_user_id' => $message->sender_user_id,
+                'sender_name' => $message->sender?->display_name ?? '',
+                'time' => \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i'),
+            ])->values(),
+            'closed' => $inquiry->status === 'closed',
+        ]);
     }
 
     public function update(Request $request, PropertyListingInquiry $inquiry)
