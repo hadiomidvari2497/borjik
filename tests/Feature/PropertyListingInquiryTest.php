@@ -349,7 +349,7 @@ class PropertyListingInquiryTest extends TestCase
         $this->actingAs($sender)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => $first->id]))
             ->assertJsonPath('messages.0.reply.body', 'سلام');
         $this->actingAs($owner)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => 99999]))
-            ->assertJsonPath('read_message_ids.0', $first->id);
+            ->assertJsonPath('read_message_ids.0', $first->id + 1);
     }
 
     private function makeListing(User $owner): PropertyListing
