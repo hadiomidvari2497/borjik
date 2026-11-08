@@ -839,6 +839,24 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     </section>
     @endif
 
+    <section class="content-section" id="building-management-guides" style="background:#fff">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="section-kicker">راهنمای انتخاب و استفاده</span>
+                <h2>برای هر بخش از مدیریت ساختمان، راهنمای جداگانه بخوانید</h2>
+                <p>اگر دنبال راهکار مشخصی هستید، از موضوع موردنیازتان شروع کنید؛ هر راهنما جزئیات همان بخش از کار ساختمان را توضیح می‌دهد.</p>
+            </div>
+            <div class="feature-grid">
+                <article class="feature-card"><div class="feature-icon" aria-hidden="true">⌂</div><h3><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a></h3><p>آشنایی با امکانات سامانه، نقش مدیر و ساکن و روش منظم‌کردن امور مجتمع.</p><a class="article-tag" href="{{ route('marketing.building-management') }}">راهنمای مدیریت ساختمان ←</a></article>
+                <article class="feature-card"><div class="feature-icon" aria-hidden="true">₮</div><h3><a href="{{ route('marketing.building-charges') }}">نرم‌افزار شارژ و هزینه‌های ساختمان</a></h3><p>ثبت شارژ، صورت‌حساب، پرداخت‌ها و پیگیری وضعیت مالی واحدها.</p><a class="article-tag" href="{{ route('marketing.building-charges') }}">راهنمای شارژ ساختمان ←</a></article>
+                <article class="feature-card"><div class="feature-icon" aria-hidden="true">✓</div><h3><a href="{{ route('marketing.seo.requests') }}">ثبت و پیگیری درخواست ساکنان</a></h3><p>دسته‌بندی درخواست‌ها، ارجاع به مسئول و پیگیری تا زمان رسیدگی.</p><a class="article-tag" href="{{ route('marketing.seo.requests') }}">راهنمای درخواست‌ها ←</a></article>
+                <article class="feature-card"><div class="feature-icon" aria-hidden="true">▤</div><h3><a href="{{ route('marketing.seo.finance') }}">مدیریت مالی و گزارش هزینه‌ها</a></h3><p>مرور درآمدها، هزینه‌ها و سوابق مالی با دسترسی متناسب با نقش کاربران.</p><a class="article-tag" href="{{ route('marketing.seo.finance') }}">راهنمای امور مالی ←</a></article>
+                <article class="feature-card"><div class="feature-icon" aria-hidden="true">⇄</div><h3><a href="{{ route('marketing.seo.comparison') }}">مقایسه نرم‌افزارهای مدیریت ساختمان</a></h3><p>نکاتی برای مقایسه امکانات، هزینه، سادگی استفاده و سطح دسترسی.</p><a class="article-tag" href="{{ route('marketing.seo.comparison') }}">راهنمای انتخاب نرم‌افزار ←</a></article>
+                <article class="feature-card"><div class="feature-icon" aria-hidden="true">⌑</div><h3><a href="{{ route('marketing.seo.trust') }}">امنیت و حریم خصوصی اطلاعات</a></h3><p>با اصول دسترسی نقش‌محور و نگهداری مسئولانه اطلاعات ساختمان آشنا شوید.</p><a class="article-tag" href="{{ route('marketing.seo.trust') }}">راهنمای امنیت اطلاعات ←</a></article>
+            </div>
+        </div>
+    </section>
+
     <section class="content-section roles" id="roles">
         <div class="wrap">
             <div class="section-head"><span class="section-kicker">برای هر نقش</span><h2>هر کس، همان چیزی را می‌بیند که لازم دارد</h2><p>مدیر، ساکن و پرسنل هرکدام مسیر و دسترسی مخصوص خودشان را دارند.</p></div>
