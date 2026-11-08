@@ -200,7 +200,7 @@ class SeoTest extends TestCase
             ->assertSee('امکانات نرم‌افزار مدیریت ساختمان صابخونه در عمل')
             ->assertSee('چرا مدیریت ساختمان فقط با اکسل و گروه پیام‌رسان دشوار می‌شود؟')
             ->assertSee('نرم‌افزار مدیریت ساختمان آنلاین چگونه در دسترس است؟')
-            ->assertSee('/articles/spreadsheet-messenger-or-building-software', false)
+            ->assertSee('/building-management-software-comparison', false)
             ->assertSee('ثبت شارژ، هزینه و تراکنش‌های خزانه')
             ->assertSee('ثبت، ارجاع و پیگیری درخواست‌ها')
             ->assertSee('نظرسنجی و رأی‌گیری ساختمان')
