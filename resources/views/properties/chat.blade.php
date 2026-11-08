@@ -84,7 +84,7 @@
             <article class="chat-message {{ $isInitiator ? 'mine' : 'theirs' }} chat-initial-message" data-message-id="0">
                 <div class="chat-message-meta">{{ $inquiry->sender_name }} <span>·</span> پیام آغاز گفتگو</div>
                 <div class="chat-message-body">{{ $inquiry->message }}</div>
-                <div class="chat-message-time">{{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d H:i') }}</div>
+                <div class="chat-message-time">{{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d H:i') }} @if($isInitiator)<span class="chat-read-receipt {{ $inquiry->read_at ? 'is-read' : '' }}" id="initial-read-receipt" title="{{ $inquiry->read_at ? 'خوانده شده' : 'ارسال شده' }}">✓{{ $inquiry->read_at ? '✓' : '' }}</span>@endif</div>
                 @if($inquiry->sender_mobile && !$isInitiator)
                     <div style="margin-top:9px;font-size:12px"><a href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده: {{ $inquiry->sender_mobile }}</a></div>
                 @endif
@@ -93,7 +93,11 @@
                 <article class="chat-message {{ (int) $message->sender_user_id === (int) auth()->id() ? 'mine' : 'theirs' }}" data-message-id="{{ $message->id }}">
                     <div class="chat-message-meta">{{ $message->sender->display_name }} <span>·</span> {{ \App\Support\Fa::date($message->created_at, 'Y/m/d H:i') }}</div>
                     <div class="chat-message-body">{{ $message->body }}</div>
-                    <div class="chat-message-time">{{ \App\Support\Fa::date($message->created_at, 'H:i') }}</div>
+                    @if($message->replyTo)
+                        <div class="chat-reply-preview"><strong>در پاسخ به {{ $message->replyTo->sender?->display_name ?? 'کاربر' }}</strong>{{ \Illuminate\Support\Str::limit($message->replyTo->body, 100) }}</div>
+                    @endif
+                    <div class="chat-message-time">{{ \App\Support\Fa::date($message->created_at, 'H:i') }} @if((int) $message->sender_user_id === (int) auth()->id())<span class="chat-read-receipt {{ $message->read_at ? 'is-read' : '' }}" data-receipt-id="{{ $message->id }}" title="{{ $message->read_at ? 'خوانده شده' : 'ارسال شده' }}">✓{{ $message->read_at ? '✓' : '' }}</span>@endif</div>
+                    <button type="button" class="chat-reply-btn" data-reply-id="{{ $message->id }}" data-reply-sender="{{ $message->sender?->display_name ?? '' }}" data-reply-body="{{ $message->body }}">↩ پاسخ</button>
                 </article>
             @endforeach
         </div>
