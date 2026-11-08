@@ -80,10 +80,10 @@
                 <div class="inbox-main">
                     <div class="inbox-line">
                         <span class="inbox-person">{{ $person }}</span>
-                        <span class="inbox-time">{{ \\App\\Support\\Fa::date($inquiry->updated_at, 'Y/m/d H:i') }}</span>
+                        <span class="inbox-time">{{ \App\Support\Fa::date($inquiry->updated_at, 'Y/m/d H:i') }}</span>
                     </div>
                     <div class="inbox-listing">درباره آگهی: {{ $inquiry->listing->title }}</div>
-                    <div class="inbox-preview">{{ \\Illuminate\\Support\\Str::limit($preview, 105) }}</div>
+                    <div class="inbox-preview">{{ \Illuminate\Support\Str::limit($preview, 105) }}</div>
                 </div>
                 <div class="inbox-trailing">
                     @if($unreadCount)
