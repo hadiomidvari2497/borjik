@@ -29,7 +29,14 @@
 .chat-message.theirs{background:#f1f4f2;color:#25352d;align-self:flex-end;border-bottom-left-radius:5px}
 .chat-message-meta{display:flex;align-items:center;gap:8px;font-size:10px;color:#71867b;margin-bottom:5px}
 .chat-message-body{white-space:pre-wrap;font-size:13px}
-.chat-message-time{font-size:10px;color:#81938a;text-align:left;margin-top:4px}
+.chat-message-time{font-size:10px;color:#81938a;text-align:left;margin-top:4px;display:flex;align-items:center;justify-content:flex-start;gap:7px}
+.chat-reply-preview{padding:7px 10px;margin:0 0 8px;border-right:3px solid #279466;border-radius:8px;background:rgba(20,120,75,.07);font-size:11px;color:#587467}
+.chat-reply-preview strong{display:block;font-size:10px;margin-bottom:2px}
+.chat-reply-btn{border:0;background:transparent;color:#287c59;font-size:10px;font-weight:800;cursor:pointer;padding:3px 0;margin-top:3px}
+.chat-read-receipt{font-size:13px;letter-spacing:-3px;color:#87968e;direction:ltr}
+.chat-read-receipt.is-read{color:#168bce}
+.chat-reply-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;margin-bottom:10px;border-right:3px solid #21966a;border-radius:10px;background:#f1f8f4;font-size:11px;color:#315d48}
+.chat-reply-bar button{border:0;background:transparent;color:#68766f;font-size:18px;cursor:pointer}
 .chat-initial-message{border:1px dashed rgba(29,120,79,.24)}
 .chat-composer-wrap{padding:15px 18px 17px;border-top:1px solid var(--line);background:#fff}
 .chat-composer{display:flex;align-items:flex-end;gap:10px}
@@ -95,6 +102,8 @@
             <div class="chat-composer-wrap">
                 <form id="chat-composer" method="POST" action="{{ route('properties.chat.send', $inquiry) }}" data-poll-url="{{ route('properties.chat.messages', $inquiry) }}">
                     @csrf
+                    <div id="chat-reply-bar" class="chat-reply-bar" hidden><span id="chat-reply-label"></span><button type="button" id="chat-reply-cancel" aria-label="لغو پاسخ">×</button></div>
+                    <input type="hidden" name="reply_to_message_id" value="">
                     <div class="chat-composer">
                         <label class="field">
                             <span class="sr-only">پیام جدید</span>
@@ -127,6 +136,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const pollUrl = form.dataset.pollUrl;
     let lastId = Math.max(0, ...Array.from(thread.querySelectorAll('[data-message-id]')).map(node => Number(node.dataset.messageId) || 0));
     let polling = false;
+    const replyInput = form.querySelector('input[name="reply_to_message_id"]');
+    const replyBar = document.getElementById('chat-reply-bar');
+    const replyLabel = document.getElementById('chat-reply-label');
 
     function appendMessage(message) {
         if (thread.querySelector('[data-message-id="' + message.id + '"]')) return;
@@ -140,7 +152,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const body = document.createElement('div');
         body.className = 'chat-message-body';
         body.textContent = message.body || '';
-        article.append(meta, body);
+        article.append(meta);
+        if (message.reply) {
+            const quote = document.createElement('div');
+            quote.className = 'chat-reply-preview';
+            const quoteTitle = document.createElement('strong');
+            quoteTitle.textContent = 'در پاسخ به ' + (message.reply.sender_name || 'کاربر');
+            quote.append(quoteTitle, document.createTextNode(message.reply.body || ''));
+            article.appendChild(quote);
+        }
+        article.appendChild(body);
+        const time = document.createElement('div');
+        time.className = 'chat-message-time';
+        time.textContent = message.time || '';
+        if (Number(message.sender_user_id) === {{ (int) auth()->id() }}) {
+            const receipt = document.createElement('span');
+            receipt.className = 'chat-read-receipt';
+            receipt.dataset.receiptId = message.id;
+            receipt.textContent = '✓';
+            time.appendChild(receipt);
+        }
+        article.appendChild(time);
+        const replyButton = document.createElement('button');
+        replyButton.type = 'button';
+        replyButton.className = 'chat-reply-btn';
+        replyButton.dataset.replyId = message.id;
+        replyButton.dataset.replySender = message.sender_name || '';
+        replyButton.dataset.replyBody = message.body || '';
+        replyButton.textContent = '↩ پاسخ';
+        article.appendChild(replyButton);
         thread.appendChild(article);
         lastId = Math.max(lastId, Number(message.id) || 0);
         if (shouldStick) thread.scrollTop = thread.scrollHeight;
@@ -157,6 +197,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) return;
             const data = await response.json();
             (data.messages || []).forEach(appendMessage);
+            (data.read_message_ids || []).forEach(id => {
+                const receipt = thread.querySelector('[data-receipt-id="' + id + '"]');
+                if (receipt) { receipt.textContent = '✓✓'; receipt.classList.add('is-read'); receipt.title = 'خوانده شده'; }
+            });
+            const initialReceipt = document.getElementById('initial-read-receipt');
+            if (initialReceipt && data.initial_message_read) { initialReceipt.textContent = '✓✓'; initialReceipt.classList.add('is-read'); initialReceipt.title = 'خوانده شده'; }
             if (data.closed) {
                 status.textContent = 'این گفتگو بسته شده است.';
                 textarea.disabled = true;
@@ -168,6 +214,19 @@ document.addEventListener('DOMContentLoaded', () => {
             polling = false;
         }
     }
+
+    thread.addEventListener('click', event => {
+        const button = event.target.closest('[data-reply-id]');
+        if (!button) return;
+        replyInput.value = button.dataset.replyId;
+        replyLabel.textContent = 'پاسخ به ' + (button.dataset.replySender || 'کاربر') + ': ' + (button.dataset.replyBody || '').slice(0, 110);
+        replyBar.hidden = false;
+        textarea.focus();
+    });
+    document.getElementById('chat-reply-cancel')?.addEventListener('click', () => {
+        replyInput.value = '';
+        replyBar.hidden = true;
+    });
 
     form.addEventListener('submit', async event => {
         event.preventDefault();
@@ -186,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'X-CSRF-TOKEN': csrf,
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({body})
+                body: JSON.stringify({body, reply_to_message_id: replyInput.value || null})
             });
             const data = await response.json().catch(() => ({}));
             if (!response.ok) {
@@ -195,6 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             appendMessage(data.message);
             textarea.value = '';
+            replyInput.value = '';
+            replyBar.hidden = true;
             status.textContent = 'پیام با موفقیت ارسال شد.';
             textarea.focus();
         } catch (error) {
