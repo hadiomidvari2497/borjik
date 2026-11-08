@@ -78,7 +78,7 @@ class PropertyListingInquiryController extends Controller
         $userId = (int) $request->user()->id;
         $inquiries = PropertyListingInquiry::query()
             ->where(fn ($query) => $query->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId))
-            ->with(['listing', 'sender', 'recipient'])
+            ->with(['listing', 'sender', 'recipient', 'messages' => fn ($query) => $query->latest('id')->limit(1)])
             ->withCount([
                 'messages as unread_messages_count' => fn ($query) => $query
                     ->where('sender_user_id', '!=', $userId)
