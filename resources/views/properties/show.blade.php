@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <p class="seller-contact-footnote">شماره موبایل فقط برای روش‌هایی نمایش داده می‌شود که فروشنده فعال کرده باشد.</p>
                     </section>
                 </div>
-            @endif    @endauth
+            @endif
         </div>
 
         @auth
