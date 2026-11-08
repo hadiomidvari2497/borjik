@@ -105,7 +105,7 @@ class PropertyListingInquiryController extends Controller
             ->update(['read_at' => now()]);
 
         $inquiry->load(['listing', 'sender', 'recipient']);
-        $messages = $inquiry->messages()->with('sender')->oldest()->get();
+        $messages = $inquiry->messages()->with(['sender', 'replyTo.sender'])->oldest()->get();
 
         return view('properties.chat', compact('inquiry', 'messages'));
     }
@@ -151,6 +151,8 @@ class PropertyListingInquiryController extends Controller
                     'sender_user_id' => $message->sender_user_id,
                     'sender_name' => $request->user()->display_name,
                     'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
+                    'reply' => $message->replyTo ? ['id' => $message->replyTo->id, 'body' => $message->replyTo->body, 'sender_name' => $message->replyTo->sender?->display_name ?? ''] : null,
+                    'read_at' => null,
                 ],
             ], 201);
         }
