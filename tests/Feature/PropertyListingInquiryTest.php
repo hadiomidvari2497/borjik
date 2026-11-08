@@ -78,17 +78,42 @@ class PropertyListingInquiryTest extends TestCase
             ->assertOk()->assertSee($sender->display_name)->assertSee($listing->title);
     }
 
-    public function test_listing_phone_is_hidden_by_default_and_can_be_opted_in(): void
+    public function test_seller_contact_modal_shows_call_and_sms_independently_and_keeps_chat_available(): void
     {
         $owner = $this->makeUser();
+        $visitor = $this->makeUser();
         $listing = $this->makeListing($owner);
 
-        $this->get(route('properties.show', $listing))->assertOk()->assertDontSee('tel:'.$owner->mobile);
+        $this->actingAs($visitor)->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('ارتباط با فروشنده')
+            ->assertSee('چت')
+            ->assertSee('تماس تلفنی توسط فروشنده غیرفعال شده است')
+            ->assertSee('ارسال پیامک توسط فروشنده غیرفعال شده است')
+            ->assertDontSee('tel:'.$owner->mobile)
+            ->assertDontSee('sms:'.$owner->mobile);
 
-        $listing->update(['show_phone' => true]);
-        $this->get(route('properties.show', $listing))->assertOk()
+        $listing->update(['allow_phone_call' => true]);
+        $this->actingAs($visitor)->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('tel:'.$owner->mobile)
+            ->assertSee($owner->mobile)
+            ->assertDontSee('sms:'.$owner->mobile);
+
+        $listing->update(['allow_sms' => true]);
+        $this->actingAs($visitor)->get(route('properties.show', $listing))
+            ->assertOk()
             ->assertSee('tel:'.$owner->mobile)
             ->assertSee('sms:'.$owner->mobile);
+    }
+
+    public function test_seller_can_configure_call_and_sms_permissions_on_listing_form(): void
+    {
+        $owner = $this->makeUser();
+        $this->actingAs($owner)->get(route('properties.create'))
+            ->assertOk()
+            ->assertSee('name="allow_phone_call"', false)
+            ->assertSee('name="allow_sms"', false);
     }
 
     private function makeListing(User $owner): PropertyListing
