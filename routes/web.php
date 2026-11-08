@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
     Route::get('/my/property-inquiries', [PropertyListingInquiryController::class, 'index'])->name('properties.inquiries.index');
     Route::get('/my/property-inquiries/{inquiry}', [PropertyListingInquiryController::class, 'show'])->whereNumber('inquiry')->name('properties.chat.show');
+    Route::get('/my/property-inquiries/{inquiry}/messages', [PropertyListingInquiryController::class, 'messages'])->whereNumber('inquiry')->middleware('throttle:120,1')->name('properties.chat.messages');
     Route::post('/my/property-inquiries/{inquiry}/messages', [PropertyListingInquiryController::class, 'send'])->whereNumber('inquiry')->middleware('throttle:30,1')->name('properties.chat.send');
     Route::patch('/my/property-inquiries/{inquiry}', [PropertyListingInquiryController::class, 'update'])->whereNumber('inquiry')->name('properties.inquiries.update');
     Route::post('/properties/{listing}/inquiries', [PropertyListingInquiryController::class, 'store'])->whereNumber('listing')->middleware('throttle:5,10')->name('properties.inquiries.store');

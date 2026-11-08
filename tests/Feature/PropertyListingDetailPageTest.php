@@ -24,7 +24,7 @@ class PropertyListingDetailPageTest extends TestCase
             'province' => 'تهران', 'city' => 'تهران', 'neighborhood' => 'ونک',
             'address' => 'خیابان نمونه، پلاک ۱۲', 'hide_address' => true,
             'area' => 90, 'bedrooms' => 2, 'floor' => 3, 'total_floors' => 5, 'price' => 9000000000,
-            'show_phone' => true, 'amenities' => ['آسانسور', 'انباری'],
+            'allow_phone_call' => true, 'allow_sms' => true, 'amenities' => ['آسانسور', 'انباری'],
             'photos' => ['property-listings/a.jpg', 'property-listings/b.jpg', 'property-listings/c.jpg'],
             'status' => 'active',
         ], $overrides));
@@ -72,12 +72,32 @@ class PropertyListingDetailPageTest extends TestCase
         $owner = $this->makeUser('09121110001');
         $visitor = $this->makeUser('09121110002', 'بازدیدکننده');
         $listing = $this->saleListing($owner);
-        $hidden = $this->saleListing($owner, ['title' => 'شماره پنهان', 'show_phone' => false]);
+        $hidden = $this->saleListing($owner, ['title' => 'شماره پنهان', 'allow_phone_call' => false, 'allow_sms' => false]);
 
-        $this->get(route('properties.show', $listing))->assertSee('tel:09121110001', false)->assertSee('برای گفتگو با فروشنده وارد شوید');
-        $this->actingAs($visitor)->get(route('properties.show', $listing))->assertSee('شروع گفتگو با فروشنده')->assertSee('گزارش تخلف یا اطلاعات نادرست');
+        $this->get(route('properties.show', $listing))->assertSee('tel:09121110001', false)->assertSee('sms:09121110001', false)->assertSee('برای شروع گفتگو وارد حساب کاربری شوید');
+        $this->actingAs($visitor)->get(route('properties.show', $listing))->assertSee('ارتباط با فروشنده')->assertSee('گفتگوی مستقیم داخل صابخونه')->assertSee('گزارش تخلف یا اطلاعات نادرست');
         $this->actingAs($owner)->get(route('properties.show', $listing))->assertSee('این آگهی متعلق به شماست.')->assertDontSee('گزارش تخلف یا اطلاعات نادرست');
         $this->get(route('properties.show', $hidden))->assertOk()->assertDontSee('tel:09121110001', false)->assertDontSee('sms:09121110001', false);
+    }
+
+    public function test_mobile_bar_only_offers_call_when_seller_allows_it_and_always_opens_the_contact_modal(): void
+    {
+        $owner = $this->makeUser('09121110001');
+        $callOnly = $this->saleListing($owner, ['allow_sms' => false]);
+        $none = $this->saleListing($owner, ['title' => 'بدون تماس', 'allow_phone_call' => false, 'allow_sms' => false]);
+
+        $html = $this->get(route('properties.show', $callOnly))->assertOk()->getContent();
+        $bar = substr($html, strpos($html, 'class="mbar"'));
+        $this->assertStringContainsString('tel:09121110001', $bar);
+        $this->assertStringContainsString('data-contact-open', $bar);
+        $this->assertStringNotContainsString('sms:09121110001', $html);
+
+        $html = $this->get(route('properties.show', $none))->assertOk()->getContent();
+        $this->assertStringNotContainsString('tel:09121110001', substr($html, strpos($html, 'class="mbar"')));
+        $this->assertStringContainsString('id="seller-contact-modal"', $html);
+
+        $html = $this->actingAs($owner)->get(route('properties.show', $callOnly))->assertOk()->getContent();
+        $this->assertStringNotContainsString('id="seller-contact-modal"', $html);
     }
 
     public function test_listing_without_photos_has_no_gallery_or_lightbox_and_rent_has_no_per_meter(): void

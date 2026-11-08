@@ -54,6 +54,32 @@ class PropertyListingInquiryTest extends TestCase
             ->assertOk()->assertSee('چه ساعتی برای بازدید مناسب است؟');
     }
 
+    public function test_chat_messages_can_be_sent_and_polled_as_json_without_page_navigation(): void
+    {
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $listing = $this->makeListing($owner);
+        $inquiry = PropertyListingInquiry::create([
+            'property_listing_id' => $listing->id,
+            'sender_user_id' => $sender->id,
+            'recipient_user_id' => $owner->id,
+            'sender_name' => $sender->display_name,
+            'message' => 'سلام، درباره ملک سوال دارم.',
+            'status' => 'new',
+        ]);
+
+        $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'body' => 'آیا امکان بازدید در روز پنجشنبه وجود دارد؟',
+        ])->assertCreated()
+            ->assertJsonPath('message.body', 'آیا امکان بازدید در روز پنجشنبه وجود دارد؟')
+            ->assertJsonPath('message.sender_user_id', $sender->id);
+
+        $this->actingAs($owner)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => 0]))
+            ->assertOk()
+            ->assertJsonPath('messages.0.body', 'آیا امکان بازدید در روز پنجشنبه وجود دارد؟')
+            ->assertJsonPath('messages.0.sender_user_id', $sender->id);
+    }
+
     public function test_only_conversation_participants_can_read_or_send_messages(): void
     {
         $owner = $this->makeUser();
@@ -78,17 +104,57 @@ class PropertyListingInquiryTest extends TestCase
             ->assertOk()->assertSee($sender->display_name)->assertSee($listing->title);
     }
 
-    public function test_listing_phone_is_hidden_by_default_and_can_be_opted_in(): void
+    public function test_seller_contact_modal_shows_call_and_sms_independently_and_keeps_chat_available(): void
+    {
+        $owner = $this->makeUser();
+        $visitor = $this->makeUser();
+        $listing = $this->makeListing($owner);
+
+        $this->actingAs($visitor)->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('ارتباط با فروشنده')
+            ->assertSee('چت')
+            ->assertSee('تماس تلفنی توسط فروشنده غیرفعال شده است')
+            ->assertSee('ارسال پیامک توسط فروشنده غیرفعال شده است')
+            ->assertDontSee('tel:'.$owner->mobile)
+            ->assertDontSee('sms:'.$owner->mobile);
+
+        $listing->update(['allow_phone_call' => true]);
+        $this->actingAs($visitor)->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('tel:'.$owner->mobile)
+            ->assertSee($owner->mobile)
+            ->assertDontSee('sms:'.$owner->mobile);
+
+        $listing->update(['allow_sms' => true]);
+        $this->actingAs($visitor)->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('tel:'.$owner->mobile)
+            ->assertSee('sms:'.$owner->mobile);
+    }
+
+    public function test_guests_can_use_enabled_phone_and_sms_options_but_must_sign_in_for_chat(): void
     {
         $owner = $this->makeUser();
         $listing = $this->makeListing($owner);
+        $listing->update(['allow_phone_call' => true, 'allow_sms' => true]);
 
-        $this->get(route('properties.show', $listing))->assertOk()->assertDontSee('tel:'.$owner->mobile);
-
-        $listing->update(['show_phone' => true]);
-        $this->get(route('properties.show', $listing))->assertOk()
+        $this->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('ارتباط با فروشنده')
             ->assertSee('tel:'.$owner->mobile)
-            ->assertSee('sms:'.$owner->mobile);
+            ->assertSee('sms:'.$owner->mobile)
+            ->assertSee(route('login'))
+            ->assertSee('برای شروع گفتگو وارد حساب کاربری شوید');
+    }
+
+    public function test_seller_can_configure_call_and_sms_permissions_on_listing_form(): void
+    {
+        $owner = $this->makeUser();
+        $this->actingAs($owner)->get(route('properties.create'))
+            ->assertOk()
+            ->assertSee('name="allow_phone_call"', false)
+            ->assertSee('name="allow_sms"', false);
     }
 
     private function makeListing(User $owner): PropertyListing
