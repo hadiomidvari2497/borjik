@@ -30,6 +30,16 @@ class SeoTest extends TestCase
             ->assertOk()
             ->assertSee('name="robots" content="noindex,nofollow"', false);
 
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('برای هر بخش از مدیریت ساختمان، راهنمای جداگانه بخوانید')
+            ->assertSee('/software-building-management', false)
+            ->assertSee('/software-building-charges', false)
+            ->assertSee('/software-building-requests', false)
+            ->assertSee('/software-building-finance', false)
+            ->assertSee('/building-management-software-comparison', false)
+            ->assertSee('/trust-and-security', false);
+
         $this->get('/articles')
             ->assertOk()
             ->assertSee('name="robots" content="noindex,nofollow"', false);
