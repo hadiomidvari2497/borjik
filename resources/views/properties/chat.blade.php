@@ -56,7 +56,7 @@
         <div>
             <div class="chat-listing-label">موضوع گفتگو · آگهی موردنظر</div>
             <a class="chat-listing-title" href="{{ route('properties.show', $inquiry->listing) }}">{{ $inquiry->listing->title }}</a>
-            <div class="chat-listing-meta">شروع گفتگو: {{ \\App\\Support\\Fa::date($inquiry->created_at, 'Y/m/d') }}</div>
+            <div class="chat-listing-meta">شروع گفتگو: {{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d') }}</div>
         </div>
         <span class="chat-state-pill {{ $inquiry->status === 'closed' ? 'closed' : '' }}">{{ ['new'=>'گفتگوی جدید','contacted'=>'در حال گفتگو','closed'=>'گفتگوی بسته‌شده'][$inquiry->status] ?? $inquiry->status }}</span>
     </section>
@@ -77,16 +77,16 @@
             <article class="chat-message {{ $isInitiator ? 'mine' : 'theirs' }} chat-initial-message" data-message-id="0">
                 <div class="chat-message-meta">{{ $inquiry->sender_name }} <span>·</span> پیام آغاز گفتگو</div>
                 <div class="chat-message-body">{{ $inquiry->message }}</div>
-                <div class="chat-message-time">{{ \\App\\Support\\Fa::date($inquiry->created_at, 'Y/m/d H:i') }}</div>
+                <div class="chat-message-time">{{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d H:i') }}</div>
                 @if($inquiry->sender_mobile && !$isInitiator)
                     <div style="margin-top:9px;font-size:12px"><a href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده: {{ $inquiry->sender_mobile }}</a></div>
                 @endif
             </article>
             @foreach($messages as $message)
                 <article class="chat-message {{ (int) $message->sender_user_id === (int) auth()->id() ? 'mine' : 'theirs' }}" data-message-id="{{ $message->id }}">
-                    <div class="chat-message-meta">{{ $message->sender->display_name }} <span>·</span> {{ \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i') }}</div>
+                    <div class="chat-message-meta">{{ $message->sender->display_name }} <span>·</span> {{ \App\Support\Fa::date($message->created_at, 'Y/m/d H:i') }}</div>
                     <div class="chat-message-body">{{ $message->body }}</div>
-                    <div class="chat-message-time">{{ \\App\\Support\\Fa::date($message->created_at, 'H:i') }}</div>
+                    <div class="chat-message-time">{{ \App\Support\Fa::date($message->created_at, 'H:i') }}</div>
                 </article>
             @endforeach
         </div>
