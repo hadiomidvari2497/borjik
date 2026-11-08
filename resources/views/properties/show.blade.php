@@ -152,68 +152,74 @@ document.addEventListener('DOMContentLoaded', function () {
                 <span class="avatar" aria-hidden="true">{{ \Illuminate\Support\Str::substr($ownerName ?: '؟', 0, 1) }}</span>
                 <div><b>{{ $ownerName }}</b><span class="muted">ثبت‌کننده آگهی</span></div>
             </div>
-            @auth
-                @if((int) auth()->id() === (int) $listing->user_id)
-                    <p>این آگهی متعلق به شماست.</p>
-                    <a class="btn block lg" href="{{ route('properties.inquiries.index') }}">مشاهده گفتگوها</a>
-                @else
-                    @php
-                        $sellerPhone = $listing->user?->mobile;
-                        $publicPhone = $sellerPhone ? preg_replace('/[^0-9+]/', '', (string) $sellerPhone) : '';
-                        $canCall = (bool) $listing->allow_phone_call && $sellerPhone && $publicPhone;
-                        $canSms = (bool) $listing->allow_sms && $sellerPhone && $publicPhone;
-                    @endphp
-                    <button class="btn block lg" type="button" data-contact-open aria-haspopup="dialog" aria-controls="seller-contact-modal">ارتباط با فروشنده</button>
+            @if(auth()->check() && (int) auth()->id() === (int) $listing->user_id)
+                <p>این آگهی متعلق به شماست.</p>
+                <a class="btn block lg" href="{{ route('properties.inquiries.index') }}">مشاهده گفتگوها</a>
+            @else
+                @php
+                    $sellerPhone = $listing->user?->mobile;
+                    $publicPhone = $sellerPhone ? preg_replace('/[^0-9+]/', '', (string) $sellerPhone) : '';
+                    $canCall = (bool) $listing->allow_phone_call && $sellerPhone && $publicPhone;
+                    $canSms = (bool) $listing->allow_sms && $sellerPhone && $publicPhone;
+                @endphp
+                <button class="btn block lg" type="button" data-contact-open aria-haspopup="dialog" aria-controls="seller-contact-modal">ارتباط با فروشنده</button>
+                @auth
                     <form id="seller-chat-start" method="POST" action="{{ route('properties.inquiries.store', $listing) }}" hidden>
                         @csrf
                         <input type="hidden" name="message" value="سلام، درباره آگهی «{{ $listing->title }}» مایل به گفتگو هستم.">
                     </form>
-                    <div class="seller-contact-backdrop" id="seller-contact-modal" data-contact-modal hidden>
-                        <section class="seller-contact-dialog" role="dialog" aria-modal="true" aria-labelledby="seller-contact-title">
-                            <button type="button" class="seller-contact-close" data-contact-close aria-label="بستن پنجره">×</button>
-                            <div class="seller-contact-heading">
-                                <span class="seller-contact-mark" aria-hidden="true">↗</span>
-                                <h2 id="seller-contact-title">ارتباط با فروشنده</h2>
-                                <p>روش موردنظرتان را برای ارتباط با ثبت‌کننده آگهی انتخاب کنید.</p>
-                            </div>
-                            <div class="seller-contact-options">
-                                @if($canCall)
-                                    <a class="seller-contact-option" href="tel:{{ $publicPhone }}">
-                                        <span class="seller-contact-icon" aria-hidden="true">☎</span>
-                                        <span class="seller-contact-copy"><b>تماس</b><small>{{ $sellerPhone }}</small></span>
-                                        <span class="seller-contact-arrow" aria-hidden="true">←</span>
-                                    </a>
-                                @else
-                                    <div class="seller-contact-option is-disabled" aria-disabled="true">
-                                        <span class="seller-contact-icon" aria-hidden="true">☎</span>
-                                        <span class="seller-contact-copy"><b>تماس</b><small>تماس تلفنی توسط فروشنده غیرفعال شده است</small></span>
-                                    </div>
-                                @endif
-                                @if($canSms)
-                                    <a class="seller-contact-option" href="sms:{{ $publicPhone }}">
-                                        <span class="seller-contact-icon" aria-hidden="true">✉</span>
-                                        <span class="seller-contact-copy"><b>پیامک</b><small>{{ $sellerPhone }}</small></span>
-                                        <span class="seller-contact-arrow" aria-hidden="true">←</span>
-                                    </a>
-                                @else
-                                    <div class="seller-contact-option is-disabled" aria-disabled="true">
-                                        <span class="seller-contact-icon" aria-hidden="true">✉</span>
-                                        <span class="seller-contact-copy"><b>پیامک</b><small>ارسال پیامک توسط فروشنده غیرفعال شده است</small></span>
-                                    </div>
-                                @endif
+                @endauth
+                <div class="seller-contact-backdrop" id="seller-contact-modal" data-contact-modal hidden>
+                    <section class="seller-contact-dialog" role="dialog" aria-modal="true" aria-labelledby="seller-contact-title">
+                        <button type="button" class="seller-contact-close" data-contact-close aria-label="بستن پنجره">×</button>
+                        <div class="seller-contact-heading">
+                            <span class="seller-contact-mark" aria-hidden="true">↗</span>
+                            <h2 id="seller-contact-title">ارتباط با فروشنده</h2>
+                            <p>روش موردنظرتان را برای ارتباط با ثبت‌کننده آگهی انتخاب کنید.</p>
+                        </div>
+                        <div class="seller-contact-options">
+                            @if($canCall)
+                                <a class="seller-contact-option" href="tel:{{ $publicPhone }}">
+                                    <span class="seller-contact-icon" aria-hidden="true">☎</span>
+                                    <span class="seller-contact-copy"><b>تماس</b><small>{{ $sellerPhone }}</small></span>
+                                    <span class="seller-contact-arrow" aria-hidden="true">←</span>
+                                </a>
+                            @else
+                                <div class="seller-contact-option is-disabled" aria-disabled="true">
+                                    <span class="seller-contact-icon" aria-hidden="true">☎</span>
+                                    <span class="seller-contact-copy"><b>تماس</b><small>تماس تلفنی توسط فروشنده غیرفعال شده است</small></span>
+                                </div>
+                            @endif
+                            @if($canSms)
+                                <a class="seller-contact-option" href="sms:{{ $publicPhone }}">
+                                    <span class="seller-contact-icon" aria-hidden="true">✉</span>
+                                    <span class="seller-contact-copy"><b>پیامک</b><small>{{ $sellerPhone }}</small></span>
+                                    <span class="seller-contact-arrow" aria-hidden="true">←</span>
+                                </a>
+                            @else
+                                <div class="seller-contact-option is-disabled" aria-disabled="true">
+                                    <span class="seller-contact-icon" aria-hidden="true">✉</span>
+                                    <span class="seller-contact-copy"><b>پیامک</b><small>ارسال پیامک توسط فروشنده غیرفعال شده است</small></span>
+                                </div>
+                            @endif
+                            @auth
                                 <button class="seller-contact-option" type="submit" form="seller-chat-start">
                                     <span class="seller-contact-icon" aria-hidden="true">☷</span>
                                     <span class="seller-contact-copy"><b>چت</b><small>گفتگوی مستقیم داخل صابخونه</small></span>
                                     <span class="seller-contact-arrow" aria-hidden="true">←</span>
                                 </button>
-                            </div>
-                            <p class="seller-contact-footnote">شماره موبایل فقط برای روش‌هایی نمایش داده می‌شود که فروشنده فعال کرده باشد.</p>
-                        </section>
-                    </div>
-                @endif
-            @else
-                <a class="btn block lg" href="{{ route('login') }}">برای ارتباط با فروشنده وارد شوید</a>
-            @endauth
+                            @else
+                                <a class="seller-contact-option" href="{{ route('login') }}">
+                                    <span class="seller-contact-icon" aria-hidden="true">☷</span>
+                                    <span class="seller-contact-copy"><b>چت</b><small>برای شروع گفتگو وارد حساب کاربری شوید</small></span>
+                                    <span class="seller-contact-arrow" aria-hidden="true">←</span>
+                                </a>
+                            @endauth
+                        </div>
+                        <p class="seller-contact-footnote">شماره موبایل فقط برای روش‌هایی نمایش داده می‌شود که فروشنده فعال کرده باشد.</p>
+                    </section>
+                </div>
+            @endif    @endauth
         </div>
 
         @auth
