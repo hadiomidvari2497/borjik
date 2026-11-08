@@ -72,7 +72,7 @@
                 $isOwner = (int) auth()->id() === (int) $inquiry->recipient_user_id;
                 $unreadCount = (int) $inquiry->unread_messages_count + ($isOwner && !$inquiry->read_at ? 1 : 0);
                 $person = $isOwner ? $inquiry->sender_name : ($inquiry->recipient->display_name ?? 'فروشنده');
-                $preview = $inquiry->messages_max_created_at ? 'آخرین پیام در گفتگو' : $inquiry->message;
+                $preview = $inquiry->messages->first()?->body ?? $inquiry->message;
                 $searchText = mb_strtolower($person.' '.$inquiry->listing->title);
             @endphp
             <a class="inbox-item {{ $unreadCount ? 'is-unread' : '' }}" href="{{ route('properties.chat.show', $inquiry) }}" data-search="{{ $searchText }}">
