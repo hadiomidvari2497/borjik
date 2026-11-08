@@ -46,13 +46,15 @@
   /* ───── ارتفاع واقعی صفحه (کیبورد موبایل) ───── */
   var vv = window.visualViewport;
   function fit() {
-    if (vv) {
-      document.documentElement.style.setProperty('--app-h', Math.round(vv.height) + 'px');
-      window.scrollTo(0, 0);
-    }
+    if (!vv) { return; }
+    var st = document.documentElement.style;
+    st.setProperty('--app-h', Math.round(vv.height) + 'px');
+    st.setProperty('--app-top', Math.round(vv.offsetTop) + 'px');
+    if (window.scrollY) { window.scrollTo(0, 0); }
   }
   if (vv) {
     vv.addEventListener('resize', function () { var stick = nearBottom(); fit(); if (stick) { toBottom(false); } });
+    vv.addEventListener('scroll', fit);
     fit();
   }
 
