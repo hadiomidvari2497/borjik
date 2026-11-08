@@ -183,7 +183,7 @@ class PropertyListingInquiryController extends Controller
                 'body' => $message->body,
                 'sender_user_id' => $message->sender_user_id,
                 'sender_name' => $message->sender?->display_name ?? '',
-                'time' => \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i'),
+                'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
                 'reply' => $message->replyTo ? ['id' => $message->replyTo->id, 'body' => $message->replyTo->body, 'sender_name' => $message->replyTo->sender?->display_name ?? ''] : null,
                 'read_at' => $message->read_at?->toISOString(),
             ])->values(),
