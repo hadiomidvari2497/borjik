@@ -100,11 +100,11 @@
 .chat-closed{border-radius:0 0 22px 22px;background:#f8faf8}
 @media(min-width:900px){.chat-shell{min-height:0}}
 /* Chat route behaves like a dedicated messaging app: the document never scrolls. */
-body:has(.chat-page){height:100%;min-height:100dvh;overflow:hidden;background:#f4f8f5}
+html:has(.chat-page){height:100%;overflow:hidden}\nbody:has(.chat-page){height:100%;min-height:100dvh;overflow:hidden;background:#f4f8f5}
 body:has(.chat-page)>.top{display:none}
 body:has(.chat-page)>.main{width:100%;max-width:none;height:100dvh;min-height:0;margin:0;padding:12px clamp(10px,2vw,28px) 14px;overflow:hidden;display:flex;flex-direction:column}
 body:has(.chat-page) .chat-page{width:100%;max-width:1180px;min-height:0;height:100%;flex:1;margin:0 auto;overflow:hidden}
-body:has(.chat-page) .chat-topbar{flex:0 0 auto;margin-bottom:10px}
+body:has(.chat-page) .chat-topbar{display:none}
 body:has(.chat-page) .chat-shell{flex:1;min-height:0;overflow:hidden}
 body:has(.chat-page) .chat-thread{flex:1;min-height:0;height:auto;overflow-y:auto;overscroll-behavior:contain}
 body:has(.chat-page) .chat-composer-wrap{flex:0 0 auto}
