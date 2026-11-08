@@ -198,7 +198,7 @@ class SeoTest extends TestCase
             ->assertSee('"@type":"SoftwareApplication"', false)
             ->assertSee('صابخونه؛ نرم‌افزار مدیریت ساختمان')
             ->assertSee('چک‌لیست ماهانهٔ مدیریت ساختمان')
-            ->assertSee('پیگیری درخواست‌های باز')
+            ->assertSee('مرور درخواست‌های باز')
             ->assertSee('تناسب هزینه با امکانات')
             ->assertSee('/articles/transparent-building-charges', false)
             ->assertSee('/articles/building-management-software-selection-guide', false);
