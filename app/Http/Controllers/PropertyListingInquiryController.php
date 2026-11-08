@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\\Http\\Controllers;
 
-use App\Models\PropertyListing;
-use App\Models\PropertyListingInquiry;
-use App\Notifications\PropertyListingNotification;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use App\\Models\\PropertyListing;
+use App\\Models\\PropertyListingInquiry;
+use App\\Notifications\\PropertyListingNotification;
+use Illuminate\\Http\\Request;
+use Illuminate\\Validation\\Rule;
 
 class PropertyListingInquiryController extends Controller
 {
@@ -29,8 +29,6 @@ class PropertyListingInquiryController extends Controller
             ->first();
 
         if ($inquiry) {
-            // If the seller previously closed the thread, reopen it and preserve
-            // the new contact message in the conversation history.
             if ($inquiry->status === 'closed') {
                 $inquiry->forceFill(['status' => 'new', 'updated_at' => now()])->save();
                 $inquiry->messages()->create([
@@ -77,10 +75,15 @@ class PropertyListingInquiryController extends Controller
 
     public function index(Request $request)
     {
-        $userId = $request->user()->id;
+        $userId = (int) $request->user()->id;
         $inquiries = PropertyListingInquiry::query()
             ->where(fn ($query) => $query->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId))
             ->with(['listing', 'sender', 'recipient'])
+            ->withCount([
+                'messages as unread_messages_count' => fn ($query) => $query
+                    ->where('sender_user_id', '!=', $userId)
+                    ->whereNull('read_at'),
+            ])
             ->withMax('messages', 'created_at')
             ->latest('updated_at')
             ->paginate(15);
@@ -143,7 +146,7 @@ class PropertyListingInquiryController extends Controller
                     'body' => $message->body,
                     'sender_user_id' => $message->sender_user_id,
                     'sender_name' => $request->user()->display_name,
-                    'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
+                    'time' => \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i'),
                 ],
             ], 201);
         }
@@ -173,7 +176,7 @@ class PropertyListingInquiryController extends Controller
                 'body' => $message->body,
                 'sender_user_id' => $message->sender_user_id,
                 'sender_name' => $message->sender?->display_name ?? '',
-                'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
+                'time' => \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i'),
             ])->values(),
             'closed' => $inquiry->status === 'closed',
         ]);
