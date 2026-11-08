@@ -1,154 +1,107 @@
 @extends('layouts.marketplace')
-@section('title', 'گفتگو درباره آگهی')
+@section('title', 'گفتگو با '.$inquiry->counterpartName((int) auth()->id()))
+@section('bare', '1')
+@section('body_class', 'is-chat')
+@section('viewport', 'width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content')
+@push('head')<link rel="stylesheet" href="{{ asset('css/chat.css') }}?v={{ @filemtime(public_path('css/chat.css')) }}">@endpush
+@push('scripts')<script src="{{ asset('js/chat.js') }}?v={{ @filemtime(public_path('js/chat.js')) }}" defer></script>@endpush
 @section('content')
-<style>
-.chat-thread{display:flex;flex-direction:column;gap:12px;max-height:62vh;overflow-y:auto;padding:4px 2px 14px;scroll-behavior:smooth}
-.chat-message{max-width:min(85%,620px);padding:12px 16px;border-radius:16px;line-height:1.9;overflow-wrap:anywhere}
-.chat-message.mine{background:#eaf5ef;align-self:flex-start;border-bottom-right-radius:5px}
-.chat-message.theirs{background:#f2f5f3;align-self:flex-end;border-bottom-left-radius:5px}
-.chat-message-meta{font-size:11px;color:#7b8d86;margin-bottom:5px}
-.chat-composer{display:flex;align-items:flex-end;gap:10px;margin-top:18px}
-.chat-composer .field{flex:1;margin:0}
-.chat-composer textarea{min-height:52px;resize:vertical}
-.chat-status{font-size:12px;color:#7b8d86;min-height:20px;margin-top:8px}
-.chat-status.error{color:#b42318}
-@media(max-width:600px){.chat-message{max-width:94%}.chat-composer{align-items:stretch;flex-direction:column}.chat-composer .btn{width:100%}}
-</style>
-<section class="hero">
-    <h1>گفتگو درباره آگهی</h1>
-    <p><a href="{{ route('properties.show', $inquiry->listing) }}">{{ $inquiry->listing->title }}</a></p>
-    <div class="muted">طرف گفتگو: {{ (int) auth()->id() === (int) $inquiry->sender_user_id ? $inquiry->recipient->display_name : $inquiry->sender_name }}</div>
-</section>
-@if(session('status'))<div class="notice" style="margin-top:14px">{{ session('status') }}</div>@endif
-<section class="panel" style="margin-top:18px">
-    <div id="chat-thread" class="chat-thread" aria-live="polite" aria-relevant="additions">
-        <article class="chat-message {{ (int) auth()->id() === (int) $inquiry->sender_user_id ? 'mine' : 'theirs' }}" data-message-id="0">
-            <div class="chat-message-meta">{{ $inquiry->sender_name }} · {{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d H:i') }}</div>
-            <div style="white-space:pre-wrap">{{ $inquiry->message }}</div>
-            @if($inquiry->sender_mobile && (int) auth()->id() === (int) $inquiry->recipient_user_id)
-                <div style="margin-top:8px"><a href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده: {{ $inquiry->sender_mobile }}</a></div>
-            @endif
-        </article>
-        @foreach($messages as $message)
-            <article class="chat-message {{ (int) $message->sender_user_id === (int) auth()->id() ? 'mine' : 'theirs' }}" data-message-id="{{ $message->id }}">
-                <div class="chat-message-meta">{{ $message->sender->display_name }} · {{ \App\Support\Fa::date($message->created_at, 'Y/m/d H:i') }}</div>
-                <div style="white-space:pre-wrap">{{ $message->body }}</div>
-            </article>
-        @endforeach
-    </div>
-    @if($inquiry->status !== 'closed')
-        <form id="chat-composer" method="POST" action="{{ route('properties.chat.send', $inquiry) }}" data-poll-url="{{ route('properties.chat.messages', $inquiry) }}">
-            @csrf
-            <div class="chat-composer">
-                <label class="field">پیام جدید
-                    <textarea name="body" rows="2" maxlength="2000" required placeholder="پیام خود را بنویسید...">{{ old('body') }}</textarea>
-                </label>
-                <button class="btn" type="submit">ارسال پیام</button>
+@php
+    use App\Support\Fa;
+
+    $me = (int) auth()->id();
+    $isRecipient = $me === (int) $inquiry->recipient_user_id;
+    $listing = $inquiry->listing;
+    $partner = $inquiry->counterpartName($me);
+    $closed = $inquiry->status === 'closed';
+    $photo = $listing?->photoUrls()[0] ?? null;
+    $callable = $isRecipient && $inquiry->sender_mobile ? $inquiry->sender_mobile : null;
+
+    // خط زمانی: پیام اولیه‌ی گفتگو + پیام‌های بعدی (با پیوست‌ها)
+    $timeline = collect([[
+        'id' => 0, 'sender' => (int) $inquiry->sender_user_id, 'body' => (string) $inquiry->message, 'at' => $inquiry->created_at, 'attachments' => [],
+    ]])->concat($messages->map(fn ($m) => [
+        'id' => $m->id, 'sender' => (int) $m->sender_user_id, 'body' => (string) $m->body, 'at' => $m->created_at,
+        'attachments' => $m->attachments->map->toPayload()->all(),
+    ]))->map(fn ($row) => $row + ['day' => Fa::date($row['at'], 'Y/m/d')])->values();
+@endphp
+@include('properties.partials.chat-icons')
+
+<section class="chat" id="chat"
+    data-me="{{ $me }}"
+    data-poll-url="{{ route('properties.chat.messages', $inquiry) }}"
+    data-today="{{ Fa::date(now(), 'Y/m/d') }}"
+    data-yesterday="{{ Fa::date(now()->subDay(), 'Y/m/d') }}">
+
+    <header class="chat-top">
+        <a class="chat-back" href="{{ route('properties.inquiries.index') }}" aria-label="بازگشت به پیام‌ها"><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></a>
+        <div class="chat-who">
+            <span class="avatar" aria-hidden="true">{{ \Illuminate\Support\Str::substr($partner ?: '؟', 0, 1) }}</span>
+            <div class="chat-who-t">
+                <b>{{ $partner }}@if($closed) <span class="tag plain sm">بسته‌شده</span>@endif</b>
+                @if($listing)
+                    <a class="chat-ad-link" href="{{ route('properties.show', $listing) }}"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span>{{ $listing->title }}</span></a>
+                @else
+                    <small>این آگهی دیگر در دسترس نیست</small>
+                @endif
             </div>
-            @error('body')<p class="error">{{ $message }}</p>@enderror
-            <div id="chat-status" class="chat-status" role="status"></div>
-        </form>
-    @else
-        <div class="notice" style="margin-top:18px">این گفتگو بسته شده است و امکان ارسال پیام جدید وجود ندارد.</div>
-    @endif
+        </div>
+        <div class="chat-actions">
+            @if($callable)<a class="chat-call" href="tel:{{ $callable }}" aria-label="تماس با {{ $partner }}"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><span>تماس</span></a>@endif
+            @if($listing)
+                <a class="chat-ad-thumb" href="{{ route('properties.show', $listing) }}" aria-label="مشاهده آگهی" title="مشاهده آگهی">@if($photo)<img src="{{ $photo }}" alt="" decoding="async">@else<svg class="icon" aria-hidden="true"><use href="#i-image"/></svg>@endif</a>
+            @endif
+        </div>
+    </header>
+
+    <div class="chat-body">
+        <div id="chat-thread" class="chat-thread" role="log" aria-live="polite" aria-relevant="additions" aria-label="پیام‌های گفتگو">
+            @foreach($timeline as $i => $row)
+                @php
+                    $prev = $timeline[$i - 1] ?? null;
+                    $next = $timeline[$i + 1] ?? null;
+                    $newDay = ! $prev || $prev['day'] !== $row['day'];
+                    $row['starts'] = $newDay || $prev['sender'] !== $row['sender'];
+                    $row['ends'] = ! $next || $next['day'] !== $row['day'] || $next['sender'] !== $row['sender'];
+                @endphp
+                @if($newDay)<div class="day">{{ Fa::dayLabel($row['at']) }}</div>@endif
+                @include('properties.partials.chat-message', ['row' => $row, 'me' => $me, 'callable' => $callable])
+            @endforeach
+        </div>
+        <button type="button" class="jump" id="chat-jump" aria-label="رفتن به آخرین پیام"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg><span class="jump-n" aria-hidden="true"></span></button>
+        <div class="drop-hint" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-clip"/></svg>فایل را اینجا رها کنید</div>
+        @if(session('status'))<div class="toast" id="chat-toast" role="status">{{ session('status') }}</div>@endif
+    </div>
+
+    <form id="chat-composer" class="composer" method="POST" action="{{ route('properties.chat.send', $inquiry) }}" enctype="multipart/form-data" @if($closed) hidden @endif>
+        @csrf
+        <div class="tray" id="chat-tray" hidden></div>
+        <div class="composer-row">
+            <input id="chat-file" class="sr-only" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" tabindex="-1">
+            <button type="button" class="attach" id="chat-attach" aria-label="افزودن فایل یا تصویر" title="افزودن فایل یا تصویر"><svg class="icon" aria-hidden="true"><use href="#i-clip"/></svg></button>
+            <label class="sr-only" for="chat-body">پیام جدید</label>
+            <textarea id="chat-body" name="body" rows="1" maxlength="2000" placeholder="پیام خود را بنویسید…">{{ old('body') }}</textarea>
+            <button class="send" type="submit" aria-label="ارسال پیام" disabled><svg class="icon" aria-hidden="true"><use href="#i-send"/></svg></button>
+        </div>
+        <div class="composer-foot">
+            <span id="chat-error" class="err" role="alert">@error('body'){{ $message }}@enderror</span>
+            <span class="composer-hint">Enter برای ارسال · Shift+Enter برای خط جدید</span>
+            <span id="chat-count" class="chars"></span>
+        </div>
+    </form>
+    <div id="chat-closed" class="chat-closed" @unless($closed) hidden @endunless>
+        <svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg>این گفتگو بسته شده و امکان ارسال پیام جدید وجود ندارد.
+    </div>
+
+    <div class="lightbox" id="chat-lightbox" role="dialog" aria-modal="true" aria-label="نمایش تصویر" hidden>
+        <div class="lb-bar">
+            <button type="button" class="lb-btn" data-lb="close" aria-label="بستن"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
+            <span class="lb-name" id="chat-lb-name" dir="auto"></span>
+            <a class="lb-btn" id="chat-lb-dl" href="#" download aria-label="دانلود تصویر"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg></a>
+        </div>
+        <button type="button" class="lb-nav prev" data-lb="prev" aria-label="تصویر قبلی"><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+        <img id="chat-lb-img" alt="">
+        <button type="button" class="lb-nav next" data-lb="next" aria-label="تصویر بعدی"><svg class="icon" aria-hidden="true"><use href="#i-chev-l"/></svg></button>
+    </div>
 </section>
-@if($inquiry->status !== 'closed')
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('chat-composer');
-    const thread = document.getElementById('chat-thread');
-    const status = document.getElementById('chat-status');
-    if (!form || !thread || !status) return;
-
-    const textarea = form.querySelector('textarea[name="body"]');
-    const submit = form.querySelector('button[type="submit"]');
-    const csrf = form.querySelector('input[name="_token"]').value;
-    const sendUrl = form.action;
-    const pollUrl = form.dataset.pollUrl;
-    let lastId = Math.max(0, ...Array.from(thread.querySelectorAll('[data-message-id]')).map(node => Number(node.dataset.messageId) || 0));
-    let polling = false;
-
-    function appendMessage(message) {
-        if (thread.querySelector('[data-message-id="' + message.id + '"]')) return;
-        const shouldStick = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 100;
-        const article = document.createElement('article');
-        article.className = 'chat-message ' + (Number(message.sender_user_id) === {{ (int) auth()->id() }} ? 'mine' : 'theirs');
-        article.dataset.messageId = message.id;
-        const meta = document.createElement('div');
-        meta.className = 'chat-message-meta';
-        meta.textContent = (message.sender_name || '') + ' · ' + (message.time || '');
-        const body = document.createElement('div');
-        body.style.whiteSpace = 'pre-wrap';
-        body.textContent = message.body || '';
-        article.append(meta, body);
-        thread.appendChild(article);
-        lastId = Math.max(lastId, Number(message.id) || 0);
-        if (shouldStick) thread.scrollTop = thread.scrollHeight;
-    }
-
-    async function pollMessages() {
-        if (polling) return;
-        polling = true;
-        try {
-            const response = await fetch(pollUrl + '?after_id=' + encodeURIComponent(lastId), {
-                headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
-                credentials: 'same-origin'
-            });
-            if (!response.ok) return;
-            const data = await response.json();
-            (data.messages || []).forEach(appendMessage);
-            if (data.closed) {
-                status.textContent = 'این گفتگو بسته شده است.';
-                textarea.disabled = true;
-                submit.disabled = true;
-            }
-        } catch (error) {
-            // A temporary network issue should not interrupt composing a message.
-        } finally {
-            polling = false;
-        }
-    }
-
-    form.addEventListener('submit', async event => {
-        event.preventDefault();
-        const body = textarea.value.trim();
-        if (!body || submit.disabled) return;
-        submit.disabled = true;
-        status.classList.remove('error');
-        status.textContent = 'در حال ارسال...';
-        try {
-            const response = await fetch(sendUrl, {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrf,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({body})
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                const message = data.message || (data.errors && data.errors.body && data.errors.body[0]) || 'ارسال پیام انجام نشد. دوباره تلاش کنید.';
-                throw new Error(message);
-            }
-            appendMessage(data.message);
-            textarea.value = '';
-            status.textContent = 'پیام ارسال شد.';
-            textarea.focus();
-        } catch (error) {
-            status.classList.add('error');
-            status.textContent = error.message || 'خطا در ارتباط با سرور.';
-        } finally {
-            submit.disabled = false;
-        }
-    });
-
-    thread.scrollTop = thread.scrollHeight;
-    pollMessages();
-    window.setInterval(pollMessages, 4000);
-});
-</script>
-@endif
 @endsection

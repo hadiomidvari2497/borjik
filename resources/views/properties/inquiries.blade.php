@@ -1,37 +1,68 @@
 @extends('layouts.marketplace')
 @section('title', 'پیام‌ها و گفتگوهای آگهی')
+@push('head')<link rel="stylesheet" href="{{ asset('css/chat.css') }}?v={{ @filemtime(public_path('css/chat.css')) }}">@endpush
 @section('content')
-<section class="hero">
-    <h1>پیام‌ها و گفتگوها</h1>
-    <p>گفتگوهای خصوصی شما با خریداران و فروشندگان آگهی‌ها.</p>
-    <div class="actions"><a class="btn light" href="{{ route('properties.mine') }}">آگهی‌های من</a></div>
-</section>
-@if(session('status'))<div class="notice" style="margin:16px 0">{{ session('status') }}</div>@endif
-<section class="panel" style="margin-top:18px">
+@php
+    use App\Support\Fa;
+
+    $me = (int) auth()->id();
+    $statusLabels = ['new' => 'جدید', 'contacted' => 'در حال گفتگو', 'closed' => 'بسته‌شده'];
+@endphp
+@include('properties.partials.chat-icons')
+
+<header class="inbox-head">
+    <div>
+        <h1>پیام‌ها</h1>
+        <p>@if($inquiries->total() > 0){{ Fa::num($inquiries->total()) }} گفتگوی خصوصی با خریداران و فروشندگان@else گفتگوهای شما با خریداران و فروشندگان اینجا نمایش داده می‌شود@endif</p>
+    </div>
+    <a class="btn light" href="{{ route('properties.mine') }}">آگهی‌های من</a>
+</header>
+
+<section class="inbox" aria-label="فهرست گفتگوها">
     @forelse($inquiries as $inquiry)
-        @php($isOwner = (int) auth()->id() === (int) $inquiry->recipient_user_id)
-        <article style="padding:16px 0;border-bottom:1px solid var(--line)">
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                <div>
-                    <strong>{{ $isOwner ? $inquiry->sender_name : $inquiry->recipient->display_name }}</strong>
-                    <div class="muted" style="font-size:12px;margin-top:5px">
-                        درباره: <a href="{{ route('properties.show', $inquiry->listing) }}">{{ $inquiry->listing->title }}</a>
-                        · {{ \App\Support\Fa::date($inquiry->updated_at, 'Y/m/d H:i') }}
-                    </div>
-                </div>
-                <span class="tag {{ $inquiry->status === 'new' ? 'rent' : 'plain' }}">{{ ['new'=>'جدید','contacted'=>'در حال گفتگو','closed'=>'بسته‌شده'][$inquiry->status] ?? $inquiry->status }}</span>
+        @php
+            $isRecipient = $me === (int) $inquiry->recipient_user_id;
+            $partner = $inquiry->counterpartName($me);
+            $listing = $inquiry->listing;
+            $last = $inquiry->latestMessage;
+            $previewBody = $last?->body ?? $inquiry->message;
+            if ($last && trim((string) $last->body) === '' && $last->attachments->isNotEmpty()) {
+                $previewBody = ($last->attachments->every->isImage() ? '🖼 تصویر' : '📎 فایل پیوست').($last->attachments->count() > 1 ? ' ('.Fa::num($last->attachments->count()).')' : '');
+            }
+            $previewMine = $last ? (int) $last->sender_user_id === $me : (int) $inquiry->sender_user_id === $me;
+            $when = $last?->created_at ?? $inquiry->created_at;
+            $unread = (int) $inquiry->unread_messages_count + ($isRecipient && ! $inquiry->read_at ? 1 : 0);
+            $photo = $listing?->photoUrls()[0] ?? null;
+            $callable = $isRecipient && $inquiry->sender_mobile ? $inquiry->sender_mobile : null;
+        @endphp
+        <article class="convo @if($unread > 0) is-unread @endif">
+            <div class="convo-thumb" aria-hidden="true">
+                <span class="ph">@if($photo)<img src="{{ $photo }}" alt="" loading="lazy" decoding="async">@else<svg class="icon" aria-hidden="true"><use href="#i-image"/></svg>@endif</span>
+                <span class="av">{{ \Illuminate\Support\Str::substr($partner ?: '؟', 0, 1) }}</span>
             </div>
-            <p style="white-space:pre-line;line-height:2;margin:12px 0">{{ \Illuminate\Support\Str::limit($inquiry->message, 180) }}</p>
-            <div class="actions">
-                <a class="btn" href="{{ route('properties.chat.show', $inquiry) }}">باز کردن گفتگو</a>
-                @if($isOwner && $inquiry->sender_mobile)
-                    <a class="btn light" href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده · {{ $inquiry->sender_mobile }}</a>
-                @endif
+            <div class="convo-main">
+                <div class="convo-top">
+                    <a class="convo-name convo-link" href="{{ route('properties.chat.show', $inquiry) }}">{{ $partner }}</a>
+                    @if($isRecipient)<span class="tag req sm">آگهی شما</span>@endif
+                    @if($inquiry->status === 'closed')<span class="tag plain sm">{{ $statusLabels['closed'] }}</span>@endif
+                </div>
+                <div class="convo-ad"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span>{{ $listing?->title ?? 'آگهی حذف‌شده' }}</span></div>
+                <div class="convo-preview">@if($previewMine)<em>شما:</em> @endif{{ \Illuminate\Support\Str::limit(preg_replace('/\s+/u', ' ', (string) $previewBody), 110) }}</div>
+            </div>
+            <div class="convo-side">
+                <time class="convo-time" datetime="{{ $when->toIso8601String() }}">{{ Fa::stamp($when) }}</time>
+                @if($unread > 0)<span class="convo-badge" aria-label="{{ Fa::num($unread) }} پیام خوانده‌نشده">{{ Fa::num($unread) }}</span>@endif
+                @if($callable)<a class="convo-call" href="tel:{{ $callable }}" aria-label="تماس با {{ $partner }}"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg></a>@endif
             </div>
         </article>
     @empty
-        <div class="notice">هنوز گفتگویی ندارید. از صفحه یک آگهی می‌توانید گفتگو را آغاز کنید.</div>
+        <div class="inbox-empty">
+            <div class="ico"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg></div>
+            <h2>هنوز گفتگویی ندارید</h2>
+            <p>از صفحه‌ی هر آگهی می‌توانید با «ارتباط با فروشنده» گفتگو را شروع کنید. پیام خریداران آگهی‌های شما هم همین‌جا می‌آید.</p>
+            <a class="btn lg" href="{{ route('properties.index') }}"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>مشاهده آگهی‌ها</a>
+        </div>
     @endforelse
-    <div class="pagination">{{ $inquiries->links() }}</div>
 </section>
+<div class="pagination">{{ $inquiries->links() }}</div>
 @endsection

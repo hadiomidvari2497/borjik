@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="@yield('viewport', 'width=device-width,initial-scale=1')">
 @php
     $marketplaceIndexing = app()->environment('production')
         && (bool) \App\Models\SiteSetting::get('seo.indexing_enabled', false)
@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
 <link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v={{ @filemtime(public_path('css/marketplace.css')) }}">
 @stack('head')
-</head><body>
+</head><body class="@yield('body_class')">
 {{-- آیکون‌های مشترک؛ با <use href="#i-..."> استفاده می‌شوند --}}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
@@ -54,6 +54,8 @@
     <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M3 15.5 15.5 3 21 8.5 8.5 21 3 15.5ZM7 11.5l2 2M10 8.5l2 2M13 5.5l2 2"/></symbol>
 </svg>
 
+@php $bare = trim($__env->yieldContent('bare')) !== ''; @endphp
+@unless($bare)
 <header class="top"><div class="wrap topin">
     <a class="brand" href="{{ route('properties.index') }}">
         <img src="{{ asset('images/sabkhoneh-mark.png') }}" alt="" width="34" height="34">
@@ -65,9 +67,10 @@
     </nav>
     <a class="btn" href="{{ route('properties.create') }}"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>ثبت آگهی رایگان</a>
 </div></header>
+@endunless
 
-<main class="wrap main">
-    @if(session('status') && ! request()->routeIs('properties.mine'))<div class="flash" role="status">{{ session('status') }}</div>@endif
+<main class="{{ $bare ? 'bare-main' : 'wrap main' }}">
+    @if(! $bare && session('status') && ! request()->routeIs('properties.mine'))<div class="flash" role="status">{{ session('status') }}</div>@endif
     @yield('content')
 </main>
 @stack('scripts')

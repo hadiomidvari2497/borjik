@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PropertyListingInquiry extends Model
 {
@@ -31,6 +32,19 @@ class PropertyListingInquiry extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(PropertyListingChatMessage::class, 'inquiry_id');
+    }
+
+    public function latestMessage(): HasOne
+    {
+        return $this->hasOne(PropertyListingChatMessage::class, 'inquiry_id')->latestOfMany();
+    }
+
+    /** نام طرف مقابل گفتگو از دید کاربر داده‌شده. */
+    public function counterpartName(int $userId): string
+    {
+        return $userId === (int) $this->sender_user_id
+            ? (string) ($this->recipient?->display_name ?? '')
+            : (string) ($this->sender_name ?: $this->sender?->display_name);
     }
 
     public function recipient(): BelongsTo
