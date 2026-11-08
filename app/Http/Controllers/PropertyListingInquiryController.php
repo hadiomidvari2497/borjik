@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\PropertyListing;
+use App\Models\PropertyListingChatAttachment;
 use App\Models\PropertyListingInquiry;
 use App\Notifications\PropertyListingNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PropertyListingInquiryController extends Controller
@@ -78,13 +81,11 @@ class PropertyListingInquiryController extends Controller
         $userId = (int) $request->user()->id;
         $inquiries = PropertyListingInquiry::query()
             ->where(fn ($query) => $query->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId))
-            ->with(['listing', 'sender', 'recipient', 'messages' => fn ($query) => $query->latest('id')->limit(1)])
-            ->withCount([
-                'messages as unread_messages_count' => fn ($query) => $query
-                    ->where('sender_user_id', '!=', $userId)
-                    ->whereNull('read_at'),
-            ])
+            ->with(['listing', 'sender', 'recipient', 'latestMessage.attachments'])
             ->withMax('messages', 'created_at')
+            ->withCount(['messages as unread_messages_count' => fn ($query) => $query
+                ->where('sender_user_id', '!=', $userId)
+                ->whereNull('read_at')])
             ->latest('updated_at')
             ->paginate(15);
 
@@ -105,7 +106,7 @@ class PropertyListingInquiryController extends Controller
             ->update(['read_at' => now()]);
 
         $inquiry->load(['listing', 'sender', 'recipient']);
-        $messages = $inquiry->messages()->with(['sender', 'replyTo.sender'])->oldest()->get();
+        $messages = $inquiry->messages()->with(['sender', 'attachments', 'replyTo.sender'])->oldest()->get();
 
         return view('properties.chat', compact('inquiry', 'messages'));
     }
@@ -116,17 +117,38 @@ class PropertyListingInquiryController extends Controller
         abort_if($inquiry->status === 'closed', 403, 'این گفتگو بسته شده است.');
 
         $data = $request->validate([
-            'body' => ['required', 'string', 'min:1', 'max:2000'],
+            'body' => ['required_without:attachments', 'nullable', 'string', 'max:2000'],
             'reply_to_message_id' => ['nullable', 'integer', 'min:1'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,webp,pdf'],
+        ], [
+            'body.required_without' => 'پیام یا فایلی برای ارسال انتخاب کنید.',
+            'attachments.max' => 'در هر پیام حداکثر ۵ فایل می‌توانید بفرستید.',
+            'attachments.*.max' => 'حجم هر فایل باید کمتر از ۱۰ مگابایت باشد.',
+            'attachments.*.mimes' => 'فقط تصویر (JPG، PNG، WebP) و فایل PDF قابل ارسال است.',
+            'attachments.*.file' => 'ارسال فایل انجام نشد. دوباره تلاش کنید.',
+            'attachments.*.uploaded' => 'آپلود فایل انجام نشد؛ حجم آن بیش از حد مجاز است.',
         ]);
 
         $replyTo = !empty($data['reply_to_message_id']) ? $inquiry->messages()->with('sender')->findOrFail($data['reply_to_message_id']) : null;
         $message = $inquiry->messages()->create([
             'sender_user_id' => $request->user()->id,
-            'body' => trim($data['body']),
+            'body' => trim((string) ($data['body'] ?? '')),
             'reply_to_message_id' => $replyTo?->id,
         ]);
         $message->load(['sender', 'replyTo.sender']);
+
+        foreach ($request->file('attachments', []) as $upload) {
+            $message->attachments()->create([
+                'inquiry_id' => $inquiry->id,
+                'disk' => 'local',
+                'path' => $upload->store('property-chat/'.$inquiry->id, 'local'),
+                'original_name' => Str::limit(preg_replace('/[\x00-\x1F\x7F]/u', '', $upload->getClientOriginalName()) ?: 'file', 200, ''),
+                'mime' => $upload->getMimeType(),
+                'size' => $upload->getSize(),
+            ]);
+        }
+        $message->load('attachments');
 
         $recipientId = (int) $request->user()->id === (int) $inquiry->sender_user_id
             ? $inquiry->recipient_user_id
@@ -137,24 +159,14 @@ class PropertyListingInquiryController extends Controller
         $recipient->notify(new PropertyListingNotification(
             event: 'chat_message_received',
             title: 'پیام جدید در گفتگوی آگهی',
-            message: $request->user()->display_name.' پیام جدیدی برای شما فرستاد.',
+            message: $request->user()->display_name.($message->attachments->isNotEmpty() && $message->body === '' ? ' فایل جدیدی برای شما فرستاد.' : ' پیام جدیدی برای شما فرستاد.'),
             url: route('properties.chat.show', $inquiry),
             level: 'info',
             listingId: $inquiry->property_listing_id,
         ));
 
         if ($request->expectsJson()) {
-            return response()->json([
-                'message' => [
-                    'id' => $message->id,
-                    'body' => $message->body,
-                    'sender_user_id' => $message->sender_user_id,
-                    'sender_name' => $request->user()->display_name,
-                    'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
-                    'reply' => $message->replyTo ? ['id' => $message->replyTo->id, 'body' => $message->replyTo->body, 'sender_name' => $message->replyTo->sender?->display_name ?? ''] : null,
-                    'read_at' => null,
-                ],
-            ], 201);
+            return response()->json(['message' => $message->toPayload($request->user()->display_name)], 201);
         }
 
         return redirect()->route('properties.chat.show', $inquiry)->with('status', 'پیام ارسال شد.');
@@ -171,26 +183,36 @@ class PropertyListingInquiryController extends Controller
             ->update(['read_at' => now()]);
 
         $messages = $inquiry->messages()
-            ->with(['sender', 'replyTo.sender'])
+            ->with(['sender', 'attachments', 'replyTo.sender'])
             ->where('id', '>', $afterId)
             ->oldest('id')
             ->limit(100)
             ->get();
 
         return response()->json([
-            'messages' => $messages->map(fn ($message) => [
-                'id' => $message->id,
-                'body' => $message->body,
-                'sender_user_id' => $message->sender_user_id,
-                'sender_name' => $message->sender?->display_name ?? '',
-                'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
-                'reply' => $message->replyTo ? ['id' => $message->replyTo->id, 'body' => $message->replyTo->body, 'sender_name' => $message->replyTo->sender?->display_name ?? ''] : null,
-                'read_at' => $message->read_at?->toISOString(),
-            ])->values(),
+            'messages' => $messages->map(fn ($message) => $message->toPayload())->values(),
             'read_message_ids' => $inquiry->messages()->where('sender_user_id', $request->user()->id)->whereNotNull('read_at')->pluck('id'),
             'initial_message_read' => (int) $inquiry->sender_user_id === (int) $request->user()->id && (bool) $inquiry->read_at,
             'closed' => $inquiry->status === 'closed',
         ]);
+    }
+
+    public function attachment(Request $request, PropertyListingInquiry $inquiry, int $attachment)
+    {
+        $this->authorizeParticipant($request, $inquiry);
+
+        $file = PropertyListingChatAttachment::query()
+            ->where('inquiry_id', $inquiry->id)
+            ->findOrFail($attachment);
+        abort_unless(Storage::disk($file->disk)->exists($file->path), 404);
+
+        // تصویرها برای نمایش داخل چت inline هستند و بقیه (PDF) فقط دانلود می‌شوند.
+        return Storage::disk($file->disk)->response($file->path, $file->original_name, [
+            'Content-Type' => $file->isImage() ? $file->mime : 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'; sandbox",
+            'Cache-Control' => 'private, max-age=600',
+        ], $file->isImage() ? 'inline' : 'attachment');
     }
 
     public function update(Request $request, PropertyListingInquiry $inquiry)

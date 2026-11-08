@@ -7,6 +7,8 @@ use App\Models\PropertyListingInquiry;
 use App\Models\User;
 use App\Notifications\PropertyListingNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PropertyListingInquiryTest extends TestCase
@@ -230,6 +232,124 @@ class PropertyListingInquiryTest extends TestCase
             ->assertOk()
             ->assertSee('name="allow_phone_call"', false)
             ->assertSee('name="allow_sms"', false);
+    }
+
+    private function makeInquiry(User $owner, User $sender): PropertyListingInquiry
+    {
+        return PropertyListingInquiry::create([
+            'property_listing_id' => $this->makeListing($owner)->id,
+            'sender_user_id' => $sender->id,
+            'recipient_user_id' => $owner->id,
+            'sender_name' => $sender->display_name,
+            'message' => 'سلام، درباره ملک سوال دارم.',
+            'status' => 'new',
+        ]);
+    }
+
+    public function test_participants_can_send_images_and_pdfs_and_download_them_securely(): void
+    {
+        Storage::fake('local');
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $inquiry = $this->makeInquiry($owner, $sender);
+
+        $response = $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'body' => '',
+            'attachments' => [UploadedFile::fake()->image('plan.jpg', 80, 80), UploadedFile::fake()->create('deed.pdf', 50, 'application/pdf')],
+        ])->assertCreated()
+            ->assertJsonCount(2, 'message.attachments')
+            ->assertJsonPath('message.attachments.0.is_image', true)
+            ->assertJsonPath('message.attachments.1.is_image', false);
+
+        $image = $response->json('message.attachments.0');
+        $pdf = $response->json('message.attachments.1');
+        Storage::disk('local')->assertExists(\App\Models\PropertyListingChatAttachment::findOrFail($image['id'])->path);
+
+        $img = $this->actingAs($owner)->get($image['url'])->assertOk();
+        $img->assertHeader('X-Content-Type-Options', 'nosniff');
+        $this->assertStringContainsString('inline', $img->headers->get('Content-Disposition'));
+
+        $doc = $this->actingAs($owner)->get($pdf['url'])->assertOk();
+        $this->assertStringContainsString('attachment', $doc->headers->get('Content-Disposition'));
+        $this->assertSame('application/octet-stream', $doc->headers->get('Content-Type'));
+
+        $this->actingAs($owner)->get(route('properties.chat.show', $inquiry))->assertOk()->assertSee($image['url'], false);
+        $this->actingAs($owner)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => 0]))
+            ->assertJsonCount(2, 'messages.0.attachments');
+    }
+
+    public function test_attachments_are_validated_and_protected_from_outsiders(): void
+    {
+        Storage::fake('local');
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $stranger = $this->makeUser();
+        $inquiry = $this->makeInquiry($owner, $sender);
+        $other = $this->makeInquiry($owner, $this->makeUser());
+
+        $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), ['body' => ''])->assertUnprocessable();
+        $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'attachments' => [UploadedFile::fake()->create('virus.exe', 10, 'application/x-msdownload')],
+        ])->assertUnprocessable()->assertJsonValidationErrors('attachments.0');
+        $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'attachments' => [UploadedFile::fake()->create('big.pdf', 10241, 'application/pdf')],
+        ])->assertUnprocessable();
+        $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'attachments' => array_map(fn ($i) => UploadedFile::fake()->image("p{$i}.png"), range(1, 6)),
+        ])->assertUnprocessable();
+
+        $ok = $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'attachments' => [UploadedFile::fake()->image('a.png')],
+        ])->assertCreated();
+        $url = $ok->json('message.attachments.0.url');
+
+        $this->actingAs($stranger)->get($url)->assertForbidden();
+        auth()->logout();
+        $this->get($url)->assertRedirect();
+
+        // فایل یک گفتگوی دیگر از مسیر این گفتگو در دسترس نیست.
+        $id = $ok->json('message.attachments.0.id');
+        $this->actingAs($owner)->get(route('properties.chat.attachment', [$other, $id]))->assertNotFound();
+    }
+
+    public function test_chat_page_is_full_screen_and_inbox_previews_file_only_messages(): void
+    {
+        Storage::fake('local');
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $inquiry = $this->makeInquiry($owner, $sender);
+        $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'attachments' => [UploadedFile::fake()->image('a.png')],
+        ])->assertCreated();
+
+        $this->actingAs($owner)->get(route('properties.chat.show', $inquiry))
+            ->assertOk()
+            ->assertSee('is-chat', false)
+            ->assertSee('bare-main', false)
+            ->assertSee('id="chat-attach"', false)
+            ->assertDontSee('class="top"', false);
+
+        $this->actingAs($owner)->get(route('properties.inquiries.index'))->assertOk()->assertSee('تصویر');
+    }
+
+    public function test_replies_and_read_receipts_work_together_with_attachments(): void
+    {
+        Storage::fake('local');
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $inquiry = $this->makeInquiry($owner, $sender);
+        $first = $inquiry->messages()->create(['sender_user_id' => $sender->id, 'body' => 'سلام']);
+
+        $this->actingAs($owner)->postJson(route('properties.chat.send', $inquiry), [
+            'body' => 'پاسخ',
+            'reply_to_message_id' => $first->id,
+            'attachments' => [UploadedFile::fake()->image('a.png')],
+        ])->assertCreated()->assertJsonPath('message.reply.id', $first->id)->assertJsonCount(1, 'message.attachments');
+
+        $this->actingAs($sender)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => $first->id]))
+            ->assertJsonPath('messages.0.reply.body', 'سلام');
+        $this->actingAs($owner)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => 99999]))
+            ->assertJsonPath('read_message_ids.0', $first->id + 1);
     }
 
     private function makeListing(User $owner): PropertyListing

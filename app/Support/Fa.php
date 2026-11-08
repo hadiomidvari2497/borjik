@@ -45,4 +45,28 @@ final class Fa
     {
         return self::digits(Jalalian::fromCarbon($date)->format($format));
     }
+
+    /** برچسب کوتاه زمان برای لیست گفتگوها: ساعت (امروز)، «دیروز» یا تاریخ. */
+    public static function stamp(CarbonInterface $date): string
+    {
+        $now = now($date->getTimezone());
+
+        return match (true) {
+            $date->isSameDay($now) => self::digits($date->format('H:i')),
+            $date->isSameDay($now->copy()->subDay()) => 'دیروز',
+            default => self::date($date, $date->year === $now->year ? 'j F' : 'Y/m/d'),
+        };
+    }
+
+    /** برچسب روز برای جداکننده‌های گفتگو: «امروز»، «دیروز» یا تاریخ کامل. */
+    public static function dayLabel(CarbonInterface $date): string
+    {
+        $now = now($date->getTimezone());
+
+        return match (true) {
+            $date->isSameDay($now) => 'امروز',
+            $date->isSameDay($now->copy()->subDay()) => 'دیروز',
+            default => self::date($date, 'Y/m/d'),
+        };
+    }
 }
