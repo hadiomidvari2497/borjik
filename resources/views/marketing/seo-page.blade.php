@@ -90,7 +90,7 @@ h1{max-width:900px;font-size:clamp(2rem,5vw,3.45rem);line-height:1.5;letter-spac
 <body>
 <header class="top"><div class="wrap">
 <nav class="nav" aria-label="ناوبری اصلی">
-<a class="brand" href="{{ route('home') }}"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt=""><span>صابخونه</span></a>
+<a class="brand" href="{{ route('home') }}"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt=""><span>صابخونه</span></a>
 <a class="back" href="{{ route('home') }}">← بازگشت به صفحهٔ اصلی</a>
 </nav>
 <nav class="crumbs" aria-label="مسیر صفحه"><a href="{{ route('home') }}">خانه</a><span aria-hidden="true">/</span><span>{{ $page['heading'] }}</span></nav>
