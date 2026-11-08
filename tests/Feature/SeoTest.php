@@ -380,7 +380,12 @@ class SeoTest extends TestCase
             ->assertSee('ورود به بازار صابخونه')
             ->assertDontSee('id="property-marketplace"', false)
             ->assertDontSee('class="property-preview-card"', false)
-            ->assertDontSee('href="#partners"', false);
+            ->assertSee('href="#partners"', false);
+
+        preg_match('/<header\\b[^>]*>(.*?)<\\/header>/s', $response->getContent(), $header);
+
+        $this->assertNotEmpty($header, 'The homepage should render its site header.');
+        $this->assertStringNotContainsString('href="#partners"', $header[1]);
 
         $this->assertSame(
             2,
