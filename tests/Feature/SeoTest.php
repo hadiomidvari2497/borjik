@@ -369,7 +369,7 @@ class SeoTest extends TestCase
             ->assertDontSee('private-draft-for-seo-test')
             ->assertDontSee('future-article-for-seo-test');
     }
-    public function test_homepage_features_marketplace_without_showing_listing_previews_or_navigation_link(): void
+    public function test_homepage_features_marketplace_without_showing_listing_previews_and_keeps_header_link(): void
     {
         $response = $this->get('/');
 
@@ -381,9 +381,9 @@ class SeoTest extends TestCase
             ->assertDontSee('class="property-preview-card"', false);
 
         $this->assertSame(
-            1,
+            2,
             substr_count($response->getContent(), 'href="'.route('properties.index').'"'),
-            'The homepage should link to the marketplace only from the features section.'
+            'The homepage should link to the marketplace from the header and features section only.'
         );
     }
 
