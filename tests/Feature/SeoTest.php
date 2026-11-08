@@ -196,7 +196,12 @@ class SeoTest extends TestCase
             ->assertSee('آیا در صابخونه می‌توان نظرسنجی ساختمان برگزار کرد؟')
             ->assertSee('"@type":"FAQPage"', false)
             ->assertSee('"@type":"SoftwareApplication"', false)
-            ->assertSee('صابخونه؛ نرم‌افزار مدیریت ساختمان');
+            ->assertSee('صابخونه؛ نرم‌افزار مدیریت ساختمان')
+            ->assertSee('چک‌لیست ماهانهٔ مدیریت ساختمان')
+            ->assertSee('پیگیری درخواست‌های باز')
+            ->assertSee('تناسب هزینه با امکانات')
+            ->assertSee('/articles/transparent-building-charges', false)
+            ->assertSee('/articles/building-management-software-selection-guide', false);
     }
 
     public function test_building_charges_page_covers_charge_workflow_and_links_to_related_guides(): void
