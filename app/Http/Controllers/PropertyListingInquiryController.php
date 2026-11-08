@@ -111,7 +111,7 @@ class PropertyListingInquiryController extends Controller
                     'body' => $message->body,
                     'sender_user_id' => $message->sender_user_id,
                     'sender_name' => $request->user()->display_name,
-                    'time' => \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i'),
+                    'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
                 ],
             ], 201);
         }
@@ -141,7 +141,7 @@ class PropertyListingInquiryController extends Controller
                 'body' => $message->body,
                 'sender_user_id' => $message->sender_user_id,
                 'sender_name' => $message->sender?->display_name ?? '',
-                'time' => \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i'),
+                'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
             ])->values(),
             'closed' => $inquiry->status === 'closed',
         ]);
