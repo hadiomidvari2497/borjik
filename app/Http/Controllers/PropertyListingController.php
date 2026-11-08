@@ -69,7 +69,18 @@ class PropertyListingController extends Controller
     {
         abort_unless($listing->status === 'active' && (! $listing->expires_at || $listing->expires_at->isFuture()), 404);
 
-        return view('properties.show', compact('listing'));
+        $listing->loadMissing('user');
+
+        // آگهی‌های مشابه: هم‌نوع، با اولویت همان شهر؛ فقط آگهی‌های منتشرشده.
+        $similar = PropertyListing::published()
+            ->whereKeyNot($listing->getKey())
+            ->where('listing_type', $listing->listing_type)
+            ->orderByRaw('CASE WHEN city = ? THEN 0 ELSE 1 END', [(string) $listing->city])
+            ->latest()
+            ->limit(4)
+            ->get();
+
+        return view('properties.show', compact('listing', 'similar'));
     }
 
     public function mine(Request $request, PropertyListingQuota $quota, PaymentGatewayRegistry $gateways)
