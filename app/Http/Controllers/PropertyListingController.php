@@ -185,7 +185,8 @@ class PropertyListingController extends Controller
             'neighborhood' => ['nullable', 'string', 'max:120'],
             'address' => ['nullable', 'string', 'max:500'],
             'hide_address' => ['sometimes', 'boolean'],
-            'show_phone' => ['sometimes', 'boolean'],
+            'allow_phone_call' => ['sometimes', 'boolean'],
+            'allow_sms' => ['sometimes', 'boolean'],
             'area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
             'parking_count' => ['nullable', 'integer', 'min:0', 'max:30'],
             'bedrooms' => ['nullable', 'integer', 'min:0', 'max:30'],
@@ -214,7 +215,8 @@ class PropertyListingController extends Controller
 
         unset($data['photos']);
         $data['hide_address'] = $request->boolean('hide_address');
-        $data['show_phone'] = $request->boolean('show_phone');
+        $data['allow_phone_call'] = $request->boolean('allow_phone_call');
+        $data['allow_sms'] = $request->boolean('allow_sms');
         $data['allow_exchange'] = $request->boolean('allow_exchange');
 
         return $data;
