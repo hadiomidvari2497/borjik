@@ -23,7 +23,7 @@
 <section class="panel" style="margin-top:18px">
     <div id="chat-thread" class="chat-thread" aria-live="polite" aria-relevant="additions">
         <article class="chat-message {{ (int) auth()->id() === (int) $inquiry->sender_user_id ? 'mine' : 'theirs' }}" data-message-id="0">
-            <div class="chat-message-meta">{{ $inquiry->sender_name }} · {{ \\App\\Support\\Fa::date($inquiry->created_at, 'Y/m/d H:i') }}</div>
+            <div class="chat-message-meta">{{ $inquiry->sender_name }} · {{ \App\Support\Fa::date($inquiry->created_at, 'Y/m/d H:i') }}</div>
             <div style="white-space:pre-wrap">{{ $inquiry->message }}</div>
             @if($inquiry->sender_mobile && (int) auth()->id() === (int) $inquiry->recipient_user_id)
                 <div style="margin-top:8px"><a href="tel:{{ $inquiry->sender_mobile }}">تماس با فرستنده: {{ $inquiry->sender_mobile }}</a></div>
@@ -31,7 +31,7 @@
         </article>
         @foreach($messages as $message)
             <article class="chat-message {{ (int) $message->sender_user_id === (int) auth()->id() ? 'mine' : 'theirs' }}" data-message-id="{{ $message->id }}">
-                <div class="chat-message-meta">{{ $message->sender->display_name }} · {{ \\App\\Support\\Fa::date($message->created_at, 'Y/m/d H:i') }}</div>
+                <div class="chat-message-meta">{{ $message->sender->display_name }} · {{ \App\Support\Fa::date($message->created_at, 'Y/m/d H:i') }}</div>
                 <div style="white-space:pre-wrap">{{ $message->body }}</div>
             </article>
         @endforeach
