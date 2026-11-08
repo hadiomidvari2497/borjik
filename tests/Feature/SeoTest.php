@@ -184,7 +184,7 @@ class SeoTest extends TestCase
         $this->get('/software-building-management')
             ->assertOk()
             ->assertSee('<title>نرم‌افزار مدیریت ساختمان آنلاین | صابخونه</title>', false)
-            ->assertSee('name="description" content="نرم‌افزار مدیریت ساختمان صابخونه برای مدیریت شارژ و هزینه‌ها', false)
+            ->assertSee('name="description" content="نرم‌افزار مدیریت ساختمان آنلاین صابخونه برای مدیریت شارژ و هزینه‌ها', false)
             ->assertSee('rel="canonical" href="https://sabkhoneh.ir/software-building-management"', false)
             ->assertSee('<h1>نرم‌افزار مدیریت ساختمان آنلاین برای مجتمع‌های مسکونی</h1>', false)
             ->assertSee('امکانات نرم‌افزار مدیریت ساختمان صابخونه در عمل')
