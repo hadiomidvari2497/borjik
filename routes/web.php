@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my/property-inquiries/{inquiry}/messages', [PropertyListingInquiryController::class, 'messages'])->whereNumber('inquiry')->middleware('throttle:120,1')->name('properties.chat.messages');
     Route::post('/my/property-inquiries/{inquiry}/messages', [PropertyListingInquiryController::class, 'send'])->whereNumber('inquiry')->middleware('throttle:30,1')->name('properties.chat.send');
     Route::patch('/my/property-inquiries/{inquiry}', [PropertyListingInquiryController::class, 'update'])->whereNumber('inquiry')->name('properties.inquiries.update');
-    Route::post('/properties/{listing}/inquiries', [PropertyListingInquiryController::class, 'store'])->whereNumber('listing')->middleware('throttle:5,10')->name('properties.inquiries.store');
+    Route::post('/properties/{listing}/inquiries', [PropertyListingInquiryController::class, 'store'])->whereNumber('listing')->middleware('throttle:15,1')->name('properties.inquiries.store');
     Route::post('/properties/packages/buy', [PropertyListingPackageController::class, 'buy'])->middleware('throttle:10,1')->name('properties.packages.buy');
     Route::post('/properties/{listing}/reports', [PropertyListingReportController::class, 'store'])->whereNumber('listing')->middleware('throttle:5,10')->name('properties.reports.store');
     Route::get('/properties/create', [PropertyListingController::class, 'create'])->name('properties.create');
