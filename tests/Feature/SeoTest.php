@@ -387,6 +387,38 @@ class SeoTest extends TestCase
         );
     }
 
+    public function test_public_marketing_pages_use_the_optimized_webp_brand_mark(): void
+    {
+        $this->app['env'] = 'production';
+        SiteSetting::set('seo.site_url', 'https://sabkhoneh.ir');
+        SiteSetting::set('seo.indexing_enabled', true);
+
+        $paths = [
+            '/',
+            '/articles',
+            '/articles/transparent-building-charges',
+            '/software-building-charges',
+            '/software-building-management',
+            '/software-building-requests',
+            '/software-building-finance',
+            '/building-management-software-comparison',
+            '/trust-and-security',
+            '/subscription-plans',
+        ];
+
+        foreach ($paths as $path) {
+            $response = $this->get($path);
+
+            $response->assertOk()
+                ->assertSee('images/sabkhoneh-mark.webp', false)
+                ->assertDontSee('images/sabkhoneh-mark.png', false);
+        }
+
+        $this->get('/articles/transparent-building-charges')
+            ->assertOk()
+            ->assertSee('https://sabkhoneh.ir/images/sabkhoneh-mark.webp', false);
+    }
+
     public function test_homepage_reserves_trust_badge_space_and_uses_compositor_friendly_hero_motion(): void
     {
         $response = $this->get('/');
