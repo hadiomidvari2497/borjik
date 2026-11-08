@@ -105,7 +105,7 @@ class PropertyListingInquiryController extends Controller
             ->update(['read_at' => now()]);
 
         $inquiry->load(['listing', 'sender', 'recipient']);
-        $messages = $inquiry->messages()->with('sender')->oldest()->get();
+        $messages = $inquiry->messages()->with(['sender', 'replyTo.sender'])->oldest()->get();
 
         return view('properties.chat', compact('inquiry', 'messages'));
     }
@@ -117,12 +117,16 @@ class PropertyListingInquiryController extends Controller
 
         $data = $request->validate([
             'body' => ['required', 'string', 'min:1', 'max:2000'],
+            'reply_to_message_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
+        $replyTo = !empty($data['reply_to_message_id']) ? $inquiry->messages()->with('sender')->findOrFail($data['reply_to_message_id']) : null;
         $message = $inquiry->messages()->create([
             'sender_user_id' => $request->user()->id,
             'body' => trim($data['body']),
+            'reply_to_message_id' => $replyTo?->id,
         ]);
+        $message->load(['sender', 'replyTo.sender']);
 
         $recipientId = (int) $request->user()->id === (int) $inquiry->sender_user_id
             ? $inquiry->recipient_user_id
@@ -147,6 +151,8 @@ class PropertyListingInquiryController extends Controller
                     'sender_user_id' => $message->sender_user_id,
                     'sender_name' => $request->user()->display_name,
                     'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
+                    'reply' => $message->replyTo ? ['id' => $message->replyTo->id, 'body' => $message->replyTo->body, 'sender_name' => $message->replyTo->sender?->display_name ?? ''] : null,
+                    'read_at' => null,
                 ],
             ], 201);
         }
@@ -159,16 +165,17 @@ class PropertyListingInquiryController extends Controller
         $this->authorizeParticipant($request, $inquiry);
 
         $afterId = max(0, (int) $request->query('after_id', 0));
+        $inquiry->messages()
+            ->where('sender_user_id', '!=', $request->user()->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
         $messages = $inquiry->messages()
-            ->with('sender')
+            ->with(['sender', 'replyTo.sender'])
             ->where('id', '>', $afterId)
             ->oldest('id')
             ->limit(100)
             ->get();
-
-        $messages->where('sender_user_id', '!=', $request->user()->id)
-            ->whereNull('read_at')
-            ->each(fn ($message) => $message->forceFill(['read_at' => now()])->save());
 
         return response()->json([
             'messages' => $messages->map(fn ($message) => [
@@ -177,7 +184,11 @@ class PropertyListingInquiryController extends Controller
                 'sender_user_id' => $message->sender_user_id,
                 'sender_name' => $message->sender?->display_name ?? '',
                 'time' => \App\Support\Fa::date($message->created_at, 'Y/m/d H:i'),
+                'reply' => $message->replyTo ? ['id' => $message->replyTo->id, 'body' => $message->replyTo->body, 'sender_name' => $message->replyTo->sender?->display_name ?? ''] : null,
+                'read_at' => $message->read_at?->toISOString(),
             ])->values(),
+            'read_message_ids' => $inquiry->messages()->where('sender_user_id', $request->user()->id)->whereNotNull('read_at')->pluck('id'),
+            'initial_message_read' => (int) $inquiry->sender_user_id === (int) $request->user()->id && (bool) $inquiry->read_at,
             'closed' => $inquiry->status === 'closed',
         ]);
     }

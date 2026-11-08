@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PropertyListingChatMessage extends Model
 {
-    protected $fillable = ['inquiry_id', 'sender_user_id', 'body', 'read_at'];
+    protected $fillable = ['inquiry_id', 'sender_user_id', 'body', 'read_at', 'reply_to_message_id'];
 
     protected function casts(): array
     {
@@ -22,5 +22,10 @@ class PropertyListingChatMessage extends Model
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_user_id');
+    }
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reply_to_message_id');
     }
 }
