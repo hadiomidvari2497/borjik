@@ -54,6 +54,32 @@ class PropertyListingInquiryTest extends TestCase
             ->assertOk()->assertSee('چه ساعتی برای بازدید مناسب است؟');
     }
 
+    public function test_chat_messages_can_be_sent_and_polled_as_json_without_page_navigation(): void
+    {
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $listing = $this->makeListing($owner);
+        $inquiry = PropertyListingInquiry::create([
+            'property_listing_id' => $listing->id,
+            'sender_user_id' => $sender->id,
+            'recipient_user_id' => $owner->id,
+            'sender_name' => $sender->display_name,
+            'message' => 'سلام، درباره ملک سوال دارم.',
+            'status' => 'new',
+        ]);
+
+        $this->actingAs($sender)->postJson(route('properties.chat.send', $inquiry), [
+            'body' => 'آیا امکان بازدید در روز پنجشنبه وجود دارد؟',
+        ])->assertCreated()
+            ->assertJsonPath('message.body', 'آیا امکان بازدید در روز پنجشنبه وجود دارد؟')
+            ->assertJsonPath('message.sender_user_id', $sender->id);
+
+        $this->actingAs($owner)->getJson(route('properties.chat.messages', [$inquiry, 'after_id' => 0]))
+            ->assertOk()
+            ->assertJsonPath('messages.0.body', 'آیا امکان بازدید در روز پنجشنبه وجود دارد؟')
+            ->assertJsonPath('messages.0.sender_user_id', $sender->id);
+    }
+
     public function test_only_conversation_participants_can_read_or_send_messages(): void
     {
         $owner = $this->makeUser();
