@@ -54,6 +54,63 @@ class PropertyListingInquiryTest extends TestCase
             ->assertOk()->assertSee('چه ساعتی برای بازدید مناسب است؟');
     }
 
+    public function test_reopening_contact_for_the_same_listing_reuses_the_existing_conversation(): void
+    {
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $listing = $this->makeListing($owner);
+
+        $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
+            'message' => 'سلام، درباره این ملک سوال دارم.',
+        ])->assertRedirect();
+
+        $firstInquiry = PropertyListingInquiry::query()->where('property_listing_id', $listing->id)
+            ->where('sender_user_id', $sender->id)->firstOrFail();
+
+        $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
+            'message' => 'سلام، دوباره برای ادامه گفتگو برگشتم.',
+        ])->assertRedirect(route('properties.chat.show', $firstInquiry))
+            ->assertSessionHas('status', 'گفتگوی قبلی شما باز شد. می‌توانید ادامه پیام‌ها را همان‌جا ارسال کنید.');
+
+        $this->assertSame(1, PropertyListingInquiry::query()
+            ->where('property_listing_id', $listing->id)
+            ->where('sender_user_id', $sender->id)
+            ->count());
+    }
+
+    public function test_contacting_again_reopens_a_closed_conversation_and_keeps_the_new_message(): void
+    {
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $listing = $this->makeListing($owner);
+        $inquiry = PropertyListingInquiry::create([
+            'property_listing_id' => $listing->id,
+            'sender_user_id' => $sender->id,
+            'recipient_user_id' => $owner->id,
+            'sender_name' => $sender->display_name,
+            'message' => 'پیام اولیه',
+            'status' => 'closed',
+        ]);
+
+        $this->actingAs($sender)->post(route('properties.inquiries.store', $listing), [
+            'message' => 'می‌خواهم گفتگو را دوباره ادامه بدهم.',
+        ])->assertRedirect(route('properties.chat.show', $inquiry));
+
+        $this->assertSame(1, PropertyListingInquiry::query()
+            ->where('property_listing_id', $listing->id)
+            ->where('sender_user_id', $sender->id)
+            ->count());
+        $this->assertDatabaseHas('property_listing_inquiries', [
+            'id' => $inquiry->id,
+            'status' => 'new',
+        ]);
+        $this->assertDatabaseHas('property_listing_chat_messages', [
+            'inquiry_id' => $inquiry->id,
+            'sender_user_id' => $sender->id,
+            'body' => 'می‌خواهم گفتگو را دوباره ادامه بدهم.',
+        ]);
+    }
+
     public function test_chat_messages_can_be_sent_and_polled_as_json_without_page_navigation(): void
     {
         $owner = $this->makeUser();
