@@ -369,16 +369,18 @@ class SeoTest extends TestCase
             ->assertDontSee('private-draft-for-seo-test')
             ->assertDontSee('future-article-for-seo-test');
     }
+
     public function test_homepage_features_marketplace_without_showing_listing_previews_and_keeps_header_link(): void
     {
         $response = $this->get('/');
 
         $response->assertOk()
-            ->assertSee('بازار املاک صابخونه')
+            ->assertSee('بازار صابخونه')
             ->assertSee('خرید، فروش یا اجاره ملک')
-            ->assertSee('ورود به بازار املاک')
+            ->assertSee('ورود به بازار صابخونه')
             ->assertDontSee('id="property-marketplace"', false)
-            ->assertDontSee('class="property-preview-card"', false);
+            ->assertDontSee('class="property-preview-card"', false)
+            ->assertDontSee('href="#partners"', false);
 
         $this->assertSame(
             2,
@@ -428,5 +430,4 @@ class SeoTest extends TestCase
             ->assertSee('@keyframes pulse{0%{transform:scale(1);opacity:1}', false)
             ->assertSee('background-size:220% auto;animation:none', false);
     }
-
 }
