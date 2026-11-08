@@ -743,7 +743,7 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
     <div class="wrap nav">
         <a class="brand" href="#home" aria-label="صابخونه، صفحه اصلی"><span class="brand-mark" style="background:#fff;padding:5px;border:1px solid #e1eae8"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt="" width="43" height="43" loading="eager" fetchpriority="high" decoding="async" style="display:block;width:100%;height:100%;aspect-ratio:1;object-fit:contain"></span><span>صابخونه</span></a>
         <nav class="nav-links" aria-label="ناوبری اصلی">
-            <a href="#features">امکانات</a><a href="{{ route('properties.index') }}">بازار املاک</a><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a><a href="{{ route('marketing.subscription-plans') }}">پلن‌های اشتراک</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#partners">همکاران ما</a><a href="#contact">تماس با ما</a>
+            <a href="#features">امکانات</a><a href="{{ route('properties.index') }}">بازار صابخونه</a><a href="{{ route('marketing.building-management') }}">نرم‌افزار مدیریت ساختمان</a><a href="{{ route('marketing.subscription-plans') }}">پلن‌های اشتراک</a><a href="#about">درباره ما</a><a href="#articles">مقالات</a><a href="#contact">تماس با ما</a>
         </nav>
         <div class="nav-actions"><a class="btn btn-ghost" href="{{ route('marketing.subscription-plans') }}">مشاهده پلن‌ها</a>@auth<a class="btn btn-primary" href="{{ route('dashboard') }}" title="{{ $authTitle }}">ادامه در پنل من <span aria-hidden="true">←</span></a>@else<a class="btn btn-primary" href="{{ route('login') }}">ورود به سامانه <span aria-hidden="true">←</span></a>@endauth</div>
     </div>
@@ -795,11 +795,11 @@ $features = data_get($content ?? [], 'features', $defaultFeatures);
                 @foreach($features as $feature)
                 <article class="feature-card"><div class="feature-icon">{{ $feature['icon'] ?? '✦' }}</div><h3>{{ $feature['title'] ?? '' }}</h3><p>{{ $feature['description'] ?? '' }}</p></article>
                 @endforeach
-                <a class="feature-card" href="{{ route('properties.index') }}" aria-label="مشاهده بازار املاک صابخونه" style="display:block;color:inherit;text-decoration:none">
+                <a class="feature-card" href="{{ route('properties.index') }}" aria-label="مشاهده بازار صابخونه صابخونه" style="display:block;color:inherit;text-decoration:none">
                     <div class="feature-icon" aria-hidden="true">⌂</div>
-                    <h3>بازار املاک صابخونه</h3>
+                    <h3>بازار صابخونه صابخونه</h3>
                     <p>برای خرید، فروش یا اجاره ملک، آگهی‌های ملکی را ببینید یا آگهی خودتان را ثبت کنید. می‌توانید با ثبت‌کننده آگهی به‌صورت خصوصی گفتگو کنید و در صورت تمایل از راه تماس مستقیم با او ارتباط بگیرید.</p>
-                    <span style="display:inline-flex;align-items:center;gap:7px;margin-top:16px;color:var(--teal-dark);font-size:.86rem;font-weight:850">ورود به بازار املاک <span aria-hidden="true">←</span></span>
+                    <span style="display:inline-flex;align-items:center;gap:7px;margin-top:16px;color:var(--teal-dark);font-size:.86rem;font-weight:850">ورود به بازار صابخونه <span aria-hidden="true">←</span></span>
                 </a>
             </div>
         </div>
