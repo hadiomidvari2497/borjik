@@ -67,7 +67,7 @@
 <header class="top">
     <div class="wrap">
         <nav class="nav" aria-label="ناوبری اصلی">
-            <a class="brand" href="{{ route('home') }}"><img src="{{ asset('images/sabkhoneh-mark.png') }}" alt=""><span>صابخونه</span></a>
+            <a class="brand" href="{{ route('home') }}"><img src="{{ asset('images/sabkhoneh-mark.webp') }}" alt=""><span>صابخونه</span></a>
             <a class="back" href="{{ route('home') }}">← صفحهٔ اصلی</a>
         </nav>
         <div class="hero">
