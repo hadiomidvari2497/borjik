@@ -107,6 +107,21 @@ class PropertyListingInquiryTest extends TestCase
             ->assertSee('sms:'.$owner->mobile);
     }
 
+    public function test_guests_can_use_enabled_phone_and_sms_options_but_must_sign_in_for_chat(): void
+    {
+        $owner = $this->makeUser();
+        $listing = $this->makeListing($owner);
+        $listing->update(['allow_phone_call' => true, 'allow_sms' => true]);
+
+        $this->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('ارتباط با فروشنده')
+            ->assertSee('tel:'.$owner->mobile)
+            ->assertSee('sms:'.$owner->mobile)
+            ->assertSee(route('login'))
+            ->assertSee('برای شروع گفتگو وارد حساب کاربری شوید');
+    }
+
     public function test_seller_can_configure_call_and_sms_permissions_on_listing_form(): void
     {
         $owner = $this->makeUser();
