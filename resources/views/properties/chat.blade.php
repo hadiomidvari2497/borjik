@@ -6,7 +6,15 @@
     $chatPartner = $isInitiator ? $inquiry->recipient->display_name : $inquiry->sender_name;
 @endphp
 <style>
-.chat-page{max-width:980px;margin:0 auto;padding-bottom:35px}
+/* Keep the marketplace shell fixed while the conversation owns scrolling. */
+body:has(.chat-page){height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body:has(.chat-page)>.top{flex:0 0 auto}
+body:has(.chat-page)>.main{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.chat-page{max-width:980px;width:100%;height:100%;min-height:0;margin:0 auto;padding-bottom:0;display:flex;flex-direction:column}
+.chat-topbar,.chat-listing-card{flex:0 0 auto}
+.chat-shell{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.chat-header,.chat-composer-wrap,.chat-closed{flex:0 0 auto}
+.chat-thread{flex:1 1 auto;height:auto;min-height:0;max-height:none;overscroll-behavior:contain}
 .chat-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;flex-wrap:wrap}
 .chat-back{display:inline-flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:700}
 .chat-back:hover{color:#168653}
@@ -53,7 +61,7 @@
 .chat-status.error{color:#b42318}
 .chat-closed{padding:17px 20px;margin:0;border-top:1px solid var(--line);background:#fafbfa;color:#68766f;font-size:13px}
 .chat-notice{margin:0 0 14px}
-@media(max-width:600px){.chat-listing-card{padding:14px;border-radius:15px}.chat-shell{border-radius:17px}.chat-header{padding:14px}.chat-thread{height:58vh;min-height:300px;padding:17px 12px}.chat-message{max-width:91%;padding:10px 13px}.chat-composer-wrap{padding:12px}.chat-composer{align-items:stretch;flex-direction:column}.chat-send-btn{width:100%}.chat-topbar{margin-bottom:10px}}
+@media(max-width:600px){.chat-listing-card{padding:10px 12px;margin-bottom:8px;border-radius:15px}.chat-shell{border-radius:17px}.chat-header{padding:10px 12px}.chat-thread{height:auto;min-height:0;max-height:none;flex:1 1 auto;padding:12px 12px}.chat-message{max-width:91%;padding:10px 13px}.chat-composer-wrap{padding:12px}.chat-composer{align-items:stretch;flex-direction:column}.chat-send-btn{width:100%}.chat-topbar{margin-bottom:8px}.chat-composer-wrap{padding:9px 10px}.chat-composer textarea{min-height:42px;max-height:100px}.chat-send-btn{min-height:42px}.chat-composer-hint{margin-top:5px}.chat-status{margin-top:4px}}
 </style>
 <div class="chat-page">
     <div class="chat-topbar">
