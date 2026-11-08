@@ -193,7 +193,7 @@ class SeoTest extends TestCase
             ->assertSee('نظرسنجی و رأی‌گیری ساختمان')
             ->assertSee('قالب‌های پیامک قابل تنظیم')
             ->assertSee('مشاهدهٔ پلن‌ها')
-            ->assertSee('آیا در صابخونه می‌توان نظرسنجی ساختمان برگزار کرد؟')
+            ->assertSee('آیا در صابخونه امکان نظرسنجی و رأی‌گیری وجود دارد؟')
             ->assertSee('"@type":"FAQPage"', false)
             ->assertSee('"@type":"SoftwareApplication"', false)
             ->assertSee('صابخونه؛ نرم‌افزار مدیریت ساختمان')
