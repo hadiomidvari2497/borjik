@@ -20,6 +20,38 @@ class PropertyListingInquiryController extends Controller
         $listing = PropertyListing::query()->published()->with('user')->findOrFail($listingId);
         abort_if((int) $listing->user_id === (int) $request->user()->id, 403);
 
+        // Keep one conversation thread per listing and interested user.
+        $inquiry = PropertyListingInquiry::query()
+            ->where('property_listing_id', $listing->id)
+            ->where('sender_user_id', $request->user()->id)
+            ->where('recipient_user_id', $listing->user_id)
+            ->latest('id')
+            ->first();
+
+        if ($inquiry) {
+            // If the seller previously closed the thread, reopen it and preserve
+            // the new contact message in the conversation history.
+            if ($inquiry->status === 'closed') {
+                $inquiry->forceFill(['status' => 'new', 'updated_at' => now()])->save();
+                $inquiry->messages()->create([
+                    'sender_user_id' => $request->user()->id,
+                    'body' => trim($data['message']),
+                ]);
+
+                $listing->user->notify(new PropertyListingNotification(
+                    event: 'inquiry_received',
+                    title: 'گفتگوی آگهی دوباره فعال شد',
+                    message: $request->user()->display_name.' دوباره درباره آگهی «'.$listing->title.'» پیام فرستاده است.',
+                    url: route('properties.chat.show', $inquiry),
+                    level: 'info',
+                    listingId: $listing->id,
+                ));
+            }
+
+            return redirect()->route('properties.chat.show', $inquiry)
+                ->with('status', 'گفتگوی قبلی شما باز شد. می‌توانید ادامه پیام‌ها را همان‌جا ارسال کنید.');
+        }
+
         $inquiry = PropertyListingInquiry::create([
             'property_listing_id' => $listing->id,
             'sender_user_id' => $request->user()->id,
