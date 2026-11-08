@@ -21,7 +21,7 @@ class PropertyListing extends Model
     ];
 
     protected $fillable = [
-        'user_id', 'unit_id', 'parking_count', 'show_phone', 'listing_type', 'property_type', 'title', 'description',
+        'user_id', 'unit_id', 'parking_count', 'show_phone', 'allow_phone_call', 'allow_sms', 'listing_type', 'property_type', 'title', 'description',
         'province', 'city', 'neighborhood', 'address', 'hide_address', 'area',
         'bedrooms', 'bathrooms', 'floor', 'total_floors', 'built_year',
         'document_type', 'amenities', 'price', 'deposit', 'monthly_rent',
@@ -33,6 +33,8 @@ class PropertyListing extends Model
         return [
             'hide_address' => 'boolean',
             'show_phone' => 'boolean',
+            'allow_phone_call' => 'boolean',
+            'allow_sms' => 'boolean',
             'allow_exchange' => 'boolean',
             'amenities' => 'array',
             'photos' => 'array',
