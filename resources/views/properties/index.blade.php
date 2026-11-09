@@ -5,24 +5,7 @@
 @if($mapApiKey)
     @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
 @endif
-@php
-    $tabQuery = fn (?string $type) => route('properties.index', array_filter(array_merge(request()->except(['page', 'listing_type']), ['listing_type' => $type]), fn ($v) => $v !== null && $v !== ''));
-    $money = fn ($v) => \App\Support\Fa::short((int) $v);
-    $activeFilters = array_values(array_filter([
-        request()->filled('q') ? '«'.\Illuminate\Support\Str::limit(request('q'), 18).'»' : null,
-        request('listing_type') ? (\App\Models\PropertyListing::LISTING_TYPES[request('listing_type')] ?? null) : null,
-        request()->filled('province') ? request('province') : null,
-        request()->filled('city') ? request('city') : null,
-        request()->filled('neighborhood') ? request('neighborhood') : null,
-        request()->filled('property_type') ? (\App\Models\PropertyListing::PROPERTY_TYPES[request('property_type')] ?? null) : null,
-        request()->filled('min_area') ? 'از '.\App\Support\Fa::digits(request('min_area')).' متر' : null,
-        request()->filled('max_area') ? 'تا '.\App\Support\Fa::digits(request('max_area')).' متر' : null,
-        request()->filled('min_price') ? 'از '.$money(request('min_price')) : null,
-        request()->filled('max_price') ? 'تا '.$money(request('max_price')) : null,
-        request()->filled('bedrooms') ? 'حداقل '.\App\Support\Fa::digits(request('bedrooms')).' خواب' : null,
-        request('parking') === '1' ? 'پارکینگ‌دار' : null,
-    ]));
-@endphp
+
 
 <section class="hero has-search">
     <h1>ملک موردنظرت را پیدا کن</h1>
@@ -42,9 +25,9 @@
     <form class="search-body" method="GET" action="{{ route('properties.index') }}" role="search" aria-label="جستجوی آگهی">
         @if(request('listing_type'))<input type="hidden" name="listing_type" value="{{ request('listing_type') }}">@endif
         <div class="seg" role="navigation" aria-label="نوع آگهی">
-            <a href="{{ $tabQuery(null) }}" @if(! request('listing_type')) aria-current="true" @endif>همه آگهی‌ها</a>
+            <a href="{{ route('properties.index', request()->except(['page', 'listing_type'])) }}" @if(! request('listing_type')) aria-current="true" @endif>همه آگهی‌ها</a>
             @foreach(\App\Models\PropertyListing::LISTING_TYPES as $key => $label)
-                <a href="{{ $tabQuery($key) }}" @if(request('listing_type') === $key) aria-current="true" @endif>{{ $label }}</a>
+                <a href="{{ route('properties.index', array_filter(array_merge(request()->except(['page', 'listing_type']), ['listing_type' => $key]), fn ($v) => $v !== null && $v !== '')) }}" @if(request('listing_type') === $key) aria-current="true" @endif>{{ $label }}</a>
             @endforeach
         </div>
         <div class="fields">
