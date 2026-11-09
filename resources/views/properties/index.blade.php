@@ -180,6 +180,7 @@
         };
         listButton.addEventListener('click', () => setView('list'));
         mapButton.addEventListener('click', () => setView('map'));
+        setView('list');
     });
     </script>
     @endpush
