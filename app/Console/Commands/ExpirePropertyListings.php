@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Console\\Commands;
+namespace App\Console\Commands;
 
-use App\\Models\\PropertyListing;
-use App\\Notifications\\PropertyListingNotification;
-use Illuminate\\Console\\Command;
-use Illuminate\\Support\\Facades\\DB;
+use App\Models\PropertyListing;
+use App\Notifications\PropertyListingNotification;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class ExpirePropertyListings extends Command
 {
@@ -16,6 +16,11 @@ class ExpirePropertyListings extends Command
     public function handle(): int
     {
         $expired = 0;
+        $durationDays = max(1, min(365, (int) \App\Models\SiteSetting::get('property_listings.duration_days', 30)));
+
+        // Give legacy active listings without an expiry date a one-time grace period.
+        PropertyListing::query()->where('status', 'active')->whereNull('expires_at')
+            ->update(['expires_at' => now()->addDays($durationDays)]);
 
         PropertyListing::query()
             ->where('status', 'active')
@@ -42,7 +47,7 @@ class ExpirePropertyListings extends Command
                                 'warning',
                                 $locked->id
                             ));
-                        } catch (\\Throwable $exception) {
+                        } catch (\Throwable $exception) {
                             report($exception);
                         }
                     });

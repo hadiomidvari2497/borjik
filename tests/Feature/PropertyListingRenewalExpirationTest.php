@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\PropertyListing;
-use App\\Models\\PropertyListingCreditTransaction;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Models\PropertyListing;
+use App\Models\PropertyListingCreditTransaction;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PropertyListingRenewalExpirationTest extends TestCase
 {
@@ -48,7 +48,7 @@ class PropertyListingRenewalExpirationTest extends TestCase
         $this->assertSame('expired', $listing->fresh()->status);
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $user->id,
-            'type' => \\App\\Notifications\\PropertyListingNotification::class,
+            'type' => \App\Notifications\PropertyListingNotification::class,
         ]);
         $this->get(route('properties.show', $listing))->assertNotFound();
     }
@@ -73,7 +73,7 @@ class PropertyListingRenewalExpirationTest extends TestCase
         $listing->refresh();
         $this->assertSame('active', $listing->status);
         $this->assertEquals(now()->addDays(30)->timestamp, $listing->expires_at->timestamp);
-        $this->assertSame(0, app(\\App\\Services\\PropertyListingQuota::class)->availableCredits($user->id));
+        $this->assertSame(0, app(\App\Services\PropertyListingQuota::class)->availableCredits($user->id));
         $this->assertDatabaseHas('property_listing_credit_transactions', [
             'user_id' => $user->id,
             'property_listing_id' => $listing->id,
