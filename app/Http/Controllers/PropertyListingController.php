@@ -62,8 +62,24 @@ class PropertyListingController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $activeFilters = array_values(array_filter([
+            $request->filled('q') ? '«'.\Illuminate\Support\Str::limit($request->input('q'), 18).'»' : null,
+            ! empty($filters['listing_type']) ? (PropertyListing::LISTING_TYPES[$filters['listing_type']] ?? null) : null,
+            $request->filled('province') ? $request->input('province') : null,
+            $request->filled('city') ? $request->input('city') : null,
+            $request->filled('neighborhood') ? $request->input('neighborhood') : null,
+            ! empty($filters['property_type']) ? (PropertyListing::PROPERTY_TYPES[$filters['property_type']] ?? null) : null,
+            $request->filled('min_area') ? 'از '.\App\Support\Fa::digits($request->input('min_area')).' متر' : null,
+            $request->filled('max_area') ? 'تا '.\App\Support\Fa::digits($request->input('max_area')).' متر' : null,
+            $request->filled('min_price') ? 'از '.\App\Support\Fa::short((int) $request->input('min_price')) : null,
+            $request->filled('max_price') ? 'تا '.\App\Support\Fa::short((int) $request->input('max_price')) : null,
+            $request->filled('bedrooms') ? 'حداقل '.\App\Support\Fa::digits($request->input('bedrooms')).' خواب' : null,
+            $request->boolean('parking') ? 'پارکینگ‌دار' : null,
+        ]));
+
         return view('properties.index', [
             'listings' => $listings,
+            'activeFilters' => $activeFilters,
             'mapApiKey' => config('services.neshan.map_key'),
         ]);
     }
