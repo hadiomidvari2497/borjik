@@ -286,3 +286,53 @@
 </script>
 @endpush
 @endsection
+
+@php($mapApiKey = config('services.neshan.map_key'))
+@if($mapApiKey)
+    @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
+@endif
+<section class="form-section"><h2>موقعیت ملک روی نقشه</h2>
+<p class="form-help">نقطه دقیق ملک را انتخاب کنید. در نقشه عمومی، موقعیت با کمی جابه‌جایی نمایش داده می‌شود تا نشانی دقیق ملک محفوظ بماند.</p>
+@if($mapApiKey)
+    <div id="property-location-map" style="height:360px;border-radius:14px;overflow:hidden;background:#edf3f1"></div>
+    <div class="actions"><button class="btn light" type="button" id="clear-property-location">حذف موقعیت انتخاب‌شده</button><span class="form-help" id="property-location-status" role="status">برای انتخاب موقعیت، روی نقشه کلیک کنید یا نشانگر را جابه‌جا کنید.</span></div>
+@else
+    <div class="notice">برای فعال‌شدن انتخاب موقعیت، کلید نقشه باید در تنظیمات محیطی سرور ثبت شود.</div>
+@endif
+<input type="hidden" name="latitude" id="property-latitude" value="{{ old('latitude', $listing->latitude) }}">
+<input type="hidden" name="longitude" id="property-longitude" value="{{ old('longitude', $listing->longitude) }}">
+</section>
+@if($mapApiKey)
+<script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+    const mapElement = document.getElementById('property-location-map');
+    if (mapElement && window.maplibregl) {
+        const key = @json($mapApiKey);
+        const latInput = document.getElementById('property-latitude');
+        const lngInput = document.getElementById('property-longitude');
+        const status = document.getElementById('property-location-status');
+        const initial = latInput.value && lngInput.value
+            ? [Number(lngInput.value), Number(latInput.value)] : [51.389, 35.6892];
+        const map = new maplibregl.Map({container: mapElement, style: 'https://static.neshan.org/sdk/maplibre/styles/light.json', center: initial, zoom: latInput.value ? 15 : 11, apiKey: key});
+        let marker = null;
+        const syncPoint = (lngLat) => {
+            latInput.value = Number(lngLat.lat).toFixed(7);
+            lngInput.value = Number(lngLat.lng).toFixed(7);
+            if (status) status.textContent = 'موقعیت انتخاب شد؛ نقطه دقیق فقط در اطلاعات داخلی آگهی ذخیره می‌شود.';
+        };
+        const setPoint = (lngLat) => {
+            if (!marker) {
+                marker = new maplibregl.Marker({draggable: true, color: '#16816f'}).setLngLat(lngLat).addTo(map);
+                marker.on('dragend', () => syncPoint(marker.getLngLat()));
+            } else marker.setLngLat(lngLat);
+            syncPoint(lngLat);
+        };
+        map.on('click', event => setPoint(event.lngLat));
+        if (latInput.value && lngInput.value) map.on('load', () => setPoint({lat: Number(latInput.value), lng: Number(lngInput.value)}));
+        document.getElementById('clear-property-location')?.addEventListener('click', () => {
+            marker?.remove(); marker = null; latInput.value = ''; lngInput.value = '';
+            if (status) status.textContent = 'موقعیت انتخاب‌شده حذف شد.';
+        });
+        map.on('error', () => { if (status) status.textContent = 'بارگذاری نقشه با خطا مواجه شد؛ اتصال و اعتبار کلید نقشه را بررسی کنید.'; });
+    }
+</script>
+@endif
