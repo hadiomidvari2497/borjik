@@ -51,4 +51,17 @@ class PropertyListingInquiry extends Model
     {
         return $this->belongsTo(User::class, 'recipient_user_id');
     }
+
+    /** تعداد پیام‌های خوانده‌نشده‌ی کاربر در همه‌ی گفتگوهای آگهی (برای نشان منو). */
+    public static function unreadCountFor(int $userId): int
+    {
+        $initial = static::query()->where('recipient_user_id', $userId)->whereNull('read_at')->count();
+        $replies = PropertyListingChatMessage::query()
+            ->whereNull('read_at')
+            ->where('sender_user_id', '!=', $userId)
+            ->whereHas('inquiry', fn ($q) => $q->where(fn ($w) => $w->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId)))
+            ->count();
+
+        return $initial + $replies;
+    }
 }

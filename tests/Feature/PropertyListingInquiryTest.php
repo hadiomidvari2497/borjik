@@ -352,6 +352,26 @@ class PropertyListingInquiryTest extends TestCase
             ->assertJsonPath('read_message_ids.0', $first->id + 1);
     }
 
+    public function test_marketplace_navigation_links_to_profile_home_and_shows_unread_badge(): void
+    {
+        $owner = $this->makeUser();
+        $sender = $this->makeUser();
+        $this->makeInquiry($owner, $sender);
+
+        $html = $this->actingAs($owner)->get(route('properties.index'))->assertOk();
+        $html->assertSee(route('profile.edit'), false)
+            ->assertSee(route('home'), false)
+            ->assertSee(route('dashboard'), false)
+            ->assertSee(route('logout'), false)
+            ->assertSee('class="tabbar"', false)
+            ->assertSee('class="nbadge"', false);
+
+        auth()->logout();
+        $this->get(route('properties.index'))->assertOk()
+            ->assertSee(route('login'), false)
+            ->assertDontSee(route('logout'), false);
+    }
+
     private function makeListing(User $owner): PropertyListing
     {
         return PropertyListing::create([
