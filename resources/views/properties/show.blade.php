@@ -14,6 +14,7 @@
         $listing->allow_exchange ? ['i-swap', 'پذیرفته می‌شود', 'معاوضه'] : null,
     ]));
     $highlights = array_slice($facts, 0, 4);
+    $moreFacts = array_slice($facts, 4); // چهار ویژگی کلیدی بالای صفحه تکرار نشوند
     $ownerName = $listing->user->display_name ?? '';
     $priceRows = $listing->priceRows();
     $shortRows = $listing->priceRows(true);
@@ -177,11 +178,11 @@ document.addEventListener('DOMContentLoaded', function () {
         <section class="gallery rise"><div class="gallery-empty"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span>برای این آگهی تصویری ثبت نشده است</span></div></section>
         @endif
 
-        @if($facts)
+        @if($moreFacts)
         <section class="panel rise">
-            <h2>مشخصات ملک</h2>
+            <h2>سایر مشخصات ملک</h2>
             <div class="facts">
-                @foreach($facts as [$icon, $value, $label])
+                @foreach($moreFacts as [$icon, $value, $label])
                     <div class="fact"><span class="fact-ic"><svg class="icon" aria-hidden="true"><use href="#{{ $icon }}"/></svg></span><div><b>{{ $value }}</b><span>{{ $label }}</span></div></div>
                 @endforeach
             </div>
@@ -222,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
 
     <aside class="aside">
-        <div class="pricebox rise" id="contact">
+        <div class="pricebox rise @if($isOwner) is-owner @endif" id="contact">
             <div class="pricebox-head">
                 <small>{{ $listing->listingTypeLabel() }}@if($listing->propertyTypeLabel()) · {{ $listing->propertyTypeLabel() }}@endif</small>
                 <div class="price">
@@ -233,15 +234,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 @if($perMeter)<div class="per-meter"><svg class="icon" aria-hidden="true"><use href="#i-ruler"/></svg>قیمت هر متر: <b>{{ $F::money($perMeter) }}</b></div>@endif
             </div>
             <div class="pricebox-body">
-                <div class="owner">
+                @unless($isOwner)<div class="owner">
                     <span class="avatar" aria-hidden="true">{{ \Illuminate\Support\Str::substr($ownerName ?: '؟', 0, 1) }}</span>
                     <div><b>{{ $ownerName }}</b><span class="muted">ثبت‌کننده آگهی</span></div>
-                </div>
+                </div>@endunless
                 @if($isOwner)
                     <p>این آگهی متعلق به شماست.</p>
                     <a class="btn block lg" href="{{ route('properties.inquiries.index') }}"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>مشاهده گفتگوها</a>
                 @else
-                    <button class="btn block lg" type="button" data-contact-open aria-haspopup="dialog" aria-controls="seller-contact-modal"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>ارتباط با فروشنده</button>
+                    <button class="btn block lg aside-cta" type="button" data-contact-open aria-haspopup="dialog" aria-controls="seller-contact-modal"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>ارتباط با فروشنده</button>
                 @endif
             </div>
         </div>

@@ -313,3 +313,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
 :root[data-theme="dark"] .tr-table td form .tr-btn[style*="a52b24"]{background:rgba(239,95,85,.16)!important;border-color:rgba(255,130,120,.3);color:#ffaaa3!important}
 :root[data-theme="dark"] .cms-delete{background:rgba(239,95,85,.15);color:#ffaaa3}
 :root[data-theme="dark"] .cms-add{background:var(--brand-soft);border-color:rgba(71,203,187,.5);color:var(--brand)}
+
+/* جلوگیری از زوم iOS روی فیلدها و هدف لمسی دکمه‌ی نمایش رمز */
+input[type=checkbox],input[type=radio]{width:20px!important;height:20px!important;flex:none}
+@media(max-width:700px){
+  input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]),select,textarea{font-size:16px!important}
+  .pw button{min-height:44px;min-width:44px}
+}
