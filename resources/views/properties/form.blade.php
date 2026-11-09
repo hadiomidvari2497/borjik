@@ -334,15 +334,23 @@
 
         const hasPoint = Boolean(latInput.value && lngInput.value);
         const initial = hasPoint ? [Number(lngInput.value), Number(latInput.value)] : [51.389, 35.6892];
-        const map = new maplibregl.Map({
-            container: mapElement,
-            style: 'https://static.neshan.org/sdk/maplibre/styles/light.json',
-            center: initial,
-            zoom: hasPoint ? 16 : 11,
-            apiKey: @json($mapApiKey),
-            attributionControl: true
-        });
+        let map;
+        try {
+            map = new maplibregl.Map({
+                container: mapElement,
+                style: 'https://static.neshan.org/sdk/maplibre/styles/light.json',
+                center: initial,
+                zoom: hasPoint ? 16 : 11,
+                apiKey: @json($mapApiKey),
+                attributionControl: true
+            });
+        } catch (error) {
+            console.error('Property location map initialization failed:', error);
+            if (status) status.textContent = 'راه‌اندازی نقشه ناموفق بود؛ لطفاً صفحه را تازه‌سازی کن و اتصال نقشه را بررسی کن.';
+            return;
+        }
         let marker = null;
+        let lastMapClickAt = 0;
 
         const syncPoint = (point) => {
             latInput.value = Number(point.lat).toFixed(7);
@@ -364,8 +372,24 @@
             map.resize();
             if (hasPoint) setPoint({lat: Number(latInput.value), lng: Number(lngInput.value)});
         });
-        map.on('click', (event) => setPoint(event.lngLat));
-        map.on('error', () => {
+        map.on('click', (event) => {
+            lastMapClickAt = Date.now();
+            setPoint(event.lngLat);
+        });
+
+        // Fallback: also handle a native click on the map canvas/container.
+        // This keeps point selection working if the SDK's delegated click event
+        // is swallowed by another map interaction or browser layer.
+        mapElement.addEventListener('click', (event) => {
+            if (Date.now() - lastMapClickAt < 100) return;
+            if (event.target && event.target.closest && event.target.closest('.maplibregl-marker')) return;
+            const bounds = mapElement.getBoundingClientRect();
+            const point = map.unproject([event.clientX - bounds.left, event.clientY - bounds.top]);
+            setPoint(point);
+        });
+
+        map.on('error', (event) => {
+            console.error('Property location map error:', event && event.error ? event.error : event);
             if (status) status.textContent = 'بارگذاری نقشه با خطا مواجه شد؛ کلید نقشه و دسترسی سرویس را بررسی کن.';
         });
         if (clearButton) clearButton.addEventListener('click', () => {
