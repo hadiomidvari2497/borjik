@@ -23,7 +23,7 @@
     .profile-page .profile-more[open]{padding-bottom:12px}
     .profile-page .pw{position:relative}
     .profile-page .pw input{padding-inline-end:54px}
-    .profile-page .pw button{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);padding:6px;color:var(--muted);font-size:12px}
+    .profile-page .pw button{position:absolute;inset-inline-end:2px;top:50%;transform:translateY(-50%);min-height:44px;min-width:44px;padding:6px;color:var(--muted);font-size:12px}
     .profile-page .profile-submit{margin-top:6px}
     .profile-page .profile-settings{margin-top:20px}
     .profile-page .radio-option{display:flex!important;align-items:center;gap:9px;cursor:pointer}

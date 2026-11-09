@@ -107,3 +107,9 @@ details.more[open]{padding-bottom:12px}
 .bp-list i{background:linear-gradient(145deg,#25cdb1,#087f78);color:#fff}
 .bp-list span{color:#b4cdd1;opacity:1}
 .fp-inner{border-color:#dcebe6;box-shadow:0 30px 70px rgba(11,107,92,.14)}
+
+/* جلوگیری از زوم iOS هنگام فوکوس و هدف لمسی ≥۴۴px */
+@media(max-width:700px){
+  input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]),select,textarea{font-size:16px!important}
+  .pw button{min-height:44px;min-width:44px}
+}
