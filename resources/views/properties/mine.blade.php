@@ -86,7 +86,7 @@
                 @endphp
                 <div class="muted">{{ $listing->city }} · وضعیت: {{ $displayStatus }}</div>
                 @if($listing->expires_at)
-                    <div class="muted" style="font-size:12px;margin-top:6px">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \\App\\Support\\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>
+                    <div class="muted" style="font-size:12px;margin-top:6px">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \App\Support\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>
                 @endif
                 @if($listing->status === 'rejected' && $listing->moderation_note)<p class="muted">توضیح مدیریت: {{ $listing->moderation_note }}</p>@endif
                 <div class="actions">
