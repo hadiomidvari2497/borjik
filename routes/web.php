@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/properties/{listing}', [PropertyListingController::class, 'update'])->whereNumber('listing')->name('properties.update');
     Route::delete('/properties/{listing}', [PropertyListingController::class, 'destroy'])->whereNumber('listing')->name('properties.destroy');
     Route::post('/properties/{listing}/close', [PropertyListingController::class, 'close'])->whereNumber('listing')->name('properties.close');
+    Route::post('/properties/{listing}/renew', [PropertyListingController::class, 'renew'])->whereNumber('listing')->middleware('throttle:10,1')->name('properties.renew');
 });
 
 require __DIR__.'/auth.php';

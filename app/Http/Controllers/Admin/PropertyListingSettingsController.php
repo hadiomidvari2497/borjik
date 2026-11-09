@@ -13,6 +13,7 @@ class PropertyListingSettingsController extends Controller
     {
         return view('admin.property-listings.settings', [
             'freeLimit' => (int) SiteSetting::get('property_listings.free_limit', 3),
+            'durationDays' => (int) SiteSetting::get('property_listings.duration_days', 30),
             'packages' => SiteSetting::get('property_listings.packages', [
                 ['quantity' => 1, 'price' => 50000, 'active' => true],
                 ['quantity' => 3, 'price' => 120000, 'active' => true],
@@ -25,6 +26,7 @@ class PropertyListingSettingsController extends Controller
     {
         $data = $request->validate([
             'free_limit' => ['required', 'integer', 'min:0', 'max:100'],
+            'duration_days' => ['required', 'integer', 'min:1', 'max:365'],
             'packages' => ['required', 'array', 'min:1', 'max:10'],
             'packages.*.quantity' => ['required', 'integer', 'min:1', 'max:1000'],
             'packages.*.price' => ['required', 'integer', 'min:0', 'max:1000000000'],
@@ -46,6 +48,7 @@ class PropertyListingSettingsController extends Controller
         }
 
         SiteSetting::set('property_listings.free_limit', (int) $data['free_limit']);
+        SiteSetting::set('property_listings.duration_days', (int) $data['duration_days']);
         SiteSetting::set('property_listings.packages', $packages->all());
 
         return redirect()->route('admin.property-listings.settings')

@@ -185,6 +185,29 @@ class PropertyListingController extends Controller
         return back()->with('status', 'آگهی غیرفعال شد.');
     }
 
+    public function renew(Request $request, PropertyListing $listing, PropertyListingQuota $quota)
+    {
+        $this->authorizeOwner($request, $listing);
+
+        $durationDays = max(1, min(365, (int) SiteSetting::get('property_listings.duration_days', 30)));
+        DB::transaction(function () use ($request, $listing, $quota, $durationDays) {
+            $locked = PropertyListing::query()->whereKey($listing->id)->lockForUpdate()->firstOrFail();
+            abort_unless(in_array($locked->status, ['active', 'expired'], true), 422, 'فقط آگهی فعال یا منقضی‌شده قابل تمدید است.');
+
+            $quota->consumeForRenewal($request->user(), $locked);
+            $baseDate = $locked->expires_at && $locked->expires_at->isFuture()
+                ? $locked->expires_at->copy()
+                : now();
+
+            $locked->update([
+                'status' => 'active',
+                'expires_at' => $baseDate->addDays($durationDays),
+            ]);
+        });
+
+        return redirect()->route('properties.mine')->with('status', 'آگهی برای '.$durationDays.' روز دیگر تمدید شد.');
+    }
+
     private function authorizeOwner(Request $request, PropertyListing $listing): void
     {
         abort_unless((int) $listing->user_id === (int) $request->user()->id, 403);

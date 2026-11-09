@@ -86,11 +86,13 @@
     @forelse($listings as $listing)
         @php
             $photo = $listing->photoUrls()[0] ?? null;
-            $statusLabel = ['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'ردشده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status;
+            $isExpired = $listing->status === 'expired' || ($listing->status === 'active' && $listing->expires_at && $listing->expires_at->isPast());
+            $statusLabel = $isExpired ? 'منقضی‌شده' : (['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'ردشده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status);
+            $statusClass = $isExpired ? 'closed' : $listing->status;
         @endphp
         <article class="card my-card">
             <a class="photo @if($photo) has-img @endif" href="{{ route('properties.show',$listing) }}" aria-label="مشاهده آگهی {{ $listing->title }}">
-                <span class="badge st-{{ $listing->status }}">{{ $statusLabel }}</span>
+                <span class="badge st-{{ $statusClass }}">{{ $statusLabel }}</span>
                 @if($photo)<img src="{{ $photo }}" alt="" loading="lazy" decoding="async">@else<svg class="icon" aria-hidden="true"><use href="#i-image"/></svg>@endif
             </a>
             <div class="body">
@@ -102,6 +104,7 @@
                     @endforeach
                 </div>
                 <div class="my-meta"><span>وضعیت: {{ $statusLabel }}</span><span class="views"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>{{ \App\Support\Fa::num($listing->views_count ?? 0) }} بازدید</span></div>
+                @if($listing->expires_at)<div class="muted">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \App\Support\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>@endif
                 @if($listing->status === 'rejected' && $listing->moderation_note)<p class="muted">توضیح مدیریت: {{ $listing->moderation_note }}</p>@endif
                 <div class="card-actions">
                     <a class="btn" href="{{ route('properties.edit',$listing) }}">ویرایش</a>
@@ -109,7 +112,10 @@
                         <summary class="btn light" aria-label="گزینه‌های بیشتر برای {{ $listing->title }}" aria-haspopup="menu">⋯</summary>
                         <div class="menu" role="menu">
                             <a role="menuitem" href="{{ route('properties.show',$listing) }}">مشاهده آگهی</a>
-                            @if($listing->status === 'active')
+                            @if(in_array($listing->status, ['active', 'expired'], true))
+                                <form method="POST" action="{{ route('properties.renew',$listing) }}" data-confirm="با تمدید، یک اعتبار از حساب شما کسر می‌شود. ادامه می‌دهید؟">@csrf<button role="menuitem" type="submit">تمدید آگهی</button></form>
+                            @endif
+                            @if($listing->status === 'active' && ! $isExpired)
                                 <form method="POST" action="{{ route('properties.close',$listing) }}">@csrf<button role="menuitem" type="submit">غیرفعال‌سازی</button></form>
                             @endif
                             <button role="menuitem" type="button" class="danger" data-delete-open data-action="{{ route('properties.destroy',$listing) }}" data-title="{{ $listing->title }}">حذف آگهی</button>

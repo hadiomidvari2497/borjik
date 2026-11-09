@@ -23,6 +23,12 @@
                 <small style="color:var(--muted)">عدد صفر یعنی ثبت آگهی رایگان غیرفعال است.</small>
                 @error('free_limit')<div class="e">{{ $message }}</div>@enderror
             </div>
+            <div class="fld">
+                <label for="duration_days">مدت اعتبار هر آگهی (روز)</label>
+                <input id="duration_days" name="duration_days" type="number" min="1" max="365" value="{{ old('duration_days', $durationDays) }}" required>
+                <small style="color:var(--muted)">پس از پایان این مدت، آگهی از بازارچه خارج می‌شود. تمدید با یک اعتبار انجام می‌شود.</small>
+                @error('duration_days')<div class="e">{{ $message }}</div>@enderror
+            </div>
         </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:24px 0 12px">
