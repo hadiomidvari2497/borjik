@@ -94,9 +94,16 @@
     @include('properties.partials.card', ['listing' => $listing])
 @empty
     <div class="empty" style="grid-column:1/-1">
-        <h3>آگهی‌ای با این مشخصات پیدا نشد</h3>
-        <p class="muted">فیلترها را کمی کم‌تر کنید یا خودتان اولین آگهی این محدوده را ثبت کنید.</p>
-        <div class="actions" style="justify-content:center"><a class="btn light" href="{{ route('properties.index') }}">پاک‌کردن فیلترها</a><a class="btn" href="{{ route('properties.create') }}">ثبت آگهی</a></div>
+        <div class="empty-ico"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg></div>
+        @if($activeFilters)
+            <h3>آگهی‌ای با این مشخصات پیدا نشد</h3>
+            <p class="muted">فیلترها را کمی کم‌تر کنید یا خودتان اولین آگهی این محدوده را ثبت کنید.</p>
+            <div class="actions" style="justify-content:center"><a class="btn lg" href="{{ route('properties.index') }}">پاک‌کردن فیلترها</a><a class="btn light lg" href="{{ route('properties.create') }}">ثبت آگهی</a></div>
+        @else
+            <h3>هنوز آگهی منتشرشده‌ای نداریم</h3>
+            <p class="muted">اولین آگهی بازار را شما ثبت کنید؛ ثبت آگهی رایگان است و بعد از تأیید مدیریت اینجا نمایش داده می‌شود.</p>
+            <div class="actions" style="justify-content:center"><a class="btn lg" href="{{ route('properties.create') }}"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>ثبت آگهی رایگان</a></div>
+        @endif
     </div>
 @endforelse
 </div>

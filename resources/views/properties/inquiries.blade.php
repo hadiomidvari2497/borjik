@@ -61,6 +61,7 @@
             <h2>هنوز گفتگویی ندارید</h2>
             <p>از صفحه‌ی هر آگهی می‌توانید با «ارتباط با فروشنده» گفتگو را شروع کنید. پیام خریداران آگهی‌های شما هم همین‌جا می‌آید.</p>
             <a class="btn lg" href="{{ route('properties.index') }}"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>مشاهده آگهی‌ها</a>
+            <a class="btn light lg" href="{{ route('properties.create') }}"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>ثبت آگهی</a>
         </div>
     @endforelse
 </section>

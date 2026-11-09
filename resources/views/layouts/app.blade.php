@@ -182,6 +182,7 @@
         <div id="global-search-results" class="global-search-results" role="listbox" aria-label="نتایج جست‌وجو" hidden></div>
       </div>
 
+        <a class="ib market-link" href="{{ route('properties.index') }}" aria-label="بازار املاک" title="بازار املاک"><svg class="i"><use href="#building-2"/></svg></a>
         <a class="ib" href="{{ route('invitations.index') }}" aria-label="دعوت‌نامه‌ها" title="دعوت‌نامه‌ها"><svg class="i"><use href="#inbox"/></svg></a>
         <button class="ib" id="theme" type="button" aria-label="تغییر حالت تیره و روشن"><svg class="i"><use href="#moon"/></svg></button>
         <a class="ib" href="{{ $currentBuilding ? route('notifications.index') : '#' }}" aria-label="اعلان‌ها" title="اعلان‌ها" style="position:relative"><svg class="i"><use href="#bell"/></svg>@php($unreadNotifications = $currentBuilding ? auth()->user()->unreadNotifications()->where('data->building_id', $currentBuilding->id)->count() : 0)@if($unreadNotifications > 0)<span class="bd" style="position:absolute;top:-4px;left:-4px">{{ \App\Support\Fa::num(min($unreadNotifications, 99)) }}</span>@endif</a>

@@ -14,6 +14,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use App\Support\MobileNumber;
 
 class PropertyListingController extends Controller
 {
@@ -70,6 +72,11 @@ class PropertyListingController extends Controller
         abort_unless($listing->status === 'active' && (! $listing->expires_at || $listing->expires_at->isFuture()), 404);
 
         $listing->loadMissing('user');
+
+        // بازدید مالک آگهی شمرده نمی‌شود؛ بدون تغییر updated_at ثبت می‌شود.
+        if (! auth()->check() || (int) auth()->id() !== (int) $listing->user_id) {
+            DB::table('property_listings')->where('id', $listing->id)->increment('views_count');
+        }
 
         // آگهی‌های مشابه: هم‌نوع، با اولویت همان شهر؛ فقط آگهی‌های منتشرشده.
         $similar = PropertyListing::published()
@@ -146,13 +153,13 @@ class PropertyListingController extends Controller
         $keptPhotos = array_values(array_intersect((array) $request->input('existing_photos', []), $listing->photos ?? []));
         $newUploads = $request->file('photos', []);
         if (count($keptPhotos) + count($newUploads) > 12) {
-            abort(422, 'حداکثر ۱۲ تصویر برای هر آگهی مجاز است.');
+            throw ValidationException::withMessages(['photos' => 'حداکثر ۱۲ تصویر برای هر آگهی مجاز است.']);
         }
         $removedPhotos = array_diff($listing->photos ?? [], $keptPhotos);
         foreach ($removedPhotos as $photo) {
             Storage::disk('public')->delete($photo);
         }
-        $data['photos'] = array_values(array_merge($keptPhotos, $this->storePhotos($request)));
+        $data['photos'] = $this->orderPhotos($request, $keptPhotos, $this->storePhotos($request));
         $data['status'] = $listing->status;
         $listing->update($data);
 
@@ -206,8 +213,25 @@ class PropertyListingController extends Controller
         abort_unless((int) $listing->user_id === (int) $request->user()->id, 403);
     }
 
+    /** ارقام فارسی/عربی را لاتین و جداکننده‌ی هزارگان را از فیلدهای عددی حذف می‌کند. */
+    private function normalizeNumericInput(Request $request): void
+    {
+        $merge = [];
+        foreach (['price', 'deposit', 'monthly_rent', 'parking_count', 'bedrooms', 'bathrooms', 'floor', 'total_floors', 'built_year', 'area'] as $key) {
+            if (! $request->has($key) || ! is_string($request->input($key))) {
+                continue;
+            }
+            $value = MobileNumber::toLatinDigits(trim($request->input($key)));
+            $value = str_replace(['٬', '،', ',', ' ', "\u{00A0}", '٫'], ['', '', '', '', '', '.'], $value);
+            $merge[$key] = $value === '' ? null : $value;
+        }
+        $request->merge($merge);
+    }
+
     private function validated(Request $request, ?PropertyListing $listing = null): array
     {
+        $this->normalizeNumericInput($request);
+
         $data = $request->validate([
             'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')],
             'listing_type' => ['required', Rule::in(['sale', 'rent', 'buy_request', 'rent_request'])],
@@ -237,14 +261,43 @@ class PropertyListingController extends Controller
             'allow_exchange' => ['sometimes', 'boolean'],
             'photos' => ['sometimes', 'array', 'max:12'],
             'photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ], [
+            'required' => 'این فیلد را پر کنید.',
+            'integer' => 'فقط عدد صحیح وارد کنید (مثلاً ۲).',
+            'numeric' => 'فقط عدد وارد کنید.',
+            'min.numeric' => 'مقدار واردشده کمتر از حد مجاز است.',
+            'max.numeric' => 'مقدار واردشده بیشتر از حد مجاز است.',
+            'min.integer' => 'مقدار واردشده کمتر از حد مجاز است.',
+            'max.integer' => 'مقدار واردشده بیشتر از حد مجاز است.',
+            'max.string' => 'متن واردشده بیش از حد طولانی است.',
+            'in' => 'گزینه انتخاب‌شده معتبر نیست.',
+            'exists' => 'واحد انتخاب‌شده معتبر نیست.',
+            'built_year.min' => 'سال ساخت شمسی باید بین ۱۳۰۰ و ۱۵۰۰ باشد.',
+            'built_year.max' => 'سال ساخت شمسی باید بین ۱۳۰۰ و ۱۵۰۰ باشد.',
+            'photos.max' => 'حداکثر ۱۲ تصویر می‌توانید انتخاب کنید.',
+            'photos.*.image' => 'فایل انتخاب‌شده تصویر معتبر نیست.',
+            'photos.*.mimes' => 'فقط تصویر JPG، PNG یا WebP مجاز است.',
+            'photos.*.max' => 'حجم هر تصویر باید حداکثر ۵ مگابایت باشد.',
+            'photos.*.uploaded' => 'بارگذاری تصویر ناموفق بود؛ حجم یا فرمت فایل را بررسی کنید.',
         ]);
 
         $type = $data['listing_type'];
         if ($type === 'sale' && empty($data['price'])) {
-            abort(422, 'برای آگهی فروش، قیمت را وارد کنید.');
+            throw ValidationException::withMessages(['price' => 'برای آگهی فروش، قیمت را وارد کنید.']);
         }
         if ($type === 'rent' && empty($data['deposit']) && empty($data['monthly_rent'])) {
-            abort(422, 'برای آگهی اجاره، ودیعه یا اجاره ماهانه را وارد کنید.');
+            throw ValidationException::withMessages([
+                'deposit' => 'برای آگهی اجاره، ودیعه یا اجاره ماهانه را وارد کنید.',
+                'monthly_rent' => 'برای آگهی اجاره، ودیعه یا اجاره ماهانه را وارد کنید.',
+            ]);
+        }
+
+        // فقط فیلدهای قیمتِ مرتبط با نوع آگهی ذخیره می‌شود.
+        if (in_array($type, ['sale', 'buy_request'], true)) {
+            $data['deposit'] = null;
+            $data['monthly_rent'] = null;
+        } else {
+            $data['price'] = null;
         }
 
         unset($data['photos']);
@@ -339,6 +392,31 @@ class PropertyListingController extends Controller
                     ->count(),
             ]];
         })->all();
+    }
+
+    /**
+     * عکس اصلی همیشه اولین عکس آرایه است. فرم، انتخاب کاربر را در cover_photo می‌فرستد:
+     * «existing:<مسیر>» برای عکس فعلی، یا «new» برای اولین فایلِ تازه‌آپلودشده.
+     */
+    private function orderPhotos(Request $request, array $kept, array $uploaded): array
+    {
+        $cover = (string) $request->input('cover_photo', '');
+
+        if (str_starts_with($cover, 'existing:')) {
+            $path = substr($cover, 9);
+            if (in_array($path, $kept, true)) {
+                $kept = array_values(array_diff($kept, [$path]));
+                array_unshift($kept, $path);
+            }
+
+            return array_values(array_merge($kept, $uploaded));
+        }
+
+        if ($cover === 'new' && $uploaded !== []) {
+            return array_values(array_merge($uploaded, $kept));
+        }
+
+        return array_values(array_merge($kept, $uploaded));
     }
 
     private function storePhotos(Request $request): array

@@ -11,46 +11,52 @@
     </div>
 </section>
 
-<section class="panel" style="margin-bottom:24px">
-    <h2>خرید بسته آگهی</h2>
-    <p class="muted">سهمیه رایگان برای هر حساب کاربری جداگانه محاسبه می‌شود. اعتبار بسته پس از تأیید قطعی پرداخت به حساب شما افزوده خواهد شد.</p>
-    @if(empty($paymentGateways))
-        <div class="error">درگاه پرداخت فعالی برای خرید بسته تنظیم نشده است. امکان خرید در حال حاضر وجود ندارد.</div>
-    @elseif($packages->isEmpty())
-        <p class="muted">در حال حاضر بسته فعالی برای خرید تعریف نشده است.</p>
-    @else
-        <div class="grid">
-            @foreach($packages as $package)
-                <article class="card">
-                    <div class="body">
-                        <h3>{{ number_format((int) $package['quantity']) }} آگهی</h3>
-                        <p class="muted">اعتبار قابل استفاده برای انتشار آگهی‌های جدید</p>
-                        <strong>{{ number_format((int) $package['price']) }} تومان</strong>
-                        <form method="POST" action="{{ route('properties.packages.buy') }}" style="margin-top:14px">
-                            @csrf
-                            <input type="hidden" name="quantity" value="{{ (int) $package['quantity'] }}">
-                            @if(count($paymentGateways) > 1)
-                                <label class="field">درگاه پرداخت
-                                    <select name="gateway_id" required>
-                                        @foreach($paymentGateways as $gatewayId => $gateway)
-                                            <option value="{{ $gatewayId }}">{{ $gateway['provider_name'] ?? $gateway['driver'] }}</option>
-                                        @endforeach
-                                    </select>
-                                </label>
-                            @else
-                                <input type="hidden" name="gateway_id" value="{{ array_key_first($paymentGateways) }}">
-                            @endif
-                            <button class="btn" type="submit">خرید و پرداخت</button>
-                        </form>
-                    </div>
-                </article>
-            @endforeach
-        </div>
-    @endif
-    @error('quantity')<div class="error">{{ $message }}</div>@enderror
-    @if(session('error'))<div class="error">{{ session('error') }}</div>@endif
-    @if(session('status'))<div class="notice">{{ session('status') }}</div>@endif
-</section>
+@if(session('status'))<div class="notice" role="status">{{ session('status') }}</div>@endif
+@if(session('error'))<div class="error" role="alert">{{ session('error') }}</div>@endif
+
+<details class="panel collapsible" id="packages" @if($errors->has('quantity') || session('error')) open @endif>
+    <summary>
+        <span class="sum-text"><b>خرید بسته آگهی</b><small>اعتبار خریداری‌شده: {{ \App\Support\Fa::num($availableCredits) }} آگهی</small></span>
+        <span class="sum-chev" aria-hidden="true"></span>
+    </summary>
+    <div class="collapsible-body">
+        <p class="muted">سهمیه رایگان برای هر حساب کاربری جداگانه محاسبه می‌شود. اعتبار بسته پس از تأیید قطعی پرداخت به حساب شما افزوده خواهد شد.</p>
+        @if(empty($paymentGateways))
+            <div class="info-bar" role="status"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span>خرید بسته فعلاً در دسترس نیست؛ درگاه پرداخت هنوز فعال نشده است.</span></div>
+        @elseif($packages->isEmpty())
+            <div class="info-bar" role="status"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg><span>در حال حاضر بسته فعالی برای خرید تعریف نشده است.</span></div>
+        @else
+            <div class="grid">
+                @foreach($packages as $package)
+                    <article class="card">
+                        <div class="body">
+                            <h3>{{ \App\Support\Fa::num((int) $package['quantity']) }} آگهی</h3>
+                            <p class="muted">اعتبار قابل استفاده برای انتشار آگهی‌های جدید</p>
+                            <strong>{{ \App\Support\Fa::money((int) $package['price']) }}</strong>
+                            <form method="POST" action="{{ route('properties.packages.buy') }}" style="margin-top:14px">
+                                @csrf
+                                <input type="hidden" name="quantity" value="{{ (int) $package['quantity'] }}">
+                                @if(count($paymentGateways) > 1)
+                                    <label class="field">درگاه پرداخت
+                                        <select name="gateway_id" required>
+                                            @foreach($paymentGateways as $gatewayId => $gateway)
+                                                <option value="{{ $gatewayId }}">{{ $gateway['provider_name'] ?? $gateway['driver'] }}</option>
+                                            @endforeach
+                                        </select>
+                                    </label>
+                                @else
+                                    <input type="hidden" name="gateway_id" value="{{ array_key_first($paymentGateways) }}">
+                                @endif
+                                <button class="btn" type="submit">خرید و پرداخت</button>
+                            </form>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        @endif
+        @error('quantity')<div class="error" role="alert">{{ $message }}</div>@enderror
+    </div>
+</details>
 
 @if($packageOrders->isNotEmpty())
 <section class="panel" style="margin-bottom:24px">
@@ -75,36 +81,98 @@
 </section>
 @endif
 
-<section class="grid">
+<h2 class="section-title">آگهی‌های ثبت‌شده</h2>
+<section class="grid my-grid" aria-label="آگهی‌های من">
     @forelse($listings as $listing)
-        <article class="card">
+        @php
+            $photo = $listing->photoUrls()[0] ?? null;
+            $isExpired = $listing->status === 'expired' || ($listing->status === 'active' && $listing->expires_at && $listing->expires_at->isPast());
+            $statusLabel = $isExpired ? 'منقضی‌شده' : (['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'رد شده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status);
+            $statusClass = $isExpired ? 'closed' : $listing->status;
+        @endphp
+        <article class="card my-card">
+            <a class="photo @if($photo) has-img @endif" href="{{ route('properties.show',$listing) }}" aria-label="مشاهده آگهی {{ $listing->title }}">
+                <span class="badge st-{{ $statusClass }}">{{ $statusLabel }}</span>
+                @if($photo)<img src="{{ $photo }}" alt="" loading="lazy" decoding="async">@else<svg class="icon" aria-hidden="true"><use href="#i-image"/></svg>@endif
+            </a>
             <div class="body">
                 <h3>{{ $listing->title }}</h3>
-                @php
-                    $isExpired = $listing->status === 'expired' || ($listing->status === 'active' && $listing->expires_at && $listing->expires_at->isPast());
-                    $displayStatus = $isExpired ? 'منقضی‌شده' : (['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'رد شده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status);
-                @endphp
-                <div class="muted">{{ $listing->city }} · وضعیت: {{ $displayStatus }}</div>
-                @if($listing->expires_at)
-                    <div class="muted" style="font-size:12px;margin-top:6px">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \App\Support\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>
-                @endif
+                <div class="loc"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg>{{ $listing->city }}@if($listing->neighborhood)، {{ $listing->neighborhood }}@endif</div>
+                <div class="price">
+                    @foreach($listing->priceRows(true) as $row)
+                        <div>@if($row['label'])<small>{{ $row['label'] }}</small>@endif<span>{{ $row['value'] }}</span></div>
+                    @endforeach
+                </div>
+                <div class="my-meta"><span>وضعیت: {{ $statusLabel }}</span><span class="views"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>{{ \App\Support\Fa::num($listing->views_count ?? 0) }} بازدید</span></div>
+                @if($listing->expires_at)<div class="muted">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \App\Support\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>@endif
                 @if($listing->status === 'rejected' && $listing->moderation_note)<p class="muted">توضیح مدیریت: {{ $listing->moderation_note }}</p>@endif
-                <div class="actions">
-                    <a class="btn light" href="{{ route('properties.show',$listing) }}">مشاهده</a>
+                <div class="card-actions">
                     <a class="btn" href="{{ route('properties.edit',$listing) }}">ویرایش</a>
-                    @if(in_array($listing->status, ['active', 'expired'], true))
-                        <form method="POST" action="{{ route('properties.renew', $listing) }}" data-confirm="با تمدید، یک اعتبار از حساب شما کسر می‌شود. ادامه می‌دهید؟">@csrf<button class="btn">تمدید آگهی</button></form>
-                    @endif
-                    @if($listing->status === 'active' && ! $isExpired)
-                        <form method="POST" action="{{ route('properties.close',$listing) }}">@csrf<button class="btn light">غیرفعال‌سازی</button></form>
-                    @endif
-                    <form method="POST" action="{{ route('properties.destroy',$listing) }}" data-confirm="آیا از حذف این آگهی مطمئن هستید؟">@csrf @method('DELETE')<button class="btn light">حذف</button></form>
+                    <details class="more-menu">
+                        <summary class="btn light" aria-label="گزینه‌های بیشتر برای {{ $listing->title }}" aria-haspopup="menu">⋯</summary>
+                        <div class="menu" role="menu">
+                            <a role="menuitem" href="{{ route('properties.show',$listing) }}">مشاهده آگهی</a>
+                            @if(in_array($listing->status, ['active', 'expired'], true))
+                                <form method="POST" action="{{ route('properties.renew',$listing) }}" data-confirm="با تمدید، یک اعتبار از حساب شما کسر می‌شود. ادامه می‌دهید؟">@csrf<button role="menuitem" type="submit">تمدید آگهی</button></form>
+                            @endif
+                            @if($listing->status === 'active' && ! $isExpired)
+                                <form method="POST" action="{{ route('properties.close',$listing) }}">@csrf<button role="menuitem" type="submit">غیرفعال‌سازی</button></form>
+                            @endif
+                            <button role="menuitem" type="button" class="danger" data-delete-open data-action="{{ route('properties.destroy',$listing) }}" data-title="{{ $listing->title }}">حذف آگهی</button>
+                        </div>
+                    </details>
                 </div>
             </div>
         </article>
     @empty
-        <div class="panel">هنوز آگهی ثبت نکرده‌اید.</div>
+        <div class="empty" style="grid-column:1/-1">
+            <div class="empty-ico"><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg></div>
+            <h3>هنوز آگهی ثبت نکرده‌اید</h3>
+            <p class="muted">اولین آگهی‌تان را در چند دقیقه ثبت کنید؛ بعد از تأیید مدیریت در بازار املاک نمایش داده می‌شود و پیام خریداران همین‌جا می‌رسد.</p>
+            <div class="actions" style="justify-content:center"><a class="btn lg" href="{{ route('properties.create') }}"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>ثبت اولین آگهی</a><a class="btn light lg" href="{{ route('properties.index') }}">مشاهده آگهی‌های بازار</a></div>
+        </div>
     @endforelse
 </section>
+
+<dialog class="confirm-dialog" id="delete-dialog" aria-labelledby="delete-title">
+    <form method="POST" id="delete-form" action="">
+        {{-- تأیید حذف با مودال خودِ صفحه (بدون وابستگی به ui.js که در لایه‌ی بازار بارگذاری نمی‌شود) --}}
+        @csrf
+        <input type="hidden" name="_method" value="DELETE">
+        <h2 id="delete-title">حذف آگهی؟</h2>
+        <p>آگهی «<b id="delete-name"></b>» و تصاویر آن برای همیشه حذف می‌شود و قابل بازگشت نیست.</p>
+        <div class="actions">
+            <button class="btn danger" type="submit">بله، حذف شود</button>
+            <button class="btn light" type="button" data-delete-cancel>انصراف</button>
+        </div>
+    </form>
+</dialog>
 <div class="pagination">{{ $listings->links() }}</div>
+@push('scripts')
+<script>
+(function () {
+    var dlg = document.getElementById('delete-dialog');
+    var form = document.getElementById('delete-form');
+    var name = document.getElementById('delete-name');
+    document.addEventListener('click', function (e) {
+        var open = e.target.closest('[data-delete-open]');
+        if (open) {
+            form.action = open.getAttribute('data-action');
+            name.textContent = open.getAttribute('data-title');
+            var menu = open.closest('details'); if (menu) menu.open = false;
+            if (dlg.showModal) { dlg.showModal(); } else { dlg.setAttribute('open', ''); }
+            return;
+        }
+        if (e.target.closest('[data-delete-cancel]')) { if (dlg.close) { dlg.close(); } else { dlg.removeAttribute('open'); } return; }
+        if (e.target === dlg && dlg.close) { dlg.close(); return; }
+        // بستن منوی «⋯» با کلیک بیرون از آن
+        document.querySelectorAll('.more-menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; });
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('.more-menu[open]').forEach(function (d) { d.open = false; var s = d.querySelector('summary'); if (s) s.focus(); });
+    });
+})();
+</script>
+@endpush
 @endsection
