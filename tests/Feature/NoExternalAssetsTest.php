@@ -27,6 +27,12 @@ class NoExternalAssetsTest extends TestCase
                     continue;
                 }
                 $content = file_get_contents($file->getPathname());
+                // Neshan's map SDK is an intentional, narrowly scoped exception: the interactive
+                // marketplace map requires its provider-hosted SDK; all other external assets remain forbidden.
+                $content = str_replace([
+                    'https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css',
+                    'https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js',
+                ], '', $content);
                 foreach ($patterns as $p) {
                     if (preg_match($p, $content, $m)) {
                         $bad[] = $file->getPathname().' => '.trim($m[0]);
