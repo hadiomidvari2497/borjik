@@ -35,6 +35,10 @@ return [
         ],
     ],
 
+    'neshan' => [
+        'map_key' => env('NESHAN_MAP_KEY'),
+    ],
+
     'rclone' => [
         'binary' => env('RCLONE_BINARY', 'rclone'),
         'config' => env('RCLONE_CONFIG', '/etc/rclone/sabkhoneh.conf'),
