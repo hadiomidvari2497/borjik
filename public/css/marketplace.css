@@ -383,3 +383,56 @@ a.card:hover .photo img{transform:scale(1.05)}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
 }
+
+/* ───────── ناوبری بازار: منوی حساب (دسکتاپ) و نوار پایین (موبایل) ───────── */
+.top-end{display:flex;align-items:center;gap:10px;margin-inline-start:auto}
+.top .top-end .btn{margin-inline-start:0}
+.nbadge{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-inline-start:4px;border-radius:999px;background:var(--brand);color:#fff;font-size:11px;font-weight:700;line-height:1;font-style:normal}
+.nav a{display:inline-flex;align-items:center}
+.umenu{position:relative}
+.umenu summary{list-style:none;display:flex;align-items:center;gap:8px;height:42px;padding:0 10px 0 12px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2);transition:border-color .15s,box-shadow .15s}
+.umenu summary::-webkit-details-marker{display:none}
+.umenu summary:hover,.umenu[open] summary{border-color:var(--brand);box-shadow:0 0 0 3px rgba(27,122,107,.12)}
+.umenu summary>.icon{width:15px;height:15px;transform:rotate(90deg);transition:transform .15s}
+.umenu[open] summary>.icon{transform:rotate(-90deg)}
+.uav{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#2aa893,var(--brand-d));color:#fff;font-size:13px;font-weight:800;line-height:1}
+.uav.lg{width:44px;height:44px;font-size:18px}
+.upanel{position:absolute;top:calc(100% + 8px);inset-inline-end:0;z-index:40;width:270px;padding:8px;border:1px solid var(--line);border-radius:var(--r-lg);background:#fff;box-shadow:0 18px 40px rgba(13,43,44,.18)}
+.acc-head{display:flex;align-items:center;gap:12px;padding:10px 10px 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.acc-head b{display:block;font-size:14px}
+.acc-head small{color:var(--mute);font-size:12px}
+.acc-links{display:flex;flex-direction:column;gap:2px}
+.acc-links a,.acc-out button{display:flex;align-items:center;gap:11px;width:100%;padding:10px 11px;border:0;border-radius:11px;background:transparent;font:inherit;font-size:13.5px;color:var(--ink-2);text-align:start;cursor:pointer;transition:background .15s,color .15s}
+.acc-links a:hover,.acc-out button:hover{background:var(--brand-50);color:var(--brand-d)}
+.acc-links .icon,.acc-out .icon{flex:none;width:18px;height:18px;color:var(--mute)}
+.acc-out{margin-top:4px;padding-top:6px;border-top:1px solid var(--line)}
+.acc-out button{color:#b3392f}
+.acc-out button .icon{color:#b3392f}
+.acc-out button:hover{background:#fcefed;color:#b3392f}
+.tabbar,.sheet{display:none}
+
+@media(max-width:700px){
+  .umenu,.login-btn{display:none}
+  .top-end{margin-inline-start:auto}
+  .btn-t{white-space:nowrap}
+  body:has(.tabbar) .main{padding-bottom:92px}
+  .tabbar{position:fixed;inset-inline:0;bottom:0;z-index:35;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:saturate(1.4) blur(12px)}
+  .tabbar:has(.tab-add):not(:has(button)){grid-template-columns:repeat(3,1fr)}
+  .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border:0;background:transparent;font:inherit;font-size:11px;color:var(--mute);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .tabbar .icon{width:22px;height:22px}
+  .tabbar [aria-current="page"]{color:var(--brand-d);font-weight:700}
+  .tab-ico{position:relative;display:inline-flex}
+  .tab-ico .nbadge{position:absolute;top:-6px;inset-inline-end:-10px;margin:0;min-width:17px;height:17px;font-size:10px;border:2px solid #fff;box-sizing:content-box}
+  .tabbar .tab-add{padding:0}
+  .tab-add span{display:grid;place-items:center;width:50px;height:50px;margin-top:-22px;border-radius:50%;background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(27,122,107,.4);border:4px solid #fff;box-sizing:content-box}
+  .tab-add .icon{width:24px;height:24px;stroke-width:2.2}
+  .top .btn{display:none}
+  .sheet:not([hidden]){display:block;position:fixed;inset:0;z-index:60}
+  .sheet-bd{position:absolute;inset:0;background:rgba(6,20,20,.5);animation:shFade .2s both}
+  .sheet-box{position:absolute;inset-inline:0;bottom:0;padding:8px 14px calc(16px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:#fff;box-shadow:0 -10px 40px rgba(0,0,0,.2);animation:shUp .25s ease-out both}
+  .sheet-grip{width:42px;height:4px;margin:2px auto 10px;border-radius:4px;background:#d3dedb}
+  .sheet .acc-links a,.sheet .acc-out button{padding:13px 11px;font-size:14.5px}
+  body.sheet-on{overflow:hidden}
+}
+@keyframes shUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes shFade{from{opacity:0}to{opacity:1}}
