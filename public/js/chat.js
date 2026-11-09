@@ -45,14 +45,17 @@
 
   /* ───── ارتفاع واقعی صفحه (کیبورد موبایل) ───── */
   var vv = window.visualViewport;
+  var rootStyle = document.documentElement.style;
   function fit() {
-    if (vv) {
-      document.documentElement.style.setProperty('--app-h', Math.round(vv.height) + 'px');
-      window.scrollTo(0, 0);
-    }
+    if (!vv) { return; }
+    // iOS کیبورد را روی صفحه می‌اندازد و ویوپورت بصری را جابه‌جا می‌کند؛ قاب چت را به همان ناحیه می‌چسبانیم.
+    rootStyle.setProperty('--app-h', Math.round(vv.height) + 'px');
+    rootStyle.setProperty('--app-top', Math.round(vv.offsetTop) + 'px');
   }
   if (vv) {
-    vv.addEventListener('resize', function () { var stick = nearBottom(); fit(); if (stick) { toBottom(false); } });
+    var onVv = function () { var stick = nearBottom(); fit(); if (stick) { toBottom(false); } };
+    vv.addEventListener('resize', onVv);
+    vv.addEventListener('scroll', fit);
     fit();
   }
 

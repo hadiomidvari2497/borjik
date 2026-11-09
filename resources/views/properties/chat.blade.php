@@ -2,7 +2,7 @@
 @section('title', 'گفتگو با '.$inquiry->counterpartName((int) auth()->id()))
 @section('bare', '1')
 @section('body_class', 'is-chat')
-@section('viewport', 'width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content')
+@section('viewport', 'width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,interactive-widget=resizes-content')
 @push('head')<link rel="stylesheet" href="{{ asset('css/chat.css') }}?v={{ @filemtime(public_path('css/chat.css')) }}">@endpush
 @push('scripts')<script src="{{ asset('js/chat.js') }}?v={{ @filemtime(public_path('js/chat.js')) }}" defer></script>@endpush
 @section('content')
