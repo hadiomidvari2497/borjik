@@ -16,7 +16,7 @@ class PropertyListingManagementController extends Controller
     public function index(Request $request)
     {
         $filters = $request->validate([
-            'status' => ['nullable', 'in:pending,active,closed,rejected'],
+            'status' => ['nullable', 'in:pending,active,expired,closed,rejected'],
             'listing_type' => ['nullable', 'in:sale,rent,buy_request,rent_request'],
             'q' => ['nullable', 'string', 'max:100'],
         ]);
@@ -44,9 +44,10 @@ class PropertyListingManagementController extends Controller
             COUNT(*) AS total,
             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
             SUM(CASE WHEN status = 'active' AND (expires_at IS NULL OR expires_at > ?) THEN 1 ELSE 0 END) AS active,
+            SUM(CASE WHEN status = 'expired' OR (status = 'active' AND expires_at IS NOT NULL AND expires_at <= ?) THEN 1 ELSE 0 END) AS expired,
             SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) AS closed,
             SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) AS rejected
-        ", [now()])->first();
+        ", [now(), now()])->first();
 
         $orderStats = PropertyListingPackageOrder::query()->selectRaw("
             COUNT(*) AS total,
@@ -137,7 +138,7 @@ class PropertyListingManagementController extends Controller
     public function updateStatus(Request $request, int $id)
     {
         $data = $request->validate([
-            'status' => ['required', 'in:pending,active,closed,rejected'],
+            'status' => ['required', 'in:pending,active,expired,closed,rejected'],
             'moderation_note' => ['required_if:status,rejected', 'nullable', 'string', 'max:2000'],
         ]);
 
@@ -155,6 +156,7 @@ class PropertyListingManagementController extends Controller
             [$title, $message, $level] = match ($listing->status) {
                 'pending' => ['آگهی شما در انتظار تأیید است', 'آگهی «'.$listing->title.'» برای بررسی مدیریت ثبت شد و پس از تأیید نمایش داده می‌شود.', 'info'],
                 'active' => ['آگهی شما فعال شد', 'آگهی «'.$listing->title.'» در بازارچه صابخونه فعال و قابل مشاهده است.', 'success'],
+                'expired' => ['مهلت آگهی به پایان رسید', 'مهلت انتشار آگهی «'.$listing->title.'» به پایان رسیده است. برای نمایش دوباره آن را تمدید کنید.', 'warning'],
                 'closed' => ['آگهی شما غیرفعال شد', 'آگهی «'.$listing->title.'» توسط مدیریت غیرفعال شد.', 'warning'],
                 default => ['آگهی شما رد شد', 'آگهی «'.$listing->title.'» رد شد. دلیل: '.($listing->moderation_note ?: 'برای بررسی بیشتر با پشتیبانی تماس بگیرید.'), 'warning'],
             };

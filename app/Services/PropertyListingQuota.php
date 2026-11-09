@@ -65,6 +65,27 @@ class PropertyListingQuota
         });
     }
 
+    public function consumeForRenewal(User $user, PropertyListing $listing): ?PropertyListingCreditTransaction
+    {
+        User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+
+        if ($this->hasUnlimitedAccess($user->id)) {
+            return null;
+        }
+
+        if ($this->availableCredits($user->id) < 1) {
+            abort(403, 'برای تمدید آگهی به اعتبار نیاز دارید. ابتدا یک بسته آگهی تهیه کنید.');
+        }
+
+        return PropertyListingCreditTransaction::create([
+            'user_id' => $user->id,
+            'property_listing_id' => $listing->id,
+            'quantity' => -1,
+            'type' => 'renewal',
+            'description' => 'مصرف اعتبار برای تمدید آگهی',
+        ]);
+    }
+
     public function grantPaidOrder(int $orderId): void
     {
         $order = \App\Models\PropertyListingPackageOrder::query()->whereKey($orderId)->lockForUpdate()->firstOrFail();
