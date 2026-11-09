@@ -80,12 +80,22 @@
         <article class="card">
             <div class="body">
                 <h3>{{ $listing->title }}</h3>
-                <div class="muted">{{ $listing->city }} · وضعیت: {{ ['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'رد شده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status }}</div>
+                @php
+                    $isExpired = $listing->status === 'expired' || ($listing->status === 'active' && $listing->expires_at && $listing->expires_at->isPast());
+                    $displayStatus = $isExpired ? 'منقضی‌شده' : (['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'رد شده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status);
+                @endphp
+                <div class="muted">{{ $listing->city }} · وضعیت: {{ $displayStatus }}</div>
+                @if($listing->expires_at)
+                    <div class="muted" style="font-size:12px;margin-top:6px">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \App\Support\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>
+                @endif
                 @if($listing->status === 'rejected' && $listing->moderation_note)<p class="muted">توضیح مدیریت: {{ $listing->moderation_note }}</p>@endif
                 <div class="actions">
                     <a class="btn light" href="{{ route('properties.show',$listing) }}">مشاهده</a>
                     <a class="btn" href="{{ route('properties.edit',$listing) }}">ویرایش</a>
-                    @if($listing->status === 'active')
+                    @if(in_array($listing->status, ['active', 'expired'], true))
+                        <form method="POST" action="{{ route('properties.renew', $listing) }}" data-confirm="با تمدید، یک اعتبار از حساب شما کسر می‌شود. ادامه می‌دهید؟">@csrf<button class="btn">تمدید آگهی</button></form>
+                    @endif
+                    @if($listing->status === 'active' && ! $isExpired)
                         <form method="POST" action="{{ route('properties.close',$listing) }}">@csrf<button class="btn light">غیرفعال‌سازی</button></form>
                     @endif
                     <form method="POST" action="{{ route('properties.destroy',$listing) }}" data-confirm="آیا از حذف این آگهی مطمئن هستید؟">@csrf @method('DELETE')<button class="btn light">حذف</button></form>
