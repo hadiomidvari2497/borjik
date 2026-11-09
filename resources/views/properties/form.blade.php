@@ -380,38 +380,50 @@
             setPoint(event.lngLat);
         });
 
-        // Capture pointer taps before MapLibre's internal handlers. A short,
-        // stationary press is a point selection; a real drag remains map panning.
-        mapElement.addEventListener('pointerdown', (event) => {
-            if (event.button !== undefined && event.button !== 0) return;
-            if (event.target && event.target.closest && event.target.closest('.maplibregl-marker')) {
+        // Observe pointer events at document capture level so SDK handlers,
+        // pointer capture, and nested canvas elements cannot hide a tap.
+        const onPointerDown = (event) => {
+            if (!mapElement.contains(event.target) || (event.button !== undefined && event.button !== 0)) return;
+            if (event.target.closest && event.target.closest('.maplibregl-marker')) {
                 pointerStart = null;
                 return;
             }
             pointerStart = {x: event.clientX, y: event.clientY, pointerId: event.pointerId};
-        }, true);
-
-        mapElement.addEventListener('pointerup', (event) => {
+            if (status) status.textContent = 'لمس نقشه دریافت شد؛ در حال ثبت موقعیت…';
+        };
+        const onPointerUp = (event) => {
             if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
             const start = pointerStart;
             pointerStart = null;
             const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
-            if (moved > 8) return;
-            const bounds = mapElement.getBoundingClientRect();
-            const point = map.unproject([event.clientX - bounds.left, event.clientY - bounds.top]);
-            lastPointerSelectionAt = Date.now();
-            setPoint(point);
-        }, true);
+            if (moved > 8 || !mapElement.contains(event.target)) return;
+            try {
+                const bounds = mapElement.getBoundingClientRect();
+                const point = map.unproject([event.clientX - bounds.left, event.clientY - bounds.top]);
+                lastPointerSelectionAt = Date.now();
+                setPoint(point);
+            } catch (error) {
+                console.error('Property map point selection failed:', error);
+                if (status) status.textContent = 'نقطه دریافت شد اما ثبت آن ناموفق بود؛ کنسول مرورگر را بررسی کن.';
+            }
+        };
+        document.addEventListener('pointerdown', onPointerDown, true);
+        document.addEventListener('pointerup', onPointerUp, true);
+        document.addEventListener('pointercancel', () => { pointerStart = null; }, true);
 
-        mapElement.addEventListener('pointercancel', () => { pointerStart = null; }, true);
-
-        // Native click fallback for browsers that do not dispatch Pointer Events.
+        // Canvas click is an additional fallback for SDK/browser combinations
+        // that dispatch click but do not expose a usable pointer sequence.
         mapElement.addEventListener('click', (event) => {
             if (Date.now() - lastMapClickAt < 100 || Date.now() - lastPointerSelectionAt < 350) return;
             if (event.target && event.target.closest && event.target.closest('.maplibregl-marker')) return;
-            const bounds = mapElement.getBoundingClientRect();
-            const point = map.unproject([event.clientX - bounds.left, event.clientY - bounds.top]);
-            setPoint(point);
+            try {
+                const bounds = mapElement.getBoundingClientRect();
+                const point = map.unproject([event.clientX - bounds.left, event.clientY - bounds.top]);
+                setPoint(point);
+            } catch (error) {
+                console.error('Property map click selection failed:', error);
+                if (status) status.textContent = 'کلیک دریافت شد اما مختصات قابل محاسبه نیست.';
+            }
         }, true);
 
         map.on('error', (event) => {
