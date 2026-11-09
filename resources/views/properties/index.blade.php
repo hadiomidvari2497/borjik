@@ -1,6 +1,10 @@
 @extends('layouts.marketplace')
 @section('title', 'خرید، فروش و اجاره ملک')
 @section('content')
+@php($mapApiKey = $mapApiKey ?? config('services.neshan.map_key'))
+@if($mapApiKey)
+    @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
+@endif
 @php
     use App\Models\PropertyListing;
     use App\Support\Fa;
@@ -89,6 +93,9 @@
     </div>
 </div>
 
+<div class="map-toolbar"><span>جستجوی دیداری در محدوده نقشه</span><div><button type="button" class="btn light" id="show-list-view" aria-pressed="true">فهرست</button><button type="button" class="btn light" id="show-map-view" aria-pressed="false">نقشه</button></div></div>
+<div class="map-layout" id="property-map-layout">
+<div class="map-list" id="property-map-list">
 <div class="grid">
 @forelse($listings as $listing)
     @include('properties.partials.card', ['listing' => $listing])
@@ -101,4 +108,76 @@
 @endforelse
 </div>
 <div class="pagination">{{ $listings->links() }}</div>
+</div>
+<aside class="map-panel" id="property-map-panel">
+    @if($mapApiKey)
+        <div id="property-results-map" aria-label="نقشه آگهی‌های ملکی"></div>
+        <p class="map-caption">موقعیت نشانگرها تقریبی است و نشانی دقیق ملک نمایش داده نمی‌شود.</p>
+        <p class="map-status" id="property-map-status" role="status">برای مشاهده آگهی‌های محدوده، نقشه را جابه‌جا کنید.</p>
+    @else
+        <div class="empty"><h3>نقشه هنوز فعال نشده</h3><p class="muted">پس از ثبت کلید نقشه در تنظیمات سرور، آگهی‌های دارای موقعیت روی نقشه نمایش داده می‌شوند.</p></div>
+    @endif
+</aside>
+</div>
+@if($mapApiKey)
+    @push('scripts')
+    <script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const el = document.getElementById('property-results-map');
+        if (!el || !window.maplibregl) return;
+        const map = new maplibregl.Map({container: el, style: 'https://static.neshan.org/sdk/maplibre/styles/light.json', center: [51.389, 35.6892], zoom: 10, apiKey: @json($mapApiKey)});
+        const markers = [];
+        const status = document.getElementById('property-map-status');
+        let requestId = 0;
+        const clearMarkers = () => { markers.forEach(marker => marker.remove()); markers.length = 0; };
+        const refresh = async () => {
+            const id = ++requestId;
+            const b = map.getBounds();
+            const params = new URLSearchParams(window.location.search);
+            params.set('south', b.getSouth()); params.set('west', b.getWest());
+            params.set('north', b.getNorth()); params.set('east', b.getEast());
+            if (status) status.textContent = 'در حال جستجوی آگهی‌های این محدوده…';
+            try {
+                const response = await fetch(@json(route('properties.map-search')) + '?' + params.toString(), {headers: {'Accept': 'application/json'}});
+                if (!response.ok) throw new Error('map search failed');
+                const payload = await response.json();
+                if (id !== requestId) return;
+                clearMarkers();
+                payload.data.forEach(point => {
+                    const node = document.createElement('button');
+                    node.type = 'button'; node.className = 'property-map-marker'; node.textContent = point.price;
+                    node.setAttribute('aria-label', point.title + '، ' + point.price);
+                    const popupContent = document.createElement('div');
+                    const title = document.createElement('strong'); title.textContent = point.title;
+                    const price = document.createElement('p'); price.textContent = point.price;
+                    const link = document.createElement('a'); link.href = point.url; link.textContent = 'مشاهده آگهی';
+                    popupContent.append(title, price, link);
+                    const marker = new maplibregl.Marker({element: node, anchor: 'bottom'})
+                        .setLngLat([point.longitude, point.latitude])
+                        .setPopup(new maplibregl.Popup({offset: 18}).setDOMContent(popupContent)).addTo(map);
+                    markers.push(marker);
+                });
+                if (status) status.textContent = payload.data.length + ' آگهی دارای موقعیت در این محدوده پیدا شد.';
+            } catch (error) {
+                if (status && id === requestId) status.textContent = 'دریافت آگهی‌های نقشه ممکن نشد؛ دوباره تلاش کنید.';
+            }
+        };
+        map.on('load', refresh); map.on('moveend', refresh);
+        map.on('error', () => { if (status) status.textContent = 'بارگذاری نقشه با خطا مواجه شد؛ کلید و سرویس نقشه را بررسی کنید.'; });
+        const layout = document.getElementById('property-map-layout');
+        const listButton = document.getElementById('show-list-view');
+        const mapButton = document.getElementById('show-map-view');
+        const setView = view => {
+            layout.dataset.view = view;
+            listButton.setAttribute('aria-pressed', view === 'list' ? 'true' : 'false');
+            mapButton.setAttribute('aria-pressed', view === 'map' ? 'true' : 'false');
+            if (view === 'map') setTimeout(() => map.resize(), 80);
+        };
+        listButton.addEventListener('click', () => setView('list'));
+        mapButton.addEventListener('click', () => setView('map'));
+    });
+    </script>
+    @endpush
+@endif
 @endsection

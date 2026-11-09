@@ -1,6 +1,10 @@
 @extends('layouts.marketplace')
 @section('title', $listing->exists ? 'ویرایش آگهی' : 'ثبت آگهی')
 @section('content')
+@php($mapApiKey = config('services.neshan.map_key'))
+@if($mapApiKey)
+    @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
+@endif
 <style>
 .form-section{margin:0 0 22px;padding:18px;border:1px solid #e7efec;border-radius:15px;background:#fbfdfc}
 .form-section h2{font-size:15px;margin:0 0 14px;color:#1d5e53}.form-help{font-size:11px;color:#7b8f88;line-height:1.9;margin:5px 0 0}
@@ -24,6 +28,17 @@
 <label class="field">قیمت فروش / مبلغ درخواستی<input type="number" name="price" min="0" value="{{ old('price',$listing->price) }}"></label><label class="field">ودیعه<input type="number" name="deposit" min="0" value="{{ old('deposit',$listing->deposit) }}"></label><label class="field">اجاره ماهانه<input type="number" name="monthly_rent" min="0" value="{{ old('monthly_rent',$listing->monthly_rent) }}"></label>
 <label class="field">نوع سند<input name="document_type" value="{{ old('document_type',$listing->document_type) }}"></label><label class="field">آدرس تقریبی<input name="address" value="{{ old('address',$listing->address) }}"><span class="form-help">در صورت فعال بودن گزینه عدم نمایش آدرس، این مقدار در صفحه عمومی نشان داده نمی‌شود.</span></label>
 </div></section>
+<section class="form-section"><h2>موقعیت ملک روی نقشه</h2>
+<p class="form-help">نقطه دقیق ملک را انتخاب کنید. در نقشه عمومی، موقعیت با کمی جابه‌جایی نمایش داده می‌شود تا نشانی دقیق ملک محفوظ بماند.</p>
+@if($mapApiKey)
+    <div id="property-location-map" style="height:360px;border-radius:14px;overflow:hidden;background:#edf3f1"></div>
+    <div class="actions"><button class="btn light" type="button" id="clear-property-location">حذف موقعیت انتخاب‌شده</button><span class="form-help" id="property-location-status" role="status">برای انتخاب موقعیت، روی نقشه کلیک کنید یا نشانگر را جابه‌جا کنید.</span></div>
+    <input type="hidden" name="latitude" id="property-latitude" value="{{ old('latitude', $listing->latitude) }}">
+    <input type="hidden" name="longitude" id="property-longitude" value="{{ old('longitude', $listing->longitude) }}">
+@else
+    <div class="notice">برای فعال‌شدن انتخاب موقعیت، کلید نقشه باید در تنظیمات محیطی سرور ثبت شود.</div>
+@endif
+</section>
 <section class="form-section"><h2>توضیحات و تصاویر</h2><div class="fields">
 <label class="field">توضیحات کامل<textarea name="description" required maxlength="10000">{{ old('description',$listing->description) }}</textarea><span class="form-help">ویژگی‌های مهم ملک و شرایط معامله را دقیق بنویسید.</span></label>
 <label class="field">افزودن تصاویر (حداکثر ۱۲ عکس، هرکدام تا ۵ مگابایت)<input id="property-photos" type="file" name="photos[]" accept="image/jpeg,image/png,image/webp" multiple><span class="form-help">فرمت‌های مجاز: JPG، PNG و WebP</span></label>
@@ -39,6 +54,39 @@
 <div class="actions"><label><input type="checkbox" name="hide_address" value="1" @checked(old('hide_address',$listing->exists ? $listing->hide_address : true))> آدرس دقیق در آگهی عمومی نمایش داده نشود</label><label><input type="checkbox" name="allow_exchange" value="1" @checked(old('allow_exchange',$listing->allow_exchange))> معاوضه پذیرفته می‌شود</label></div>
 <div class="actions"><button class="btn">ثبت و انتشار آگهی</button><a class="btn light" href="{{ route('properties.mine') }}">انصراف</a></div>
 </form>
+@if($mapApiKey)
+<script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const mapElement = document.getElementById('property-location-map');
+    if (mapElement && window.maplibregl) {
+        const key = @json($mapApiKey);
+        const latInput = document.getElementById('property-latitude');
+        const lngInput = document.getElementById('property-longitude');
+        const status = document.getElementById('property-location-status');
+        const initial = latInput.value && lngInput.value
+            ? [Number(lngInput.value), Number(latInput.value)] : [51.389, 35.6892];
+        const map = new maplibregl.Map({container: mapElement, style: 'https://static.neshan.org/sdk/maplibre/styles/light.json', center: initial, zoom: latInput.value ? 15 : 11, apiKey: key});
+        let marker = null;
+        const setPoint = (lngLat) => {
+            if (!marker) marker = new maplibregl.Marker({draggable: true, color: '#16816f'}).setLngLat(lngLat).addTo(map);
+            else marker.setLngLat(lngLat);
+            latInput.value = Number(lngLat.lat).toFixed(7);
+            lngInput.value = Number(lngLat.lng).toFixed(7);
+            if (status) status.textContent = 'موقعیت انتخاب شد؛ نقطه دقیق فقط در اطلاعات داخلی آگهی ذخیره می‌شود.';
+            marker.off('dragend');
+            marker.on('dragend', () => setPoint(marker.getLngLat()));
+        };
+        map.on('click', event => setPoint(event.lngLat));
+        if (latInput.value && lngInput.value) map.on('load', () => setPoint({lat: Number(latInput.value), lng: Number(lngInput.value)}));
+        document.getElementById('clear-property-location')?.addEventListener('click', () => {
+            marker?.remove(); marker = null; latInput.value = ''; lngInput.value = '';
+            if (status) status.textContent = 'موقعیت انتخاب‌شده حذف شد.';
+        });
+        map.on('error', () => { if (status) status.textContent = 'بارگذاری نقشه با خطا مواجه شد؛ اتصال و اعتبار کلید نقشه را بررسی کنید.'; });
+    }
+</script>
+@endif
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const photoInput = document.getElementById('property-photos');

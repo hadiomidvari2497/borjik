@@ -62,7 +62,90 @@ class PropertyListingController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('properties.index', compact('listings'));
+        return view('properties.index', [
+            'listings' => $listings,
+            'mapApiKey' => config('services.neshan.map_key'),
+        ]);
+    }
+
+    /**
+     * Public map search. Exact listing coordinates are never returned to browsers;
+     * a stable, deterministic offset is applied before the public point is emitted.
+     */
+    public function mapSearch(Request $request)
+    {
+        $bounds = $request->validate([
+            'south' => ['required', 'numeric', 'between:-85,85'],
+            'west' => ['required', 'numeric', 'between:-180,180'],
+            'north' => ['required', 'numeric', 'between:-85,85'],
+            'east' => ['required', 'numeric', 'between:-180,180'],
+            'q' => ['nullable', 'string', 'max:120'],
+            'listing_type' => ['nullable', Rule::in(['sale', 'rent', 'buy_request', 'rent_request'])],
+            'property_type' => ['nullable', Rule::in(['residential', 'commercial', 'land'])],
+            'city' => ['nullable', 'string', 'max:100'],
+            'neighborhood' => ['nullable', 'string', 'max:120'],
+            'min_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
+            'max_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
+            'min_price' => ['nullable', 'integer', 'min:0'],
+            'max_price' => ['nullable', 'integer', 'min:0'],
+            'bedrooms' => ['nullable', 'integer', 'min:0', 'max:30'],
+            'parking' => ['nullable', 'boolean'],
+        ]);
+
+        abort_if($bounds['south'] >= $bounds['north'] || $bounds['west'] >= $bounds['east'], 422, 'محدوده نقشه معتبر نیست.');
+
+        $query = PropertyListing::query()->published()
+            ->whereNotNull('latitude')->whereNotNull('longitude')
+            // Fetch a padded candidate area because public marker coordinates are blurred.
+            ->whereBetween('latitude', [$bounds['south'] - 0.015, $bounds['north'] + 0.015])
+            ->whereBetween('longitude', [$bounds['west'] - 0.015, $bounds['east'] + 0.015])
+            ->when(! empty($bounds['q']), function ($q) use ($bounds) {
+                $term = trim($bounds['q']);
+                $q->where(fn ($nested) => $nested->where('title', 'like', '%'.$term.'%')
+                    ->orWhere('description', 'like', '%'.$term.'%')
+                    ->orWhere('neighborhood', 'like', '%'.$term.'%'));
+            })
+            ->when(! empty($bounds['listing_type']), fn ($q) => $q->where('listing_type', $bounds['listing_type']))
+            ->when(! empty($bounds['property_type']), fn ($q) => $q->where('property_type', $bounds['property_type']))
+            ->when(! empty($bounds['city']), fn ($q) => $q->where('city', 'like', '%'.$bounds['city'].'%'))
+            ->when(! empty($bounds['neighborhood']), fn ($q) => $q->where('neighborhood', 'like', '%'.$bounds['neighborhood'].'%'))
+            ->when(isset($bounds['min_area']), fn ($q) => $q->where('area', '>=', (float) $bounds['min_area']))
+            ->when(isset($bounds['max_area']), fn ($q) => $q->where('area', '<=', (float) $bounds['max_area']))
+            ->when(isset($bounds['min_price']), fn ($q) => $q->whereRaw('COALESCE(monthly_rent, price, deposit) >= ?', [(int) $bounds['min_price']]))
+            ->when(isset($bounds['max_price']), fn ($q) => $q->whereRaw('COALESCE(monthly_rent, price, deposit) <= ?', [(int) $bounds['max_price']]))
+            ->when(isset($bounds['bedrooms']), fn ($q) => $q->where('bedrooms', '>=', (int) $bounds['bedrooms']))
+            ->when(! empty($bounds['parking']), fn ($q) => $q->where('parking_count', '>', 0))
+            ->latest()
+            ->limit(600);
+
+        $points = $query->get([
+            'id', 'title', 'listing_type', 'price', 'deposit', 'monthly_rent', 'latitude', 'longitude',
+        ])->map(function (PropertyListing $listing) {
+            $seed = hash('sha256', (string) $listing->id);
+            $latOffset = ((hexdec(substr($seed, 0, 4)) / 65535) - 0.5) * 0.006;
+            $lngOffset = ((hexdec(substr($seed, 4, 4)) / 65535) - 0.5) * 0.006;
+            $latitude = round((float) $listing->latitude + $latOffset, 4);
+            $longitude = round((float) $listing->longitude + $lngOffset, 4);
+            $amount = $listing->listing_type === 'rent'
+                ? ($listing->monthly_rent ?: $listing->deposit)
+                : ($listing->price ?: $listing->deposit);
+
+            return [
+                'id' => $listing->id,
+                'title' => $listing->title,
+                'listing_type' => $listing->listing_type,
+                'price' => $amount ? \App\Support\Fa::short((int) $amount).' تومان' : 'توافقی',
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'url' => route('properties.show', $listing),
+            ];
+        })->filter(fn (array $point) => $point['latitude'] >= $bounds['south']
+            && $point['latitude'] <= $bounds['north']
+            && $point['longitude'] >= $bounds['west']
+            && $point['longitude'] <= $bounds['east'])
+            ->values();
+
+        return response()->json(['data' => $points]);
     }
 
     public function show(PropertyListing $listing)
@@ -218,6 +301,8 @@ class PropertyListingController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'neighborhood' => ['nullable', 'string', 'max:120'],
             'address' => ['nullable', 'string', 'max:500'],
+            'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
             'hide_address' => ['sometimes', 'boolean'],
             'allow_phone_call' => ['sometimes', 'boolean'],
             'allow_sms' => ['sometimes', 'boolean'],
@@ -248,6 +333,8 @@ class PropertyListingController extends Controller
         }
 
         unset($data['photos']);
+        $data['latitude'] = $request->filled('latitude') ? (float) $request->input('latitude') : null;
+        $data['longitude'] = $request->filled('longitude') ? (float) $request->input('longitude') : null;
         $data['hide_address'] = $request->boolean('hide_address');
         $data['allow_phone_call'] = $request->boolean('allow_phone_call');
         $data['allow_sms'] = $request->boolean('allow_sms');

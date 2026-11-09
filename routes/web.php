@@ -33,6 +33,7 @@ Route::get('/trust-and-security', [MarketingController::class, 'seoPage'])->defa
 
 
 Route::get('/properties', [PropertyListingController::class, 'index'])->name('properties.index');
+Route::get('/properties/map-search', [PropertyListingController::class, 'mapSearch'])->middleware('throttle:60,1')->name('properties.map-search');
 Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])->whereNumber('listing')->name('properties.show');
 
 Route::middleware('auth')->group(function () {
