@@ -148,7 +148,7 @@ class PropertyListingManagementController extends Controller
         $listing->update([
             'status' => $data['status'],
             'expires_at' => $data['status'] === 'active' && (! $listing->expires_at || $listing->status === 'expired')
-                ? now()->addDays(max(1, min(365, (int) \\App\\Models\\SiteSetting::get('property_listings.duration_days', 30))))
+                ? now()->addDays(max(1, min(365, (int) \App\Models\SiteSetting::get('property_listings.duration_days', 30))))
                 : $listing->expires_at,
             'moderation_note' => $data['moderation_note'] ?? null,
             'moderated_by' => $request->user('admin')->id,
