@@ -87,7 +87,7 @@
         @php
             $photo = $listing->photoUrls()[0] ?? null;
             $isExpired = $listing->status === 'expired' || ($listing->status === 'active' && $listing->expires_at && $listing->expires_at->isPast());
-            $statusLabel = $isExpired ? 'منقضی‌شده' : (['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'ردشده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status);
+            $statusLabel = $isExpired ? 'منقضی‌شده' : (['pending'=>'در انتظار تأیید','active'=>'فعال','closed'=>'غیرفعال','rejected'=>'رد شده','draft'=>'پیش‌نویس'][$listing->status] ?? $listing->status);
             $statusClass = $isExpired ? 'closed' : $listing->status;
         @endphp
         <article class="card my-card">
