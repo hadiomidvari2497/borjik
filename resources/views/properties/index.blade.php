@@ -7,11 +7,10 @@
 @endif
 @php
     use App\Models\PropertyListing;
-    use App\Support\Fa;
 
     $activeType = request('listing_type');
     $tabQuery = fn (?string $type) => route('properties.index', array_filter(array_merge(request()->except(['page', 'listing_type']), ['listing_type' => $type]), fn ($v) => $v !== null && $v !== ''));
-    $money = fn ($v) => \App\Support\Fa::short((int) $v);
+    $money = fn ($v) => \App\Support\\App\Support\Fa::short((int) $v);
     $activeFilters = array_values(array_filter([
         request()->filled('q') ? '«'.\Illuminate\Support\Str::limit(request('q'), 18).'»' : null,
         $activeType ? (PropertyListing::LISTING_TYPES[$activeType] ?? null) : null,
@@ -19,11 +18,11 @@
         request()->filled('city') ? request('city') : null,
         request()->filled('neighborhood') ? request('neighborhood') : null,
         request()->filled('property_type') ? (PropertyListing::PROPERTY_TYPES[request('property_type')] ?? null) : null,
-        request()->filled('min_area') ? 'از '.Fa::digits(request('min_area')).' متر' : null,
-        request()->filled('max_area') ? 'تا '.Fa::digits(request('max_area')).' متر' : null,
+        request()->filled('min_area') ? 'از '.\App\Support\Fa::digits(request('min_area')).' متر' : null,
+        request()->filled('max_area') ? 'تا '.\App\Support\Fa::digits(request('max_area')).' متر' : null,
         request()->filled('min_price') ? 'از '.$money(request('min_price')) : null,
         request()->filled('max_price') ? 'تا '.$money(request('max_price')) : null,
-        request()->filled('bedrooms') ? 'حداقل '.Fa::digits(request('bedrooms')).' خواب' : null,
+        request()->filled('bedrooms') ? 'حداقل '.\App\Support\Fa::digits(request('bedrooms')).' خواب' : null,
         request('parking') === '1' ? 'پارکینگ‌دار' : null,
     ]));
 @endphp
@@ -40,7 +39,7 @@
             <b>جستجو و فیلتر آگهی‌ها</b>
             <small>{{ $activeFilters ? implode(' · ', $activeFilters) : 'نوع آگهی، شهر، محله، قیمت و متراژ' }}</small>
         </span>
-        @if($activeFilters)<span class="sum-count">{{ Fa::num(count($activeFilters)) }}</span>@endif
+        @if($activeFilters)<span class="sum-count">{{ \App\Support\Fa::num(count($activeFilters)) }}</span>@endif
         <span class="sum-chev" aria-hidden="true"></span>
     </summary>
     <form class="search-body" method="GET" action="{{ route('properties.index') }}" role="search" aria-label="جستجوی آگهی">
@@ -79,7 +78,7 @@
 <div class="results-head">
     <h2>{{ $activeType ? 'آگهی‌های '.(PropertyListing::LISTING_TYPES[$activeType] ?? '') : 'تازه‌ترین آگهی‌ها' }}</h2>
     <div class="results-tools">
-        @if($listings->total() > 0)<span>{{ Fa::num($listings->total()) }} آگهی</span>@endif
+        @if($listings->total() > 0)<span>{{ \App\Support\Fa::num($listings->total()) }} آگهی</span>@endif
         <form class="sort" method="GET" action="{{ route('properties.index') }}">
             @foreach(request()->except(['sort','page']) as $key => $value)@if(is_scalar($value))<input type="hidden" name="{{ $key }}" value="{{ $value }}">@endif @endforeach
             <label class="sr-only" for="market-sort">مرتب‌سازی</label>
