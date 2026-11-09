@@ -284,9 +284,6 @@
     render();
 })();
 </script>
-@endpush
-@endsection
-
 @php($mapApiKey = config('services.neshan.map_key'))
 @if($mapApiKey)
     @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
@@ -304,6 +301,8 @@
 </section>
 @if($mapApiKey)
 <script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+<script>
+(function () {
     const mapElement = document.getElementById('property-location-map');
     if (mapElement && window.maplibregl) {
         const key = @json($mapApiKey);
@@ -334,5 +333,9 @@
         });
         map.on('error', () => { if (status) status.textContent = 'بارگذاری نقشه با خطا مواجه شد؛ اتصال و اعتبار کلید نقشه را بررسی کنید.'; });
     }
+})();
 </script>
 @endif
+
+@endpush
+@endsection
