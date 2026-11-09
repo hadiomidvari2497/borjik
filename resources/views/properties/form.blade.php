@@ -124,10 +124,6 @@
     </div>
 @php($mapApiKey = config('services.neshan.map_key'))
 @if($mapApiKey)
-    @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
-@endif
-@php($mapApiKey = config('services.neshan.map_key'))
-@if($mapApiKey)
     @push('head')
         <link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">
     @endpush
