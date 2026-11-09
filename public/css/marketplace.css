@@ -418,7 +418,7 @@ a.card:hover .photo img{transform:scale(1.05)}
   .btn-t{white-space:nowrap}
   body:has(.tabbar) .main{padding-bottom:92px}
   .tabbar{position:fixed;inset-inline:0;bottom:0;z-index:35;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:saturate(1.4) blur(12px)}
-  .tabbar:has(.tab-add):not(:has(button)){grid-template-columns:repeat(3,1fr)}
+  .tabbar:has(.tab-add):not(:has(button)){grid-template-columns:repeat(4,minmax(0,1fr))}
   .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--mute);cursor:pointer;-webkit-tap-highlight-color:transparent}
   .tabbar .icon{width:22px;height:22px}
   .tabbar [aria-current="page"]{color:var(--brand-d);font-weight:700}
