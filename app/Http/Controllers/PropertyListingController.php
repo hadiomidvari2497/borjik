@@ -24,6 +24,7 @@ class PropertyListingController extends Controller
             'listing_type' => ['nullable', Rule::in(['sale', 'rent', 'buy_request', 'rent_request'])],
             'property_type' => ['nullable', Rule::in(['residential', 'commercial', 'land'])],
             'province' => ['nullable', 'string', 'max:100'],
+            'province' => ['nullable', 'string', 'max:100'],
             'city' => ['nullable', 'string', 'max:100'],
             'neighborhood' => ['nullable', 'string', 'max:120'],
             'min_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
@@ -107,6 +108,7 @@ class PropertyListingController extends Controller
             })
             ->when(! empty($bounds['listing_type']), fn ($q) => $q->where('listing_type', $bounds['listing_type']))
             ->when(! empty($bounds['property_type']), fn ($q) => $q->where('property_type', $bounds['property_type']))
+            ->when(! empty($bounds['province']), fn ($q) => $q->where('province', 'like', '%'.$bounds['province'].'%'))
             ->when(! empty($bounds['city']), fn ($q) => $q->where('city', 'like', '%'.$bounds['city'].'%'))
             ->when(! empty($bounds['neighborhood']), fn ($q) => $q->where('neighborhood', 'like', '%'.$bounds['neighborhood'].'%'))
             ->when(isset($bounds['min_area']), fn ($q) => $q->where('area', '>=', (float) $bounds['min_area']))

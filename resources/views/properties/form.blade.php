@@ -33,11 +33,11 @@
 @if($mapApiKey)
     <div id="property-location-map" style="height:360px;border-radius:14px;overflow:hidden;background:#edf3f1"></div>
     <div class="actions"><button class="btn light" type="button" id="clear-property-location">حذف موقعیت انتخاب‌شده</button><span class="form-help" id="property-location-status" role="status">برای انتخاب موقعیت، روی نقشه کلیک کنید یا نشانگر را جابه‌جا کنید.</span></div>
-    <input type="hidden" name="latitude" id="property-latitude" value="{{ old('latitude', $listing->latitude) }}">
-    <input type="hidden" name="longitude" id="property-longitude" value="{{ old('longitude', $listing->longitude) }}">
 @else
     <div class="notice">برای فعال‌شدن انتخاب موقعیت، کلید نقشه باید در تنظیمات محیطی سرور ثبت شود.</div>
 @endif
+<input type="hidden" name="latitude" id="property-latitude" value="{{ old('latitude', $listing->latitude) }}">
+<input type="hidden" name="longitude" id="property-longitude" value="{{ old('longitude', $listing->longitude) }}">
 </section>
 <section class="form-section"><h2>توضیحات و تصاویر</h2><div class="fields">
 <label class="field">توضیحات کامل<textarea name="description" required maxlength="10000">{{ old('description',$listing->description) }}</textarea><span class="form-help">ویژگی‌های مهم ملک و شرایط معامله را دقیق بنویسید.</span></label>
@@ -68,14 +68,17 @@ document.addEventListener('DOMContentLoaded', function () {
             ? [Number(lngInput.value), Number(latInput.value)] : [51.389, 35.6892];
         const map = new maplibregl.Map({container: mapElement, style: 'https://static.neshan.org/sdk/maplibre/styles/light.json', center: initial, zoom: latInput.value ? 15 : 11, apiKey: key});
         let marker = null;
-        const setPoint = (lngLat) => {
-            if (!marker) marker = new maplibregl.Marker({draggable: true, color: '#16816f'}).setLngLat(lngLat).addTo(map);
-            else marker.setLngLat(lngLat);
+        const syncPoint = (lngLat) => {
             latInput.value = Number(lngLat.lat).toFixed(7);
             lngInput.value = Number(lngLat.lng).toFixed(7);
             if (status) status.textContent = 'موقعیت انتخاب شد؛ نقطه دقیق فقط در اطلاعات داخلی آگهی ذخیره می‌شود.';
-            marker.off('dragend');
-            marker.on('dragend', () => setPoint(marker.getLngLat()));
+        };
+        const setPoint = (lngLat) => {
+            if (!marker) {
+                marker = new maplibregl.Marker({draggable: true, color: '#16816f'}).setLngLat(lngLat).addTo(map);
+                marker.on('dragend', () => syncPoint(marker.getLngLat()));
+            } else marker.setLngLat(lngLat);
+            syncPoint(lngLat);
         };
         map.on('click', event => setPoint(event.lngLat));
         if (latInput.value && lngInput.value) map.on('load', () => setPoint({lat: Number(latInput.value), lng: Number(lngInput.value)}));

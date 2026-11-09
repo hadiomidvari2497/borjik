@@ -93,7 +93,11 @@
     </div>
 </div>
 
+@if($mapApiKey)
 <div class="map-toolbar"><span>جستجوی دیداری در محدوده نقشه</span><div><button type="button" class="btn light" id="show-list-view" aria-pressed="true">فهرست</button><button type="button" class="btn light" id="show-map-view" aria-pressed="false">نقشه</button></div></div>
+@else
+<div class="map-toolbar"><span>جستجوی دیداری روی نقشه پس از تنظیم کلید نقشه فعال می‌شود.</span></div>
+@endif
 <div class="map-layout" id="property-map-layout">
 <div class="map-list" id="property-map-list">
 <div class="grid">
