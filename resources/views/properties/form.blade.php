@@ -133,7 +133,7 @@
         <div>
             <span class="property-map-eyebrow">موقعیت ملک</span>
             <h2 id="property-location-title">انتخاب موقعیت روی نقشه</h2>
-            <p>روی محل ملک کلیک کن تا نشانگر ثبت شود؛ برای دقیق‌تر کردن نقطه می‌توانی نشانگر را بکشانی. موقعیت عمومی آگهی با کمی جابه‌جایی نمایش داده می‌شود.</p>
+            <p>روی محل ملک کلیک کن تا نقطه ثبت شود؛ برای اصلاح موقعیت، نقطهٔ دیگری روی نقشه انتخاب کن. موقعیت عمومی آگهی با کمی جابه‌جایی نمایش داده می‌شود.</p>
         </div>
         <span class="property-map-heading-icon" aria-hidden="true">⌖</span>
     </div>
@@ -349,7 +349,7 @@
             if (status) status.textContent = 'راه‌اندازی نقشه ناموفق بود؛ لطفاً صفحه را تازه‌سازی کن و اتصال نقشه را بررسی کن.';
             return;
         }
-        let marker = null;
+        const pointSourceId = 'property-selected-point';
         let lastMapClickAt = 0;
         let pointerStart = null;
         let lastPointerSelectionAt = 0;
@@ -357,15 +357,34 @@
         const syncPoint = (point) => {
             latInput.value = Number(point.lat).toFixed(7);
             lngInput.value = Number(point.lng).toFixed(7);
-            if (status) status.textContent = 'موقعیت ثبت شد. برای اصلاح، نشانگر را روی نقشه جابه‌جا کن.';
+            if (status) status.textContent = 'موقعیت ثبت شد. برای اصلاح، نقطهٔ دیگری روی نقشه انتخاب کن.';
         };
+        const pointFeature = (point) => ({
+            type: 'Feature',
+            properties: {},
+            geometry: {type: 'Point', coordinates: [Number(point.lng), Number(point.lat)]}
+        });
         const setPoint = (point) => {
-            if (!marker) {
-                marker = new maplibregl.Marker({draggable: true, color: '#16816f', anchor: 'bottom'})
-                    .setLngLat([point.lng, point.lat]).addTo(map);
-                marker.on('dragend', () => syncPoint(marker.getLngLat()));
+            const feature = pointFeature(point);
+            const source = map.getSource(pointSourceId);
+            if (source) {
+                source.setData(feature);
             } else {
-                marker.setLngLat([point.lng, point.lat]);
+                map.addSource(pointSourceId, {
+                    type: 'geojson',
+                    data: feature
+                });
+                map.addLayer({
+                    id: pointSourceId,
+                    type: 'circle',
+                    source: pointSourceId,
+                    paint: {
+                        'circle-radius': 9,
+                        'circle-color': '#16816f',
+                        'circle-stroke-color': '#ffffff',
+                        'circle-stroke-width': 3
+                    }
+                });
             }
             syncPoint(point);
         };
@@ -431,8 +450,8 @@
             if (status) status.textContent = 'بارگذاری نقشه با خطا مواجه شد؛ کلید نقشه و دسترسی سرویس را بررسی کن.';
         });
         if (clearButton) clearButton.addEventListener('click', () => {
-            if (marker) marker.remove();
-            marker = null;
+            const source = map.getSource(pointSourceId);
+            if (source) source.setData({type: 'FeatureCollection', features: []});
             latInput.value = '';
             lngInput.value = '';
             if (status) status.textContent = 'موقعیت انتخاب‌شده پاک شد؛ برای ثبت دوباره روی نقشه کلیک کن.';
