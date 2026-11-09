@@ -351,6 +351,8 @@
         }
         let marker = null;
         let lastMapClickAt = 0;
+        let pointerStart = null;
+        let lastPointerSelectionAt = 0;
 
         const syncPoint = (point) => {
             latInput.value = Number(point.lat).toFixed(7);
@@ -374,19 +376,43 @@
         });
         map.on('click', (event) => {
             lastMapClickAt = Date.now();
+            if (Date.now() - lastPointerSelectionAt < 350) return;
             setPoint(event.lngLat);
         });
 
-        // Fallback: also handle a native click on the map canvas/container.
-        // This keeps point selection working if the SDK's delegated click event
-        // is swallowed by another map interaction or browser layer.
+        // Capture pointer taps before MapLibre's internal handlers. A short,
+        // stationary press is a point selection; a real drag remains map panning.
+        mapElement.addEventListener('pointerdown', (event) => {
+            if (event.button !== undefined && event.button !== 0) return;
+            if (event.target && event.target.closest && event.target.closest('.maplibregl-marker')) {
+                pointerStart = null;
+                return;
+            }
+            pointerStart = {x: event.clientX, y: event.clientY, pointerId: event.pointerId};
+        }, true);
+
+        mapElement.addEventListener('pointerup', (event) => {
+            if (!pointerStart || pointerStart.pointerId !== event.pointerId) return;
+            const start = pointerStart;
+            pointerStart = null;
+            const moved = Math.hypot(event.clientX - start.x, event.clientY - start.y);
+            if (moved > 8) return;
+            const bounds = mapElement.getBoundingClientRect();
+            const point = map.unproject([event.clientX - bounds.left, event.clientY - bounds.top]);
+            lastPointerSelectionAt = Date.now();
+            setPoint(point);
+        }, true);
+
+        mapElement.addEventListener('pointercancel', () => { pointerStart = null; }, true);
+
+        // Native click fallback for browsers that do not dispatch Pointer Events.
         mapElement.addEventListener('click', (event) => {
-            if (Date.now() - lastMapClickAt < 100) return;
+            if (Date.now() - lastMapClickAt < 100 || Date.now() - lastPointerSelectionAt < 350) return;
             if (event.target && event.target.closest && event.target.closest('.maplibregl-marker')) return;
             const bounds = mapElement.getBoundingClientRect();
             const point = map.unproject([event.clientX - bounds.left, event.clientY - bounds.top]);
             setPoint(point);
-        });
+        }, true);
 
         map.on('error', (event) => {
             console.error('Property location map error:', event && event.error ? event.error : event);
