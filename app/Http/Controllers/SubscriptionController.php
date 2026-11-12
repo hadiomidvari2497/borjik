@@ -43,6 +43,7 @@ class SubscriptionController extends Controller
                 'gatewayReady' => $gateways !== [],
                 'user' => $user,
                 'building' => $building,
+                'unitCount' => $building->units()->count(),
             ]);
         }
 
@@ -132,6 +133,10 @@ class SubscriptionController extends Controller
             return redirect()->route('buildings.create')->with('warning', 'ابتدا ساختمان موردنظر را ایجاد یا انتخاب کنید.');
         }
 
+        if ($building->units()->count() > (int) $plan->units_limit && ! $request->boolean('accept_downgrade')) {
+            return back()->withErrors(['accept_downgrade' => 'برای خرید پلنی با ظرفیت کمتر، ابتدا هشدار کاهش ظرفیت را تأیید کنید.'])->withInput();
+        }
+
         $baseAmount = $plan->effectivePrice();
         $couponCode = strtoupper(trim((string) $request->input('coupon_code', '')));
         $discountAmount = 0;
@@ -177,6 +182,7 @@ class SubscriptionController extends Controller
                         'status' => 'active',
                     ]);
                     $building->update(['subscription_id' => $subscription->id]);
+                    app(\\App\\Services\\SubscriptionUnitAccess::class)->initializeForPlan($subscription);
                     if ($lockedCoupon) {
                         CouponRedemption::create([
                             'coupon_id' => $lockedCoupon->id,
@@ -430,6 +436,7 @@ class SubscriptionController extends Controller
                     ->update(['status' => 'expired']);
 
                 $subscription->update(['status' => 'active', 'starts_at' => now()]);
+                app(\\App\\Services\\SubscriptionUnitAccess::class)->initializeForPlan($subscription);
                 if ($subscription->building_id) {
                     Building::whereKey($subscription->building_id)->update(['subscription_id' => $subscription->id]);
                 }
