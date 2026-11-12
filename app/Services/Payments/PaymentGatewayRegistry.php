@@ -35,6 +35,7 @@ class PaymentGatewayRegistry
             return match ((string) ($gateway['driver'] ?? '')) {
                 'bitpay' => ! empty($gateway['api_key']),
                 'zarinpal' => ! empty($gateway['merchant_id']),
+                'paystar' => ! empty($gateway['merchant_id']) && ! empty($gateway['api_secret']),
                 default => false,
             };
         });
