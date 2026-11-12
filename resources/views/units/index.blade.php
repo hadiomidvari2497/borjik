@@ -66,7 +66,7 @@
         <thead><tr><th>بلوک</th><th>واحد</th><th>طبقه</th><th>وضعیت</th></tr></thead>
         <tbody>
         @foreach($archivedUnits as $archived)
-          <tr><td>{{ $archived->block?->name }}</td><td><b>{{ \\App\\Support\\Fa::digits($archived->number) }}</b></td><td>{{ \\App\\Support\\Fa::digits($archived->floor) }}</td><td><span class="pill u">مازاد - فقط مشاهده</span></td></tr>
+          <tr><td>{{ $archived->block?->name }}</td><td><b>{{ \App\Support\Fa::digits($archived->number) }}</b></td><td>{{ \App\Support\Fa::digits($archived->floor) }}</td><td><span class="pill u">مازاد - فقط مشاهده</span></td></tr>
         @endforeach
         </tbody>
       </table></div>
