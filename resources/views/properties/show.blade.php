@@ -272,7 +272,11 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="pricebox-body">
                 @unless($isOwner)<div class="owner">
                     <span class="avatar" aria-hidden="true">{{ \Illuminate\Support\Str::substr($ownerName ?: '؟', 0, 1) }}</span>
-                    <div><b>{{ $ownerName }}</b><span class="muted">ثبت‌کننده آگهی</span></div>
+                    <div><b>{{ $ownerName }}</b><span class="muted">ثبت‌کننده آگهی</span>
+                        @if($listing->user?->mobile_verified_at)
+                            <span class="seller-verified" title="شماره موبایل این حساب تأیید شده است" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:4px 8px;border-radius:999px;background:#eaf6ef;color:#247653;font-size:11px;font-weight:700"><svg class="icon" aria-hidden="true" style="width:13px;height:13px"><use href="#i-check"/></svg>شماره موبایل تأییدشده</span>
+                        @endif
+                    </div>
                 </div>@endunless
                 @if($isOwner)
                     <p>این آگهی متعلق به شماست.</p>

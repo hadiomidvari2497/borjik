@@ -103,7 +103,7 @@ class PropertyListingReportsNotificationsTest extends TestCase
         $this->actingAs($admin, 'admin')
             ->patch(route('admin.property-listings.reports.update', $report->id), [
                 'status' => 'actioned',
-                'resolution_note' => 'گزارش تأیید شد و آگهی برای بررسی بیشتر غیرفعال شد.',
+                'resolution_note' => 'گزارش شما تأیید شد و آگهی مربوطه غیرفعال شد.',
             ])
             ->assertRedirect(route('admin.property-listings.reports', ['status' => 'actioned']));
 
@@ -111,6 +111,15 @@ class PropertyListingReportsNotificationsTest extends TestCase
             'id' => $report->id,
             'status' => 'actioned',
             'reviewed_by' => $admin->id,
+        ]);
+        $this->assertDatabaseHas('property_listings', [
+            'id' => $this->listing->id,
+            'status' => 'closed',
+            'moderated_by' => $admin->id,
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->owner->id,
         ]);
         $this->assertDatabaseHas('notifications', [
             'notifiable_type' => User::class,
@@ -122,7 +131,7 @@ class PropertyListingReportsNotificationsTest extends TestCase
             ->assertOk()
             ->assertSee('بازارچه املاک')
             ->assertSee('گزارش تخلف بررسی شد')
-            ->assertSee('گزارش تأیید شد و آگهی برای بررسی بیشتر غیرفعال شد.');
+            ->assertSee('گزارش شما تأیید شد و آگهی مربوطه غیرفعال شد.');
 
         $notification = $this->reporter->notifications()->firstOrFail();
         $this->actingAs($this->reporter)
@@ -130,6 +139,15 @@ class PropertyListingReportsNotificationsTest extends TestCase
             ->assertRedirect(route('properties.mine'));
 
         $this->assertNotNull($notification->fresh()->read_at);
+    }
+
+    public function test_verified_mobile_badge_is_shown_on_listing_detail(): void
+    {
+        $this->owner->forceFill(['mobile_verified_at' => now()])->save();
+
+        $this->get(route('properties.show', $this->listing->id))
+            ->assertOk()
+            ->assertSee('شماره موبایل تأییدشده');
     }
 
     public function test_listing_owner_receives_notification_when_admin_changes_listing_status(): void
