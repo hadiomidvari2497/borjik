@@ -165,8 +165,21 @@ class AdminSettingsTest extends TestCase
         $this->admin(['username' => 'x3', 'two_factor_enabled' => true, 'two_factor_secret' => $secret]);
 
         $this->post('/admin/login', ['username' => 'x3', 'password' => 'secret-pass-1']);
+
+        // کد نامعتبر باید در تمام پنجره‌های زمانی قابل قبول TOTP نامعتبر بماند.
+        // استفاده ثابت از 000000 ممکن است تصادفاً کد معتبر همین بازه باشد.
+        $now = time();
+        $validCodes = [];
+        foreach (range(-3, 3) as $step) {
+            $validCodes[] = Totp::code($secret, $now + ($step * 30));
+        }
+        $invalidCode = '000000';
+        while (in_array($invalidCode, $validCodes, true)) {
+            $invalidCode = str_pad((string) (((int) $invalidCode + 1) % 1_000_000), 6, '0', STR_PAD_LEFT);
+        }
+
         for ($i = 0; $i < 5; $i++) {
-            $this->post('/admin/two-factor', ['code' => '000000']);
+            $this->post('/admin/two-factor', ['code' => $invalidCode]);
         }
 
         // حتی کد درست هم پس از قفل پذیرفته نمی‌شود
