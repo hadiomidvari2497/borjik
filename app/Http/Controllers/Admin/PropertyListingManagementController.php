@@ -10,6 +10,7 @@ use App\Models\PropertyListingReport;
 use App\Notifications\PropertyListingNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PropertyListingManagementController extends Controller
 {
@@ -77,7 +78,7 @@ class PropertyListingManagementController extends Controller
             'status' => ['nullable', 'in:pending,actioned,dismissed'],
         ])['status'] ?? 'pending';
 
-        $reports = PropertyListingReport::query()->with(['listing.user', 'reporter'])
+        $reports = PropertyListingReport::query()->with(['listing.user', 'reporter', 'reviewedBy'])
             ->where('status', $status)
             ->latest('id')
             ->paginate(25)
@@ -98,17 +99,36 @@ class PropertyListingManagementController extends Controller
             'resolution_note' => ['required', 'string', 'max:2000'],
         ]);
 
-        $report = PropertyListingReport::query()->with('reporter')->findOrFail($reportId);
-        abort_unless($report->status === 'pending', 409, 'این گزارش قبلاً بررسی شده است.');
-        $report->update([
-            'status' => $data['status'],
-            'resolution_note' => $data['resolution_note'],
-            'reviewed_by' => $request->user('admin')->id,
-            'reviewed_at' => now(),
-        ]);
+        $adminId = (int) $request->user('admin')->id;
+        $report = DB::transaction(function () use ($reportId, $data, $adminId) {
+            $report = PropertyListingReport::query()->lockForUpdate()->findOrFail($reportId);
+            abort_unless($report->status === 'pending', 409, 'این گزارش قبلاً بررسی شده است.');
+
+            $report->update([
+                'status' => $data['status'],
+                'resolution_note' => $data['resolution_note'],
+                'reviewed_by' => $adminId,
+                'reviewed_at' => now(),
+            ]);
+
+            if ($data['status'] === 'actioned') {
+                $listing = PropertyListing::query()->with('user')->lockForUpdate()->find($report->property_listing_id);
+                if ($listing && $listing->status === 'active') {
+                    $listing->update([
+                        'status' => 'closed',
+                        'moderation_note' => 'غیرفعال‌شده در پی رسیدگی به گزارش تخلف #'.$report->id,
+                        'moderated_by' => $adminId,
+                        'moderated_at' => now(),
+                    ]);
+                    $report->setRelation('listing', $listing);
+                }
+            }
+
+            return $report->load(['reporter', 'listing.user']);
+        });
 
         $message = $data['status'] === 'actioned'
-            ? 'گزارش شما بررسی شد و اقدامات لازم انجام شد.'
+            ? 'گزارش شما تأیید شد و آگهی مربوطه غیرفعال شد.'
             : 'گزارش شما بررسی شد؛ تخلفی تشخیص داده نشد.';
         try {
             $report->reporter?->notify(new PropertyListingNotification(
@@ -122,6 +142,22 @@ class PropertyListingManagementController extends Controller
             ));
         } catch (\Throwable $notificationError) {
             report($notificationError);
+        }
+
+        if ($data['status'] === 'actioned' && $report->listing?->user) {
+            try {
+                $report->listing->user->notify(new PropertyListingNotification(
+                    'listing_status_changed',
+                    'آگهی در پی گزارش تخلف غیرفعال شد',
+                    'آگهی «'.$report->listing->title.'» پس از بررسی گزارش تخلف غیرفعال شد. توضیح مدیریت: '.$data['resolution_note'],
+                    route('properties.mine'),
+                    'warning',
+                    $report->property_listing_id,
+                    $report->id
+                ));
+            } catch (\Throwable $notificationError) {
+                report($notificationError);
+            }
         }
 
         return redirect()->route('admin.property-listings.reports', ['status' => $data['status'] === 'actioned' ? 'actioned' : 'dismissed'])
