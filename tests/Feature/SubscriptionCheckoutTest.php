@@ -3,9 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\SiteSetting;
-use App\Models\Block;
-use App\Models\Unit;
-use App\Services\SubscriptionUnitAccess;
 use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Role;
@@ -16,6 +13,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class SubscriptionCheckoutTest extends TestCase
@@ -165,15 +163,19 @@ class SubscriptionCheckoutTest extends TestCase
 
     public function test_lower_capacity_plan_warns_before_activation_and_requires_acknowledgement(): void
     {
-        $block = Block::create(['building_id' => $this->building->id, 'number' => 1, 'name' => 'بلوک یک', 'floors_count' => 1]);
+        $blockId = DB::table('blocks')->insertGetId(['building_id' => $this->building->id, 'number' => 1, 'name' => 'بلوک یک', 'floors_count' => 1, 'created_at' => now(), 'updated_at' => now()]);
         foreach (range(1, 5) as $number) {
-            Unit::create([
+            DB::table('units')->insert([
                 'building_id' => $this->building->id,
-                'block_id' => $block->id,
+                'block_id' => $blockId,
                 'number' => (string) $number,
                 'floor' => 1,
                 'area_m2' => 80,
                 'status' => 'vacant',
+                'residents_count' => 0,
+                'opening_balance' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
         $free = SubscriptionPlan::create([
@@ -197,15 +199,18 @@ class SubscriptionCheckoutTest extends TestCase
             ->assertRedirect(route('dashboard'));
 
         $subscription = Subscription::where('building_id', $this->building->id)->where('status', 'active')->firstOrFail();
-        $access = app(SubscriptionUnitAccess::class);
-        $this->assertTrue($access->needsSelection($subscription));
-        $this->assertSame([], $access->activeIds($subscription));
+        $this->assertSame([], $subscription->active_unit_ids);
 
-        $selected = Unit::where('building_id', $this->building->id)->orderBy('id')->limit(3)->pluck('id')->all();
-        $access->saveSelection($subscription, $selected);
+        $this->asBuilding()->get(route('subscription.units.select'))->assertOk();
+        $selected = DB::table('units')->where('building_id', $this->building->id)
+            ->orderBy('id')->limit(3)->pluck('id')->map(fn ($id) => (int) $id)->all();
 
-        $this->assertFalse($access->needsSelection($subscription->fresh()));
-        $this->assertSame($selected, $access->activeIds($subscription->fresh()));
+        $this->asBuilding()->post(route('subscription.units.store'), ['unit_ids' => $selected])
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertSame($selected, json_decode(
+            DB::table('subscriptions')->where('id', $subscription->id)->value('active_unit_ids'),
+            true
+        ));
     }
-
 }
