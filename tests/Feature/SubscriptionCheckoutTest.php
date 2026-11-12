@@ -162,6 +162,7 @@ class SubscriptionCheckoutTest extends TestCase
 
         $this->assertDatabaseHas('subscriptions', ['user_id' => $this->user->id, 'building_id' => $this->building->id, 'plan_id' => $free->id, 'status' => 'active']);
     }
+
     public function test_lower_capacity_plan_warns_before_activation_and_requires_acknowledgement(): void
     {
         $block = Block::create(['building_id' => $this->building->id, 'number' => 1, 'name' => 'بلوک یک', 'floors_count' => 1]);
