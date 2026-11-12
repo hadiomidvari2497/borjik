@@ -73,6 +73,7 @@ class EnsureSubscriptionAccess
         $resource = match (true) {
             str_starts_with($routeName, 'contracts.') => ['contracts', $request->route('id')],
             str_starts_with($routeName, 'my.invoices.') => ['invoices', $request->route('invoice')],
+            str_starts_with($routeName, 'payments.') => ['payment_receipts', $request->route('id')],
             str_starts_with($routeName, 'requests.'), str_starts_with($routeName, 'my.requests.'), str_starts_with($routeName, 'tickets.') => ['tickets', $request->route('ticket')],
             default => [null, null],
         };
