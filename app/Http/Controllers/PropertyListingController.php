@@ -133,7 +133,7 @@ class PropertyListingController extends Controller
         $points = $query->get(['id', 'title', 'listing_type', 'price', 'deposit', 'monthly_rent', 'latitude', 'longitude'])
             ->map(function (PropertyListing $listing) {
                 $amount = $listing->listing_type === 'rent' ? ($listing->monthly_rent ?: $listing->deposit) : ($listing->price ?: $listing->deposit);
-                return array_merge(['id' => $listing->id, 'title' => $listing->title, 'listing_type' => $listing->listing_type, 'price' => $amount ? \\App\\Support\\Fa::short((int) $amount).' تومان' : 'توافقی', 'url' => route('properties.show', $listing)], $this->publicMapPoint($listing));
+                return array_merge(['id' => $listing->id, 'title' => $listing->title, 'listing_type' => $listing->listing_type, 'price' => $amount ? \App\Support\Fa::short((int) $amount).' تومان' : 'توافقی', 'url' => route('properties.show', $listing)], $this->publicMapPoint($listing));
             })
             ->filter(fn (array $point) => ! $hasBounds || ($point['latitude'] >= $bounds['south'] && $point['latitude'] <= $bounds['north'] && $point['longitude'] >= $bounds['west'] && $point['longitude'] <= $bounds['east']))
             ->values();
