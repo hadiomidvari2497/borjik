@@ -20,7 +20,7 @@ class ManualSubscriptionPaymentController extends Controller
         $path = (string) data_get($record->raw_response, 'receipt_path', '');
         abort_unless(str_starts_with($path, 'private/payment-proofs/') && Storage::disk('local')->exists($path), 404);
 
-        return Storage::disk('local')->download($path, 'payment-proof-'.$record->id);
+        return response()->file(Storage::disk('local')->path($path));
     }
 
     public function approve(Request $request, int $payment)
