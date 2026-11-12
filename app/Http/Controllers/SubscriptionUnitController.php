@@ -1,12 +1,12 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\Building;
-use App\\Services\\BuildingService;
-use App\\Services\\SubscriptionUnitAccess;
-use App\\Support\\CurrentBuilding;
-use Illuminate\\Http\\Request;
+use App\Models\Building;
+use App\Services\BuildingService;
+use App\Services\SubscriptionUnitAccess;
+use App\Support\CurrentBuilding;
+use Illuminate\Http\Request;
 
 class SubscriptionUnitController extends Controller
 {
