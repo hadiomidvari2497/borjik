@@ -24,7 +24,7 @@ class PaystarGateway
         $sign = hash_hmac('sha512', $amountRial.'#'.$orderId.'#'.$callback, $this->secret($settings['api_secret'] ?? null));
         $response = Http::acceptJson()
             ->asJson()
-            ->withToken((string) $settings['merchant_id'])
+            ->withToken($this->secret($settings['api_key'] ?? null))
             ->timeout(30)
             ->post($this->baseUrl($settings).'/create', [
                 'amount' => $amountRial,
@@ -100,7 +100,7 @@ class PaystarGateway
         if (! is_array($settings)
             || empty($settings['active'])
             || ($settings['driver'] ?? '') !== 'paystar'
-            || empty($settings['merchant_id'])
+            || empty($settings['api_key'])
             || empty($settings['api_secret'])) {
             throw new RuntimeException('Paystar gateway is not configured.');
         }
