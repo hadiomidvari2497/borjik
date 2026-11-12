@@ -133,10 +133,22 @@
         <div>
             <span class="property-map-eyebrow">موقعیت ملک</span>
             <h2 id="property-location-title">انتخاب موقعیت روی نقشه</h2>
-            <p>روی محل ملک کلیک کن تا نقطه ثبت شود؛ برای اصلاح موقعیت، نقطهٔ دیگری روی نقشه انتخاب کن. موقعیت عمومی آگهی با کمی جابه‌جایی نمایش داده می‌شود.</p>
+            <p>روی محل ملک کلیک کن تا نقطه ثبت شود؛ سپس خودت مشخص کن موقعیت عمومی آگهی دقیق باشد یا تقریبی.</p>
         </div>
         <span class="property-map-heading-icon" aria-hidden="true">⌖</span>
     </div>
+    <fieldset class="location-visibility-choice">
+        <legend>موقعیت ملک در آگهی عمومی چگونه نمایش داده شود؟</legend>
+        <label class="location-visibility-option">
+            <input type="radio" name="location_visibility" value="approximate" @checked(old('location_visibility', $listing->location_visibility ?: 'approximate') === 'approximate')>
+            <span><strong>موقعیت تقریبی</strong><small>نشانگر کمی جابه‌جا می‌شود تا نشانی دقیق ملک محفوظ بماند.</small></span>
+        </label>
+        <label class="location-visibility-option">
+            <input type="radio" name="location_visibility" value="exact" @checked(old('location_visibility', $listing->location_visibility ?: 'approximate') === 'exact')>
+            <span><strong>موقعیت دقیق</strong><small>همین نقطه‌ای که روی نقشه انتخاب کرده‌ای، برای همه بازدیدکنندگان نمایش داده می‌شود.</small></span>
+        </label>
+        @error('location_visibility')<span class="field-error" role="alert">{{ $message }}</span>@enderror
+    </fieldset>
 @if($mapApiKey)
     <div class="property-map-shell">
         <div id="property-location-map" role="application" aria-label="نقشه انتخاب موقعیت ملک"></div>
@@ -156,6 +168,16 @@
 </form>
 
 @push('scripts')
+<style>
+.location-visibility-choice{display:grid;gap:10px;margin:16px 0;padding:14px;border:1px solid #dfeae4;border-radius:16px;min-width:0}
+.location-visibility-choice legend{padding:0 6px;color:#244b3e;font-weight:700;font-size:14px}
+.location-visibility-option{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #e5eee9;border-radius:12px;background:#fbfdfc;cursor:pointer}
+.location-visibility-option:has(input:checked){border-color:#73ad91;background:#f0f8f3}
+.location-visibility-option input{margin-top:4px;accent-color:#16845f}
+.location-visibility-option span{display:grid;gap:4px}
+.location-visibility-option strong{color:#25483d;font-size:13px}
+.location-visibility-option small{color:#71867d;font-size:12px;line-height:1.8}
+</style>
 <script>
 (function () {
     var FA = '۰۱۲۳۴۵۶۷۸۹', AR = '٠١٢٣٤٥٦٧٨٩';
