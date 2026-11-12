@@ -103,7 +103,7 @@ class PropertyListingReportsNotificationsTest extends TestCase
         $this->actingAs($admin, 'admin')
             ->patch(route('admin.property-listings.reports.update', $report->id), [
                 'status' => 'actioned',
-                'resolution_note' => 'گزارش تأیید شد و آگهی برای بررسی بیشتر غیرفعال شد.',
+                'resolution_note' => 'گزارش شما تأیید شد و آگهی مربوطه غیرفعال شد.',
             ])
             ->assertRedirect(route('admin.property-listings.reports', ['status' => 'actioned']));
 
