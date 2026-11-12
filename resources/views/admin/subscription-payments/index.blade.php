@@ -4,7 +4,7 @@
 @php
   $F = \App\Support\Fa::class;
   $statusLabels = ['paid' => 'پرداخت موفق', 'pending' => 'در انتظار پرداخت', 'failed' => 'ناموفق'];
-  $gatewayLabels = ['zarinpal' => 'زرین‌پال'];
+  $gatewayLabels = ['zarinpal' => 'زرین‌پال', 'bitpay' => 'بیت‌پی', 'paystar' => 'پی‌استار', 'card_to_card' => 'کارت‌به‌کارت'];
   $subscriptionStatusLabels = ['active' => 'فعال', 'pending' => 'در انتظار', 'expired' => 'منقضی‌شده', 'failed' => 'ناموفق'];
 @endphp
 
@@ -75,7 +75,7 @@
     <div class="empty">تراکنشی با این فیلترها پیدا نشد.</div>
   @else
     <div class="tbl-wrap"><table class="tbl">
-      <thead><tr><th>شناسه / تاریخ</th><th>کاربر</th><th>پلن</th><th>مبلغ پرداختی</th><th>تخفیف</th><th>کد تخفیف</th><th>درگاه</th><th>وضعیت</th><th>شماره پیگیری</th></tr></thead>
+      <thead><tr><th>شناسه / تاریخ</th><th>کاربر</th><th>پلن</th><th>مبلغ پرداختی</th><th>تخفیف</th><th>کد تخفیف</th><th>درگاه</th><th>وضعیت</th><th>شماره پیگیری</th><th>رسید / اقدام</th></tr></thead>
       <tbody>
       @foreach($payments as $payment)
         <tr>
@@ -93,7 +93,20 @@
           <td>{{ data_get($payment->raw_response, 'coupon_code') ?: '—' }}</td>
           <td>{{ $gatewayLabels[$payment->gateway] ?? $payment->gateway }}</td>
           <td><span class="pill {{ ['paid' => '', 'pending' => 'h', 'failed' => 'u'][$payment->status] ?? 'h' }}">{{ $statusLabels[$payment->status] ?? $payment->status }}</span></td>
-          <td dir="ltr" style="text-align:right;font-size:12px">{{ $payment->ref_id ?: '—' }}</td>
+          <td dir="ltr" style="text-align:right;font-size:12px">{{ $payment->ref_id ?: data_get($payment->raw_response, 'transfer_tracking_code', '—') }}</td>
+          <td style="min-width:150px">
+            @if($payment->gateway === 'card_to_card')
+              @if(data_get($payment->raw_response, 'receipt_path'))
+                <a class="btn sec sm" href="{{ route('admin.subscription-payments.proof', ['payment' => $payment->id]) }}" target="_blank" rel="noopener">مشاهده رسید</a>
+              @endif
+              @if($payment->status === 'pending')
+                <form method="POST" action="{{ route('admin.subscription-payments.approve', ['payment' => $payment->id]) }}" style="margin:6px 0" data-confirm="رسید را بررسی کرده‌اید و از واریز مبلغ اطمینان دارید؟ با تأیید، اشتراک فعال و فاکتور صادر می‌شود." data-confirm-title="تأیید پرداخت کارت‌به‌کارت">@csrf<button class="btn sm" type="submit">تأیید و صدور فاکتور</button></form>
+                <form method="POST" action="{{ route('admin.subscription-payments.reject', ['payment' => $payment->id]) }}" style="margin:6px 0" data-confirm="این پرداخت رد شود و اشتراک فعال نشود؟" data-confirm-title="رد پرداخت">@csrf<input name="reason" placeholder="دلیل رد (اختیاری)" style="width:100%;margin-bottom:5px"><button class="btn danger sm" type="submit">رد پرداخت</button></form>
+              @endif
+            @else
+              —
+            @endif
+          </td>
         </tr>
       @endforeach
       </tbody>
