@@ -275,7 +275,7 @@ class SubscriptionController extends Controller
             $requestSettings['_gateway_id'] = $gatewayId;
             $result = match ($driver) {
                 'bitpay' => $bitpay->request($amount * 10, $payment->id, $user, $requestSettings),
-                'paystar' => $paystar->request($amount * 10, 'sub-'.$payment->id, $user, $requestSettings),
+                'paystar' => $paystar->request($amount * 10, 'SUB'.$payment->id, $user, $requestSettings),
                 default => $zarinpal->request($amount * 10, $payment->id, $user, $requestSettings),
             };
             $gatewayResponse = match ($driver) {
