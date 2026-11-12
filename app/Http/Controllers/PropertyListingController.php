@@ -204,6 +204,13 @@ class PropertyListingController extends Controller
     {
         $listings = PropertyListing::where('user_id', $request->user()->id)->withCount('inquiries')->latest()->paginate(15);
         $listingIds = PropertyListing::where('user_id', $request->user()->id)->pluck('id');
+        $phoneClicksByListing = DB::table('property_listing_daily_stats')
+            ->whereIn('property_listing_id', $listingIds)
+            ->selectRaw('property_listing_id, SUM(phone_clicks_count) as clicks')
+            ->groupBy('property_listing_id')->pluck('clicks', 'property_listing_id');
+        $listings->getCollection()->each(function (PropertyListing $listing) use ($phoneClicksByListing) {
+            $listing->setAttribute('phone_clicks_count', (int) ($phoneClicksByListing[$listing->id] ?? 0));
+        });
         $dailyStats = DB::table('property_listing_daily_stats')
             ->whereIn('property_listing_id', $listingIds)
             ->where('stat_date', '>=', now()->subDays(13)->toDateString())
