@@ -111,7 +111,6 @@ class PropertyListingPackageController extends Controller
 
         $order = $isPaystar
             ? PropertyListingPackageOrder::query()->where('gateway', 'paystar')->where('status', 'pending')
-                ->where('gateway_id', $gatewayId)
                 ->where(function ($query) use ($refNum, $paystarOrderId) {
                     if ($refNum !== '') $query->where('raw_response->ref_num', $refNum);
                     if ($paystarOrderId !== '') $query->orWhere('raw_response->paystar_order_id', $paystarOrderId);
