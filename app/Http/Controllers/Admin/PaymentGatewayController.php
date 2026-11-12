@@ -111,8 +111,8 @@ class PaymentGatewayController extends Controller
         if ($settings['active'] && $settings['driver'] === 'zarinpal' && empty($settings['merchant_id'])) {
             throw ValidationException::withMessages(['merchant_id' => 'برای فعال‌سازی زرین‌پال، شناسه پذیرنده لازم است.']);
         }
-        if ($settings['active'] && $settings['driver'] === 'paystar' && (empty($settings['merchant_id']) || empty($settings['api_secret']))) {
-            throw ValidationException::withMessages(['api_secret' => 'برای فعال‌سازی پی‌استار، شناسه درگاه و کلید امضا لازم است.']);
+        if ($settings['active'] && $settings['driver'] === 'paystar' && (empty($settings['api_key']) || empty($settings['api_secret']))) {
+            throw ValidationException::withMessages(['api_key' => 'برای فعال‌سازی پی‌استار، شناسه درگاه و کلید امضا لازم است.']);
         }
 
         $logoPath = $old['logo_path'] ?? null;
