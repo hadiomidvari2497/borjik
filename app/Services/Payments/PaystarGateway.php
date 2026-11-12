@@ -72,7 +72,6 @@ class PaystarGateway
             ->post($this->baseUrl($settings).'/verify', [
                 'ref_num' => $refNum,
                 'amount' => $amountRial,
-                'tracking_code' => $trackingCode,
                 'sign' => $sign,
             ])
             ->throw()
