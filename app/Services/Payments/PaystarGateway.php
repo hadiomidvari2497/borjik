@@ -67,7 +67,7 @@ class PaystarGateway
         $sign = hash_hmac('sha512', $signData, $this->secret($settings['api_secret'] ?? null));
         $response = Http::acceptJson()
             ->asJson()
-            ->withToken((string) $settings['merchant_id'])
+            ->withToken($this->secret($settings['api_key'] ?? null))
             ->timeout(20)
             ->post($this->baseUrl($settings).'/verify', [
                 'ref_num' => $refNum,
