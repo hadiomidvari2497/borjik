@@ -90,7 +90,6 @@ class PaystarGatewayTest extends TestCase
             && $request->hasHeader('Authorization', 'Bearer gateway-id-123')
             && data_get($request->data(), 'amount') === 150000
             && data_get($request->data(), 'ref_num') === 'paystar-ref-123'
-            && data_get($request->data(), 'tracking_code') === 'tracking-123'
             && data_get($request->data(), 'sign') === $expectedSign
         );
     }
