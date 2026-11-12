@@ -34,12 +34,20 @@ class SubscriptionUnitAccess
 
     public function needsSelection(Subscription $subscription): bool
     {
-        if (is_array($subscription->active_unit_ids)) {
-            return $subscription->active_unit_ids === []
-                && $this->totalUnits($subscription->building) > 0;
+        $building = $subscription->building;
+        if (! $building) {
+            return false;
         }
 
-        return $this->totalUnits($subscription->building) > (int) $subscription->units_limit;
+        $total = $this->totalUnits($building);
+        if (is_array($subscription->active_unit_ids)) {
+            $selectedCount = Unit::query()->where('building_id', $subscription->building_id)
+                ->whereIn('id', $subscription->active_unit_ids)->count();
+
+            return $selectedCount !== min($total, (int) $subscription->units_limit);
+        }
+
+        return $total > (int) $subscription->units_limit;
     }
 
     public function initializeForPlan(Subscription $subscription): void
@@ -53,6 +61,10 @@ class SubscriptionUnitAccess
     public function saveSelection(Subscription $subscription, array $ids): void
     {
         $building = $subscription->building;
+        if (! $building) {
+            throw ValidationException::withMessages(['unit_ids' => 'ساختمان این اشتراک در دسترس نیست.']);
+        }
+
         $ids = array_values(array_unique(array_map('intval', $ids)));
         $total = $this->totalUnits($building);
         $required = min($total, (int) $subscription->units_limit);
