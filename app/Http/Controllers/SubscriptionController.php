@@ -182,7 +182,7 @@ class SubscriptionController extends Controller
                         'status' => 'active',
                     ]);
                     $building->update(['subscription_id' => $subscription->id]);
-                    app(\\App\\Services\\SubscriptionUnitAccess::class)->initializeForPlan($subscription);
+                    app(\App\Services\SubscriptionUnitAccess::class)->initializeForPlan($subscription);
                     if ($lockedCoupon) {
                         CouponRedemption::create([
                             'coupon_id' => $lockedCoupon->id,
@@ -436,7 +436,7 @@ class SubscriptionController extends Controller
                     ->update(['status' => 'expired']);
 
                 $subscription->update(['status' => 'active', 'starts_at' => now()]);
-                app(\\App\\Services\\SubscriptionUnitAccess::class)->initializeForPlan($subscription);
+                app(\App\Services\SubscriptionUnitAccess::class)->initializeForPlan($subscription);
                 if ($subscription->building_id) {
                     Building::whereKey($subscription->building_id)->update(['subscription_id' => $subscription->id]);
                 }
