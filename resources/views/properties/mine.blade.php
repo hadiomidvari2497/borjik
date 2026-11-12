@@ -136,7 +136,7 @@
                         <div>@if($row['label'])<small>{{ $row['label'] }}</small>@endif<span>{{ $row['value'] }}</span></div>
                     @endforeach
                 </div>
-                <div class="my-meta"><span>وضعیت: {{ $statusLabel }}</span><span class="views"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>{{ \App\Support\Fa::num($listing->views_count ?? 0) }} بازدید</span></div>
+                <div class="my-meta"><span>وضعیت: {{ $statusLabel }}</span><span class="views"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>{{ \App\Support\Fa::num($listing->views_count ?? 0) }} بازدید</span><span>{{ \\App\\Support\\Fa::num($listing->phone_clicks_count ?? 0) }} تماس</span><span>{{ \\App\\Support\\Fa::num($listing->inquiries_count ?? 0) }} گفتگو</span></div>
                 @if($listing->expires_at)<div class="muted">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \App\Support\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>@endif
                 @if($listing->status === 'rejected' && $listing->moderation_note)<p class="muted">توضیح مدیریت: {{ $listing->moderation_note }}</p>@endif
                 <div class="card-actions">
