@@ -79,7 +79,28 @@ document.addEventListener('DOMContentLoaded',function(){
 </script>
 @endpush
 @endif
-@push('scripts')<script src="{{ asset('js/marketplace.js') }}?v={{ @filemtime(public_path('js/marketplace.js')) }}" defer></script>@endpush
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const phoneLinks = document.querySelectorAll('a[href^="tel:"]');
+    const endpoint = @json(route('properties.phone-click', $listing));
+    const token = @json(csrf_token());
+    phoneLinks.forEach(function (link) {
+        link.addEventListener('click', function () {
+            const body = new URLSearchParams();
+            body.set('_token', token);
+            if (navigator.sendBeacon) {
+                const blob = new Blob([body.toString()], {type: 'application/x-www-form-urlencoded'});
+                navigator.sendBeacon(endpoint, blob);
+            } else {
+                fetch(endpoint, {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: body.toString(), keepalive: true});
+            }
+        }, {once: true});
+    });
+});
+</script>
+@endpush
+\n@push('scripts')<script src="{{ asset('js/marketplace.js') }}?v={{ @filemtime(public_path('js/marketplace.js')) }}" defer></script>@endpush
 @section('content')
 <style>
 .property-location-map{height:340px;min-height:280px;width:100%;overflow:hidden;border-radius:18px;background:#edf3ef}
