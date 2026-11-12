@@ -131,7 +131,7 @@ class PropertyListingReportsNotificationsTest extends TestCase
             ->assertOk()
             ->assertSee('بازارچه املاک')
             ->assertSee('گزارش تخلف بررسی شد')
-            ->assertSee('گزارش تأیید شد و آگهی برای بررسی بیشتر غیرفعال شد.');
+            ->assertSee('گزارش شما تأیید شد و آگهی مربوطه غیرفعال شد.');
 
         $notification = $this->reporter->notifications()->firstOrFail();
         $this->actingAs($this->reporter)
