@@ -307,6 +307,7 @@ class PropertyListingController extends Controller
 
     private function validated(Request $request, ?PropertyListing $listing = null): array
     {
+        $request->merge(['location_visibility' => $request->input('location_visibility', $listing?->location_visibility ?? 'approximate')]);
         $this->normalizeNumericInput($request);
 
         $data = $request->validate([
