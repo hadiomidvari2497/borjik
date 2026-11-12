@@ -53,17 +53,17 @@
     @error('coupon_code')<div class="bl-err">{{ $message }}</div>@enderror
 </section>
 <section class="bl-card"><h3><i>۳</i>انتخاب درگاه پرداخت</h3>
-    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); $gwLogo = $gateway['logo_path'] ?? null; @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">@if($gwLogo)<img src="{{ asset('storage/'.ltrim($gwLogo, '/')) }}" alt="" loading="lazy">@else{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}@endif</span><span><b>{{ $gwName }}</b><small>پرداخت آنلاین امن و هدایت به درگاه بانکی</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
+    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); $gwLogo = $gateway['logo_path'] ?? null; @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" data-driver="{{ $gateway['driver'] ?? '' }}" data-card-number="{{ $gateway['card_number'] ?? '' }}" data-account-holder="{{ $gateway['account_holder'] ?? '' }}" data-bank-name="{{ $gateway['bank_name'] ?? '' }}" data-transfer-instructions="{{ $gateway['transfer_instructions'] ?? '' }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">@if($gwLogo)<img src="{{ asset('storage/'.ltrim($gwLogo, '/')) }}" alt="" loading="lazy">@else{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}@endif</span><span><b>{{ $gwName }}</b><small>پرداخت آنلاین امن و هدایت به درگاه بانکی</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
     @else<div class="bl-hint">درگاه فعالی برای پرداخت تنظیم نشده است.</div>@endif
     @php $manualGateway = collect($paymentGateways)->firstWhere('driver', 'card_to_card'); @endphp
     @if($manualGateway)
     <div id="card-to-card-details" class="bl-card" hidden style="margin-top:14px;border:1px dashed #cbd5e1">
         <h4 style="margin:0 0 10px">پرداخت کارت‌به‌کارت</h4>
         <p class="bl-hint">مبلغ دقیق سفارش را به کارت زیر واریز کنید. اشتراک پس از بررسی رسید توسط مدیر سیستم فعال خواهد شد.</p>
-        <div class="bl-sr"><span>بانک</span><strong>{{ $manualGateway['bank_name'] ?? '—' }}</strong></div>
-        <div class="bl-sr"><span>شماره کارت</span><strong dir="ltr" style="font-size:16px">{{ $manualGateway['card_number'] ?? '' }}</strong><button type="button" class="bl-mini" id="copy-card-number" data-card-number="{{ $manualGateway['card_number'] ?? '' }}">کپی شماره کارت</button></div>
-        <div class="bl-sr"><span>به نام</span><strong>{{ $manualGateway['account_holder'] ?? '' }}</strong></div>
-        @if(!empty($manualGateway['transfer_instructions']))<p class="bl-hint">{{ $manualGateway['transfer_instructions'] }}</p>@endif
+        <div class="bl-sr"><span>بانک</span><strong id="manual-bank-name">{{ $manualGateway['bank_name'] ?? '—' }}</strong></div>
+        <div class="bl-sr"><span>شماره کارت</span><strong id="manual-card-number" dir="ltr" style="font-size:16px">{{ $manualGateway['card_number'] ?? '' }}</strong><button type="button" class="bl-mini" id="copy-card-number" data-card-number="{{ $manualGateway['card_number'] ?? '' }}">کپی شماره کارت</button></div>
+        <div class="bl-sr"><span>به نام</span><strong id="manual-account-holder">{{ $manualGateway['account_holder'] ?? '' }}</strong></div>
+        <p id="manual-transfer-instructions" class="bl-hint">{{ $manualGateway['transfer_instructions'] ?? '' }}</p>
         <div class="bl-field" style="margin-top:12px"><label for="transfer_tracking_code">کد پیگیری / شماره مرجع واریز *</label><input id="transfer_tracking_code" name="transfer_tracking_code" value="{{ old('transfer_tracking_code') }}" maxlength="100" placeholder="کد درج‌شده روی رسید"></div>
         @error('transfer_tracking_code')<div class="bl-err">{{ $message }}</div>@enderror
         <div class="bl-field" style="margin-top:10px"><label for="transfer_payer_name">نام واریزکننده (اختیاری)</label><input id="transfer_payer_name" name="transfer_payer_name" value="{{ old('transfer_payer_name') }}" maxlength="120"></div>
@@ -97,11 +97,22 @@
     const gatewayInputs = Array.from(document.querySelectorAll('input[name="gateway_id"]'));
     const manualDetails = document.getElementById('card-to-card-details');
     const submitButton = document.getElementById('checkout-submit');
-    const manualGatewayId = @json((string) (collect($paymentGateways)->search(fn($gateway) => ($gateway['driver'] ?? '') === 'card_to_card') ?: ''));
     const syncGateway = () => {
         const selected = gatewayInputs.find(item => item.checked);
-        const manual = !!selected && !!manualDetails && selected.value === manualGatewayId;
+        const manual = !!selected && !!manualDetails && selected.dataset.driver === 'card_to_card';
         if (manualDetails) manualDetails.hidden = !manual;
+        if (manual) {
+            const bank = document.getElementById('manual-bank-name');
+            const card = document.getElementById('manual-card-number');
+            const holder = document.getElementById('manual-account-holder');
+            const instructions = document.getElementById('manual-transfer-instructions');
+            const copy = document.getElementById('copy-card-number');
+            if (bank) bank.textContent = selected.dataset.bankName || '—';
+            if (card) card.textContent = selected.dataset.cardNumber || '';
+            if (holder) holder.textContent = selected.dataset.accountHolder || '';
+            if (instructions) instructions.textContent = selected.dataset.transferInstructions || '';
+            if (copy) copy.dataset.cardNumber = selected.dataset.cardNumber || '';
+        }
         if (submitButton) submitButton.innerHTML = manual ? 'ثبت رسید برای بررسی مدیر <span aria-hidden="true">←</span>' : 'ادامه و پرداخت امن <span aria-hidden="true">←</span>';
         const tracking = document.getElementById('transfer_tracking_code');
         const receipt = document.getElementById('transfer_receipt');
