@@ -5,6 +5,9 @@
 <link rel="stylesheet" href="{{ asset('css/billing.css') }}">
 @php
     $eff = (int) $plan->effectivePrice();
+    $unitCount = (int) ($unitCount ?? 0);
+    $isDowngrade = $unitCount > (int) $plan->units_limit;
+    $excessCount = max(0, $unitCount - (int) $plan->units_limit);
     $hasDiscount = $plan->discountIsActive() && (int) $plan->price > $eff;
     $savedAmount = $hasDiscount ? (int) $plan->price - $eff : 0;
     $planDiscountLabel = $hasDiscount
@@ -19,10 +22,23 @@
     <p>اشتراک ساختمان «{{ $building->name }}» را بررسی کنید، در صورت داشتن کد تخفیف آن را وارد کنید و درگاه پرداخت را انتخاب کنید.</p>
     <ol class="bl-steps" aria-label="مراحل خرید"><li class="done"><i>✓</i>انتخاب پلن</li><li class="on"><i>۲</i>تکمیل خرید</li><li><i>۳</i>دریافت فاکتور</li></ol>
 </section>
+@if($isDowngrade)
+<div class="bl-note" role="alert" style="border-right:4px solid #d97706;background:#fff8e8;color:#75420b;padding:14px;margin:12px 0">
+    <strong>توجه: ظرفیت پلن انتخابی کمتر از تعداد واحدهای ساختمان شماست.</strong>
+    <p style="margin:8px 0 0">ساختمان شما {{ $F::num($unitCount) }} واحد دارد، اما این پلن فقط {{ $F::num($plan->units_limit) }} واحد را پوشش می‌دهد. پس از فعال شدن اشتراک باید {{ $F::num($plan->units_limit) }} واحد را برای ادامه فعالیت انتخاب کنید. {{ $F::num($excessCount) }} واحد دیگر حذف نمی‌شوند و اطلاعات و سوابقشان محفوظ می‌ماند، اما عملیات مدیریتی و امکانات اشتراکی آن‌ها تا زمان ارتقای پلن محدود خواهد شد.</p>
+</div>
+@endif
 @if(session('error'))<div class="bl-note" role="alert">{{ session('error') }}</div>@endif
 @if(!$gatewayReady && $eff > 0)<div class="bl-note">در حال حاضر درگاه پرداخت فعالی وجود ندارد. لطفاً بعداً مراجعه کنید.</div>@endif
 <form method="POST" action="{{ route('subscription.subscribe',['id'=>$plan->id]) }}">
 @csrf
+@if($isDowngrade)
+    <label class="bl-card" style="display:flex;gap:10px;align-items:flex-start;margin-bottom:14px">
+        <input type="checkbox" name="accept_downgrade" value="1" required @checked(old('accept_downgrade')) style="margin-top:5px">
+        <span>متوجه شدم و تأیید می‌کنم که پس از فعال شدن پلن، باید واحدهای مشمول ظرفیت جدید را انتخاب کنم و واحدهای مازاد فقط به‌صورت آرشیوی و قابل مشاهده باقی می‌مانند.</span>
+    </label>
+    @error('accept_downgrade')<div class="bl-err">{{ $message }}</div>@enderror
+@endif
 <div class="bl-grid"><div>
 <section class="bl-card"><h3><i>۱</i>اشتراک انتخاب‌شده</h3>
     <div class="bl-chosen"><small class="tag">پلن انتخاب‌شده</small><strong>{{ $plan->name }}</strong>
