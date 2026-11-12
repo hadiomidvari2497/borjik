@@ -34,12 +34,15 @@ class SubscriptionUnitAccess
 
     public function needsSelection(Subscription $subscription): bool
     {
+        $total = $this->totalUnits($subscription->building);
         if (is_array($subscription->active_unit_ids)) {
-            return $subscription->active_unit_ids === []
-                && $this->totalUnits($subscription->building) > 0;
+            $selectedCount = Unit::query()->where('building_id', $subscription->building_id)
+                ->whereIn('id', $subscription->active_unit_ids)->count();
+
+            return $selectedCount !== min($total, (int) $subscription->units_limit);
         }
 
-        return $this->totalUnits($subscription->building) > (int) $subscription->units_limit;
+        return $total > (int) $subscription->units_limit;
     }
 
     public function initializeForPlan(Subscription $subscription): void
