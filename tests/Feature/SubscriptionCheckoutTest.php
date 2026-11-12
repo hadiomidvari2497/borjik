@@ -13,6 +13,8 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -159,6 +161,46 @@ class SubscriptionCheckoutTest extends TestCase
             ->assertRedirect(route('dashboard'));
 
         $this->assertDatabaseHas('subscriptions', ['user_id' => $this->user->id, 'building_id' => $this->building->id, 'plan_id' => $free->id, 'status' => 'active']);
+    }
+
+
+    public function test_card_to_card_payment_waits_for_admin_approval_and_stores_receipt_privately(): void
+    {
+        Storage::fake('local');
+        SiteSetting::set('payment.gateways', [
+            'manual-card' => [
+                'provider_name' => 'کارت‌به‌کارت',
+                'driver' => 'card_to_card',
+                'card_number' => '6037991234567890',
+                'account_holder' => 'صابخونه',
+                'bank_name' => 'بانک ملی',
+                'active' => true,
+            ],
+        ], true);
+
+        $this->asBuilding()
+            ->post(route('subscription.subscribe', $this->paidPlan->id), [
+                'gateway_id' => 'manual-card',
+                'transfer_tracking_code' => 'TRX-123456',
+                'transfer_payer_name' => 'کاربر پرداخت',
+                'transfer_receipt' => UploadedFile::fake()->image('receipt.png'),
+            ])
+            ->assertRedirect(route('subscription.show'))
+            ->assertSessionHas('status');
+
+        $subscription = Subscription::query()->where('user_id', $this->user->id)->firstOrFail();
+        $payment = SubscriptionPayment::query()->where('user_id', $this->user->id)->firstOrFail();
+
+        $this->assertSame('pending', $subscription->status);
+        $this->assertSame('pending', $payment->status);
+        $this->assertSame('card_to_card', $payment->gateway);
+        $this->assertSame('TRX-123456', data_get($payment->raw_response, 'transfer_tracking_code'));
+        $this->assertSame(125000, (int) $payment->amount);
+        $this->assertDatabaseMissing('subscriptions', ['user_id' => $this->user->id, 'status' => 'active']);
+
+        $receiptPath = (string) data_get($payment->raw_response, 'receipt_path');
+        $this->assertStringStartsWith('private/payment-proofs/', $receiptPath);
+        Storage::disk('local')->assertExists($receiptPath);
     }
 
     public function test_lower_capacity_plan_warns_before_activation_and_requires_acknowledgement(): void
