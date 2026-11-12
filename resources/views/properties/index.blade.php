@@ -1,6 +1,14 @@
 @extends('layouts.marketplace')
 @section('title', 'خرید، فروش و اجاره ملک')
 @section('content')
+<style>
+.property-map-feature-card{position:absolute;z-index:5;top:14px;right:14px;width:min(300px,calc(100% - 28px));padding:16px;border:1px solid #dce9e2;border-radius:16px;background:#fff;box-shadow:0 12px 36px rgba(20,55,42,.2);direction:rtl}
+.property-map-feature-card[hidden]{display:none}
+.property-map-feature-card strong{display:block;padding-left:28px;color:#21483a;font-size:14px;line-height:1.8}
+.property-map-feature-card p{margin:6px 0 12px;color:#647b70;font-size:13px}
+.property-map-feature-card a{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:10px;background:#16845f;color:#fff;text-decoration:none;font-size:12px;font-weight:700}
+.property-map-feature-close{position:absolute;top:8px;left:9px;width:28px;height:28px;border:0;border-radius:50%;background:#eff5f1;color:#456458;font-size:19px;cursor:pointer}
+</style>
 @php($mapApiKey = $mapApiKey ?? config('services.neshan.map_key'))
 @if($mapApiKey)
     @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
@@ -102,7 +110,7 @@
 <aside class="map-panel" id="property-map-panel">
     @if($mapApiKey)
         <div id="property-results-map" aria-label="نقشه آگهی‌های ملکی"></div>
-        <p class="map-caption">موقعیت نشانگرها تقریبی است و نشانی دقیق ملک نمایش داده نمی‌شود.</p>
+        <p class="map-caption">دقت موقعیت هر آگهی مطابق انتخاب ثبت‌کننده است؛ آگهی‌های دارای موقعیت تقریبی با جابه‌جایی نشان داده می‌شوند.</p>
         <p class="map-status" id="property-map-status" role="status">برای مشاهده آگهی‌های محدوده، نقشه را جابه‌جا کنید.</p>
     @else
         <div class="empty"><h3>نقشه هنوز فعال نشده</h3><p class="muted">پس از ثبت کلید نقشه در تنظیمات سرور، آگهی‌های دارای موقعیت روی نقشه نمایش داده می‌شوند.</p></div>
@@ -119,7 +127,14 @@
         const map = new maplibregl.Map({container:el,style:'https://static.neshan.org/sdk/maplibre/styles/light.json',center:[51.389,35.6892],zoom:5,apiKey:@json($mapApiKey)});
         const status=document.getElementById('property-map-status'), sourceId='property-listing-points';
         let requestId=0, initialLoad=true, sourceReady=false;
-        const collection=points=>({type:'FeatureCollection',features:points.map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.longitude,p.latitude]},properties:{id:p.id,title:p.title,price:p.price,url:p.url}}))});
+        const featureCard=document.createElement('div');
+        featureCard.className='property-map-feature-card';featureCard.hidden=true;
+        featureCard.innerHTML='<button type="button" class="property-map-feature-close" aria-label="بستن">×</button><strong></strong><p></p><a></a>';
+        const featureTitle=featureCard.querySelector('strong'),featurePrice=featureCard.querySelector('p'),featureLink=featureCard.querySelector('a');
+        featureCard.addEventListener('click',event=>event.stopPropagation());
+        featureCard.querySelector('button').addEventListener('click',()=>{featureCard.hidden=true;});
+        el.appendChild(featureCard);
+        const collection=points=>({type:'FeatureCollection',features:points.map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.longitude,p.latitude]},properties:{id:p.id,title:p.title,price:p.price,url:p.url,location_visibility:p.location_visibility}}))});
         const refresh=async()=>{
             const id=++requestId, params=new URLSearchParams(window.location.search);
             if(!initialLoad){const b=map.getBounds();params.set('south',b.getSouth());params.set('west',b.getWest());params.set('north',b.getNorth());params.set('east',b.getEast());}
@@ -146,13 +161,15 @@
             map.addLayer({id:'property-listing-points',type:'circle',source:sourceId,paint:{'circle-radius':['interpolate',['linear'],['zoom'],5,6,14,10],'circle-color':'#16845f','circle-stroke-color':'#fff','circle-stroke-width':2}});
             map.addLayer({id:'property-listing-labels',type:'symbol',source:sourceId,layout:{'text-field':['get','price'],'text-size':11,'text-offset':[0,1.8],'text-anchor':'top'},paint:{'text-color':'#174b3a','text-halo-color':'#fff','text-halo-width':1.5}});
             sourceReady=true;
-            map.on('click','property-listing-points',event=>{
-                const feature=event.features&&event.features[0];if(!feature)return;
-                const p=feature.properties||{},box=document.createElement('div'),title=document.createElement('strong'),price=document.createElement('p'),link=document.createElement('a');
-                title.textContent=p.title||'جزئیات آگهی';price.textContent=p.price||'';
-                link.href=p.url||'#';link.textContent='مشاهده آگهی';link.className='btn lg';
-                box.append(title,price,link);
-                new maplibregl.Popup({offset:12,closeButton:true,closeOnClick:true,maxWidth:'280px'}).setLngLat(event.lngLat).setDOMContent(box).addTo(map);
+            map.on('click',event=>{
+                let features=[];
+                try{features=map.queryRenderedFeatures(event.point,{layers:['property-listing-points']})||[];}catch(error){console.error('Property map hit-test failed:',error);}
+                if(!features.length){featureCard.hidden=true;return;}
+                const p=features[0].properties||{};
+                featureTitle.textContent=p.title||'جزئیات آگهی';
+                featurePrice.textContent=(p.price||'')+' · موقعیت '+(p.location_visibility==='exact'?'دقیق':'تقریبی');
+                featureLink.href=p.url||'#';featureLink.textContent='مشاهده آگهی';featureLink.hidden=!p.url;
+                featureCard.hidden=false;
             });
             map.on('mouseenter','property-listing-points',()=>map.getCanvas().style.cursor='pointer');
             map.on('mouseleave','property-listing-points',()=>map.getCanvas().style.cursor='');

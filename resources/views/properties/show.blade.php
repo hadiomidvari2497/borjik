@@ -69,7 +69,8 @@ document.addEventListener('DOMContentLoaded',function(){
     const el=document.getElementById('property-detail-map');
     if(!el||!window.maplibregl)return;
     const lng=@json($mapPoint['longitude']),lat=@json($mapPoint['latitude']);
-    const map=new maplibregl.Map({container:el,style:'https://static.neshan.org/sdk/maplibre/styles/light.json',center:[lng,lat],zoom:15,apiKey:@json($mapApiKey)});
+    const isExact=@json($listing->location_visibility === 'exact');
+    const map=new maplibregl.Map({container:el,style:'https://static.neshan.org/sdk/maplibre/styles/light.json',center:[lng,lat],zoom:isExact?16:14,apiKey:@json($mapApiKey)});
     map.on('load',function(){
         map.addSource('property-detail-location',{type:'geojson',data:{type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:{}}});
         map.addLayer({id:'property-detail-location-point',type:'circle',source:'property-detail-location',paint:{'circle-radius':10,'circle-color':'#16845f','circle-stroke-color':'#fff','circle-stroke-width':3}});
@@ -227,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function () {
         <section class="panel rise" aria-labelledby="property-location-title">
             <h2 id="property-location-title">موقعیت ملک روی نقشه</h2>
             @if($mapApiKey)
-                <div id="property-detail-map" class="property-location-map" role="img" aria-label="موقعیت تقریبی ملک روی نقشه"></div>
-                <p class="property-location-note">برای حفظ حریم خصوصی، نشانگر محل تقریبی ملک را نمایش می‌دهد و نه نشانی دقیق آن را.</p>
+                <div id="property-detail-map" class="property-location-map" role="img" aria-label="موقعیت {{ $listing->location_visibility === 'exact' ? 'دقیق' : 'تقریبی' }} ملک روی نقشه"></div>
+                <p class="property-location-note">@if($listing->location_visibility === 'exact')ثبت‌کننده آگهی انتخاب کرده است که موقعیت دقیق ملک روی نقشه برای همه نمایش داده شود.@elseثبت‌کننده آگهی نمایش موقعیت تقریبی را انتخاب کرده است؛ نشانگر برای حفظ حریم خصوصی کمی جابه‌جا شده است.@endif</p>
             @else
                 <p class="property-location-note">موقعیت این ملک ثبت شده است؛ نمایش نقشه پس از فعال‌سازی سرویس نقشه در دسترس خواهد بود.</p>
             @endif

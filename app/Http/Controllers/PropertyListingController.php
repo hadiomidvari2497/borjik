@@ -87,8 +87,8 @@ class PropertyListingController extends Controller
     }
 
     /**
-     * Public map search. Exact listing coordinates are never returned to browsers;
-     * a stable, deterministic offset is applied before the public point is emitted.
+     * Public map search. Coordinates are offset unless the listing owner explicitly
+     * opted into showing the exact location.
      */
     public function mapSearch(Request $request)
     {
@@ -130,10 +130,10 @@ class PropertyListingController extends Controller
             ->when(isset($bounds['bedrooms']), fn ($q) => $q->where('bedrooms', '>=', (int) $bounds['bedrooms']))
             ->when(! empty($bounds['parking']), fn ($q) => $q->where('parking_count', '>', 0))->latest()->limit(600);
 
-        $points = $query->get(['id', 'title', 'listing_type', 'price', 'deposit', 'monthly_rent', 'latitude', 'longitude'])
+        $points = $query->get(['id', 'title', 'listing_type', 'price', 'deposit', 'monthly_rent', 'latitude', 'longitude', 'location_visibility'])
             ->map(function (PropertyListing $listing) {
                 $amount = $listing->listing_type === 'rent' ? ($listing->monthly_rent ?: $listing->deposit) : ($listing->price ?: $listing->deposit);
-                return array_merge(['id' => $listing->id, 'title' => $listing->title, 'listing_type' => $listing->listing_type, 'price' => $amount ? \App\Support\Fa::short((int) $amount).' تومان' : 'توافقی', 'url' => route('properties.show', $listing)], $this->publicMapPoint($listing));
+                return array_merge(['id' => $listing->id, 'title' => $listing->title, 'listing_type' => $listing->listing_type, 'price' => $amount ? \App\Support\Fa::short((int) $amount).' تومان' : 'توافقی', 'url' => route('properties.show', $listing), 'location_visibility' => $listing->location_visibility ?: 'approximate'], $this->publicMapPoint($listing));
             })
             ->filter(fn (array $point) => ! $hasBounds || ($point['latitude'] >= $bounds['south'] && $point['latitude'] <= $bounds['north'] && $point['longitude'] >= $bounds['west'] && $point['longitude'] <= $bounds['east']))
             ->values();
@@ -142,6 +142,10 @@ class PropertyListingController extends Controller
 
     private function publicMapPoint(PropertyListing $listing): array
     {
+        if ($listing->location_visibility === 'exact') {
+            return ['latitude' => (float) $listing->latitude, 'longitude' => (float) $listing->longitude];
+        }
+
         $seed = hash('sha256', (string) $listing->id);
         return [
             'latitude' => round((float) $listing->latitude + ((hexdec(substr($seed, 0, 4)) / 65535) - 0.5) * 0.006, 4),
@@ -303,6 +307,7 @@ class PropertyListingController extends Controller
 
     private function validated(Request $request, ?PropertyListing $listing = null): array
     {
+        $request->merge(['location_visibility' => $request->input('location_visibility', $listing?->location_visibility ?? 'approximate')]);
         $this->normalizeNumericInput($request);
 
         $data = $request->validate([
@@ -317,6 +322,7 @@ class PropertyListingController extends Controller
             'address' => ['nullable', 'string', 'max:500'],
             'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
+            'location_visibility' => ['required', Rule::in(['approximate', 'exact'])],
             'hide_address' => ['sometimes', 'boolean'],
             'allow_phone_call' => ['sometimes', 'boolean'],
             'allow_sms' => ['sometimes', 'boolean'],
