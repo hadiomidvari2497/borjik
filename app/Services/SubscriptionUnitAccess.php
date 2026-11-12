@@ -36,7 +36,7 @@ class SubscriptionUnitAccess
     {
         if (is_array($subscription->active_unit_ids)) {
             return $subscription->active_unit_ids === []
-                && $this->totalUnits($subscription->building) > (int) $subscription->units_limit;
+                && $this->totalUnits($subscription->building) > 0;
         }
 
         return $this->totalUnits($subscription->building) > (int) $subscription->units_limit;
