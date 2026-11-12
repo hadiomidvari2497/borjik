@@ -27,7 +27,7 @@
     </div>
     <div class="performance-chart-wrap">
         <h3>روند بازدید روزانه</h3>
-        @php($maxDailyViews = max(1, (int) $dailyStats->max('views')))
+        @php\n    $maxDailyViews = max(1, (int) $dailyStats->max('views'));\n@endphp
         @if($dailyStats->isNotEmpty())
         <div class="performance-chart" role="img" aria-label="نمودار بازدید روزانه در ۱۴ روز اخیر">
             @foreach($dailyStats as $day)
