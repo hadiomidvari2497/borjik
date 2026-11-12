@@ -91,7 +91,7 @@ function updatePaystarHelp(){
   if(merchantLabel) merchantLabel.textContent='شناسه پذیرنده';
   if(merchantHelp) merchantHelp.textContent=isPaystar?'برای پی‌استار لازم نیست؛ شناسه درگاه را در فیلد بالا وارد کنید.':'شناسه پذیرنده یا Merchant ID درگاه را وارد کنید.';
 }
-document.getElementById('driver')?.addEventListener('change',updatePaystarHelp);
+document.getElementById('driver')?.addEventListener('change',function(){if(this.value==='paystar')document.getElementById('environment').value='production';updatePaystarHelp();});
 document.getElementById('environment')?.addEventListener('change',function(){if(document.getElementById('driver').value==='zarinpal')document.getElementById('api_base_url').value=this.value==='sandbox'?'https://sandbox.zarinpal.com/pg/v4':'https://payment.zarinpal.com/pg/v4';});
 updatePaystarHelp();
 </script>
