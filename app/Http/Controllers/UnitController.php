@@ -47,6 +47,9 @@ class UnitController extends Controller
             'blocks' => Block::orderBy('number')->get(),
             'balances' => $finance->balances($units->pluck('id')->all()),
             'quota' => $sub ? ['used' => $limit->used($sub), 'limit' => $sub->units_limit, 'active' => $sub->isActive(), 'active_count' => count($activeIds), 'total' => $unitAccess->totalUnits($building)] : null,
+            'archivedUnits' => $sub && is_array($sub->active_unit_ids)
+                ? Unit::with('block')->where('building_id', $building->id)->whereNotIn('id', $activeIds)->orderBy('block_id')->orderByRaw('cast(number as unsigned), number')->get()
+                : collect(),
         ]);
     }
 
