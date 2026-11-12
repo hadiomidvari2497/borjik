@@ -93,36 +93,30 @@ class PropertyListingController extends Controller
     public function mapSearch(Request $request)
     {
         $bounds = $request->validate([
-            'south' => ['required', 'numeric', 'between:-85,85'],
-            'west' => ['required', 'numeric', 'between:-180,180'],
-            'north' => ['required', 'numeric', 'between:-85,85'],
-            'east' => ['required', 'numeric', 'between:-180,180'],
+            'south' => ['nullable', 'numeric', 'between:-85,85'],
+            'west' => ['nullable', 'numeric', 'between:-180,180'],
+            'north' => ['nullable', 'numeric', 'between:-85,85'],
+            'east' => ['nullable', 'numeric', 'between:-180,180'],
             'q' => ['nullable', 'string', 'max:120'],
             'listing_type' => ['nullable', Rule::in(['sale', 'rent', 'buy_request', 'rent_request'])],
             'property_type' => ['nullable', Rule::in(['residential', 'commercial', 'land'])],
-            'province' => ['nullable', 'string', 'max:100'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'neighborhood' => ['nullable', 'string', 'max:120'],
-            'min_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
-            'max_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
-            'min_price' => ['nullable', 'integer', 'min:0'],
-            'max_price' => ['nullable', 'integer', 'min:0'],
-            'bedrooms' => ['nullable', 'integer', 'min:0', 'max:30'],
+            'province' => ['nullable', 'string', 'max:100'], 'city' => ['nullable', 'string', 'max:100'],
+            'neighborhood' => ['nullable', 'string', 'max:120'], 'min_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'],
+            'max_area' => ['nullable', 'numeric', 'min:1', 'max:1000000'], 'min_price' => ['nullable', 'integer', 'min:0'],
+            'max_price' => ['nullable', 'integer', 'min:0'], 'bedrooms' => ['nullable', 'integer', 'min:0', 'max:30'],
             'parking' => ['nullable', 'boolean'],
         ]);
+        $keys = ['south', 'west', 'north', 'east'];
+        $hasAnyBounds = collect($keys)->contains(fn ($key) => isset($bounds[$key]));
+        $hasBounds = collect($keys)->every(fn ($key) => isset($bounds[$key]));
+        abort_if($hasAnyBounds && ! $hasBounds, 422, 'محدوده نقشه ناقص است.');
+        abort_if($hasBounds && ($bounds['south'] >= $bounds['north'] || $bounds['west'] >= $bounds['east']), 422, 'محدوده نقشه معتبر نیست.');
 
-        abort_if($bounds['south'] >= $bounds['north'] || $bounds['west'] >= $bounds['east'], 422, 'محدوده نقشه معتبر نیست.');
-
-        $query = PropertyListing::query()->published()
-            ->whereNotNull('latitude')->whereNotNull('longitude')
-            // Fetch a padded candidate area because public marker coordinates are blurred.
-            ->whereBetween('latitude', [$bounds['south'] - 0.015, $bounds['north'] + 0.015])
-            ->whereBetween('longitude', [$bounds['west'] - 0.015, $bounds['east'] + 0.015])
+        $query = PropertyListing::query()->published()->whereNotNull('latitude')->whereNotNull('longitude')
+            ->when($hasBounds, fn ($q) => $q->whereBetween('latitude', [$bounds['south'] - 0.015, $bounds['north'] + 0.015])->whereBetween('longitude', [$bounds['west'] - 0.015, $bounds['east'] + 0.015]))
             ->when(! empty($bounds['q']), function ($q) use ($bounds) {
                 $term = trim($bounds['q']);
-                $q->where(fn ($nested) => $nested->where('title', 'like', '%'.$term.'%')
-                    ->orWhere('description', 'like', '%'.$term.'%')
-                    ->orWhere('neighborhood', 'like', '%'.$term.'%'));
+                $q->where(fn ($nested) => $nested->where('title', 'like', '%'.$term.'%')->orWhere('description', 'like', '%'.$term.'%')->orWhere('neighborhood', 'like', '%'.$term.'%'));
             })
             ->when(! empty($bounds['listing_type']), fn ($q) => $q->where('listing_type', $bounds['listing_type']))
             ->when(! empty($bounds['property_type']), fn ($q) => $q->where('property_type', $bounds['property_type']))
@@ -134,61 +128,39 @@ class PropertyListingController extends Controller
             ->when(isset($bounds['min_price']), fn ($q) => $q->whereRaw('COALESCE(monthly_rent, price, deposit) >= ?', [(int) $bounds['min_price']]))
             ->when(isset($bounds['max_price']), fn ($q) => $q->whereRaw('COALESCE(monthly_rent, price, deposit) <= ?', [(int) $bounds['max_price']]))
             ->when(isset($bounds['bedrooms']), fn ($q) => $q->where('bedrooms', '>=', (int) $bounds['bedrooms']))
-            ->when(! empty($bounds['parking']), fn ($q) => $q->where('parking_count', '>', 0))
-            ->latest()
-            ->limit(600);
+            ->when(! empty($bounds['parking']), fn ($q) => $q->where('parking_count', '>', 0))->latest()->limit(600);
 
-        $points = $query->get([
-            'id', 'title', 'listing_type', 'price', 'deposit', 'monthly_rent', 'latitude', 'longitude',
-        ])->map(function (PropertyListing $listing) {
-            $seed = hash('sha256', (string) $listing->id);
-            $latOffset = ((hexdec(substr($seed, 0, 4)) / 65535) - 0.5) * 0.006;
-            $lngOffset = ((hexdec(substr($seed, 4, 4)) / 65535) - 0.5) * 0.006;
-            $latitude = round((float) $listing->latitude + $latOffset, 4);
-            $longitude = round((float) $listing->longitude + $lngOffset, 4);
-            $amount = $listing->listing_type === 'rent'
-                ? ($listing->monthly_rent ?: $listing->deposit)
-                : ($listing->price ?: $listing->deposit);
-
-            return [
-                'id' => $listing->id,
-                'title' => $listing->title,
-                'listing_type' => $listing->listing_type,
-                'price' => $amount ? \App\Support\Fa::short((int) $amount).' تومان' : 'توافقی',
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'url' => route('properties.show', $listing),
-            ];
-        })->filter(fn (array $point) => $point['latitude'] >= $bounds['south']
-            && $point['latitude'] <= $bounds['north']
-            && $point['longitude'] >= $bounds['west']
-            && $point['longitude'] <= $bounds['east'])
+        $points = $query->get(['id', 'title', 'listing_type', 'price', 'deposit', 'monthly_rent', 'latitude', 'longitude'])
+            ->map(function (PropertyListing $listing) {
+                $amount = $listing->listing_type === 'rent' ? ($listing->monthly_rent ?: $listing->deposit) : ($listing->price ?: $listing->deposit);
+                return array_merge(['id' => $listing->id, 'title' => $listing->title, 'listing_type' => $listing->listing_type, 'price' => $amount ? \App\Support\Fa::short((int) $amount).' تومان' : 'توافقی', 'url' => route('properties.show', $listing)], $this->publicMapPoint($listing));
+            })
+            ->filter(fn (array $point) => ! $hasBounds || ($point['latitude'] >= $bounds['south'] && $point['latitude'] <= $bounds['north'] && $point['longitude'] >= $bounds['west'] && $point['longitude'] <= $bounds['east']))
             ->values();
-
         return response()->json(['data' => $points]);
+    }
+
+    private function publicMapPoint(PropertyListing $listing): array
+    {
+        $seed = hash('sha256', (string) $listing->id);
+        return [
+            'latitude' => round((float) $listing->latitude + ((hexdec(substr($seed, 0, 4)) / 65535) - 0.5) * 0.006, 4),
+            'longitude' => round((float) $listing->longitude + ((hexdec(substr($seed, 4, 4)) / 65535) - 0.5) * 0.006, 4),
+        ];
     }
 
     public function show(PropertyListing $listing)
     {
         abort_unless($listing->status === 'active' && (! $listing->expires_at || $listing->expires_at->isFuture()), 404);
-
         $listing->loadMissing('user');
-
-        // بازدید مالک آگهی شمرده نمی‌شود؛ بدون تغییر updated_at ثبت می‌شود.
         if (! auth()->check() || (int) auth()->id() !== (int) $listing->user_id) {
             DB::table('property_listings')->where('id', $listing->id)->increment('views_count');
         }
-
-        // آگهی‌های مشابه: هم‌نوع، با اولویت همان شهر؛ فقط آگهی‌های منتشرشده.
-        $similar = PropertyListing::published()
-            ->whereKeyNot($listing->getKey())
-            ->where('listing_type', $listing->listing_type)
-            ->orderByRaw('CASE WHEN city = ? THEN 0 ELSE 1 END', [(string) $listing->city])
-            ->latest()
-            ->limit(4)
-            ->get();
-
-        return view('properties.show', compact('listing', 'similar'));
+        $mapPoint = $listing->latitude !== null && $listing->longitude !== null ? $this->publicMapPoint($listing) : null;
+        $mapApiKey = config('services.neshan.map_key');
+        $similar = PropertyListing::published()->whereKeyNot($listing->getKey())->where('listing_type', $listing->listing_type)
+            ->orderByRaw('CASE WHEN city = ? THEN 0 ELSE 1 END', [(string) $listing->city])->latest()->limit(4)->get();
+        return view('properties.show', compact('listing', 'similar', 'mapPoint', 'mapApiKey'));
     }
 
     public function mine(Request $request, PropertyListingQuota $quota, PaymentGatewayRegistry $gateways)

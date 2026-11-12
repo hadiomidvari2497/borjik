@@ -57,10 +57,33 @@
 @extends('layouts.marketplace')
 @section('title', $listing->title)
 @section('meta_description', \Illuminate\Support\Str::limit(strip_tags($listing->description), 150))
+@if($mapPoint && $mapApiKey)
+@push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
+@endif
 @push('head')<script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>@endpush
+@if($mapPoint && $mapApiKey)
+@push('scripts')
+<script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+    const el=document.getElementById('property-detail-map');
+    if(!el||!window.maplibregl)return;
+    const lng=@json($mapPoint['longitude']),lat=@json($mapPoint['latitude']);
+    const map=new maplibregl.Map({container:el,style:'https://static.neshan.org/sdk/maplibre/styles/light.json',center:[lng,lat],zoom:15,apiKey:@json($mapApiKey)});
+    map.on('load',function(){
+        map.addSource('property-detail-location',{type:'geojson',data:{type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:{}}});
+        map.addLayer({id:'property-detail-location-point',type:'circle',source:'property-detail-location',paint:{'circle-radius':10,'circle-color':'#16845f','circle-stroke-color':'#fff','circle-stroke-width':3}});
+    });
+});
+</script>
+@endpush
+@endif
 @push('scripts')<script src="{{ asset('js/marketplace.js') }}?v={{ @filemtime(public_path('js/marketplace.js')) }}" defer></script>@endpush
 @section('content')
 <style>
+.property-location-map{height:340px;min-height:280px;width:100%;overflow:hidden;border-radius:18px;background:#edf3ef}
+.property-location-note{margin:10px 2px 0;color:#72857d;font-size:12px;line-height:1.8}
+@media(max-width:600px){.property-location-map{height:260px;min-height:240px}}
 .seller-contact-backdrop{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(12,28,24,.58);backdrop-filter:blur(5px)}
 .seller-contact-backdrop[hidden]{display:none}
 .seller-contact-dialog{position:relative;width:min(100%,430px);max-height:min(88vh,650px);overflow:auto;padding:28px 22px 20px;border:1px solid #e1ece7;border-radius:24px;background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.24);direction:rtl}
@@ -199,6 +222,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 <p class="address"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span>آدرس: {{ $listing->address }}</span></p>
             @endif
         </section>
+
+        @if($mapPoint)
+        <section class="panel rise" aria-labelledby="property-location-title">
+            <h2 id="property-location-title">موقعیت ملک روی نقشه</h2>
+            @if($mapApiKey)
+                <div id="property-detail-map" class="property-location-map" role="img" aria-label="موقعیت تقریبی ملک روی نقشه"></div>
+                <p class="property-location-note">برای حفظ حریم خصوصی، نشانگر محل تقریبی ملک را نمایش می‌دهد و نه نشانی دقیق آن را.</p>
+            @else
+                <p class="property-location-note">موقعیت این ملک ثبت شده است؛ نمایش نقشه پس از فعال‌سازی سرویس نقشه در دسترس خواهد بود.</p>
+            @endif
+        </section>
+        @endif
 
         @if($amenities->isNotEmpty())
         <section class="panel rise">
