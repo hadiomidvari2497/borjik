@@ -20,9 +20,9 @@
         <span class="performance-period">۱۴ روز اخیر</span>
     </div>
     <div class="performance-cards">
-        <article><span class="performance-icon">◉</span><small>بازدید آگهی‌ها</small><strong>{{ \\App\\Support\\Fa::num($performance['views']) }}</strong></article>
-        <article><span class="performance-icon">☎</span><small>کلیک روی تماس</small><strong>{{ \\App\\Support\\Fa::num($performance['phone_clicks']) }}</strong></article>
-        <article><span class="performance-icon">▤</span><small>گفتگوهای شروع‌شده</small><strong>{{ \\App\\Support\\Fa::num($performance['inquiries']) }}</strong></article>
+        <article><span class="performance-icon">◉</span><small>بازدید آگهی‌ها</small><strong>{{ \App\Support\Fa::num($performance['views']) }}</strong></article>
+        <article><span class="performance-icon">☎</span><small>کلیک روی تماس</small><strong>{{ \App\Support\Fa::num($performance['phone_clicks']) }}</strong></article>
+        <article><span class="performance-icon">▤</span><small>گفتگوهای شروع‌شده</small><strong>{{ \App\Support\Fa::num($performance['inquiries']) }}</strong></article>
     </div>
     <div class="performance-chart-wrap">
         <h3>روند بازدید روزانه</h3>
@@ -30,9 +30,9 @@
         @if($dailyStats->isNotEmpty())
         <div class="performance-chart" role="img" aria-label="نمودار بازدید روزانه در ۱۴ روز اخیر">
             @foreach($dailyStats as $day)
-                <div class="performance-day" title="{{ \\App\\Support\\Fa::digits(substr($day->stat_date, 5)) }}: {{ \\App\\Support\\Fa::num($day->views) }} بازدید">
+                <div class="performance-day" title="{{ \App\Support\Fa::digits(substr($day->stat_date, 5)) }}: {{ \App\Support\Fa::num($day->views) }} بازدید">
                     <span class="performance-bar" style="height: {{ max(4, (int) round(($day->views / $maxDailyViews) * 100)) }}%"></span>
-                    <small>{{ \\App\\Support\\Fa::digits(substr($day->stat_date, 8, 2)) }}</small>
+                    <small>{{ \App\Support\Fa::digits(substr($day->stat_date, 8, 2)) }}</small>
                 </div>
             @endforeach
         </div>
@@ -136,7 +136,7 @@
                         <div>@if($row['label'])<small>{{ $row['label'] }}</small>@endif<span>{{ $row['value'] }}</span></div>
                     @endforeach
                 </div>
-                <div class="my-meta"><span>وضعیت: {{ $statusLabel }}</span><span class="views"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>{{ \App\Support\Fa::num($listing->views_count ?? 0) }} بازدید</span><span>{{ \\App\\Support\\Fa::num($listing->phone_clicks_count ?? 0) }} تماس</span><span>{{ \\App\\Support\\Fa::num($listing->inquiries_count ?? 0) }} گفتگو</span></div>
+                <div class="my-meta"><span>وضعیت: {{ $statusLabel }}</span><span class="views"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>{{ \App\Support\Fa::num($listing->views_count ?? 0) }} بازدید</span><span>{{ \App\Support\Fa::num($listing->phone_clicks_count ?? 0) }} تماس</span><span>{{ \App\Support\Fa::num($listing->inquiries_count ?? 0) }} گفتگو</span></div>
                 @if($listing->expires_at)<div class="muted">{{ $isExpired ? 'منقضی‌شده در' : 'اعتبار تا' }} {{ \App\Support\Fa::date($listing->expires_at, 'Y/m/d H:i') }}</div>@endif
                 @if($listing->status === 'rejected' && $listing->moderation_note)<p class="muted">توضیح مدیریت: {{ $listing->moderation_note }}</p>@endif
                 <div class="card-actions">
