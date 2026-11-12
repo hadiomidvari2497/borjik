@@ -26,4 +26,9 @@ class PropertyListingReport extends Model
     {
         return $this->belongsTo(User::class, 'reporter_user_id');
     }
+
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(AdminUser::class, 'reviewed_by');
+    }
 }
