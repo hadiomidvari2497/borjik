@@ -140,9 +140,16 @@ class PropertyListingPackageController extends Controller
                 throw new RuntimeException('Stored package payment amount is invalid.');
             }
 
-            if ($isPaystar && ($refNum === '' || $cardNumber === '' || $trackingCode === '')) {
-                $this->failPendingOrder($order->id, ['paystar_callback' => $request->only(['status', 'order_id', 'ref_num'])]);
-                return redirect()->route('properties.mine')->with('error', 'پرداخت پی‌استار تکمیل نشد؛ اعتباری به حساب شما اضافه نشد.');
+            if ($isPaystar) {
+                $storedRefNum = trim((string) data_get($order->raw_response, 'ref_num', ''));
+                $storedOrderId = trim((string) data_get($order->raw_response, 'paystar_order_id', ''));
+                if (($refNum !== '' && ($storedRefNum === '' || ! hash_equals($storedRefNum, $refNum)))
+                    || ($paystarOrderId !== '' && ($storedOrderId === '' || ! hash_equals($storedOrderId, $paystarOrderId)))) {
+                    return redirect()->route('properties.mine')->with('error', 'اطلاعات بازگشت پی‌استار با سفارش ثبت‌شده مطابقت ندارد.');
+                }
+                if ($refNum === '' || $cardNumber === '' || $trackingCode === '') {
+                    return redirect()->route('properties.mine')->with('error', 'اطلاعات تأیید پرداخت پی‌استار کامل نیست؛ اعتباری اضافه نمی‌شود.');
+                }
             }
 
             $verification = $isPaystar
