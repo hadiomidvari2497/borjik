@@ -8,6 +8,9 @@ use App\Models\PaymentReceipt;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use App\Services\PaymentService;
+use App\Services\SubscriptionUnitAccess;
+use App\Models\Building;
+use App\Support\CurrentBuilding;
 use App\Support\JalaliDate;
 use DomainException;
 use Illuminate\Http\Request;
@@ -61,6 +64,13 @@ class MyPaymentController extends Controller
     {
         $ids = UnitParty::where('user_id', $request->user()->id)->whereNull('to_date')->pluck('unit_id')
             ->merge(Invoice::where('payer_user_id', $request->user()->id)->pluck('unit_id'))->unique()->values();
+
+        $buildingId = app(CurrentBuilding::class)->id();
+        $building = $buildingId ? Building::find($buildingId) : null;
+        $subscription = $building?->subscription;
+        if ($subscription && is_array($subscription->active_unit_ids)) {
+            $ids = $ids->intersect(app(SubscriptionUnitAccess::class)->activeIds($subscription));
+        }
 
         return Unit::with('block')->whereIn('id', $ids)->orderBy('block_id')->orderBy('number')->get();
     }
