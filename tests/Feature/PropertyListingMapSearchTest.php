@@ -60,6 +60,21 @@ class PropertyListingMapSearchTest extends TestCase
         $this->assertArrayNotHasKey('address', $point);
     }
 
+    public function test_exact_location_preference_returns_the_selected_coordinates_without_blurring(): void
+    {
+        $owner = $this->makeUser();
+        PropertyListing::create([
+            'user_id' => $owner->id, 'listing_type' => 'sale', 'property_type' => 'residential',
+            'title' => 'موقعیت دقیق', 'description' => 'توضیحات', 'city' => 'تهران',
+            'latitude' => 35.6892, 'longitude' => 51.3890, 'location_visibility' => 'exact', 'status' => 'active',
+        ]);
+
+        $point = $this->getJson(route('properties.map-search'))->assertOk()->json('data.0');
+        $this->assertSame(35.6892, (float) $point['latitude']);
+        $this->assertSame(51.389, (float) $point['longitude']);
+        $this->assertSame('exact', $point['location_visibility']);
+    }
+
     public function test_initial_map_search_returns_geolocated_listings_without_viewport_bounds(): void
     {
         $owner = $this->makeUser();
