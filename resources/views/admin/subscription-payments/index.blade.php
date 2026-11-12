@@ -92,7 +92,7 @@
           <td>{{ (int) data_get($payment->raw_response, 'discount_amount', 0) > 0 ? $F::money(data_get($payment->raw_response, 'discount_amount')) : '—' }}</td>
           <td>{{ data_get($payment->raw_response, 'coupon_code') ?: '—' }}</td>
           <td>{{ $gatewayLabels[$payment->gateway] ?? $payment->gateway }}</td>
-          <td><span class="pill {{ ['paid' => '', 'pending' => 'h', 'failed' => 'u'][$payment->status] ?? 'h' }}">{{ $statusLabels[$payment->status] ?? $payment->status }}</span></td>
+          <td><span class="pill {{ ['paid' => '', 'pending' => 'h', 'failed' => 'u'][$payment->status] ?? 'h' }}">{{ $payment->gateway === 'card_to_card' && $payment->status === 'pending' ? 'در انتظار بررسی مدیر' : ($statusLabels[$payment->status] ?? $payment->status) }}</span></td>
           <td dir="ltr" style="text-align:right;font-size:12px">{{ $payment->ref_id ?: data_get($payment->raw_response, 'transfer_tracking_code', '—') }}</td>
           <td style="min-width:150px">
             @if($payment->gateway === 'card_to_card')
