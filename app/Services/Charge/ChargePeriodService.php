@@ -16,6 +16,9 @@ use App\Models\Invoice;
 use App\Models\ParkingAssignment;
 use App\Models\StorageAssignment;
 use App\Models\Unit;
+use App\Models\Building;
+use App\Services\SubscriptionUnitAccess;
+use App\Support\CurrentBuilding;
 use App\Models\UnitParty;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Collection;
@@ -223,7 +226,7 @@ class ChargePeriodService
         $subscription = $buildingId ? Building::find($buildingId)?->subscription : null;
 
         if ($subscription && is_array($subscription->active_unit_ids)) {
-            $query->whereIn('id', app(\\App\\Services\\SubscriptionUnitAccess::class)->activeIds($subscription));
+            $query->whereIn('id', app(SubscriptionUnitAccess::class)->activeIds($subscription));
         }
 
         return $query;
