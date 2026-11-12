@@ -8,6 +8,9 @@ use App\Http\Controllers\Concerns\NormalizesNumbers;
 use App\Models\Contract;
 use App\Models\Invoice;
 use App\Models\Unit;
+use App\Models\Building;
+use App\Services\SubscriptionUnitAccess;
+use App\Support\CurrentBuilding;
 use App\Models\UnitParty;
 use App\Models\User;
 use App\Services\ContractService;
@@ -53,7 +56,13 @@ class ContractController extends Controller
     {
         $type = $request->query('type') === 'sale' ? 'sale' : 'rent';
 
-        $units = Unit::with('block')->orderBy('block_id')->orderBy('number')->get();
+        $buildingId = app(CurrentBuilding::class)->id();
+        $subscription = $buildingId ? Building::find($buildingId)?->subscription : null;
+        $unitsQuery = Unit::with('block')->orderBy('block_id')->orderBy('number');
+        if ($subscription && is_array($subscription->active_unit_ids)) {
+            $unitsQuery->whereIn('units.id', app(SubscriptionUnitAccess::class)->activeIds($subscription));
+        }
+        $units = $unitsQuery->get();
         if ($type === 'rent') {
             $busy = Contract::active()->where('type', 'rent')->pluck('unit_id');
             $units = $units->reject(fn (Unit $u) => $u->status->value === 'repair' || $busy->contains($u->id))->values();
