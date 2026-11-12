@@ -145,17 +145,20 @@
             map.addSource(sourceId,{type:'geojson',data:collection([])});
             map.addLayer({id:'property-listing-points',type:'circle',source:sourceId,paint:{'circle-radius':['interpolate',['linear'],['zoom'],5,6,14,10],'circle-color':'#16845f','circle-stroke-color':'#fff','circle-stroke-width':2}});
             map.addLayer({id:'property-listing-labels',type:'symbol',source:sourceId,layout:{'text-field':['get','price'],'text-size':11,'text-offset':[0,1.8],'text-anchor':'top'},paint:{'text-color':'#174b3a','text-halo-color':'#fff','text-halo-width':1.5}});
-            sourceReady=true;refresh();
+            sourceReady=true;
+            map.on('click','property-listing-points',event=>{
+                const feature=event.features&&event.features[0];if(!feature)return;
+                const p=feature.properties||{},box=document.createElement('div'),title=document.createElement('strong'),price=document.createElement('p'),link=document.createElement('a');
+                title.textContent=p.title||'جزئیات آگهی';price.textContent=p.price||'';
+                link.href=p.url||'#';link.textContent='مشاهده آگهی';link.className='btn lg';
+                box.append(title,price,link);
+                new maplibregl.Popup({offset:12,closeButton:true,closeOnClick:true,maxWidth:'280px'}).setLngLat(event.lngLat).setDOMContent(box).addTo(map);
+            });
+            map.on('mouseenter','property-listing-points',()=>map.getCanvas().style.cursor='pointer');
+            map.on('mouseleave','property-listing-points',()=>map.getCanvas().style.cursor='');
+            refresh();
         });
         map.on('moveend',()=>{if(sourceReady)refresh();});
-        map.on('click','property-listing-points',event=>{
-            const feature=event.features&&event.features[0];if(!feature)return;
-            const p=feature.properties,box=document.createElement('div'),title=document.createElement('strong'),price=document.createElement('p'),link=document.createElement('a');
-            title.textContent=p.title;price.textContent=p.price;link.href=p.url;link.textContent='مشاهده آگهی';box.append(title,price,link);
-            new maplibregl.Popup({offset:12}).setLngLat(event.lngLat).setDOMContent(box).addTo(map);
-        });
-        map.on('mouseenter','property-listing-points',()=>map.getCanvas().style.cursor='pointer');
-        map.on('mouseleave','property-listing-points',()=>map.getCanvas().style.cursor='');
         map.on('error',()=>{if(status)status.textContent='بارگذاری نقشه با خطا مواجه شد؛ کلید و سرویس نقشه را بررسی کنید.';});
         const layout=document.getElementById('property-map-layout'),listButton=document.getElementById('show-list-view'),mapButton=document.getElementById('show-map-view');
         const setView=view=>{layout.dataset.view=view;listButton.setAttribute('aria-pressed',view==='list'?'true':'false');mapButton.setAttribute('aria-pressed',view==='map'?'true':'false');if(view==='map')setTimeout(()=>map.resize(),80);};
