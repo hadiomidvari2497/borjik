@@ -15,7 +15,7 @@
     @endcan
   </div>
   @if($quota)
-    <div class="quota" style="margin-top:6px"><span>سقف اشتراک: {{ \App\Support\Fa::num($quota['used']) }} از {{ \App\Support\Fa::num($quota['limit']) }} واحد</span>
+    <div class="quota" style="margin-top:6px"><span>واحدهای فعال: {{ \App\Support\Fa::num($quota['active_count']) }} از {{ \App\Support\Fa::num($quota['total']) }} واحد (ظرفیت پلن: {{ \App\Support\Fa::num($quota['limit']) }})</span>
       <div class="bar"><i style="width:{{ min(100, $quota['limit'] ? $quota['used'] / $quota['limit'] * 100 : 0) }}%"></i></div>
       @unless($quota['active'])<span class="pill u">اشتراک منقضی است</span>@endunless</div>
   @else
