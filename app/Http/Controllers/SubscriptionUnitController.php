@@ -12,7 +12,7 @@ class SubscriptionUnitController extends Controller
 {
     public function show(SubscriptionUnitAccess $access, BuildingService $buildings)
     {
-        $building = Building::findOrFail(app(CurrentBuilding::class)->id());
+        $building = $this->managedBuilding(request());
         $subscription = $buildings->ensureActiveSubscription($building);
         abort_unless($subscription && $subscription->isActive(), 403);
 
@@ -27,7 +27,7 @@ class SubscriptionUnitController extends Controller
 
     public function store(Request $request, SubscriptionUnitAccess $access, BuildingService $buildings)
     {
-        $building = Building::findOrFail(app(CurrentBuilding::class)->id());
+        $building = $this->managedBuilding($request);
         $subscription = $buildings->ensureActiveSubscription($building);
         abort_unless($subscription && $subscription->isActive(), 403);
 
@@ -40,5 +40,16 @@ class SubscriptionUnitController extends Controller
 
         return redirect()->route('dashboard')
             ->with('status', 'واحدهای مشمول اشتراک با موفقیت ذخیره شدند.');
+    }
+
+    private function managedBuilding(Request $request): Building
+    {
+        $building = Building::findOrFail(app(CurrentBuilding::class)->id());
+        abort_unless($building->members()->where('user_id', $request->user()->id)
+            ->where('status', 'active')
+            ->whereHas('role', fn ($query) => $query->whereIn('key', ['owner', 'manager']))
+            ->exists(), 403);
+
+        return $building;
     }
 }
