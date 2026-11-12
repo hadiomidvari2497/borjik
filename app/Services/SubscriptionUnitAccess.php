@@ -7,6 +7,7 @@ use App\Models\Subscription;
 use App\Models\Unit;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class SubscriptionUnitAccess
 {
