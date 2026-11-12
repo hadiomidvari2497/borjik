@@ -7,6 +7,8 @@ use App\Models\Invoice;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use App\Support\CurrentBuilding;
+use App\Services\SubscriptionUnitAccess;
+use App\Models\Building;
 use App\Support\JalaliDate;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
@@ -91,6 +93,11 @@ class MyUnitController extends Controller
         // کارت جزئیات فقط برای واحدهایی نمایش داده می‌شود که ارتباط کاربر با آن‌ها هنوز فعال است.
         // صورت‌حساب‌های تاریخی جداگانه پایین صفحه باقی می‌مانند، بدون افشای اطلاعات فعلی واحد قبلی.
         $unitIds = $partyUnitIds->unique()->values();
+        $buildingId = app(CurrentBuilding::class)->id();
+        $subscription = $buildingId ? Building::find($buildingId)?->subscription : null;
+        if ($subscription && is_array($subscription->active_unit_ids)) {
+            $unitIds = $unitIds->intersect(app(SubscriptionUnitAccess::class)->activeIds($subscription));
+        }
 
         $units = Unit::query()
             ->whereIn('id', $unitIds)
