@@ -35,7 +35,8 @@ class SubscriptionUnitAccess
     public function needsSelection(Subscription $subscription): bool
     {
         if (is_array($subscription->active_unit_ids)) {
-            return false;
+            return $subscription->active_unit_ids === []
+                && $this->totalUnits($subscription->building) > (int) $subscription->units_limit;
         }
 
         return $this->totalUnits($subscription->building) > (int) $subscription->units_limit;
