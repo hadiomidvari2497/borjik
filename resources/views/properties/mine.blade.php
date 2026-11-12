@@ -12,7 +12,8 @@
 </section>
 
 @if(session('status'))<div class="notice" role="status">{{ session('status') }}</div>@endif
-@if(session('error'))<div class="error" role="alert">{{ session('error') }}</div>@endif\n
+@if(session('error'))<div class="error" role="alert">{{ session('error') }}</div>@endif
+
 @if(($performance['views'] ?? 0) > 0 || ($performance['phone_clicks'] ?? 0) > 0 || ($performance['inquiries'] ?? 0) > 0 || $listings->total() > 0)
 <section class="panel performance-panel" aria-labelledby="performance-title">
     <div class="performance-heading">
