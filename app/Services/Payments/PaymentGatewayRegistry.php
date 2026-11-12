@@ -36,6 +36,7 @@ class PaymentGatewayRegistry
                 'bitpay' => ! empty($gateway['api_key']),
                 'zarinpal' => ! empty($gateway['merchant_id']),
                 'paystar' => ! empty($gateway['api_key']) && ! empty($gateway['api_secret']),
+                'card_to_card' => ! empty($gateway['card_number']) && ! empty($gateway['account_holder']),
                 default => false,
             };
         });
