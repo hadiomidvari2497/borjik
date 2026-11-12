@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PropertyListing extends Model
 {
@@ -51,7 +52,12 @@ class PropertyListing extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function inquiries(): HasMany\n    {\n        return $this->hasMany(PropertyListingInquiry::class, 'property_listing_id');\n    }\n\n    public function unit(): BelongsTo
+    public function inquiries(): HasMany
+    {
+        return $this->hasMany(PropertyListingInquiry::class, 'property_listing_id');
+    }
+
+    public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
     }
