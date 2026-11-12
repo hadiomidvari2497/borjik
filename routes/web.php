@@ -37,7 +37,7 @@ Route::get('/properties/map-search', [PropertyListingController::class, 'mapSear
 Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])->whereNumber('listing')->name('properties.show');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
+    Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');\n    Route::post('/properties/{listing}/phone-click', [PropertyListingController::class, 'recordPhoneClick'])->whereNumber('listing')->middleware('throttle:30,1')->name('properties.phone-click');
     Route::get('/my/property-inquiries', [PropertyListingInquiryController::class, 'index'])->name('properties.inquiries.index');
     Route::get('/my/property-inquiries/{inquiry}', [PropertyListingInquiryController::class, 'show'])->whereNumber('inquiry')->name('properties.chat.show');
     Route::get('/my/property-inquiries/{inquiry}/messages', [PropertyListingInquiryController::class, 'messages'])->whereNumber('inquiry')->middleware('throttle:120,1')->name('properties.chat.messages');
