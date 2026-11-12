@@ -53,7 +53,7 @@
     @error('coupon_code')<div class="bl-err">{{ $message }}</div>@enderror
 </section>
 <section class="bl-card"><h3><i>۳</i>انتخاب درگاه پرداخت</h3>
-    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); $gwLogo = $gateway['logo_path'] ?? null; @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" data-driver="{{ $gateway['driver'] ?? '' }}" data-card-number="{{ $gateway['card_number'] ?? '' }}" data-account-holder="{{ $gateway['account_holder'] ?? '' }}" data-bank-name="{{ $gateway['bank_name'] ?? '' }}" data-transfer-instructions="{{ $gateway['transfer_instructions'] ?? '' }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">@if($gwLogo)<img src="{{ asset('storage/'.ltrim($gwLogo, '/')) }}" alt="" loading="lazy">@else{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}@endif</span><span><b>{{ $gwName }}</b><small>{{ ($gateway['driver'] ?? '') === 'card_to_card' ? 'واریز بانکی و بررسی رسید توسط مدیر سیستم' : 'پرداخت آنلاین امن و هدایت به درگاه بانکی' }}</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
+    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); $gwLogo = $gateway['logo_path'] ?? null; @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" data-driver="{{ $gateway['driver'] ?? '' }}" data-card-number="{{ $gateway['card_number'] ?? '' }}" data-iban="{{ $gateway['iban'] ?? '' }}" data-account-holder="{{ $gateway['account_holder'] ?? '' }}" data-bank-name="{{ $gateway['bank_name'] ?? '' }}" data-transfer-instructions="{{ $gateway['transfer_instructions'] ?? '' }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">@if($gwLogo)<img src="{{ asset('storage/'.ltrim($gwLogo, '/')) }}" alt="" loading="lazy">@else{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}@endif</span><span><b>{{ $gwName }}</b><small>{{ ($gateway['driver'] ?? '') === 'card_to_card' ? 'واریز بانکی و بررسی رسید توسط مدیر سیستم' : 'پرداخت آنلاین امن و هدایت به درگاه بانکی' }}</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
     @else<div class="bl-hint">درگاه فعالی برای پرداخت تنظیم نشده است.</div>@endif
     @php $manualGateway = collect($paymentGateways)->firstWhere('driver', 'card_to_card'); @endphp
     @if($manualGateway)
@@ -62,6 +62,7 @@
         <p class="bl-hint">مبلغ دقیق سفارش را به کارت زیر واریز کنید. اشتراک پس از بررسی رسید توسط مدیر سیستم فعال خواهد شد.</p>
         <div class="bl-sr"><span>بانک</span><strong id="manual-bank-name">{{ $manualGateway['bank_name'] ?? '—' }}</strong></div>
         <div class="bl-sr"><span>شماره کارت</span><strong id="manual-card-number" dir="ltr" style="font-size:16px">{{ $manualGateway['card_number'] ?? '' }}</strong><button type="button" class="bl-mini" id="copy-card-number" data-card-number="{{ $manualGateway['card_number'] ?? '' }}">کپی شماره کارت</button></div>
+        <div class="bl-sr"><span>شماره شبا</span><strong id="manual-iban" dir="ltr" style="font-size:15px">{{ $manualGateway['iban'] ?? '' }}</strong><button type="button" class="bl-mini" id="copy-iban" data-iban="{{ $manualGateway['iban'] ?? '' }}">کپی شماره شبا</button></div>
         <div class="bl-sr"><span>به نام</span><strong id="manual-account-holder">{{ $manualGateway['account_holder'] ?? '' }}</strong></div>
         <p id="manual-transfer-instructions" class="bl-hint">{{ $manualGateway['transfer_instructions'] ?? '' }}</p>
         <div class="bl-field" style="margin-top:12px"><label for="transfer_tracking_code">کد پیگیری / شماره مرجع واریز *</label><input id="transfer_tracking_code" name="transfer_tracking_code" value="{{ old('transfer_tracking_code') }}" maxlength="100" placeholder="کد درج‌شده روی رسید"></div>
@@ -104,11 +105,15 @@
         if (manual) {
             const bank = document.getElementById('manual-bank-name');
             const card = document.getElementById('manual-card-number');
+            const iban = document.getElementById('manual-iban');
+            const copyIban = document.getElementById('copy-iban');
             const holder = document.getElementById('manual-account-holder');
             const instructions = document.getElementById('manual-transfer-instructions');
             const copy = document.getElementById('copy-card-number');
             if (bank) bank.textContent = selected.dataset.bankName || '—';
             if (card) card.textContent = selected.dataset.cardNumber || '';
+            if (iban) iban.textContent = selected.dataset.iban || '';
+            if (copyIban) copyIban.dataset.iban = selected.dataset.iban || '';
             if (holder) holder.textContent = selected.dataset.accountHolder || '';
             if (instructions) instructions.textContent = selected.dataset.transferInstructions || '';
             if (copy) copy.dataset.cardNumber = selected.dataset.cardNumber || '';
@@ -121,24 +126,33 @@
     };
     gatewayInputs.forEach(item => item.addEventListener('change', syncGateway));
     syncGateway();
-    const copyCardButton = document.getElementById('copy-card-number');
-    copyCardButton?.addEventListener('click', async () => {
-        const cardNumber = copyCardButton.dataset.cardNumber || '';
+    const copyText = async (value, button, label) => {
+        const text = value || '';
+        if (!text) return;
         try {
-            await navigator.clipboard.writeText(cardNumber);
-            if (window.Borjik?.toastSuccess) window.Borjik.toastSuccess('شماره کارت کپی شد.');
-            else copyCardButton.textContent = 'کپی شد';
+            await navigator.clipboard.writeText(text);
+            if (window.Borjik?.toastSuccess) window.Borjik.toastSuccess(label + ' کپی شد.');
+            else button.textContent = 'کپی شد';
         } catch (error) {
             const field = document.createElement('textarea');
-            field.value = cardNumber;
+            field.value = text;
             field.style.position = 'fixed';
             field.style.opacity = '0';
             document.body.appendChild(field);
             field.select();
             document.execCommand('copy');
             field.remove();
-            copyCardButton.textContent = 'کپی شد';
+            button.textContent = 'کپی شد';
         }
+    };
+    const copyCardButton = document.getElementById('copy-card-number');
+    copyCardButton?.addEventListener('click', async () => {
+        const cardNumber = copyCardButton.dataset.cardNumber || '';
+        await copyText(cardNumber, copyCardButton, 'شماره کارت');
+    });
+    const copyIbanButton = document.getElementById('copy-iban');
+    copyIbanButton?.addEventListener('click', async () => {
+        await copyText(copyIbanButton.dataset.iban || '', copyIbanButton, 'شماره شبا');
     });
     const formatMoney = value => new Intl.NumberFormat('fa-IR').format(Math.max(0, Number(value) || 0)) + ' تومان';
     let appliedCode = '';
