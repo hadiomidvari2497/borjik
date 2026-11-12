@@ -52,6 +52,17 @@ class PropertyListingDetailPageTest extends TestCase
             ->assertDontSee('خیابان نمونه، پلاک ۱۲');
     }
 
+    public function test_detail_page_displays_privacy_blurred_map_for_geolocated_listings(): void
+    {
+        config(['services.neshan.map_key' => 'test-map-key']);
+        $listing = $this->saleListing($this->makeUser('09121110003'), ['latitude' => 35.6892, 'longitude' => 51.3890]);
+        $this->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('موقعیت ملک روی نقشه')
+            ->assertSee('id="property-detail-map"', false)
+            ->assertSee('موقعیت تقریبی ملک روی نقشه');
+    }
+
     public function test_structured_data_is_valid_json_and_escapes_markup(): void
     {
         $listing = $this->saleListing($this->makeUser('09121110001'), ['title' => 'عنوان </script><b>x</b>']);

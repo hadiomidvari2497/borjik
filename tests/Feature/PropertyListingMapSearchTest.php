@@ -60,6 +60,21 @@ class PropertyListingMapSearchTest extends TestCase
         $this->assertArrayNotHasKey('address', $point);
     }
 
+    public function test_initial_map_search_returns_geolocated_listings_without_viewport_bounds(): void
+    {
+        $owner = $this->makeUser();
+        $listing = PropertyListing::create([
+            'user_id' => $owner->id, 'listing_type' => 'sale', 'property_type' => 'residential',
+            'title' => 'ملک شیراز', 'description' => 'توضیحات', 'city' => 'شیراز',
+            'latitude' => 29.5918, 'longitude' => 52.5837, 'status' => 'active',
+        ]);
+
+        $this->getJson(route('properties.map-search'))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $listing->id);
+    }
+
     public function test_map_search_rejects_invalid_bounds(): void
     {
         $this->getJson(route('properties.map-search', [
