@@ -112,6 +112,15 @@ class PropertyListingReportsNotificationsTest extends TestCase
             'status' => 'actioned',
             'reviewed_by' => $admin->id,
         ]);
+        $this->assertDatabaseHas('property_listings', [
+            'id' => $this->listing->id,
+            'status' => 'closed',
+            'moderated_by' => $admin->id,
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $this->owner->id,
+        ]);
         $this->assertDatabaseHas('notifications', [
             'notifiable_type' => User::class,
             'notifiable_id' => $this->reporter->id,
@@ -130,6 +139,15 @@ class PropertyListingReportsNotificationsTest extends TestCase
             ->assertRedirect(route('properties.mine'));
 
         $this->assertNotNull($notification->fresh()->read_at);
+    }
+
+    public function test_verified_mobile_badge_is_shown_on_listing_detail(): void
+    {
+        $this->owner->forceFill(['mobile_verified_at' => now()])->save();
+
+        $this->get(route('properties.show', $this->listing->id))
+            ->assertOk()
+            ->assertSee('شماره موبایل تأییدشده');
     }
 
     public function test_listing_owner_receives_notification_when_admin_changes_listing_status(): void
