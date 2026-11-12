@@ -87,8 +87,8 @@ class PropertyListingController extends Controller
     }
 
     /**
-     * Public map search. Exact listing coordinates are never returned to browsers;
-     * a stable, deterministic offset is applied before the public point is emitted.
+     * Public map search. Coordinates are offset unless the listing owner explicitly
+     * opted into showing the exact location.
      */
     public function mapSearch(Request $request)
     {
