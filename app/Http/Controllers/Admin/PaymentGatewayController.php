@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
 use App\Models\SubscriptionPayment;
+use App\Models\PropertyListingPackageOrder;
 use App\Services\Payments\PaymentGatewayRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -156,7 +157,10 @@ class PaymentGatewayController extends Controller
             $pendingPayments->where('raw_response->gateway_id', $gatewayId);
         }
         if ($pendingPayments->exists()) {
-            return back()->with('error', 'این درگاه تراکنش در انتظار دارد؛ تا تعیین تکلیف تراکنش نمی‌توان آن را حذف کرد.');
+            return back()->with('error', 'این درگاه تراکنش اشتراک در انتظار دارد؛ تا تعیین تکلیف تراکنش نمی‌توان آن را حذف کرد.');
+        }
+        if (PropertyListingPackageOrder::query()->where('gateway_id', $gatewayId)->where('status', 'pending')->exists()) {
+            return back()->with('error', 'این درگاه سفارش بسته آگهی در انتظار دارد؛ تا تعیین تکلیف تراکنش نمی‌توان آن را حذف کرد.');
         }
         unset($all[$gatewayId]);
         SiteSetting::set(self::KEY, $all, true);
