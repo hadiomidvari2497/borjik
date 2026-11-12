@@ -64,7 +64,11 @@ class PaymentGatewayController extends Controller
 
         $data = $request->validate([
             'provider_name' => ['required', 'string', 'max:100'],
-            'driver' => ['required', 'in:bitpay,zarinpal,paystar,custom'],
+            'driver' => ['required', 'in:bitpay,zarinpal,paystar,card_to_card,custom'],
+            'card_number' => ['nullable', 'string', 'regex:/^[0-9\s-]{16,23}$/'],
+            'account_holder' => ['nullable', 'string', 'max:120'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'transfer_instructions' => ['nullable', 'string', 'max:1000'],
             'environment' => ['required', 'in:sandbox,production'],
             'api_base_url' => ['nullable', 'url:http,https', 'max:500'],
             'merchant_id' => ['nullable', 'string', 'max:255'],
@@ -100,6 +104,10 @@ class PaymentGatewayController extends Controller
             'api_key' => $secret('api_key', 'clear_api_key'),
             'api_secret' => $secret('api_secret', 'clear_api_secret'),
             'webhook_secret' => $secret('webhook_secret', 'clear_webhook_secret'),
+            'card_number' => preg_replace('/\D+/', '', (string) ($data['card_number'] ?? '')) ?: (string) ($old['card_number'] ?? ''),
+            'account_holder' => trim((string) ($data['account_holder'] ?? $old['account_holder'] ?? '')),
+            'bank_name' => trim((string) ($data['bank_name'] ?? $old['bank_name'] ?? '')),
+            'transfer_instructions' => trim((string) ($data['transfer_instructions'] ?? $old['transfer_instructions'] ?? '')),
             'active' => $request->boolean('active'),
             'notes' => trim((string) ($data['notes'] ?? '')),
             'updated_at' => now()->toIso8601String(),
@@ -113,6 +121,9 @@ class PaymentGatewayController extends Controller
         }
         if ($settings['active'] && $settings['driver'] === 'paystar' && (empty($settings['api_key']) || empty($settings['api_secret']))) {
             throw ValidationException::withMessages(['api_key' => 'برای فعال‌سازی پی‌استار، شناسه درگاه و کلید امضا لازم است.']);
+        }
+        if ($settings['active'] && $settings['driver'] === 'card_to_card' && (empty($settings['card_number']) || empty($settings['account_holder']))) {
+            throw ValidationException::withMessages(['card_number' => 'برای فعال‌سازی کارت‌به‌کارت، شماره کارت و نام صاحب حساب را وارد کنید.']);
         }
 
         $logoPath = $old['logo_path'] ?? null;
