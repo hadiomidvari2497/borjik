@@ -50,9 +50,9 @@
           </div>
           <div class="gw-field"><label for="driver">شناسه فنی *</label><select id="driver" name="driver" required><option value="bitpay" @selected(($gateway['driver'] ?? '') === 'bitpay')>bitpay</option><option value="zarinpal" @selected(($gateway['driver'] ?? '') === 'zarinpal')>zarinpal</option><option value="paystar" @selected(($gateway['driver'] ?? '') === 'paystar')>paystar</option><option value="custom" @selected(($gateway['driver'] ?? '') === 'custom')>custom (نیازمند آداپتور)</option></select></div>
           <div class="gw-field"><label for="environment">محیط *</label><select id="environment" name="environment" required><option value="production" @selected(($gateway['environment'] ?? 'production') === 'production')>عملیاتی</option><option value="sandbox" @selected(($gateway['environment'] ?? '') === 'sandbox')>آزمایشی</option></select></div>
-          <div class="gw-field"><label for="merchant_id" id="merchant_id_label">شناسه پذیرنده</label><input id="merchant_id" name="merchant_id" dir="ltr" value="{{ $gateway['merchant_id'] ?? '' }}"><small id="merchant_id_help">شناسه پذیرنده یا Merchant ID درگاه را وارد کنید.</small></div>
+          <div class="gw-field"><label for="merchant_id" id="merchant_id_label">شناسه پذیرنده</label><input id="merchant_id" name="merchant_id" dir="ltr" value="{{ $gateway['merchant_id'] ?? '' }}"><small id="merchant_id_help">برای زرین‌پال استفاده می‌شود؛ در پی‌استار این فیلد لازم نیست.</small></div>
           <div class="gw-field full"><label for="api_base_url">آدرس پایه API (اختیاری)</label><input id="api_base_url" name="api_base_url" dir="ltr" value="{{ $gateway['api_base_url'] ?? '' }}" placeholder="https://..."></div>
-          <div class="gw-field"><label for="api_key">کلید API {{ $hasApiKey ? '(برای حفظ فعلی خالی بگذارید)' : '' }}</label><input id="api_key" name="api_key" type="password" dir="ltr" autocomplete="new-password">@if($hasApiKey)<label class="gw-secret"><input type="checkbox" name="clear_api_key" value="1"> پاک کردن کلید</label>@endif</div>
+          <div class="gw-field"><label for="api_key" id="api_key_label">کلید API {{ $hasApiKey ? '(برای حفظ فعلی خالی بگذارید)' : '' }}</label><input id="api_key" name="api_key" type="password" dir="ltr" autocomplete="new-password"><small id="api_key_help">کلید API مربوط به درگاه انتخاب‌شده.</small>@if($hasApiKey)<label class="gw-secret"><input type="checkbox" name="clear_api_key" value="1"> پاک کردن کلید</label>@endif</div>
           <div class="gw-field"><label for="api_secret" id="api_secret_label">کلید محرمانه {{ $hasApiSecret ? '(برای حفظ فعلی خالی بگذارید)' : '' }}</label><input id="api_secret" name="api_secret" type="password" dir="ltr" autocomplete="new-password"><small id="api_secret_help">برای پی‌استار، این فیلد همان Sign Key است که در پنل پذیرندگان دریافت کرده‌اید.</small>@if($hasApiSecret)<label class="gw-secret"><input type="checkbox" name="clear_api_secret" value="1"> پاک کردن کلید</label>@endif</div>
           <div class="gw-field"><label for="webhook_secret">کلید وب‌هوک {{ $hasWebhookSecret ? '(برای حفظ فعلی خالی بگذارید)' : '' }}</label><input id="webhook_secret" name="webhook_secret" type="password" dir="ltr" autocomplete="new-password">@if($hasWebhookSecret)<label class="gw-secret"><input type="checkbox" name="clear_webhook_secret" value="1"> پاک کردن کلید</label>@endif</div>
           <div class="gw-field full"><label for="notes">یادداشت داخلی</label><textarea id="notes" name="notes" rows="2">{{ $gateway['notes'] ?? '' }}</textarea></div>
@@ -80,12 +80,16 @@ function updatePaystarHelp(){
   const isPaystar=document.getElementById('driver')?.value==='paystar';
   const label=document.getElementById('api_secret_label');
   const help=document.getElementById('api_secret_help');
+  const keyLabel=document.getElementById('api_key_label');
+  const keyHelp=document.getElementById('api_key_help');
   const merchantLabel=document.getElementById('merchant_id_label');
   const merchantHelp=document.getElementById('merchant_id_help');
   if(label) label.firstChild.textContent=isPaystar?'کلید امضا (Sign Key) ':'کلید محرمانه ';
   if(help) help.textContent=isPaystar?'کلید امضایی که هنگام ساخت درگاه در پنل پی‌استار دریافت کرده‌اید. این مقدار به‌صورت رمزگذاری‌شده ذخیره می‌شود.':'کلید محرمانه مربوط به درگاه انتخاب‌شده.';
-  if(merchantLabel) merchantLabel.textContent=isPaystar?'شناسه درگاه (Gateway ID)':'شناسه پذیرنده';
-  if(merchantHelp) merchantHelp.textContent=isPaystar?'شناسه درگاه پی‌استار که برای هدر Authorization استفاده می‌شود.':'شناسه پذیرنده یا Merchant ID درگاه را وارد کنید.';
+  if(keyLabel) keyLabel.firstChild.textContent=isPaystar?'شناسه درگاه (Gateway ID) ':'کلید API ';
+  if(keyHelp) keyHelp.textContent=isPaystar?'شناسه درگاه پی‌استار برای هدر Authorization؛ این مقدار نیز به‌صورت رمزگذاری‌شده ذخیره می‌شود.':'کلید API مربوط به درگاه انتخاب‌شده.';
+  if(merchantLabel) merchantLabel.textContent='شناسه پذیرنده';
+  if(merchantHelp) merchantHelp.textContent=isPaystar?'برای پی‌استار لازم نیست؛ شناسه درگاه را در فیلد بالا وارد کنید.':'شناسه پذیرنده یا Merchant ID درگاه را وارد کنید.';
 }
 document.getElementById('driver')?.addEventListener('change',updatePaystarHelp);
 document.getElementById('environment')?.addEventListener('change',function(){if(document.getElementById('driver').value==='zarinpal')document.getElementById('api_base_url').value=this.value==='sandbox'?'https://sandbox.zarinpal.com/pg/v4':'https://payment.zarinpal.com/pg/v4';});
