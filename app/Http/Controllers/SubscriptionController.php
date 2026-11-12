@@ -359,16 +359,16 @@ class SubscriptionController extends Controller
             return redirect()->route('subscription.show')->with('error', 'پرداخت انجام نشد؛ اشتراک فعال نشده است.');
         }
 
-        if ($isPaystar && ($refNum === '' || $cardNumber === '' || $trackingCode === '')) {
-            DB::transaction(function () use ($payment, $request) {
-                $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
-                if ($locked->status === 'pending') {
-                    $locked->update(['status' => 'failed', 'raw_response' => array_merge($locked->raw_response ?? [], ['paystar_callback' => $request->only(['status', 'order_id', 'ref_num'])])]);
-                    Subscription::whereKey($locked->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
-                    CouponRedemption::where('payment_id', $locked->id)->where('status', 'reserved')->update(['status' => 'released']);
-                }
-            });
-            return redirect()->route('subscription.show')->with('error', 'پرداخت پی‌استار تکمیل نشد؛ اشتراک فعال نشده است.');
+        if ($isPaystar) {
+            $storedRefNum = trim((string) data_get($payment->raw_response, 'ref_num', ''));
+            $storedOrderId = trim((string) data_get($payment->raw_response, 'paystar_order_id', ''));
+            if (($refNum !== '' && ($storedRefNum === '' || ! hash_equals($storedRefNum, $refNum)))
+                || ($paystarOrderId !== '' && ($storedOrderId === '' || ! hash_equals($storedOrderId, $paystarOrderId)))) {
+                return redirect()->route('subscription.show')->with('error', 'اطلاعات بازگشت پی‌استار با سفارش ثبت‌شده مطابقت ندارد.');
+            }
+            if ($refNum === '' || $cardNumber === '' || $trackingCode === '') {
+                return redirect()->route('subscription.show')->with('error', 'اطلاعات تأیید پرداخت پی‌استار کامل نیست؛ اشتراک تا زمان تأیید فعال نمی‌شود.');
+            }
         }
 
         try {
