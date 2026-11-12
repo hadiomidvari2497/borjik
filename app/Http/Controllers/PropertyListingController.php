@@ -159,6 +159,16 @@ class PropertyListingController extends Controller
         $listing->loadMissing('user');
         if (! auth()->check() || (int) auth()->id() !== (int) $listing->user_id) {
             DB::table('property_listings')->where('id', $listing->id)->increment('views_count');
+            DB::table('property_listing_daily_stats')->insertOrIgnore([
+                'property_listing_id' => $listing->id,
+                'stat_date' => now()->toDateString(),
+                'views_count' => 0,
+                'phone_clicks_count' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('property_listing_daily_stats')->where('property_listing_id', $listing->id)
+                ->where('stat_date', now()->toDateString())->increment('views_count');
         }
         $mapPoint = $listing->latitude !== null && $listing->longitude !== null ? $this->publicMapPoint($listing) : null;
         $mapApiKey = config('services.neshan.map_key');
@@ -167,15 +177,49 @@ class PropertyListingController extends Controller
         return view('properties.show', compact('listing', 'similar', 'mapPoint', 'mapApiKey'));
     }
 
+    public function recordPhoneClick(Request $request, PropertyListing $listing)
+    {
+        abort_unless($listing->status === 'active' && (! $listing->expires_at || $listing->expires_at->isFuture()), 404);
+        abort_if((int) $request->user()?->id === (int) $listing->user_id, 403);
+
+        $sessionKey = 'property-phone-click-'.$listing->id.'-'.now()->toDateString();
+        if (! $request->session()->has($sessionKey)) {
+            DB::table('property_listing_daily_stats')->insertOrIgnore([
+                'property_listing_id' => $listing->id,
+                'stat_date' => now()->toDateString(),
+                'views_count' => 0,
+                'phone_clicks_count' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('property_listing_daily_stats')->where('property_listing_id', $listing->id)
+                ->where('stat_date', now()->toDateString())->increment('phone_clicks_count');
+            $request->session()->put($sessionKey, true);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     public function mine(Request $request, PropertyListingQuota $quota, PaymentGatewayRegistry $gateways)
     {
-        $listings = PropertyListing::where('user_id', $request->user()->id)->latest()->paginate(15);
+        $listings = PropertyListing::where('user_id', $request->user()->id)->withCount('inquiries')->latest()->paginate(15);
+        $listingIds = PropertyListing::where('user_id', $request->user()->id)->pluck('id');
+        $dailyStats = DB::table('property_listing_daily_stats')
+            ->whereIn('property_listing_id', $listingIds)
+            ->where('stat_date', '>=', now()->subDays(13)->toDateString())
+            ->selectRaw('stat_date, SUM(views_count) as views, SUM(phone_clicks_count) as phone_clicks')
+            ->groupBy('stat_date')->orderBy('stat_date')->get();
+        $performance = [
+            'views' => (int) PropertyListing::where('user_id', $request->user()->id)->sum('views_count'),
+            'phone_clicks' => (int) DB::table('property_listing_daily_stats')->whereIn('property_listing_id', $listingIds)->sum('phone_clicks_count'),
+            'inquiries' => (int) DB::table('property_listing_inquiries')->whereIn('property_listing_id', $listingIds)->count(),
+        ];
         $packages = collect(SiteSetting::get('property_listings.packages', []))->filter(fn ($package) => is_array($package) && ! empty($package['active']) && (int) ($package['price'] ?? 0) > 0)->values();
         $availableCredits = $quota->availableCredits($request->user()->id);
         $paymentGateways = $gateways->active();
         $packageOrders = PropertyListingPackageOrder::where('user_id', $request->user()->id)->latest()->limit(8)->get();
 
-        return view('properties.mine', compact('listings', 'packages', 'availableCredits', 'paymentGateways', 'packageOrders'));
+        return view('properties.mine', compact('listings', 'packages', 'availableCredits', 'paymentGateways', 'packageOrders', 'dailyStats', 'performance'));
     }
 
     public function create(Request $request)
