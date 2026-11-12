@@ -221,6 +221,10 @@ class SubscriptionController extends Controller
             ]);
 
             $receiptPath = $request->file('transfer_receipt')->store('private/payment-proofs', 'local');
+            if (! is_string($receiptPath) || $receiptPath === '') {
+                return back()->withInput()->with('error', 'ذخیره فایل رسید پرداخت ممکن نشد. دوباره تلاش کنید.');
+            }
+
             try {
                 $payment = DB::transaction(function () use ($user, $building, $plan, $couponCode, $baseAmount, $discountAmount, $amount, $gatewayId, $settings, $request, $receiptPath) {
                     $lockedCoupon = null;
