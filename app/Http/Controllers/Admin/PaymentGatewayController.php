@@ -122,8 +122,9 @@ class PaymentGatewayController extends Controller
         if ($settings['active'] && $settings['driver'] === 'paystar' && (empty($settings['api_key']) || empty($settings['api_secret']))) {
             throw ValidationException::withMessages(['api_key' => 'برای فعال‌سازی پی‌استار، شناسه درگاه و کلید امضا لازم است.']);
         }
-        if ($settings['active'] && $settings['driver'] === 'card_to_card' && (empty($settings['card_number']) || empty($settings['account_holder']))) {
-            throw ValidationException::withMessages(['card_number' => 'برای فعال‌سازی کارت‌به‌کارت، شماره کارت و نام صاحب حساب را وارد کنید.']);
+        if ($settings['active'] && $settings['driver'] === 'card_to_card'
+            && (strlen((string) $settings['card_number']) !== 16 || empty($settings['account_holder']))) {
+            throw ValidationException::withMessages(['card_number' => 'برای فعال‌سازی کارت‌به‌کارت، شماره کارت ۱۶ رقمی و نام صاحب حساب را وارد کنید.']);
         }
 
         $logoPath = $old['logo_path'] ?? null;
