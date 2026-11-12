@@ -3,9 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\SiteSetting;
-use App\Models\Block;
-use App\Models\Unit;
-use App\Services\SubscriptionUnitAccess;
 use App\Models\Building;
 use App\Models\BuildingUserRole;
 use App\Models\Role;
@@ -16,6 +13,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class SubscriptionCheckoutTest extends TestCase
@@ -165,11 +163,11 @@ class SubscriptionCheckoutTest extends TestCase
 
     public function test_lower_capacity_plan_warns_before_activation_and_requires_acknowledgement(): void
     {
-        $block = Block::create(['building_id' => $this->building->id, 'number' => 1, 'name' => 'بلوک یک', 'floors_count' => 1]);
+        $blockId = DB::table('blocks')->insertGetId(['building_id' => $this->building->id, 'number' => 1, 'name' => 'بلوک یک', 'floors_count' => 1, 'created_at' => now(), 'updated_at' => now()]);
         foreach (range(1, 5) as $number) {
             DB::table('units')->insert([
                 'building_id' => $this->building->id,
-                'block_id' => $block->id,
+                'block_id' => $blockId,
                 'number' => (string) $number,
                 'floor' => 1,
                 'area_m2' => 80,
