@@ -7,6 +7,7 @@ use App\Notifications\PropertyListingNotification;
 use App\Models\SiteSetting;
 use App\Services\Payments\BitpayGateway;
 use App\Services\Payments\PaymentGatewayRegistry;
+use App\Services\Payments\PaystarGateway;
 use App\Services\Payments\ZarinpalGateway;
 use App\Services\PropertyListingQuota;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use RuntimeException;
 
 class PropertyListingPackageController extends Controller
 {
-    public function buy(Request $request, PaymentGatewayRegistry $registry, ZarinpalGateway $zarinpal, BitpayGateway $bitpay)
+    public function buy(Request $request, PaymentGatewayRegistry $registry, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaystarGateway $paystar)
     {
         $data = $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:1000'],
@@ -40,7 +41,7 @@ class PropertyListingPackageController extends Controller
         $settings = $gateways[$gatewayId] ?? null;
         $driver = (string) data_get($settings, 'driver', '');
 
-        if (! is_array($settings) || ! in_array($driver, ['zarinpal', 'bitpay'], true)) {
+        if (! is_array($settings) || ! in_array($driver, ['zarinpal', 'bitpay', 'paystar'], true)) {
             return back()->with('error', 'درگاه پرداخت فعال و معتبری برای خرید بسته وجود ندارد.');
         }
 
@@ -58,15 +59,21 @@ class PropertyListingPackageController extends Controller
             $requestSettings = $settings;
             $requestSettings['_gateway_id'] = $gatewayId;
             $callbackUrl = route('properties.packages.callback', ['gateway_id' => $gatewayId]);
-            $result = $driver === 'bitpay'
-                ? $bitpay->request($order->amount * 10, $order->id, $request->user(), $requestSettings, $callbackUrl)
-                : $zarinpal->request($order->amount * 10, $order->id, $request->user(), $requestSettings, $callbackUrl);
+            $result = match ($driver) {
+                'bitpay' => $bitpay->request($order->amount * 10, $order->id, $request->user(), $requestSettings, $callbackUrl),
+                'paystar' => $paystar->request($order->amount * 10, 'pkg-'.$order->id, $request->user(), $requestSettings, $callbackUrl),
+                default => $zarinpal->request($order->amount * 10, $order->id, $request->user(), $requestSettings, $callbackUrl),
+            };
 
+            $gatewayResponse = match ($driver) {
+                'bitpay' => ['request' => $result['response']],
+                'paystar' => ['paystar_order_id' => $result['order_id'], 'ref_num' => $result['ref_num'], 'paystar_token' => $result['token'], 'request' => $result['response']],
+                default => ['request' => $result['response']],
+            };
             $order->update([
                 'authority' => $driver === 'zarinpal' ? $result['authority'] : null,
                 'id_get' => $driver === 'bitpay' ? $result['id_get'] : null,
-                'raw_response' => array_merge($order->raw_response ?? [], [
-                    'request' => $result['response'],
+                'raw_response' => array_merge($order->raw_response ?? [], $gatewayResponse, [
                     'amount_rial' => $order->amount * 10,
                 ]),
             ]);
@@ -88,25 +95,37 @@ class PropertyListingPackageController extends Controller
     }
 
     /** Callback is public; credits are granted only after server-side gateway verification. */
-    public function callback(Request $request, PaymentGatewayRegistry $registry, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PropertyListingQuota $quota)
+    public function callback(Request $request, PaymentGatewayRegistry $registry, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaystarGateway $paystar, PropertyListingQuota $quota)
     {
-        $authority = (string) $request->query('Authority', '');
-        $status = strtoupper((string) $request->query('Status', ''));
-        $idGet = trim((string) $request->query('id_get', ''));
-        $transId = trim((string) $request->query('trans_id', ''));
-        $gatewayId = trim((string) $request->query('gateway_id', ''));
-        $isBitpay = $idGet !== '' && $transId !== '';
+        $authority = (string) $request->input('Authority', '');
+        $status = strtoupper((string) $request->input('Status', ''));
+        $idGet = trim((string) $request->input('id_get', ''));
+        $transId = trim((string) $request->input('trans_id', ''));
+        $refNum = trim((string) $request->input('ref_num', ''));
+        $paystarOrderId = trim((string) $request->input('order_id', ''));
+        $cardNumber = trim((string) $request->input('card_number', ''));
+        $trackingCode = trim((string) $request->input('tracking_code', ''));
+        $gatewayId = trim((string) $request->input('gateway_id', ''));
+        $isPaystar = $refNum !== '' || $paystarOrderId !== '';
+        $isBitpay = ! $isPaystar && $idGet !== '' && $transId !== '';
 
-        $order = $isBitpay
-            ? PropertyListingPackageOrder::query()->where('gateway', 'bitpay')->where('status', 'pending')->where('id_get', $idGet)->first()
-            : PropertyListingPackageOrder::query()->where('gateway', 'zarinpal')->where('status', 'pending')->where('authority', $authority)
-                ->when($gatewayId !== '', fn ($query) => $query->where('gateway_id', $gatewayId))->first();
+        $order = $isPaystar
+            ? PropertyListingPackageOrder::query()->where('gateway', 'paystar')->where('status', 'pending')
+                ->where('gateway_id', $gatewayId)
+                ->where(function ($query) use ($refNum, $paystarOrderId) {
+                    if ($refNum !== '') $query->where('raw_response->ref_num', $refNum);
+                    if ($paystarOrderId !== '') $query->orWhere('raw_response->paystar_order_id', $paystarOrderId);
+                })->first()
+            : ($isBitpay
+                ? PropertyListingPackageOrder::query()->where('gateway', 'bitpay')->where('status', 'pending')->where('id_get', $idGet)->first()
+                : PropertyListingPackageOrder::query()->where('gateway', 'zarinpal')->where('status', 'pending')->where('authority', $authority)
+                    ->when($gatewayId !== '', fn ($query) => $query->where('gateway_id', $gatewayId))->first());
 
-        if (! $order || ($isBitpay ? ($idGet === '' || $transId === '') : $authority === '')) {
+        if (! $order || ($isPaystar ? ($refNum === '' && $paystarOrderId === '') : ($isBitpay ? ($idGet === '' || $transId === '') : $authority === ''))) {
             return redirect()->route('properties.mine')->with('error', 'تراکنش معتبری برای خرید بسته آگهی پیدا نشد.');
         }
 
-        if (! $isBitpay && $status !== 'OK') {
+        if (! $isBitpay && ! $isPaystar && $status !== 'OK') {
             $this->failPendingOrder($order->id, ['callback_status' => $status]);
             return redirect()->route('properties.mine')->with('error', 'پرداخت انجام نشد و اعتباری به حساب شما اضافه نشد.');
         }
@@ -122,22 +141,31 @@ class PropertyListingPackageController extends Controller
                 throw new RuntimeException('Stored package payment amount is invalid.');
             }
 
-            $verification = $isBitpay
-                ? $bitpay->verify($idGet, $transId, $settings)
-                : $zarinpal->verify($authority, $amountRial, $settings);
+            if ($isPaystar && ($refNum === '' || $cardNumber === '' || $trackingCode === '')) {
+                $this->failPendingOrder($order->id, ['paystar_callback' => $request->only(['status', 'order_id', 'ref_num'])]);
+                return redirect()->route('properties.mine')->with('error', 'پرداخت پی‌استار تکمیل نشد؛ اعتباری به حساب شما اضافه نشد.');
+            }
 
-            $verified = $isBitpay
-                ? (int) data_get($verification, 'status', 0) === 1
-                    && (int) data_get($verification, 'amount', 0) === $amountRial
-                    && (string) data_get($verification, 'factorId', '') === (string) $order->id
-                : in_array((int) data_get($verification, 'data.code', 0), [100, 101], true);
+            $verification = $isPaystar
+                ? $paystar->verify($refNum, $amountRial, $cardNumber, $trackingCode, $settings)
+                : ($isBitpay
+                    ? $bitpay->verify($idGet, $transId, $settings)
+                    : $zarinpal->verify($authority, $amountRial, $settings));
+
+            $verified = $isPaystar
+                ? (bool) data_get($verification, 'verified', false)
+                : ($isBitpay
+                    ? (int) data_get($verification, 'status', 0) === 1
+                        && (int) data_get($verification, 'amount', 0) === $amountRial
+                        && (string) data_get($verification, 'factorId', '') === (string) $order->id
+                    : in_array((int) data_get($verification, 'data.code', 0), [100, 101], true));
 
             if (! $verified) {
                 $this->failPendingOrder($order->id, ['verification' => $verification]);
                 return redirect()->route('properties.mine')->with('error', 'درگاه پرداخت را تأیید نکرد؛ هیچ اعتباری اضافه نشد.');
             }
 
-            $newlyPaid = DB::transaction(function () use ($order, $verification, $authority, $transId, $isBitpay, $quota) {
+            $newlyPaid = DB::transaction(function () use ($order, $verification, $authority, $transId, $isBitpay, $isPaystar, $refNum, $quota) {
                 $locked = PropertyListingPackageOrder::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'paid') {
                     return false;
@@ -149,7 +177,7 @@ class PropertyListingPackageController extends Controller
                 $locked->update([
                     'status' => 'paid',
                     'paid_at' => now(),
-                    'ref_id' => $isBitpay ? $transId : (string) data_get($verification, 'data.ref_id', $authority),
+                    'ref_id' => $isPaystar ? $refNum : ($isBitpay ? $transId : (string) data_get($verification, 'data.ref_id', $authority)),
                     'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification]),
                 ]);
 
