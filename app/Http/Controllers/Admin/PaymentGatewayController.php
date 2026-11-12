@@ -66,6 +66,7 @@ class PaymentGatewayController extends Controller
             'provider_name' => ['required', 'string', 'max:100'],
             'driver' => ['required', 'in:bitpay,zarinpal,paystar,card_to_card,custom'],
             'card_number' => ['nullable', 'string', 'regex:/^[0-9\s-]{16,23}$/'],
+            'iban' => ['nullable', 'string', 'max:40'],
             'account_holder' => ['nullable', 'string', 'max:120'],
             'bank_name' => ['nullable', 'string', 'max:100'],
             'transfer_instructions' => ['nullable', 'string', 'max:1000'],
@@ -105,6 +106,7 @@ class PaymentGatewayController extends Controller
             'api_secret' => $secret('api_secret', 'clear_api_secret'),
             'webhook_secret' => $secret('webhook_secret', 'clear_webhook_secret'),
             'card_number' => preg_replace('/\D+/', '', (string) ($data['card_number'] ?? '')) ?: (string) ($old['card_number'] ?? ''),
+            'iban' => strtoupper(preg_replace('/[\s-]+/', '', (string) ($data['iban'] ?? '')) ?: (string) ($old['iban'] ?? '')),
             'account_holder' => trim((string) ($data['account_holder'] ?? $old['account_holder'] ?? '')),
             'bank_name' => trim((string) ($data['bank_name'] ?? $old['bank_name'] ?? '')),
             'transfer_instructions' => trim((string) ($data['transfer_instructions'] ?? $old['transfer_instructions'] ?? '')),
@@ -125,6 +127,10 @@ class PaymentGatewayController extends Controller
         if ($settings['active'] && $settings['driver'] === 'card_to_card'
             && (strlen((string) $settings['card_number']) !== 16 || empty($settings['account_holder']))) {
             throw ValidationException::withMessages(['card_number' => 'برای فعال‌سازی کارت‌به‌کارت، شماره کارت ۱۶ رقمی و نام صاحب حساب را وارد کنید.']);
+        }
+        if ($settings['active'] && $settings['driver'] === 'card_to_card'
+            && ! preg_match('/^IR[0-9]{24}$/', (string) $settings['iban'])) {
+            throw ValidationException::withMessages(['iban' => 'برای فعال‌سازی کارت‌به‌کارت، شماره شبای معتبر با IR و ۲۴ رقم وارد کنید.']);
         }
 
         $logoPath = $old['logo_path'] ?? null;
