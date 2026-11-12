@@ -36,7 +36,7 @@ class PaystarGatewayTest extends TestCase
         $settings = [
             'driver' => 'paystar',
             'active' => true,
-            'merchant_id' => 'gateway-id-123',
+            'api_key' => Crypt::encryptString('gateway-id-123'),
             'api_secret' => Crypt::encryptString('sign-key-123'),
         ];
 
