@@ -12,7 +12,40 @@
 </section>
 
 @if(session('status'))<div class="notice" role="status">{{ session('status') }}</div>@endif
-@if(session('error'))<div class="error" role="alert">{{ session('error') }}</div>@endif
+@if(session('error'))<div class="error" role="alert">{{ session('error') }}</div>@endif\n
+@if(($performance['views'] ?? 0) > 0 || ($performance['phone_clicks'] ?? 0) > 0 || ($performance['inquiries'] ?? 0) > 0 || $listings->total() > 0)
+<section class="panel performance-panel" aria-labelledby="performance-title">
+    <div class="performance-heading">
+        <div><h2 id="performance-title">عملکرد آگهی‌های شما</h2><p class="muted">آمار تعامل مخاطبان با آگهی‌های فعال شما</p></div>
+        <span class="performance-period">۱۴ روز اخیر</span>
+    </div>
+    <div class="performance-cards">
+        <article><span class="performance-icon">◉</span><small>بازدید آگهی‌ها</small><strong>{{ \\App\\Support\\Fa::num($performance['views']) }}</strong></article>
+        <article><span class="performance-icon">☎</span><small>کلیک روی تماس</small><strong>{{ \\App\\Support\\Fa::num($performance['phone_clicks']) }}</strong></article>
+        <article><span class="performance-icon">▤</span><small>گفتگوهای شروع‌شده</small><strong>{{ \\App\\Support\\Fa::num($performance['inquiries']) }}</strong></article>
+    </div>
+    <div class="performance-chart-wrap">
+        <h3>روند بازدید روزانه</h3>
+        @php($maxDailyViews = max(1, (int) $dailyStats->max('views')))
+        @if($dailyStats->isNotEmpty())
+        <div class="performance-chart" role="img" aria-label="نمودار بازدید روزانه در ۱۴ روز اخیر">
+            @foreach($dailyStats as $day)
+                <div class="performance-day" title="{{ \\App\\Support\\Fa::digits(substr($day->stat_date, 5)) }}: {{ \\App\\Support\\Fa::num($day->views) }} بازدید">
+                    <span class="performance-bar" style="height: {{ max(4, (int) round(($day->views / $maxDailyViews) * 100)) }}%"></span>
+                    <small>{{ \\App\\Support\\Fa::digits(substr($day->stat_date, 8, 2)) }}</small>
+                </div>
+            @endforeach
+        </div>
+        <p class="muted performance-chart-note">هر ستون تعداد بازدیدهای ثبت‌شده در آن روز را نشان می‌دهد.</p>
+        @else
+        <p class="muted">هنوز داده‌ای برای نمایش نمودار ثبت نشده است. با بازدید مخاطبان، آمار این بخش به‌روز می‌شود.</p>
+        @endif
+    </div>
+</section>
+<style>
+.performance-panel{margin:0 0 24px}.performance-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.performance-heading h2{margin:0 0 5px}.performance-heading p{margin:0}.performance-period{white-space:nowrap;border-radius:30px;padding:6px 11px;background:#eef6f1;color:#39745c;font-size:11px}.performance-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}.performance-cards article{display:grid;gap:7px;padding:16px;border:1px solid #e7eee9;border-radius:16px;background:#fbfdfb}.performance-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:11px;background:#eaf5ee;color:#247456;font-size:19px}.performance-cards small{color:#71847a;font-size:12px}.performance-cards strong{font-size:23px;color:#173f32;font-variant-numeric:tabular-nums}.performance-chart-wrap{margin-top:22px;padding-top:18px;border-top:1px solid #edf1ee}.performance-chart-wrap h3{font-size:14px;margin:0 0 14px}.performance-chart{height:130px;display:flex;align-items:stretch;gap:8px;padding:0 3px;border-bottom:1px solid #e5ece7}.performance-day{display:flex;flex:1;min-width:0;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px}.performance-bar{display:block;width:min(100%,24px);min-height:4px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#3c9b70,#17664d)}.performance-day small{font-size:10px;color:#809087}.performance-chart-note{font-size:11px;margin:10px 0 0}@media(max-width:520px){.performance-cards{gap:7px}.performance-cards article{padding:11px 9px}.performance-cards strong{font-size:19px}.performance-cards small{font-size:10px}.performance-heading h2{font-size:17px}}
+</style>
+
 
 <details class="panel collapsible" id="packages" @if($errors->has('quantity') || session('error')) open @endif>
     <summary>
