@@ -440,7 +440,7 @@ class SubscriptionController extends Controller
                     'status' => 'paid',
                     'paid_at' => now(),
                     'ref_id' => $isPaystar ? $refNum : ($isBitpay ? $transId : (string) data_get($verification, 'data.ref_id', $authority)),
-                    'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification, 'paystar_callback' => $isPaystar ? $request->only(['order_id', 'ref_num', 'tracking_code']) : null]),
+                    'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification]),
                 ]);
             });
 
