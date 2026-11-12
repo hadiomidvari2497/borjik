@@ -61,7 +61,7 @@ class PropertyListingPackageController extends Controller
             $callbackUrl = route('properties.packages.callback', ['gateway_id' => $gatewayId]);
             $result = match ($driver) {
                 'bitpay' => $bitpay->request($order->amount * 10, $order->id, $request->user(), $requestSettings, $callbackUrl),
-                'paystar' => $paystar->request($order->amount * 10, 'pkg-'.$order->id, $request->user(), $requestSettings, $callbackUrl),
+                'paystar' => $paystar->request($order->amount * 10, 'PKG'.$order->id, $request->user(), $requestSettings, $callbackUrl),
                 default => $zarinpal->request($order->amount * 10, $order->id, $request->user(), $requestSettings, $callbackUrl),
             };
 
