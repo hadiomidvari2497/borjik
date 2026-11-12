@@ -7,6 +7,7 @@ use App\Services\BuildingService;
 use App\Support\CurrentBuilding;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureSubscriptionAccess
@@ -66,6 +67,23 @@ class EnsureSubscriptionAccess
         foreach (array_unique($requestedIds) as $requestedId) {
             abort_unless(in_array($requestedId, $activeIds, true), 403,
                 'این واحد در ظرفیت اشتراک فعلی شما قرار ندارد. برای فعال‌سازی آن، اشتراک را ارتقا دهید یا واحدهای مشمول را تغییر دهید.');
+        }
+
+        $routeName = (string) ($request->route()?->getName() ?? '');
+        $resource = match (true) {
+            str_starts_with($routeName, 'contracts.') => ['contracts', $request->route('id')],
+            str_starts_with($routeName, 'my.invoices.') => ['invoices', $request->route('invoice')],
+            str_starts_with($routeName, 'payments.') => ['payment_receipts', $request->route('id')],
+            str_starts_with($routeName, 'requests.'), str_starts_with($routeName, 'my.requests.'), str_starts_with($routeName, 'tickets.') => ['tickets', $request->route('ticket')],
+            default => [null, null],
+        };
+        [$table, $resourceId] = $resource;
+        if (! in_array($request->method(), ['GET', 'HEAD'], true) && $table && is_numeric($resourceId)) {
+            $linkedUnitId = DB::table($table)->where('id', (int) $resourceId)->value('unit_id');
+            if ($linkedUnitId) {
+                abort_unless(in_array((int) $linkedUnitId, $activeIds, true), 403,
+                    'این سابقه مربوط به واحدی خارج از ظرفیت اشتراک فعلی است و فقط در آرشیو نگهداری می‌شود.');
+            }
         }
 
         return $next($request);

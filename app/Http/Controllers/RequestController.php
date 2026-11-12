@@ -11,6 +11,8 @@ use App\Models\TicketComment;
 use App\Models\TicketEvent;
 use App\Models\TicketStatusLog;
 use App\Models\Unit;
+use App\Models\Building;
+use App\Services\SubscriptionUnitAccess;
 use App\Models\User;
 use App\Support\CurrentBuilding;
 use App\Support\JalaliDate;
@@ -33,6 +35,14 @@ class RequestController extends Controller
         abort_unless($user->hasPermission('request.view.all') || $user->hasPermission('request.view.domain'), 403);
 
         $baseQuery = Ticket::where('kind', 'request')->with(['createdBy', 'unit', 'assignees.user', 'acceptedBy'])->latest();
+        $buildingId = app(CurrentBuilding::class)->id();
+        $subscription = $buildingId ? Building::find($buildingId)?->subscription : null;
+        if ($subscription && is_array($subscription->active_unit_ids)) {
+            $activeIds = app(SubscriptionUnitAccess::class)->activeIds($subscription);
+            $baseQuery->where(function ($query) use ($activeIds) {
+                $query->whereNull('unit_id')->orWhereIn('unit_id', $activeIds);
+            });
+        }
         if (! $user->hasPermission('request.view.all')) {
             $baseQuery->whereHas('assignees', fn ($q) => $q->where('user_id', $user->id));
         }
@@ -288,6 +298,10 @@ class RequestController extends Controller
         }
         $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
 
+        $buildingId = app(CurrentBuilding::class)->id();
+        $subscription = $buildingId ? Building::find($buildingId)?->subscription : null;
+        $activeUnitIds = $subscription ? app(SubscriptionUnitAccess::class)->activeIds($subscription) : [];
+
         return view('my.requests', [
             'tickets' => $query->paginate(10)->withQueryString(),
             'categories' => self::CATEGORIES,
@@ -295,6 +309,7 @@ class RequestController extends Controller
             'staffRoles' => Role::where('building_id', app(CurrentBuilding::class)->id())->where('is_staff', true)->where('is_active', true)->orderBy('name_fa')->get(),
             'units' => Unit::query()
                 ->when(! $user->hasPermission('request.view.all'), fn ($q) => $q->whereHas('parties', fn ($p) => $p->where('user_id', $user->id)->whereNull('to_date')))
+                ->when($subscription && is_array($subscription->active_unit_ids), fn ($q) => $q->whereIn('id', $activeUnitIds))
                 ->with('block')->orderBy('number')->get(),
             'stats' => $stats,
             'filters' => $filters,
