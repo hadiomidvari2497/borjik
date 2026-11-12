@@ -61,7 +61,7 @@
         <h4 style="margin:0 0 10px">پرداخت کارت‌به‌کارت</h4>
         <p class="bl-hint">مبلغ دقیق سفارش را به کارت زیر واریز کنید. اشتراک پس از بررسی رسید توسط مدیر سیستم فعال خواهد شد.</p>
         <div class="bl-sr"><span>بانک</span><strong>{{ $manualGateway['bank_name'] ?? '—' }}</strong></div>
-        <div class="bl-sr"><span>شماره کارت</span><strong dir="ltr" style="font-size:16px">{{ $manualGateway['card_number'] ?? '' }}</strong></div>
+        <div class="bl-sr"><span>شماره کارت</span><strong dir="ltr" style="font-size:16px">{{ $manualGateway['card_number'] ?? '' }}</strong><button type="button" class="bl-mini" id="copy-card-number" data-card-number="{{ $manualGateway['card_number'] ?? '' }}">کپی شماره کارت</button></div>
         <div class="bl-sr"><span>به نام</span><strong>{{ $manualGateway['account_holder'] ?? '' }}</strong></div>
         @if(!empty($manualGateway['transfer_instructions']))<p class="bl-hint">{{ $manualGateway['transfer_instructions'] }}</p>@endif
         <div class="bl-field" style="margin-top:12px"><label for="transfer_tracking_code">کد پیگیری / شماره مرجع واریز *</label><input id="transfer_tracking_code" name="transfer_tracking_code" value="{{ old('transfer_tracking_code') }}" maxlength="100" placeholder="کد درج‌شده روی رسید"></div>
