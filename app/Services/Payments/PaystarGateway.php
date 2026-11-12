@@ -42,7 +42,7 @@ class PaystarGateway
 
         $token = trim((string) data_get($response, 'data.token', ''));
         $refNum = trim((string) data_get($response, 'data.ref_num', ''));
-        if ($token === '' || $refNum === '' || (string) data_get($response, 'status', '') === 'unauthenticated') {
+        if ((int) data_get($response, 'status', 0) !== 1 || $token === '' || $refNum === '') {
             throw new RuntimeException('Paystar payment request was rejected: '.mb_substr((string) data_get($response, 'message', 'Invalid create response.'), 0, 250));
         }
 
