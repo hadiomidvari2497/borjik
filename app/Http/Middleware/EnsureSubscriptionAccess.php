@@ -77,7 +77,7 @@ class EnsureSubscriptionAccess
             default => [null, null],
         };
         [$table, $resourceId] = $resource;
-        if ($table && is_numeric($resourceId)) {
+        if (! in_array($request->method(), ['GET', 'HEAD'], true) && $table && is_numeric($resourceId)) {
             $linkedUnitId = DB::table($table)->where('id', (int) $resourceId)->value('unit_id');
             if ($linkedUnitId) {
                 abort_unless(in_array((int) $linkedUnitId, $activeIds, true), 403,
