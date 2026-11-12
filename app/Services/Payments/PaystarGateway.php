@@ -26,7 +26,7 @@ class PaystarGateway
             ->asJson()
             ->withToken((string) $settings['merchant_id'])
             ->timeout(30)
-            ->post(self::BASE_URL.'/create', [
+            ->post($this->baseUrl($settings).'/create', [
                 'amount' => $amountRial,
                 'order_id' => $orderId,
                 'callback' => $callback,
@@ -50,7 +50,7 @@ class PaystarGateway
             'order_id' => $orderId,
             'ref_num' => $refNum,
             'token' => $token,
-            'payment_url' => self::BASE_URL.'/payment?'.http_build_query(['token' => $token]),
+            'payment_url' => $this->baseUrl($settings).'/payment?'.http_build_query(['token' => $token]),
             'response' => is_array($response) ? $response : [],
         ];
     }
@@ -69,7 +69,7 @@ class PaystarGateway
             ->asJson()
             ->withToken((string) $settings['merchant_id'])
             ->timeout(20)
-            ->post(self::BASE_URL.'/verify', [
+            ->post($this->baseUrl($settings).'/verify', [
                 'ref_num' => $refNum,
                 'amount' => $amountRial,
                 'sign' => $sign,
@@ -83,6 +83,13 @@ class PaystarGateway
             && hash_equals($refNum, (string) data_get($response, 'data.ref_num', ''));
 
         return ['verified' => $verified, 'response' => is_array($response) ? $response : []];
+    }
+
+    /** @param array<string,mixed> $settings */
+    private function baseUrl(array $settings): string
+    {
+        $base = trim((string) ($settings['api_base_url'] ?? ''));
+        return rtrim($base !== '' ? $base : self::BASE_URL, '/');
     }
 
     /** @return array<string,mixed> */
