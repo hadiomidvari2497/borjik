@@ -110,6 +110,25 @@
     };
     gatewayInputs.forEach(item => item.addEventListener('change', syncGateway));
     syncGateway();
+    const copyCardButton = document.getElementById('copy-card-number');
+    copyCardButton?.addEventListener('click', async () => {
+        const cardNumber = copyCardButton.dataset.cardNumber || '';
+        try {
+            await navigator.clipboard.writeText(cardNumber);
+            if (window.Borjik?.toastSuccess) window.Borjik.toastSuccess('شماره کارت کپی شد.');
+            else copyCardButton.textContent = 'کپی شد';
+        } catch (error) {
+            const field = document.createElement('textarea');
+            field.value = cardNumber;
+            field.style.position = 'fixed';
+            field.style.opacity = '0';
+            document.body.appendChild(field);
+            field.select();
+            document.execCommand('copy');
+            field.remove();
+            copyCardButton.textContent = 'کپی شد';
+        }
+    });
     const formatMoney = value => new Intl.NumberFormat('fa-IR').format(Math.max(0, Number(value) || 0)) + ' تومان';
     let appliedCode = '';
 
