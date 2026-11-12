@@ -58,6 +58,8 @@ class PropertyListingMapSearchTest extends TestCase
         $this->assertNotSame('35.6892', (string) $point['latitude']);
         $this->assertNotSame('51.389', (string) $point['longitude']);
         $this->assertArrayNotHasKey('address', $point);
+        $this->assertSame('۵ میلیارد تومان', $point['price']);
+        $this->assertSame(1, substr_count($point['price'], 'تومان'));
     }
 
     public function test_exact_location_preference_returns_the_selected_coordinates_without_blurring(): void
