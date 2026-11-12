@@ -23,18 +23,22 @@ class ManualSubscriptionPaymentController extends Controller
         return response()->file(Storage::disk('local')->path($path));
     }
 
-    public function approve(Request $request, int $payment)
+    public function approve(int $payment)
     {
-        DB::transaction(function () use ($request, $payment) {
+        DB::transaction(function () use ($payment) {
             $record = SubscriptionPayment::query()->whereKey($payment)->lockForUpdate()->firstOrFail();
             abort_unless($record->gateway === 'card_to_card', 404);
-            if ($record->status !== 'pending') abort(422, 'این پرداخت قبلاً تعیین تکلیف شده است.');
+            if ($record->status !== 'pending') {
+                abort(422, 'این پرداخت قبلاً تعیین تکلیف شده است.');
+            }
 
             $path = (string) data_get($record->raw_response, 'receipt_path', '');
             abort_unless(str_starts_with($path, 'private/payment-proofs/') && Storage::disk('local')->exists($path), 422, 'فایل رسید پرداخت پیدا نشد.');
 
             $subscription = Subscription::query()->whereKey($record->subscription_id)->lockForUpdate()->firstOrFail();
-            if ($subscription->status !== 'pending') abort(422, 'اشتراک در وضعیت انتظار تأیید نیست.');
+            if ($subscription->status !== 'pending') {
+                abort(422, 'اشتراک در وضعیت انتظار تأیید نیست.');
+            }
 
             Subscription::query()->where('building_id', $subscription->building_id)
                 ->where('status', 'active')->where('id', '!=', $subscription->id)
@@ -43,7 +47,9 @@ class ManualSubscriptionPaymentController extends Controller
             $duration = max(1, (int) ($subscription->plan?->duration_months ?? 1));
             $subscription->update(['status' => 'active', 'starts_at' => now(), 'expires_at' => now()->addMonths($duration)]);
             app(\App\Services\SubscriptionUnitAccess::class)->initializeForPlan($subscription);
-            if ($subscription->building_id) Building::query()->whereKey($subscription->building_id)->update(['subscription_id' => $subscription->id]);
+            if ($subscription->building_id) {
+                Building::query()->whereKey($subscription->building_id)->update(['subscription_id' => $subscription->id]);
+            }
 
             CouponRedemption::query()->where('payment_id', $record->id)->where('status', 'reserved')->update(['status' => 'paid']);
             $record->update([
@@ -66,7 +72,9 @@ class ManualSubscriptionPaymentController extends Controller
         DB::transaction(function () use ($payment, $data) {
             $record = SubscriptionPayment::query()->whereKey($payment)->lockForUpdate()->firstOrFail();
             abort_unless($record->gateway === 'card_to_card', 404);
-            if ($record->status !== 'pending') abort(422, 'این پرداخت قبلاً تعیین تکلیف شده است.');
+            if ($record->status !== 'pending') {
+                abort(422, 'این پرداخت قبلاً تعیین تکلیف شده است.');
+            }
 
             $record->update([
                 'status' => 'failed',
