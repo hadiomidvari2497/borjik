@@ -52,7 +52,7 @@ class SubscriptionUnitAccess
 
     public function initializeForPlan(Subscription $subscription): void
     {
-        $total = Unit::query()->where('building_id', $subscription->building_id)->count();
+        $total = DB::table('units')->where('building_id', $subscription->building_id)->whereNull('deleted_at')->count();
         $subscription->forceFill([
             'active_unit_ids' => $total > (int) $subscription->units_limit ? [] : null,
         ])->save();
