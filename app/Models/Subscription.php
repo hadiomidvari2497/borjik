@@ -14,6 +14,7 @@ class Subscription extends Model
         return [
             'starts_at' => 'datetime',
             'expires_at' => 'datetime',
+            'active_unit_ids' => 'array',
         ];
     }
 
