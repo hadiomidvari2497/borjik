@@ -19,6 +19,7 @@ use App\Support\SystemErrorReporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class SubscriptionController extends Controller
 {
@@ -207,6 +208,87 @@ class SubscriptionController extends Controller
         }
         $settings = $availableGateways[$gatewayId] ?? null;
         $driver = (string) data_get($settings, 'driver', '');
+        if (is_array($settings) && $driver === 'card_to_card') {
+            $request->validate([
+                'transfer_receipt' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+                'transfer_tracking_code' => ['required', 'string', 'max:100'],
+                'transfer_payer_name' => ['nullable', 'string', 'max:120'],
+            ], [
+                'transfer_receipt.required' => 'تصویر یا فایل رسید واریز را بارگذاری کنید.',
+                'transfer_receipt.mimes' => 'رسید باید تصویر JPG، PNG، WebP یا فایل PDF باشد.',
+                'transfer_receipt.max' => 'حجم رسید نباید بیشتر از ۵ مگابایت باشد.',
+                'transfer_tracking_code.required' => 'کد پیگیری یا شماره مرجع واریز را وارد کنید.',
+            ]);
+
+            $receiptPath = $request->file('transfer_receipt')->store('private/payment-proofs', 'local');
+            try {
+                $payment = DB::transaction(function () use ($user, $building, $plan, $couponCode, $baseAmount, $discountAmount, $amount, $gatewayId, $settings, $request, $receiptPath) {
+                    $lockedCoupon = null;
+                    if ($couponCode !== '') {
+                        $lockedCoupon = DiscountCoupon::query()->where('code', $couponCode)->lockForUpdate()->first();
+                        if (! $lockedCoupon || ! $lockedCoupon->isAvailableFor($user->id, $plan->id, $baseAmount)
+                            || $lockedCoupon->discountFor($baseAmount) !== $discountAmount) {
+                            throw \Illuminate\Validation\ValidationException::withMessages(['coupon_code' => 'این کد تخفیف دیگر قابل استفاده نیست. دوباره تلاش کنید.']);
+                        }
+                    }
+
+                    $pending = Subscription::create([
+                        'user_id' => $user->id,
+                        'building_id' => $building->id,
+                        'plan_id' => $plan->id,
+                        'units_limit' => $plan->units_limit,
+                        'starts_at' => now(),
+                        'expires_at' => now()->addMonths(max(1, (int) $plan->duration_months)),
+                        'status' => 'pending',
+                    ]);
+
+                    $payment = SubscriptionPayment::create([
+                        'subscription_id' => $pending->id,
+                        'user_id' => $user->id,
+                        'amount' => $amount,
+                        'gateway' => 'card_to_card',
+                        'status' => 'pending',
+                        'raw_response' => [
+                            'plan_id' => $plan->id,
+                            'amount_rial' => $amount * 10,
+                            'gateway_id' => $gatewayId,
+                            'gateway_name' => (string) ($settings['provider_name'] ?? 'کارت‌به‌کارت'),
+                            'list_price' => (int) $plan->price,
+                            'plan_discount_amount' => max(0, (int) $plan->price - $baseAmount),
+                            'plan_discount_type' => $plan->discount_type,
+                            'plan_discount_value' => (int) $plan->discount_value,
+                            'base_amount' => $baseAmount,
+                            'discount_amount' => $discountAmount,
+                            'coupon_discount_amount' => $discountAmount,
+                            'coupon_code' => $couponCode !== '' ? $couponCode : null,
+                            'coupon_id' => $lockedCoupon?->id,
+                            'receipt_path' => $receiptPath,
+                            'transfer_tracking_code' => trim((string) $request->input('transfer_tracking_code')),
+                            'transfer_payer_name' => trim((string) $request->input('transfer_payer_name')),
+                        ],
+                    ]);
+
+                    if ($lockedCoupon) {
+                        CouponRedemption::create([
+                            'coupon_id' => $lockedCoupon->id,
+                            'user_id' => $user->id,
+                            'payment_id' => $payment->id,
+                            'discount_amount' => $discountAmount,
+                            'status' => 'reserved',
+                        ]);
+                    }
+
+                    return $payment;
+                });
+            } catch (\Throwable $e) {
+                Storage::disk('local')->delete($receiptPath);
+                throw $e;
+            }
+
+            return redirect()->route('subscription.show')
+                ->with('status', 'رسید پرداخت ثبت شد. پس از بررسی و تأیید مدیر سیستم، اشتراک فعال و فاکتور صادر می‌شود.');
+        }
+
         if (! is_array($settings) || ! in_array($driver, ['zarinpal', 'bitpay', 'paystar'], true)) {
             SystemErrorReporter::warning(
                 $request,
