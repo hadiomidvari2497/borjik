@@ -13,6 +13,7 @@ use App\Models\SubscriptionPlan;
 use App\Services\BuildingService;
 use App\Services\Payments\BitpayGateway;
 use App\Services\Payments\PaymentGatewayRegistry;
+use App\Services\Payments\PaystarGateway;
 use App\Services\Payments\ZarinpalGateway;
 use App\Support\SystemErrorReporter;
 use Illuminate\Http\Request;
@@ -119,7 +120,7 @@ class SubscriptionController extends Controller
     }
 
     /** پلن رایگان مستقیماً فعال می‌شود؛ پلن پولی فقط با شروع تراکنش واقعی. */
-    public function subscribe(Request $request, int $id, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaymentGatewayRegistry $registry)
+    public function subscribe(Request $request, int $id, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaystarGateway $paystar, PaymentGatewayRegistry $registry)
     {
         $plan = SubscriptionPlan::query()->where('is_active', true)->findOrFail($id);
         $user = $request->user();
@@ -200,7 +201,7 @@ class SubscriptionController extends Controller
         }
         $settings = $availableGateways[$gatewayId] ?? null;
         $driver = (string) data_get($settings, 'driver', '');
-        if (! is_array($settings) || ! in_array($driver, ['zarinpal', 'bitpay'], true)) {
+        if (! is_array($settings) || ! in_array($driver, ['zarinpal', 'bitpay', 'paystar'], true)) {
             SystemErrorReporter::warning(
                 $request,
                 'payment.gateway',
@@ -272,14 +273,17 @@ class SubscriptionController extends Controller
 
             $requestSettings = $settings;
             $requestSettings['_gateway_id'] = $gatewayId;
-            $result = $driver === 'bitpay'
-                ? $bitpay->request($amount * 10, $payment->id, $user, $requestSettings)
-                : $zarinpal->request($amount * 10, $payment->id, $user, $requestSettings);
-            $payment->update([
-                'raw_response' => array_merge($payment->raw_response ?? [], $driver === 'bitpay'
-                    ? ['id_get' => $result['id_get'], 'request' => $result['response']]
-                    : ['authority' => $result['authority'], 'request' => $result['response']]),
-            ]);
+            $result = match ($driver) {
+                'bitpay' => $bitpay->request($amount * 10, $payment->id, $user, $requestSettings),
+                'paystar' => $paystar->request($amount * 10, 'sub-'.$payment->id, $user, $requestSettings),
+                default => $zarinpal->request($amount * 10, $payment->id, $user, $requestSettings),
+            };
+            $gatewayResponse = match ($driver) {
+                'bitpay' => ['id_get' => $result['id_get'], 'request' => $result['response']],
+                'paystar' => ['paystar_order_id' => $result['order_id'], 'ref_num' => $result['ref_num'], 'paystar_token' => $result['token'], 'request' => $result['response']],
+                default => ['authority' => $result['authority'], 'request' => $result['response']],
+            };
+            $payment->update(['raw_response' => array_merge($payment->raw_response ?? [], $gatewayResponse)]);
 
             return redirect()->away($result['payment_url']);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -311,26 +315,38 @@ class SubscriptionController extends Controller
     }
 
     /** Callback عمومی است؛ فعال‌سازی فقط پس از تأیید سمت سرور با API زرین‌پال انجام می‌شود. */
-    public function callback(Request $request, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaymentGatewayRegistry $registry)
+    public function callback(Request $request, ZarinpalGateway $zarinpal, BitpayGateway $bitpay, PaystarGateway $paystar, PaymentGatewayRegistry $registry)
     {
-        $authority = (string) $request->query('Authority', '');
-        $status = strtoupper((string) $request->query('Status', ''));
-        $idGet = trim((string) $request->query('id_get', ''));
-        $transId = trim((string) $request->query('trans_id', ''));
-        $callbackGatewayId = trim((string) $request->query('gateway_id', ''));
-        $isBitpay = $idGet !== '' && $transId !== '';
+        $authority = (string) $request->input('Authority', '');
+        $status = strtoupper((string) $request->input('Status', ''));
+        $idGet = trim((string) $request->input('id_get', ''));
+        $transId = trim((string) $request->input('trans_id', ''));
+        $refNum = trim((string) $request->input('ref_num', ''));
+        $paystarOrderId = trim((string) $request->input('order_id', ''));
+        $cardNumber = trim((string) $request->input('card_number', ''));
+        $trackingCode = trim((string) $request->input('tracking_code', ''));
+        $callbackGatewayId = trim((string) $request->input('gateway_id', ''));
+        $isPaystar = $refNum !== '' || $paystarOrderId !== '';
+        $isBitpay = ! $isPaystar && $idGet !== '' && $transId !== '';
 
-        $payment = $isBitpay
-            ? SubscriptionPayment::query()->where('gateway', 'bitpay')->where('status', 'pending')->where('raw_response->id_get', $idGet)
+        $payment = $isPaystar
+            ? SubscriptionPayment::query()->where('gateway', 'paystar')->where('status', 'pending')
+                ->where(function ($query) use ($refNum, $paystarOrderId) {
+                    if ($refNum !== '') $query->where('raw_response->ref_num', $refNum);
+                    if ($paystarOrderId !== '') $query->orWhere('raw_response->paystar_order_id', $paystarOrderId);
+                })
                 ->when($callbackGatewayId !== '', fn ($query) => $query->where('raw_response->gateway_id', $callbackGatewayId))->first()
-            : SubscriptionPayment::query()->where('gateway', 'zarinpal')->where('status', 'pending')->where('raw_response->authority', $authority)
-                ->when($callbackGatewayId !== '', fn ($query) => $query->where('raw_response->gateway_id', $callbackGatewayId))->first();
+            : ($isBitpay
+                ? SubscriptionPayment::query()->where('gateway', 'bitpay')->where('status', 'pending')->where('raw_response->id_get', $idGet)
+                    ->when($callbackGatewayId !== '', fn ($query) => $query->where('raw_response->gateway_id', $callbackGatewayId))->first()
+                : SubscriptionPayment::query()->where('gateway', 'zarinpal')->where('status', 'pending')->where('raw_response->authority', $authority)
+                    ->when($callbackGatewayId !== '', fn ($query) => $query->where('raw_response->gateway_id', $callbackGatewayId))->first());
 
-        if (! $payment || ($isBitpay ? ($idGet === '' || $transId === '') : $authority === '')) {
+        if (! $payment || ($isPaystar ? ($paystarOrderId === '' && $refNum === '') : ($isBitpay ? ($idGet === '' || $transId === '') : $authority === ''))) {
             return redirect()->route('subscription.show')->with('error', 'تراکنش معتبر یا در انتظار پرداختی برای این بازگشت پیدا نشد.');
         }
 
-        if (! $isBitpay && $status !== 'OK') {
+        if (! $isBitpay && ! $isPaystar && $status !== 'OK') {
             DB::transaction(function () use ($payment, $request) {
                 $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'pending') {
@@ -341,6 +357,18 @@ class SubscriptionController extends Controller
             });
 
             return redirect()->route('subscription.show')->with('error', 'پرداخت انجام نشد؛ اشتراک فعال نشده است.');
+        }
+
+        if ($isPaystar && ($refNum === '' || $cardNumber === '' || $trackingCode === '')) {
+            DB::transaction(function () use ($payment, $request) {
+                $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
+                if ($locked->status === 'pending') {
+                    $locked->update(['status' => 'failed', 'raw_response' => array_merge($locked->raw_response ?? [], ['paystar_callback' => $request->only(['status', 'order_id', 'ref_num'])])]);
+                    Subscription::whereKey($locked->subscription_id)->where('status', 'pending')->update(['status' => 'failed']);
+                    CouponRedemption::where('payment_id', $locked->id)->where('status', 'reserved')->update(['status' => 'released']);
+                }
+            });
+            return redirect()->route('subscription.show')->with('error', 'پرداخت پی‌استار تکمیل نشد؛ اشتراک فعال نشده است.');
         }
 
         try {
@@ -357,14 +385,18 @@ class SubscriptionController extends Controller
                 throw new \RuntimeException('Invalid stored payment amount.');
             }
 
-            $verification = $isBitpay
-                ? $bitpay->verify($idGet, $transId, is_array($gatewaySettings) ? $gatewaySettings : null)
-                : $zarinpal->verify($authority, $amountRial, is_array($gatewaySettings) ? $gatewaySettings : null);
-            $verified = $isBitpay
-                ? (int) data_get($verification, 'status', 0) === 1
-                    && (int) data_get($verification, 'amount', 0) === $amountRial
-                    && (string) data_get($verification, 'factorId', '') === (string) $payment->id
-                : in_array((int) data_get($verification, 'data.code', 0), [100, 101], true);
+            $verification = $isPaystar
+                ? $paystar->verify($refNum, $amountRial, $cardNumber, $trackingCode, $gatewaySettings)
+                : ($isBitpay
+                    ? $bitpay->verify($idGet, $transId, $gatewaySettings)
+                    : $zarinpal->verify($authority, $amountRial, $gatewaySettings));
+            $verified = $isPaystar
+                ? (bool) data_get($verification, 'verified', false)
+                : ($isBitpay
+                    ? (int) data_get($verification, 'status', 0) === 1
+                        && (int) data_get($verification, 'amount', 0) === $amountRial
+                        && (string) data_get($verification, 'factorId', '') === (string) $payment->id
+                    : in_array((int) data_get($verification, 'data.code', 0), [100, 101], true));
             if (! $verified) {
                 DB::transaction(function () use ($payment, $verification) {
                     $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
@@ -378,7 +410,7 @@ class SubscriptionController extends Controller
                 return redirect()->route('subscription.show')->with('error', 'درگاه پرداخت را تأیید نکرد؛ اشتراک فعال نشده است.');
             }
 
-            DB::transaction(function () use ($payment, $verification, $authority, $isBitpay, $transId) {
+            DB::transaction(function () use ($payment, $verification, $authority, $isBitpay, $isPaystar, $transId, $refNum) {
                 $locked = SubscriptionPayment::whereKey($payment->id)->lockForUpdate()->firstOrFail();
                 if ($locked->status === 'paid') {
                     return;
@@ -407,8 +439,8 @@ class SubscriptionController extends Controller
                 $locked->update([
                     'status' => 'paid',
                     'paid_at' => now(),
-                    'ref_id' => $isBitpay ? $transId : (string) data_get($verification, 'data.ref_id', $authority),
-                    'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification]),
+                    'ref_id' => $isPaystar ? $refNum : ($isBitpay ? $transId : (string) data_get($verification, 'data.ref_id', $authority)),
+                    'raw_response' => array_merge($locked->raw_response ?? [], ['verification' => $verification, 'paystar_callback' => $isPaystar ? $request->only(['order_id', 'ref_num', 'tracking_code']) : null]),
                 ]);
             });
 
