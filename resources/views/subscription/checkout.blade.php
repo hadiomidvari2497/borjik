@@ -53,7 +53,7 @@
     @error('coupon_code')<div class="bl-err">{{ $message }}</div>@enderror
 </section>
 <section class="bl-card"><h3><i>۳</i>انتخاب درگاه پرداخت</h3>
-    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); $gwLogo = $gateway['logo_path'] ?? null; @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" data-driver="{{ $gateway['driver'] ?? '' }}" data-card-number="{{ $gateway['card_number'] ?? '' }}" data-account-holder="{{ $gateway['account_holder'] ?? '' }}" data-bank-name="{{ $gateway['bank_name'] ?? '' }}" data-transfer-instructions="{{ $gateway['transfer_instructions'] ?? '' }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">@if($gwLogo)<img src="{{ asset('storage/'.ltrim($gwLogo, '/')) }}" alt="" loading="lazy">@else{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}@endif</span><span><b>{{ $gwName }}</b><small>پرداخت آنلاین امن و هدایت به درگاه بانکی</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
+    @if($paymentGateways)<div class="bl-gws">@foreach($paymentGateways as $id=>$gateway)@php $gwName = $gateway['provider_name'] ?? ($gateway['driver']==='bitpay'?'بیت‌پی':'زرین‌پال'); $gwLogo = $gateway['logo_path'] ?? null; @endphp<label class="bl-gw"><input type="radio" name="gateway_id" value="{{ $id }}" data-driver="{{ $gateway['driver'] ?? '' }}" data-card-number="{{ $gateway['card_number'] ?? '' }}" data-account-holder="{{ $gateway['account_holder'] ?? '' }}" data-bank-name="{{ $gateway['bank_name'] ?? '' }}" data-transfer-instructions="{{ $gateway['transfer_instructions'] ?? '' }}" @checked(old('gateway_id',count($paymentGateways)===1?(string)$id:'')===(string)$id) required><span class="bl-gw-ic" aria-hidden="true">@if($gwLogo)<img src="{{ asset('storage/'.ltrim($gwLogo, '/')) }}" alt="" loading="lazy">@else{{ \Illuminate\Support\Str::substr($gwName, 0, 1) }}@endif</span><span><b>{{ $gwName }}</b><small>{{ ($gateway['driver'] ?? '') === 'card_to_card' ? 'واریز بانکی و بررسی رسید توسط مدیر سیستم' : 'پرداخت آنلاین امن و هدایت به درگاه بانکی' }}</small></span><span class="bl-gw-tick" aria-hidden="true">✓</span></label>@endforeach</div>
     @else<div class="bl-hint">درگاه فعالی برای پرداخت تنظیم نشده است.</div>@endif
     @php $manualGateway = collect($paymentGateways)->firstWhere('driver', 'card_to_card'); @endphp
     @if($manualGateway)
@@ -80,7 +80,7 @@
     <div class="bl-sr total"><span>مبلغ قابل پرداخت</span><strong id="payable-amount" data-base-amount="{{ $eff }}">{{ $F::money($eff) }}</strong></div>
     <button id="checkout-submit" class="bl-btn" style="width:100%;margin-top:14px" type="submit" @disabled(!$gatewayReady && $eff>0)>ادامه و پرداخت امن <span aria-hidden="true">←</span></button>
     <a class="bl-back" href="{{ route('subscription.show') }}">بازگشت به انتخاب پلن</a>
-    <div class="bl-safe"><svg class="i" aria-hidden="true"><use href="#lock"/></svg><span>اطلاعات پرداخت در سمت سرور اعتبارسنجی می‌شود و اشتراک پولی فقط پس از تأیید درگاه فعال خواهد شد.</span></div>
+    <div class="bl-safe"><svg class="i" aria-hidden="true"><use href="#lock"/></svg><span>اشتراک پولی فقط پس از تأیید پرداخت توسط درگاه یا مدیر سیستم فعال می‌شود.</span></div>
 </aside></div>
 </form></div>
 <script>
