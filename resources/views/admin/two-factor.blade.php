@@ -63,7 +63,7 @@
       <p class="method-description">اگر پیامک و Google Authenticator کار نمی‌کنند، یکی از کدهای بازیابی ذخیره‌شده را وارد کنید. هر کد فقط یک بار قابل استفاده است.</p>
       <form method="POST" action="{{ route('admin.two-factor.recovery.verify') }}">@csrf
         <div class="field">
-          <input class="otp" name="code" inputmode="text" maxlength="22" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" dir="ltr" style="letter-spacing:.12em" required>
+          <input class="otp" name="code" inputmode="text" maxlength="19" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" dir="ltr" style="letter-spacing:.12em" data-recovery-code required>
           @error('recovery_code')<div class="err">{{ $message }}</div>@enderror
         </div>
         <button class="btn" type="submit">استفاده از کد اضطراری و ورود</button>
@@ -140,6 +140,18 @@ document.addEventListener('DOMContentLoaded',function(){
   });
   const initial=tabs.find(tab=>tab.classList.contains('is-active'))||tabs[0];
   if(initial)activate(initial.dataset.tab,false);
+
+  document.querySelectorAll('[data-recovery-code]').forEach(function(input){
+    input.addEventListener('input',function(){
+      const cursor=input.selectionStart??input.value.length;
+      const validBefore=(input.value.slice(0,cursor).match(/[a-fA-F0-9]/g)||[]).length;
+      const raw=(input.value.match(/[a-fA-F0-9]/g)||[]).join('').slice(0,16).toUpperCase();
+      const formatted=raw.match(/.{1,4}/g)?.join('-')||'';
+      input.value=formatted;
+      const position=validBefore===0?0:validBefore+Math.floor((validBefore-1)/4);
+      input.setSelectionRange(position,position);
+    });
+  });
 
   const recoveryAccess=document.getElementById('recovery-access');
   const recoveryCountdown=document.getElementById('recovery-countdown');
