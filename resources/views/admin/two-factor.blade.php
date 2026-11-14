@@ -64,7 +64,7 @@
       <p class="method-description">اگر به پیامک و Google Authenticator دسترسی ندارید، یکی از کدهای بازیابی ذخیره‌شده را وارد کنید. هر کد فقط یک بار قابل استفاده است.</p>
       <form method="POST" action="{{ route('admin.two-factor.recovery.verify') }}">@csrf
         <div class="field">
-          <input class="otp" name="code" inputmode="text" maxlength="20" autocomplete="off" placeholder="XXXX-XXXX-XXXX" dir="ltr" style="letter-spacing:.12em" required>
+          <input class="otp" name="code" inputmode="text" maxlength="20" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" dir="ltr" style="letter-spacing:.12em" required>
           @error('code')<div class="err">{{ $message }}</div>@enderror
         </div>
         <button class="btn" type="submit">استفاده از کد بازیابی و ورود</button>
