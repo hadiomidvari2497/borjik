@@ -23,7 +23,8 @@ class AdminUser extends Authenticatable
     {
         return [
             'two_factor_enabled' => 'boolean',
-            'two_factor_sms_enabled' => 'boolean',\n            'two_factor_recovery_codes' => 'array',
+            'two_factor_sms_enabled' => 'boolean',
+            'two_factor_recovery_codes' => 'array',
             'mobile_verified_at' => 'datetime',
             'is_super' => 'boolean',
             'two_factor_secret' => 'encrypted',
