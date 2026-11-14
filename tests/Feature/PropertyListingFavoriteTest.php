@@ -35,6 +35,22 @@ class PropertyListingFavoriteTest extends TestCase
         ]);
     }
 
+    public function test_toggle_returns_json_state_for_live_requests(): void
+    {
+        $user = $this->makeUser();
+        $listing = $this->makeListing($this->makeUser());
+
+        $this->actingAs($user)
+            ->postJson(route('properties.favorites.toggle', $listing))
+            ->assertOk()
+            ->assertJson(['saved' => true]);
+
+        $this->actingAs($user)
+            ->postJson(route('properties.favorites.toggle', $listing))
+            ->assertOk()
+            ->assertJson(['saved' => false]);
+    }
+
     public function test_saved_list_is_private_and_only_shows_published_listings(): void
     {
         $user = $this->makeUser();
