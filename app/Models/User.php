@@ -43,6 +43,11 @@ class User extends Authenticatable
             : trim($this->first_name.' '.$this->last_name);
     }
 
+    public function favoritePropertyListings()
+    {
+        return $this->belongsToMany(PropertyListing::class, 'property_listing_favorites')->withTimestamps();
+    }
+
     public function buildingRoles()
     {
         return $this->hasMany(BuildingUserRole::class);
