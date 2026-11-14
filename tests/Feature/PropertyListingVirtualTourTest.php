@@ -31,7 +31,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->get(route('properties.show', $listing))
             ->assertOk()
-            ->assertSee('شروع خانه‌گردی ۳۶۰ درجه')
+            ->assertSee('شروع خانه‌گردی مجازی')
             ->assertSee('پذیرایی')
             ->assertSee('data-tour-rooms', false);
     }
