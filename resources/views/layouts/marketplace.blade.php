@@ -58,6 +58,7 @@
     <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
     <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z"/></symbol>
     <symbol id="i-building" viewBox="0 0 24 24"><path d="M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3"/></symbol>
     <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M3 15.5 15.5 3 21 8.5 8.5 21 3 15.5ZM7 11.5l2 2M10 8.5l2 2M13 5.5l2 2"/></symbol>
 </svg>
@@ -79,6 +80,7 @@
         <a href="{{ route('properties.index') }}" @if(request()->routeIs('properties.index','properties.show')) aria-current="page" @endif>آگهی‌ها</a>
         @auth
             <a href="{{ route('properties.mine') }}" @if(request()->routeIs('properties.mine','properties.create','properties.edit')) aria-current="page" @endif>آگهی‌های من</a>
+            <a href="{{ route('properties.favorites.index') }}" @if(request()->routeIs('properties.favorites.*')) aria-current="page" @endif>نشان‌شده‌ها</a>
             <a href="{{ route('properties.inquiries.index') }}" @if(request()->routeIs('properties.inquiries.*','properties.chat.*')) aria-current="page" @endif>پیام‌ها @if($mUnread > 0)<span class="nbadge">{{ \App\Support\Fa::num(min($mUnread, 99)) }}</span>@endif</a>
         @endauth
         <a href="{{ route('home') }}">صفحه اصلی سایت</a>
