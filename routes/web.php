@@ -10,6 +10,7 @@ use App\Http\Controllers\PropertyListingPackageController;
 use App\Http\Controllers\PropertyListingReportController;
 use App\Http\Controllers\PropertyListingInquiryController;
 use App\Http\Controllers\PropertyListingFavoriteController;
+use App\Http\Controllers\PropertyListingTourController;
 
 Route::post('/analytics/heartbeat', [AnalyticsCollectionController::class, 'heartbeat'])->middleware('throttle:120,1')->name('analytics.heartbeat');
 Route::post('/analytics/event', [AnalyticsCollectionController::class, 'event'])->middleware('throttle:120,1')->name('analytics.event');
@@ -50,6 +51,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/my/property-inquiries/{inquiry}/attachments/{attachment}', [PropertyListingInquiryController::class, 'attachment'])->whereNumber(['inquiry', 'attachment'])->middleware('throttle:240,1')->name('properties.chat.attachment');
     Route::patch('/my/property-inquiries/{inquiry}', [PropertyListingInquiryController::class, 'update'])->whereNumber('inquiry')->name('properties.inquiries.update');
     Route::post('/properties/{listing}/inquiries', [PropertyListingInquiryController::class, 'store'])->whereNumber('listing')->middleware('throttle:15,1')->name('properties.inquiries.store');
+    Route::post('/properties/{listing}/tour-rooms', [PropertyListingTourController::class, 'store'])->whereNumber('listing')->middleware('throttle:12,1')->name('properties.tour-rooms.store');
+    Route::delete('/properties/{listing}/tour-rooms/{room}', [PropertyListingTourController::class, 'destroy'])->whereNumber(['listing', 'room'])->name('properties.tour-rooms.destroy');
     Route::post('/properties/packages/buy', [PropertyListingPackageController::class, 'buy'])->middleware('throttle:10,1')->name('properties.packages.buy');
     Route::post('/properties/{listing}/reports', [PropertyListingReportController::class, 'store'])->whereNumber('listing')->middleware('throttle:5,10')->name('properties.reports.store');
     Route::get('/properties/create', [PropertyListingController::class, 'create'])->name('properties.create');

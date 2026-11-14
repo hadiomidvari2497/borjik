@@ -60,6 +60,7 @@
 @if($mapPoint && $mapApiKey)
 @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
 @endif
+@push('head')<link rel="stylesheet" href="{{ asset('css/property-tour.css') }}?v={{ @filemtime(public_path('css/property-tour.css')) }}">@endpush
 @push('head')<script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>@endpush
 @if($mapPoint && $mapApiKey)
 @push('scripts')
@@ -121,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
 @endpush
 
 @push('scripts')<script src="{{ asset('js/marketplace.js') }}?v={{ @filemtime(public_path('js/marketplace.js')) }}" defer></script>@endpush
+@push('scripts')<script src="{{ asset('js/property-tour.js') }}?v={{ @filemtime(public_path('js/property-tour.js')) }}" defer></script>@endpush
 @section('content')
 <style>
 .property-location-map{height:340px;min-height:280px;width:100%;overflow:hidden;border-radius:18px;background:#edf3ef}
@@ -182,6 +184,23 @@ document.addEventListener('DOMContentLoaded', function () {
     @if($listing->city)<a href="{{ route('properties.index', ['city' => $listing->city]) }}">{{ $listing->city }}</a><span class="sep">/</span>@endif
     <span>{{ \Illuminate\Support\Str::limit($listing->title, 48) }}</span>
 </nav>
+
+@if($tourRooms->isNotEmpty())
+<section class="property-tour-entry" aria-label="خانه‌گردی مجازی">
+    <div class="property-tour-entry-copy"><strong>قبل از بازدید حضوری، داخل خانه قدم بزنید</strong><span>{{ \App\Support\Fa::num($tourRooms->count()) }} فضای پانورامای ۳۶۰ درجه · چرخش آزاد با لمس انگشت یا ماوس</span></div>
+    <button type="button" data-tour-open>◉ شروع خانه‌گردی ۳۶۰ درجه</button>
+</section>
+<script type="application/json" data-tour-data>{!! json_encode($tourRooms->map(fn ($room) => ['name' => $room->name, 'url' => $room->imageUrl()])->values(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+<dialog class="property-tour-dialog" data-property-tour aria-label="خانه‌گردی مجازی ۳۶۰ درجه">
+    <div class="property-tour-stage">
+        <canvas aria-label="نمای پانورامای ۳۶۰ درجه؛ برای چرخش تصویر را بکشید"></canvas>
+        <img data-tour-fallback alt="نمای پانورامای فضای انتخاب‌شده" hidden>
+    </div>
+    <div class="property-tour-top"><strong data-tour-title>خانه‌گردی مجازی</strong><button type="button" class="property-tour-close" data-tour-close aria-label="بستن خانه‌گردی">×</button></div>
+    <div class="property-tour-hint">برای چرخش، تصویر را لمس کنید و بکشید</div>
+    <nav class="property-tour-rooms" data-tour-rooms aria-label="انتخاب فضای ملک"></nav>
+</dialog>
+@endif
 
 <div class="detail">
     <div class="detail-main">

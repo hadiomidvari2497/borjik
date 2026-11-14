@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class PropertyListing extends Model
 {
@@ -45,6 +46,20 @@ class PropertyListing extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $listing): void {
+            foreach ($listing->tourRooms as $room) {
+                Storage::disk('public')->delete($room->image_path);
+            }
+        });
+    }
+
+    public function tourRooms(): HasMany
+    {
+        return $this->hasMany(PropertyListingTourRoom::class, 'property_listing_id')->orderBy('sort_order')->orderBy('id');
     }
 
     public function inquiries(): \Illuminate\Database\Eloquent\Relations\HasMany
