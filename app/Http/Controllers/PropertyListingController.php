@@ -157,7 +157,7 @@ class PropertyListingController extends Controller
     public function show(PropertyListing $listing)
     {
         abort_unless($listing->status === 'active' && (! $listing->expires_at || $listing->expires_at->isFuture()), 404);
-        $listing->loadMissing('user');
+        $listing->loadMissing(['user', 'tourRooms']);
         if (! auth()->check() || (int) auth()->id() !== (int) $listing->user_id) {
             DB::table('property_listings')->where('id', $listing->id)->increment('views_count');
             DB::table('property_listing_daily_stats')->insertOrIgnore([
