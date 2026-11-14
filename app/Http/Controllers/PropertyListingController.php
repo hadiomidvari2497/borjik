@@ -221,6 +221,9 @@ class PropertyListingController extends Controller
             'phone_clicks' => (int) DB::table('property_listing_daily_stats')->whereIn('property_listing_id', $listingIds)->sum('phone_clicks_count'),
             'inquiries' => (int) DB::table('property_listing_inquiries')->whereIn('property_listing_id', $listingIds)->count(),
         ];
+        $performance['conversion_rate'] = $performance['views'] > 0
+            ? round(($performance['inquiries'] / $performance['views']) * 100, 1)
+            : 0;
         $packages = collect(SiteSetting::get('property_listings.packages', []))->filter(fn ($package) => is_array($package) && ! empty($package['active']) && (int) ($package['price'] ?? 0) > 0)->values();
         $availableCredits = $quota->availableCredits($request->user()->id);
         $paymentGateways = $gateways->active();
