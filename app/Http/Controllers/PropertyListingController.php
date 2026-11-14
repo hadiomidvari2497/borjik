@@ -156,7 +156,7 @@ class PropertyListingController extends Controller
     public function show(PropertyListing $listing)
     {
         abort_unless($listing->status === 'active' && (! $listing->expires_at || $listing->expires_at->isFuture()), 404);
-        $listing->loadMissing('user');
+        $listing->loadMissing(['user', 'tourRooms']);
         if (! auth()->check() || (int) auth()->id() !== (int) $listing->user_id) {
             DB::table('property_listings')->where('id', $listing->id)->increment('views_count');
             DB::table('property_listing_daily_stats')->insertOrIgnore([
@@ -174,7 +174,8 @@ class PropertyListingController extends Controller
         $mapApiKey = config('services.neshan.map_key');
         $similar = PropertyListing::published()->whereKeyNot($listing->getKey())->where('listing_type', $listing->listing_type)
             ->orderByRaw('CASE WHEN city = ? THEN 0 ELSE 1 END', [(string) $listing->city])->latest()->limit(4)->get();
-        return view('properties.show', compact('listing', 'similar', 'mapPoint', 'mapApiKey'));
+        $tourRooms = $listing->tourRooms;
+        return view('properties.show', compact('listing', 'similar', 'mapPoint', 'mapApiKey', 'tourRooms'));
     }
 
     public function recordPhoneClick(Request $request, PropertyListing $listing)
