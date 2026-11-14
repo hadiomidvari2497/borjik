@@ -100,3 +100,11 @@ html.tour-open,html.tour-open body{overflow:hidden}
  .tour-dropzone{gap:9px;padding:12px}.tour-drop-icon{flex-basis:40px;width:40px;height:40px}.tour-browse-button{padding:8px;font-size:9px}
  .tour-form-alert,.tour-limit-note{margin-inline:16px}
 }
+
+
+/* Keep the virtual-tour editor in the same visual system and rhythm as listing form cards. */
+.listing-form .form-card.tour-manager{margin:0 0 22px;padding:0;border:1px solid var(--line,#dcebe3);border-radius:18px;background:var(--card,#fff);box-shadow:0 8px 24px rgba(24,79,56,.045);overflow:hidden}
+.listing-form .form-card.tour-manager:before{height:3px}
+.listing-form .form-card.tour-manager .tour-manager-head{padding:22px 24px 16px}
+.listing-form .form-card.tour-manager .tour-manager-stats{padding:0 24px 18px}
+@media(max-width:640px){.listing-form .form-card.tour-manager{margin-bottom:18px;border-radius:16px}.listing-form .form-card.tour-manager .tour-manager-head{padding:18px 16px 14px}.listing-form .form-card.tour-manager .tour-manager-stats{padding:0 16px 16px}}
