@@ -47,6 +47,15 @@ class PropertyListing extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (self $listing): void {
+            foreach ($listing->tourRooms as $room) {
+                \\Illuminate\\Support\\Facades\\Storage::disk('public')->delete($room->image_path);
+            }
+        });
+    }
+
     public function tourRooms(): HasMany
     {
         return $this->hasMany(PropertyListingTourRoom::class, 'property_listing_id')->orderBy('sort_order')->orderBy('id');
