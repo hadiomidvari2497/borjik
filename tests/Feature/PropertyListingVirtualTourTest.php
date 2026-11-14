@@ -22,6 +22,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->actingAs($owner)->post(route('properties.tour-rooms.store', $listing), [
             'name' => 'پذیرایی',
+            'projection' => 'equirectangular',
             'panorama' => UploadedFile::fake()->image('living-room.jpg', 2048, 1024),
         ])->assertRedirect()->assertSessionHasNoErrors();
 
@@ -30,9 +31,44 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->get(route('properties.show', $listing))
             ->assertOk()
-            ->assertSee('شروع خانه‌گردی ۳۶۰ درجه')
+            ->assertSee('شروع خانه‌گردی مجازی')
             ->assertSee('پذیرایی')
             ->assertSee('data-tour-rooms', false);
+    }
+
+    public function test_owner_can_upload_a_phone_panorama_with_a_non_two_to_one_ratio(): void
+    {
+        Storage::fake('public');
+        $owner = $this->makeUser('09120000115');
+        $listing = $this->makeListing($owner);
+
+        $this->actingAs($owner)->post(route('properties.tour-rooms.store', $listing), [
+            'name' => 'پذیرایی',
+            'projection' => 'flat',
+            'panorama' => UploadedFile::fake()->image('phone-panorama.jpg', 1800, 1200),
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $room = $listing->tourRooms()->firstOrFail();
+        $this->assertSame('flat', $room->projection);
+
+        $this->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('"projection":"flat"', false);
+    }
+
+    public function test_professional_360_upload_still_requires_a_two_to_one_ratio(): void
+    {
+        Storage::fake('public');
+        $owner = $this->makeUser('09120000116');
+        $listing = $this->makeListing($owner);
+
+        $this->actingAs($owner)->from(route('properties.edit', $listing))
+            ->post(route('properties.tour-rooms.store', $listing), [
+                'name' => 'اتاق',
+                'projection' => 'equirectangular',
+                'panorama' => UploadedFile::fake()->image('not-360.jpg', 1800, 1200),
+            ])
+            ->assertSessionHasErrors(['panorama']);
     }
 
     public function test_another_user_cannot_add_or_remove_tour_rooms(): void
@@ -45,6 +81,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->actingAs($other)->post(route('properties.tour-rooms.store', $listing), [
             'name' => 'اتاق خواب',
+            'projection' => 'equirectangular',
             'panorama' => UploadedFile::fake()->image('bedroom.jpg'),
         ])->assertForbidden();
 
@@ -52,7 +89,7 @@ class PropertyListingVirtualTourTest extends TestCase
         $this->delete(route('properties.tour-rooms.destroy', [$listing, $room]))->assertRedirect(route('login'));
         $this->actingAs($other)->delete(route('properties.tour-rooms.destroy', [$listing, $room]))->assertForbidden();
         $this->assertDatabaseHas('property_listing_tour_rooms', ['id' => $room->id]);
-        $this->actingAs($owner)->get(route('properties.edit', $listing))->assertOk()->assertSee('خانه‌گردی مجازی ۳۶۰ درجه');
+        $this->actingAs($owner)->get(route('properties.edit', $listing))->assertOk()->assertSee('خانه‌گردی مجازی');
     }
 
     public function test_tour_room_upload_requires_a_valid_image_and_limits_rooms_to_eight(): void
@@ -71,6 +108,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->actingAs($owner)->post(route('properties.tour-rooms.store', $listing), [
             'name' => 'فضای نهم',
+            'projection' => 'equirectangular',
             'panorama' => UploadedFile::fake()->image('room.jpg'),
         ])->assertStatus(422);
     }
