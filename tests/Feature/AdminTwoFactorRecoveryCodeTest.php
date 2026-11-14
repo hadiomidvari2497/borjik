@@ -51,13 +51,39 @@ class AdminTwoFactorRecoveryCodeTest extends TestCase
             'password' => 'secret-pass-1',
         ])->assertRedirect(route('admin.two-factor.challenge'));
 
-        $this->get(route('admin.two-factor.challenge'))->assertOk()->assertSee('کد بازیابی');
+        $this->get(route('admin.two-factor.challenge'))->assertOk()->assertDontSee('استفاده از کد اضطراری');
+
+        $pending = session('admin_2fa');
+        $pending['started_at'] = now()->subSeconds(121)->timestamp;
+        session(['admin_2fa' => $pending]);
+
+        $this->get(route('admin.two-factor.challenge'))->assertOk()->assertSee('استفاده از کد اضطراری');
 
         $this->post(route('admin.two-factor.recovery.verify'), ['code' => 'A1B2-C3D4-E5F6-0718'])
             ->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin, 'admin');
         $this->assertCount(0, $admin->fresh()->two_factor_recovery_codes);
+    }
+
+
+    public function test_recovery_code_cannot_be_used_before_two_minutes(): void
+    {
+        $admin = $this->admin([
+            'two_factor_recovery_codes' => [Hash::make('A1B2C3D4E5F60718')],
+        ]);
+
+        $this->post(route('admin.login.submit'), [
+            'username' => $admin->username,
+            'password' => 'secret-pass-1',
+        ])->assertRedirect(route('admin.two-factor.challenge'));
+
+        $this->post(route('admin.two-factor.recovery.verify'), ['code' => 'A1B2-C3D4-E5F6-0718'])
+            ->assertRedirect(route('admin.two-factor.challenge'))
+            ->assertSessionHas('error');
+
+        $this->assertGuest('admin');
+        $this->assertCount(1, $admin->fresh()->two_factor_recovery_codes);
     }
 
     public function test_invalid_recovery_code_does_not_consume_a_valid_code(): void
