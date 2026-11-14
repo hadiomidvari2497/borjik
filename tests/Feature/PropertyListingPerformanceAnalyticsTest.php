@@ -73,6 +73,72 @@ class PropertyListingPerformanceAnalyticsTest extends TestCase
         ]);
     }
 
+    public function test_listing_owner_can_filter_leads_and_update_their_status(): void
+    {
+        $owner = $this->owner();
+        $buyer = User::create([
+            'first_name' => 'خریدار',
+            'last_name' => 'آزمایشی',
+            'mobile' => '09129990002',
+            'status' => 'active',
+            'profile_completed_at' => now(),
+        ]);
+        $listing = $this->listing($owner);
+        $inquiryId = DB::table('property_listing_inquiries')->insertGetId([
+            'property_listing_id' => $listing->id,
+            'sender_user_id' => $buyer->id,
+            'recipient_user_id' => $owner->id,
+            'sender_name' => 'خریدار آزمایشی',
+            'message' => 'برای بازدید ملک زمان خالی دارید؟',
+            'status' => 'new',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($owner)->get(route('properties.inquiries.index', ['listing_id' => $listing->id, 'status' => 'new']))
+            ->assertOk()
+            ->assertSee('مدیریت درخواست‌ها و گفتگوها')
+            ->assertSee('خریدار آزمایشی')
+            ->assertSee('برای بازدید ملک');
+
+        $this->patch(route('properties.inquiries.update', $inquiryId), ['status' => 'agreed'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('property_listing_inquiries', [
+            'id' => $inquiryId,
+            'status' => 'agreed',
+        ]);
+    }
+
+    public function test_only_listing_owner_can_change_a_lead_status(): void
+    {
+        $owner = $this->owner();
+        $buyer = User::create([
+            'first_name' => 'خریدار',
+            'last_name' => 'دوم',
+            'mobile' => '09129990003',
+            'status' => 'active',
+            'profile_completed_at' => now(),
+        ]);
+        $listing = $this->listing($owner);
+        $inquiryId = DB::table('property_listing_inquiries')->insertGetId([
+            'property_listing_id' => $listing->id,
+            'sender_user_id' => $buyer->id,
+            'recipient_user_id' => $owner->id,
+            'sender_name' => 'خریدار دوم',
+            'message' => 'سلام',
+            'status' => 'new',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($buyer)
+            ->patch(route('properties.inquiries.update', $inquiryId), ['status' => 'closed'])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('property_listing_inquiries', ['id' => $inquiryId, 'status' => 'new']);
+    }
+
     public function test_owner_dashboard_shows_performance_totals_and_daily_activity(): void
     {
         $owner = $this->owner();
