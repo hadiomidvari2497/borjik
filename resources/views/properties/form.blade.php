@@ -15,7 +15,11 @@
 
 
 
-<form class="listing-form" method="POST" enctype="multipart/form-data" novalidate action="{{ $listing->exists ? route('properties.update',$listing) : route('properties.store') }}">
+@if($listing->exists)
+<form id="tour-room-upload-form" method="POST" enctype="multipart/form-data" action="{{ route('properties.tour-rooms.store', $listing) }}">@csrf</form>
+@endif
+
+<form id="listing-form" class="listing-form" method="POST" enctype="multipart/form-data" novalidate action="{{ $listing->exists ? route('properties.update',$listing) : route('properties.store') }}">
     @csrf @if($listing->exists)@method('PUT')@endif
 
     @if($errors->any())
@@ -112,8 +116,6 @@
         </div>
     </section>
 
-</form>
-
 @if($listing->exists)
 @php($tourRooms = $listing->tourRooms)
 <section class="form-card tour-manager" aria-labelledby="tour-manager-title">
@@ -171,12 +173,11 @@
     @if($tourRooms->count() < 8)
         <div class="tour-add-section">
             <div class="tour-section-heading"><div><span class="tour-section-eyebrow">ADD A NEW SPACE</span><h3>افزودن فضای جدید</h3></div><span class="tour-next-step">فضای {{ \App\Support\Fa::num($tourRooms->count() + 1) }}</span></div>
-            <form class="tour-room-form" method="POST" enctype="multipart/form-data" action="{{ route('properties.tour-rooms.store', $listing) }}">
-                @csrf
+            <div class="tour-room-form">
                 <div class="tour-form-fields">
-                    <label class="tour-field tour-name-field"><span class="tour-field-label">نام فضا</span><input type="text" name="name" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی، آشپزخانه یا اتاق خواب" required></label>
+                    <label class="tour-field tour-name-field"><span class="tour-field-label">نام فضا</span><input type="text" name="name" form="tour-room-upload-form" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی، آشپزخانه یا اتاق خواب" required></label>
                     <label class="tour-field tour-projection-field"><span class="tour-field-label">نوع تصویر</span>
-                        <select name="projection" id="tour-projection" required>
+                        <select name="projection" id="tour-projection" form="tour-room-upload-form" required>
                             <option value="equirectangular" @selected(old('projection', 'equirectangular') === 'equirectangular')>۳۶۰ درجه حرفه‌ای</option>
                             <option value="flat" @selected(old('projection') === 'flat')>پانورامای معمولی موبایل</option>
                         </select>
@@ -187,14 +188,14 @@
                     <span><strong>پانورامای ۳۶۰ درجه حرفه‌ای</strong><small>مناسب دوربین‌های ۳۶۰؛ تصویر باید نسبت دقیق ۲ به ۱ داشته باشد.</small></span>
                 </div>
                 <label class="tour-dropzone" for="tour-panorama-file" id="tour-dropzone">
-                    <input id="tour-panorama-file" type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required>
+                    <input id="tour-panorama-file" type="file" name="panorama" form="tour-room-upload-form" accept="image/jpeg,image/png,image/webp" required>
                     <span class="tour-drop-icon" aria-hidden="true">↑</span>
                     <span class="tour-drop-copy"><strong id="tour-file-title">تصویر پانوراما را انتخاب کن</strong><small id="tour-file-caption">برای انتخاب فایل کلیک کن · JPG، PNG یا WebP</small></span>
                     <span class="tour-browse-button">انتخاب تصویر</span>
                 </label>
                 <div class="tour-upload-preview" id="tour-upload-preview" hidden><img id="tour-preview-image" alt="پیش‌نمایش تصویر انتخاب‌شده"><div><strong id="tour-preview-name"></strong><small id="tour-preview-size"></small></div><button type="button" id="tour-clear-file" aria-label="حذف تصویر انتخاب‌شده">×</button></div>
-                <div class="tour-form-footer"><span>حداکثر ۱۵ مگابایت برای هر فضا · مجموعاً تا ۸ فضا</span><button type="submit" class="tour-submit-button"><span>＋</span> افزودن به خانه‌گردی</button></div>
-            </form>
+                <div class="tour-form-footer"><span>حداکثر ۱۵ مگابایت برای هر فضا · مجموعاً تا ۸ فضا</span><button type="submit" form="tour-room-upload-form" class="tour-submit-button"><span>＋</span> افزودن به خانه‌گردی</button></div>
+            </div>
         </div>
     @else
         <div class="tour-limit-note">ظرفیت خانه‌گردی تکمیل شده است. برای افزودن فضای جدید، ابتدا یکی از فضاهای فعلی را حذف کن.</div>
@@ -261,9 +262,6 @@
 })();
 </script>
 @endif
-
-<form class="listing-form listing-form-continuation" method="POST" enctype="multipart/form-data" novalidate action="{{ $listing->exists ? route('properties.update',$listing) : route('properties.store') }}">
-    @csrf @if($listing->exists)@method('PUT')@endif
 
     {{-- ۶. راه‌های ارتباطی --}}
     <section class="form-card" aria-labelledby="sec-contact">
