@@ -19,12 +19,7 @@
         <span><b>پیامک</b><small>ارسال کد به موبایل</small></span>
       </button>
     @endif
-    @if($recoveryAvailable)
-      <button class="two-factor-tab {{ session('two_factor_tab') === 'recovery' ? 'is-active' : '' }}" id="recovery-tab" type="button" role="tab" aria-selected="{{ session('two_factor_tab') === 'recovery' ? 'true' : 'false' }}" aria-controls="recovery-panel" data-tab="recovery">
-        <span class="tab-symbol" aria-hidden="true">⌘</span>
-        <span><b>کد بازیابی</b><small>کد اضطراری یک‌بارمصرف</small></span>
-      </button>
-    @endif
+
   </div>
 
   <section class="two-factor-panel {{ session('two_factor_tab', 'authenticator') === 'authenticator' ? 'is-visible' : '' }}" id="authenticator-panel" role="tabpanel" aria-labelledby="authenticator-tab" data-panel="authenticator" {{ session('two_factor_tab', 'authenticator') === 'authenticator' ? '' : 'hidden' }}>
@@ -59,15 +54,19 @@
   @endif
 
   @if($recoveryAvailable)
-    <section class="two-factor-panel {{ session('two_factor_tab') === 'recovery' ? 'is-visible' : '' }}" id="recovery-panel" role="tabpanel" aria-labelledby="recovery-tab" data-panel="recovery" {{ session('two_factor_tab') === 'recovery' ? '' : 'hidden' }}>
+    <div class="recovery-access" id="recovery-access" data-delay="{{ $recoveryDelay }}" {{ $recoveryDelay > 0 && !session('show_recovery_form') ? 'hidden' : '' }}>
+      <a href="#recovery-panel" id="show-recovery-form" aria-controls="recovery-panel" aria-expanded="{{ session('show_recovery_form') ? 'true' : 'false' }}">استفاده از کد اضطراری</a>
+      <span id="recovery-countdown" aria-live="polite">{{ $recoveryDelay > 0 ? 'این گزینه پس از دو دقیقه فعال می‌شود.' : 'در صورت از کار افتادن روش‌های دیگر، از کد بازیابی استفاده کنید.' }}</span>
+    </div>
+    <section class="two-factor-panel recovery-panel {{ session('show_recovery_form') ? 'is-visible' : '' }}" id="recovery-panel" {{ session('show_recovery_form') ? '' : 'hidden' }}>
       <div class="method-title"><span class="method-dot"></span><b>کد بازیابی اضطراری</b></div>
-      <p class="method-description">اگر به پیامک و Google Authenticator دسترسی ندارید، یکی از کدهای بازیابی ذخیره‌شده را وارد کنید. هر کد فقط یک بار قابل استفاده است.</p>
+      <p class="method-description">اگر پیامک و Google Authenticator کار نمی‌کنند، یکی از کدهای بازیابی ذخیره‌شده را وارد کنید. هر کد فقط یک بار قابل استفاده است.</p>
       <form method="POST" action="{{ route('admin.two-factor.recovery.verify') }}">@csrf
         <div class="field">
-          <input class="otp" name="code" inputmode="text" maxlength="20" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" dir="ltr" style="letter-spacing:.12em" required>
-          @error('code')<div class="err">{{ $message }}</div>@enderror
+          <input class="otp" name="code" inputmode="text" maxlength="22" autocomplete="off" placeholder="XXXX-XXXX-XXXX-XXXX" dir="ltr" style="letter-spacing:.12em" required>
+          @error('recovery_code')<div class="err">{{ $message }}</div>@enderror
         </div>
-        <button class="btn" type="submit">استفاده از کد بازیابی و ورود</button>
+        <button class="btn" type="submit">استفاده از کد اضطراری و ورود</button>
       </form>
     </section>
   @endif
@@ -81,7 +80,7 @@
 .two-factor-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:18px;background:rgba(28,79,74,.09);color:#1c4f4a;font-size:27px}
 .two-factor-heading .h1{margin:0 0 9px}
 .two-factor-heading .lead{margin:0;line-height:1.9}
-.two-factor-tabs{display:grid;grid-template-columns:repeat({{ (int) $smsAvailable + (int) $recoveryAvailable + 1 }},minmax(0,1fr));gap:9px;padding:6px;background:#f1f5f4;border:1px solid #e3ebe8;border-radius:16px;margin-bottom:18px}
+.two-factor-tabs{display:grid;grid-template-columns:repeat({{ $smsAvailable ? 2 : 1 }},minmax(0,1fr));gap:9px;padding:6px;background:#f1f5f4;border:1px solid #e3ebe8;border-radius:16px;margin-bottom:18px}
 .two-factor-tab{display:flex;align-items:center;justify-content:center;gap:10px;min-height:68px;padding:10px 8px;border:1px solid transparent;border-radius:12px;background:transparent;color:#60716e;cursor:pointer;font:inherit;text-align:right;transition:background .25s ease,border-color .25s ease,box-shadow .25s ease,color .25s ease}
 .two-factor-tab b,.two-factor-tab small{display:block}
 .two-factor-tab b{font-size:13px;font-weight:800}
@@ -103,6 +102,11 @@
 .masked-mobile{display:flex;justify-content:center;align-items:center;gap:9px;padding:12px;margin:-3px 0 16px;border-radius:11px;background:#f5f8f7;color:#315c51;font-weight:700;letter-spacing:.08em}
 .sms-code-divider{display:flex;align-items:center;gap:10px;margin:17px 0;color:#9aa7a3;font-size:11px}
 .sms-code-divider:before,.sms-code-divider:after{content:"";height:1px;flex:1;background:#e8eeeb}
+.recovery-access{text-align:center;margin:16px 0 0;display:flex;flex-direction:column;gap:6px}
+.recovery-access[hidden]{display:none}
+.recovery-access a{color:#1c6253;font-size:12px;font-weight:800;text-decoration:underline;text-underline-offset:4px}
+.recovery-access span{font-size:10px;color:#879591}
+.recovery-panel{margin-top:14px}
 .two-factor-page .fine{text-align:center;margin-top:20px}
 @media(max-width:480px){.two-factor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.two-factor-panel{padding:18px 14px}.two-factor-tab{gap:7px}.two-factor-tab b{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.two-factor-tab{transition:none}.two-factor-panel.is-visible{animation:none}}
@@ -136,6 +140,33 @@ document.addEventListener('DOMContentLoaded',function(){
   });
   const initial=tabs.find(tab=>tab.classList.contains('is-active'))||tabs[0];
   if(initial)activate(initial.dataset.tab,false);
+
+  const recoveryAccess=document.getElementById('recovery-access');
+  const recoveryCountdown=document.getElementById('recovery-countdown');
+  const recoveryLink=document.getElementById('show-recovery-form');
+  const recoveryPanel=document.getElementById('recovery-panel');
+  if(recoveryAccess&&recoveryCountdown&&recoveryLink&&recoveryPanel){
+    let remaining=Math.max(0,Number(recoveryAccess.dataset.delay)||0);
+    function updateRecoveryAvailability(){
+      if(remaining>0){
+        recoveryCountdown.textContent='این گزینه پس از '+remaining+' ثانیه فعال می‌شود.';
+        remaining-=1;
+        window.setTimeout(updateRecoveryAvailability,1000);
+      }else{
+        recoveryAccess.hidden=false;
+        recoveryCountdown.textContent='در صورت از کار افتادن روش‌های دیگر، از کد بازیابی استفاده کنید.';
+      }
+    }
+    if(remaining>0)updateRecoveryAvailability();
+    recoveryLink.addEventListener('click',function(event){
+      event.preventDefault();
+      if(remaining>0)return;
+      recoveryPanel.hidden=false;
+      recoveryPanel.classList.add('is-visible');
+      recoveryLink.setAttribute('aria-expanded','true');
+      recoveryPanel.querySelector('input[name="code"]')?.focus();
+    });
+  }
 });
 </script>
 @endsection
