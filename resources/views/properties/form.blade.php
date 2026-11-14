@@ -32,7 +32,7 @@
                 <div class="tour-room-item">
                     <img src="{{ $room->imageUrl() }}" alt="" loading="lazy">
                     <span>{{ $room->name }}</span>
-                    <form method="POST" action="{{ route('properties.tour-rooms.destroy', [$listing, $room]) }}" onsubmit="return confirm('این فضا از خانه‌گردی حذف شود؟')">
+                    <form method="POST" action="{{ route('properties.tour-rooms.destroy', [$listing, $room]) }}" data-confirm="این فضا از خانه‌گردی حذف شود؟" data-danger>
                         @csrf @method('DELETE')
                         <button type="submit" aria-label="حذف {{ $room->name }}">×</button>
                     </form>
