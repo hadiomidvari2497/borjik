@@ -20,6 +20,33 @@
   @endif
 </div>
 
+@if($me->two_factor_enabled)
+<div class="card" style="margin-top:16px">
+  <div class="page-h"><h2>کدهای بازیابی اضطراری</h2></div>
+  <p style="line-height:1.9;margin:8px 0 12px">اگر هم پیامک و هم Google Authenticator در دسترس نبودند، با یکی از این کدها وارد پنل می‌شوید. هر کد فقط یک بار قابل استفاده است و کدها را باید خارج از دستگاه و در جای امن نگهداری کنید.</p>
+  @if(session('recovery_codes'))
+    <div style="padding:14px;border:1px solid var(--line);border-radius:10px;margin-bottom:14px">
+      <strong>کدهای جدید؛ فقط همین بار نمایش داده می‌شوند:</strong>
+      <div dir="ltr" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px;font-family:monospace">
+        @foreach(session('recovery_codes') as $recoveryCode)
+          <code style="padding:8px;background:var(--surface, #f5f7f6);border-radius:6px;text-align:center">{{ $recoveryCode }}</code>
+        @endforeach
+      </div>
+    </div>
+  @endif
+  <p class="muted">تعداد کدهای باقی‌مانده: {{ count($me->two_factor_recovery_codes ?? []) }} از ۱۰</p>
+  <form method="POST" action="{{ route('admin.account.recovery-codes') }}" style="margin-top:12px">
+    @csrf
+    <div class="fgrid">
+      <div class="fld"><label for="recovery_password">رمز عبور فعلی</label><input id="recovery_password" type="password" name="password" dir="ltr" autocomplete="current-password" required>@error('password')<div class="e">{{ $message }}</div>@enderror</div>
+      <div class="fld"><label for="recovery_authenticator_code">کد فعلی Google Authenticator</label><input id="recovery_authenticator_code" name="authenticator_code" inputmode="numeric" maxlength="6" dir="ltr" autocomplete="one-time-code" required>@error('authenticator_code')<div class="e">{{ $message }}</div>@enderror</div>
+    </div>
+    @error('recovery_codes')<div class="e">{{ $message }}</div>@enderror
+    <div class="fbar"><button class="btn" type="submit">{{ count($me->two_factor_recovery_codes ?? []) ? 'تولید مجدد ۱۰ کد و ابطال کدهای قبلی' : 'تولید ۱۰ کد بازیابی' }}</button></div>
+  </form>
+</div>
+@endif
+
 <div class="card" style="margin-top:16px">
   <div class="page-h"><h2>شماره موبایل و ورود پیامکی</h2></div>
   <p style="line-height:1.9;margin:8px 0 12px">این شماره فقط برای حساب مدیر پنل کل سایت استفاده می‌شود. برای فعال‌کردن پیامک جایگزین Google Authenticator، ابتدا مالکیت شماره را تأیید کنید.</p>
