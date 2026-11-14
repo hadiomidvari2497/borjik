@@ -192,6 +192,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     @if($listing->propertyTypeLabel())<span class="tag plain">{{ $listing->propertyTypeLabel() }}</span>@endif
                 </div>
                 <div class="tools">
+                    @auth
+                    <form method="POST" action="{{ route('properties.favorites.toggle', $listing) }}" class="market-save-detail-form">@csrf
+                        <button type="submit" class="chip-btn market-save-detail-btn @if($isFavorited) is-saved @endif" aria-pressed="{{ $isFavorited ? 'true' : 'false' }}"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg><span>{{ $isFavorited ? 'نشان‌شده' : 'نشان کردن' }}</span></button>
+                    </form>
+                    @else
+                    <a class="chip-btn" href="{{ route('login', ['redirect' => route('properties.show', $listing)]) }}"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg><span>نشان کردن</span></a>
+                    @endauth
                     <button type="button" class="chip-btn" data-share data-title="{{ $listing->title }}" data-url="{{ route('properties.show', $listing) }}"><svg class="icon" aria-hidden="true"><use href="#i-share"/></svg><span>اشتراک‌گذاری</span></button>
                 </div>
             </div>
