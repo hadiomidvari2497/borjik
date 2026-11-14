@@ -60,7 +60,7 @@
 @if($mapPoint && $mapApiKey)
 @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
 @endif
-@if($tourRooms->isNotEmpty())@push('head')<link rel="stylesheet" href="{{ asset('css/property-tour.css') }}?v={{ @filemtime(public_path('css/property-tour.css')) }}">@endpush@endif
+@push('head')<link rel="stylesheet" href="{{ asset('css/property-tour.css') }}?v={{ @filemtime(public_path('css/property-tour.css')) }}">@endpush
 @push('head')<script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>@endpush
 @if($mapPoint && $mapApiKey)
 @push('scripts')
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
 @endpush
 
 @push('scripts')<script src="{{ asset('js/marketplace.js') }}?v={{ @filemtime(public_path('js/marketplace.js')) }}" defer></script>@endpush
-@if($tourRooms->isNotEmpty())@push('scripts')<script src="{{ asset('js/property-tour.js') }}?v={{ @filemtime(public_path('js/property-tour.js')) }}" defer></script>@endpush@endif
+@push('scripts')<script src="{{ asset('js/property-tour.js') }}?v={{ @filemtime(public_path('js/property-tour.js')) }}" defer></script>@endpush
 @section('content')
 <style>
 .property-location-map{height:340px;min-height:280px;width:100%;overflow:hidden;border-radius:18px;background:#edf3ef}
