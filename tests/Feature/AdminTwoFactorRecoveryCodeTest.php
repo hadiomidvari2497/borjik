@@ -51,7 +51,7 @@ class AdminTwoFactorRecoveryCodeTest extends TestCase
             'password' => 'secret-pass-1',
         ])->assertRedirect(route('admin.two-factor.challenge'));
 
-        $this->get(route('admin.two-factor.challenge'))->assertOk()->assertSee('data-delay="120"')->assertDontSee('id="recovery-tab"');
+        $this->get(route('admin.two-factor.challenge'))->assertOk()->assertSee('id="recovery-access"', false)->assertDontSee('id="recovery-tab"', false);
 
         $pending = session('admin_2fa');
         $pending['started_at'] = now()->subSeconds(121)->timestamp;
@@ -97,8 +97,12 @@ class AdminTwoFactorRecoveryCodeTest extends TestCase
             'password' => 'secret-pass-1',
         ]);
 
+        $pending = session('admin_2fa');
+        $pending['started_at'] = now()->subSeconds(121)->timestamp;
+        session(['admin_2fa' => $pending]);
+
         $this->post(route('admin.two-factor.recovery.verify'), ['code' => 'FFFFFFFFFFFFFFFF'])
-            ->assertSessionHasErrors('code');
+            ->assertSessionHasErrors('recovery_code');
 
         $this->assertCount(1, $admin->fresh()->two_factor_recovery_codes);
         $this->assertGuest('admin');
