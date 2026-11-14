@@ -144,10 +144,9 @@ class PropertyListingPerformanceAnalyticsTest extends TestCase
             'id' => $inquiryId,
             'follow_up_note' => 'تماس برای هماهنگی بازدید',
         ]);
-        $this->assertEquals(
-            $followUpAt->timestamp,
-            $this->assertDatabaseHas('property_listing_inquiries', ['id' => $inquiryId]) ? strtotime(DB::table('property_listing_inquiries')->where('id', $inquiryId)->value('follow_up_at')) : 0
-        );
+        $storedFollowUpAt = DB::table('property_listing_inquiries')->where('id', $inquiryId)->value('follow_up_at');
+        $this->assertNotNull($storedFollowUpAt);
+        $this->assertEquals($followUpAt->timestamp, strtotime($storedFollowUpAt));
 
         $this->actingAs($owner)
             ->patch(route('properties.inquiries.update', $inquiryId), ['follow_up_at' => '', 'follow_up_note' => ''])
