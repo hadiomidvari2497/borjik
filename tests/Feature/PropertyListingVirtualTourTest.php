@@ -22,6 +22,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->actingAs($owner)->post(route('properties.tour-rooms.store', $listing), [
             'name' => 'پذیرایی',
+            'projection' => 'equirectangular',
             'panorama' => UploadedFile::fake()->image('living-room.jpg', 2048, 1024),
         ])->assertRedirect()->assertSessionHasNoErrors();
 
@@ -35,6 +36,41 @@ class PropertyListingVirtualTourTest extends TestCase
             ->assertSee('data-tour-rooms', false);
     }
 
+    public function test_owner_can_upload_a_phone_panorama_with_a_non_two_to_one_ratio(): void
+    {
+        Storage::fake('public');
+        $owner = $this->makeUser('09120000115');
+        $listing = $this->makeListing($owner);
+
+        $this->actingAs($owner)->post(route('properties.tour-rooms.store', $listing), [
+            'name' => 'پذیرایی',
+            'projection' => 'flat',
+            'panorama' => UploadedFile::fake()->image('phone-panorama.jpg', 1800, 1200),
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $room = $listing->tourRooms()->firstOrFail();
+        $this->assertSame('flat', $room->projection);
+
+        $this->get(route('properties.show', $listing))
+            ->assertOk()
+            ->assertSee('&quot;projection&quot;:&quot;flat&quot;', false);
+    }
+
+    public function test_professional_360_upload_still_requires_a_two_to_one_ratio(): void
+    {
+        Storage::fake('public');
+        $owner = $this->makeUser('09120000116');
+        $listing = $this->makeListing($owner);
+
+        $this->actingAs($owner)->from(route('properties.edit', $listing))
+            ->post(route('properties.tour-rooms.store', $listing), [
+                'name' => 'اتاق',
+                'projection' => 'equirectangular',
+                'panorama' => UploadedFile::fake()->image('not-360.jpg', 1800, 1200),
+            ])
+            ->assertSessionHasErrors(['panorama']);
+    }
+
     public function test_another_user_cannot_add_or_remove_tour_rooms(): void
     {
         Storage::fake('public');
@@ -45,6 +81,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->actingAs($other)->post(route('properties.tour-rooms.store', $listing), [
             'name' => 'اتاق خواب',
+            'projection' => 'equirectangular',
             'panorama' => UploadedFile::fake()->image('bedroom.jpg'),
         ])->assertForbidden();
 
@@ -71,6 +108,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->actingAs($owner)->post(route('properties.tour-rooms.store', $listing), [
             'name' => 'فضای نهم',
+            'projection' => 'equirectangular',
             'panorama' => UploadedFile::fake()->image('room.jpg'),
         ])->assertStatus(422);
     }
