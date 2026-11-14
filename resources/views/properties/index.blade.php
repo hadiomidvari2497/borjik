@@ -1,14 +1,6 @@
 @extends('layouts.marketplace')
 @section('title', 'خرید، فروش و اجاره ملک')
 @section('content')
-<style>
-.property-map-feature-card{position:absolute;z-index:5;top:14px;right:14px;width:min(300px,calc(100% - 28px));padding:16px;border:1px solid #dce9e2;border-radius:16px;background:#fff;box-shadow:0 12px 36px rgba(20,55,42,.2);direction:rtl}
-.property-map-feature-card[hidden]{display:none}
-.property-map-feature-card strong{display:block;padding-left:28px;color:#21483a;font-size:14px;line-height:1.8}
-.property-map-feature-card p{margin:6px 0 12px;color:#647b70;font-size:13px}
-.property-map-feature-card a{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:10px;background:#16845f;color:#fff;text-decoration:none;font-size:12px;font-weight:700}
-.property-map-feature-close{position:absolute;top:8px;left:9px;width:28px;height:28px;border:0;border-radius:50%;background:#eff5f1;color:#456458;font-size:19px;cursor:pointer}
-</style>
 @php($mapApiKey = $mapApiKey ?? config('services.neshan.map_key'))
 @if($mapApiKey)
     @push('head')<link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">@endpush
@@ -112,6 +104,7 @@
         <div id="property-results-map" aria-label="نقشه آگهی‌های ملکی"></div>
         <p class="map-caption">دقت موقعیت هر آگهی مطابق انتخاب ثبت‌کننده است؛ آگهی‌های دارای موقعیت تقریبی با جابه‌جایی نشان داده می‌شوند.</p>
         <p class="map-status" id="property-map-status" role="status">برای مشاهده آگهی‌های محدوده، نقشه را جابه‌جا کنید.</p>
+        <ul class="map-legend" aria-label="راهنمای نقشه"><li><i></i>موقعیت دقیق</li><li><i class="is-halo"></i>موقعیت تقریبی</li><li><i class="is-cluster"></i>چند آگهی نزدیک هم</li></ul>
     @else
         <div class="empty"><h3>نقشه هنوز فعال نشده</h3><p class="muted">پس از ثبت کلید نقشه در تنظیمات سرور، آگهی‌های دارای موقعیت روی نقشه نمایش داده می‌شوند.</p></div>
     @endif
@@ -120,66 +113,140 @@
 @if($mapApiKey)
     @push('scripts')
     <script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+    <script src="{{ asset('js/market-map.js') }}?v={{ @filemtime(public_path('js/market-map.js')) }}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const el = document.getElementById('property-results-map');
-        if (!el || !window.maplibregl) return;
-        const map = new maplibregl.Map({container:el,style:'https://static.neshan.org/sdk/maplibre/styles/light.json',center:[51.389,35.6892],zoom:5,apiKey:@json($mapApiKey)});
-        const status=document.getElementById('property-map-status'), sourceId='property-listing-points';
-        let requestId=0, initialLoad=true, sourceReady=false;
-        const featureCard=document.createElement('div');
-        featureCard.className='property-map-feature-card';featureCard.hidden=true;
-        featureCard.innerHTML='<button type="button" class="property-map-feature-close" aria-label="بستن">×</button><strong></strong><p></p><a></a>';
-        const featureTitle=featureCard.querySelector('strong'),featurePrice=featureCard.querySelector('p'),featureLink=featureCard.querySelector('a');
-        featureCard.addEventListener('click',event=>event.stopPropagation());
-        featureCard.querySelector('button').addEventListener('click',()=>{featureCard.hidden=true;});
-        el.appendChild(featureCard);
-        const collection=points=>({type:'FeatureCollection',features:points.map(p=>({type:'Feature',geometry:{type:'Point',coordinates:[p.longitude,p.latitude]},properties:{id:p.id,title:p.title,price:p.price,url:p.url,location_visibility:p.location_visibility}}))});
-        const refresh=async()=>{
-            const id=++requestId, params=new URLSearchParams(window.location.search);
-            if(!initialLoad){const b=map.getBounds();params.set('south',b.getSouth());params.set('west',b.getWest());params.set('north',b.getNorth());params.set('east',b.getEast());}
-            if(status)status.textContent='در حال جستجوی آگهی‌های این محدوده…';
-            try{
-                const response=await fetch(@json(route('properties.map-search'))+'?'+params.toString(),{headers:{'Accept':'application/json'}});
-                if(!response.ok)throw new Error('map search failed');
-                const payload=await response.json();if(id!==requestId)return;
-                map.getSource(sourceId).setData(collection(payload.data));
-                if(initialLoad){
-                    initialLoad=false;
-                    if(payload.data.length===1)map.easeTo({center:[payload.data[0].longitude,payload.data[0].latitude],zoom:14});
-                    else if(payload.data.length>1){
-                        const coords=payload.data.map(p=>[p.longitude,p.latitude]);
-                        const bounds=coords.reduce((acc,point)=>acc.extend(point),new maplibregl.LngLatBounds(coords[0],coords[0]));
-                        map.fitBounds(bounds,{padding:64,maxZoom:14,duration:500});
+        if (!el || !window.maplibregl || !window.MarketMap) return;
+        const M = window.MarketMap;
+        const map = M.create({container: el, apiKey: @json($mapApiKey), center: M.CENTER, zoom: 5, locate: true});
+        const status = document.getElementById('property-map-status');
+        const panel = document.getElementById('property-map-panel');
+        const SRC = 'property-listing-points';
+        const endpoint = @json(route('properties.map-search'));
+        let controller = null, initialLoad = true, sourceReady = false, failed = false;
+
+        const setStatus = (text, loading) => {
+            if (status) status.textContent = text;
+            if (panel) panel.classList.toggle('is-loading', Boolean(loading));
+            el.setAttribute('aria-busy', loading ? 'true' : 'false');
+        };
+
+        /* کارت شناور آگهی انتخاب‌شده */
+        const card = document.createElement('div');
+        card.className = 'property-map-feature-card';
+        card.hidden = true;
+        card.innerHTML = '<button type="button" class="property-map-feature-close" aria-label="بستن">×</button><strong></strong><p><span class="pm-price"></span><span class="pm-vis"></span></p><a></a>';
+        const cardTitle = card.querySelector('strong'), cardPrice = card.querySelector('.pm-price'), cardVis = card.querySelector('.pm-vis'), cardLink = card.querySelector('a');
+        const selectFeature = (id) => { if (sourceReady) map.setFilter('property-listing-selected', ['==', ['get', 'id'], id == null ? -1 : id]); };
+        const closeCard = () => { card.hidden = true; selectFeature(null); };
+        card.addEventListener('click', (event) => event.stopPropagation());
+        card.querySelector('button').addEventListener('click', closeCard);
+        el.appendChild(card);
+
+        const collection = (points) => ({type: 'FeatureCollection', features: points.map((p) => ({
+            type: 'Feature',
+            geometry: {type: 'Point', coordinates: [p.longitude, p.latitude]},
+            properties: {id: p.id, title: p.title, price: p.price, url: p.url, location_visibility: p.location_visibility}
+        }))});
+
+        const refresh = async () => {
+            if (controller) controller.abort();
+            controller = new AbortController();
+            const signal = controller.signal, params = new URLSearchParams(window.location.search);
+            if (!initialLoad) {
+                const b = map.getBounds();
+                params.set('south', b.getSouth()); params.set('west', b.getWest()); params.set('north', b.getNorth()); params.set('east', b.getEast());
+            }
+            setStatus('در حال جستجوی آگهی‌های این محدوده…', true);
+            try {
+                const response = await fetch(endpoint + '?' + params.toString(), {headers: {'Accept': 'application/json'}, signal});
+                if (!response.ok) throw new Error('map search failed');
+                const payload = await response.json();
+                map.getSource(SRC).setData(collection(payload.data));
+                if (initialLoad) {
+                    initialLoad = false;
+                    if (payload.data.length === 1) {
+                        map.easeTo({center: [payload.data[0].longitude, payload.data[0].latitude], zoom: 14});
+                    } else if (payload.data.length > 1) {
+                        const coords = payload.data.map((p) => [p.longitude, p.latitude]);
+                        const bounds = coords.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(coords[0], coords[0]));
+                        map.fitBounds(bounds, {padding: 64, maxZoom: 14, duration: 500});
                     }
                 }
-                if(status)status.textContent=payload.data.length+' آگهی دارای موقعیت در این محدوده پیدا شد.';
-            }catch(error){if(status&&id===requestId)status.textContent='دریافت آگهی‌های نقشه ممکن نشد؛ دوباره تلاش کنید.';}
+                setStatus(payload.data.length
+                    ? M.fa(payload.data.length) + ' آگهی دارای موقعیت در این محدوده پیدا شد.'
+                    : 'در این محدوده آگهی‌ای با موقعیت ثبت‌شده نیست؛ نقشه را جابه‌جا یا کوچک‌نمایی کنید.', false);
+            } catch (error) {
+                if (error && error.name === 'AbortError') return;
+                setStatus('دریافت آگهی‌های نقشه ممکن نشد؛ نقشه را کمی جابه‌جا کنید یا دوباره تلاش کنید.', false);
+            }
         };
-        map.on('load',function(){
-            map.addSource(sourceId,{type:'geojson',data:collection([])});
-            map.addLayer({id:'property-listing-points',type:'circle',source:sourceId,paint:{'circle-radius':['interpolate',['linear'],['zoom'],5,6,14,10],'circle-color':'#16845f','circle-stroke-color':'#fff','circle-stroke-width':2}});
-            map.addLayer({id:'property-listing-labels',type:'symbol',source:sourceId,layout:{'text-field':['get','price'],'text-size':11,'text-offset':[0,1.8],'text-anchor':'top'},paint:{'text-color':'#174b3a','text-halo-color':'#fff','text-halo-width':1.5}});
-            sourceReady=true;
-            map.on('click',event=>{
-                let features=[];
-                try{features=map.queryRenderedFeatures(event.point,{layers:['property-listing-points']})||[];}catch(error){console.error('Property map hit-test failed:',error);}
-                if(!features.length){featureCard.hidden=true;return;}
-                const p=features[0].properties||{};
-                featureTitle.textContent=p.title||'جزئیات آگهی';
-                featurePrice.textContent=(p.price||'')+' · موقعیت '+(p.location_visibility==='exact'?'دقیق':'تقریبی');
-                featureLink.href=p.url||'#';featureLink.textContent='مشاهده آگهی';featureLink.hidden=!p.url;
-                featureCard.hidden=false;
+        const refreshSoon = M.debounce(refresh, 350);
+
+        map.on('load', function () {
+            map.addSource(SRC, {type: 'geojson', data: collection([]), cluster: true, clusterMaxZoom: 14, clusterRadius: 46});
+            const single = ['!', ['has', 'point_count']];
+            // هاله‌ی موقعیت تقریبی
+            map.addLayer({id: 'property-listing-halo', type: 'circle', source: SRC,
+                filter: ['all', single, ['==', ['get', 'location_visibility'], 'approximate']],
+                paint: {'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 10, 13, 26, 16, 54], 'circle-color': '#16845f', 'circle-opacity': 0.14, 'circle-stroke-color': '#16845f', 'circle-stroke-width': 1, 'circle-stroke-opacity': 0.35}});
+            map.addLayer({id: 'property-listing-points', type: 'circle', source: SRC, filter: single,
+                paint: {'circle-radius': ['interpolate', ['linear'], ['zoom'], 5, 6, 14, 10], 'circle-color': '#16845f', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2}});
+            map.addLayer({id: 'property-listing-selected', type: 'circle', source: SRC, filter: ['==', ['get', 'id'], -1],
+                paint: {'circle-radius': 17, 'circle-color': 'rgba(22,132,95,.18)', 'circle-stroke-color': '#0f6a4b', 'circle-stroke-width': 2.5}});
+            map.addLayer({id: 'property-listing-labels', type: 'symbol', source: SRC, filter: single, minzoom: 11,
+                layout: {'text-field': ['get', 'price'], 'text-size': 12, 'text-offset': [0, 1.8], 'text-anchor': 'top', 'text-optional': true},
+                paint: {'text-color': '#174b3a', 'text-halo-color': '#fff', 'text-halo-width': 1.5}});
+            map.addLayer({id: 'property-clusters', type: 'circle', source: SRC, filter: ['has', 'point_count'],
+                paint: {'circle-color': ['step', ['get', 'point_count'], '#16845f', 10, '#0f6a4b', 50, '#0b4f39'], 'circle-radius': ['step', ['get', 'point_count'], 18, 10, 22, 50, 28], 'circle-stroke-color': '#fff', 'circle-stroke-width': 3}});
+            const countLayer = (field) => ({id: 'property-cluster-count', type: 'symbol', source: SRC, filter: ['has', 'point_count'],
+                layout: {'text-field': field, 'text-size': 13, 'text-allow-overlap': true}, paint: {'text-color': '#fff'}});
+            try { map.addLayer(countLayer(['number-format', ['get', 'point_count'], {locale: 'fa'}])); }
+            catch (error) { map.addLayer(countLayer(['to-string', ['get', 'point_count']])); }
+            sourceReady = true;
+
+            map.on('click', (event) => {
+                let features = [];
+                try { features = map.queryRenderedFeatures(event.point, {layers: ['property-clusters', 'property-listing-points']}) || []; }
+                catch (error) { console.error('Property map hit-test failed:', error); }
+                if (!features.length) { closeCard(); return; }
+                const feature = features[0], p = feature.properties || {};
+                if (p.point_count) {
+                    // خوشه: به همان نقطه نزدیک‌تر شو تا آگهی‌ها از هم جدا شوند.
+                    map.easeTo({center: feature.geometry.coordinates, zoom: Math.min(map.getZoom() + 2.5, 17), duration: 450});
+                    return;
+                }
+                cardTitle.textContent = p.title || 'جزئیات آگهی';
+                cardPrice.textContent = p.price || '';
+                cardVis.textContent = p.location_visibility === 'exact' ? 'موقعیت دقیق' : 'موقعیت تقریبی';
+                cardLink.href = p.url || '#'; cardLink.textContent = 'مشاهده آگهی'; cardLink.hidden = !p.url;
+                card.hidden = false;
+                selectFeature(p.id);
             });
-            map.on('mouseenter','property-listing-points',()=>map.getCanvas().style.cursor='pointer');
-            map.on('mouseleave','property-listing-points',()=>map.getCanvas().style.cursor='');
+            ['property-listing-points', 'property-clusters'].forEach((layer) => {
+                map.on('mouseenter', layer, () => { map.getCanvas().style.cursor = 'pointer'; });
+                map.on('mouseleave', layer, () => { map.getCanvas().style.cursor = ''; });
+            });
             refresh();
         });
-        map.on('moveend',()=>{if(sourceReady)refresh();});
-        map.on('error',()=>{if(status)status.textContent='بارگذاری نقشه با خطا مواجه شد؛ کلید و سرویس نقشه را بررسی کنید.';});
-        const layout=document.getElementById('property-map-layout'),listButton=document.getElementById('show-list-view'),mapButton=document.getElementById('show-map-view');
-        const setView=view=>{layout.dataset.view=view;listButton.setAttribute('aria-pressed',view==='list'?'true':'false');mapButton.setAttribute('aria-pressed',view==='map'?'true':'false');if(view==='map')setTimeout(()=>map.resize(),80);};
-        listButton.addEventListener('click',()=>setView('list'));mapButton.addEventListener('click',()=>setView('map'));setView('list');
+        map.on('moveend', () => { if (sourceReady) refreshSoon(); });
+        map.on('error', () => {
+            if (failed) return;
+            failed = true;
+            setStatus('بارگذاری نقشه با خطا مواجه شد؛ کلید و سرویس نقشه را بررسی کنید.', false);
+        });
+
+        const layout = document.getElementById('property-map-layout'), listButton = document.getElementById('show-list-view'), mapButton = document.getElementById('show-map-view');
+        const setView = (view) => {
+            layout.dataset.view = view;
+            listButton.setAttribute('aria-pressed', view === 'list' ? 'true' : 'false');
+            mapButton.setAttribute('aria-pressed', view === 'map' ? 'true' : 'false');
+            if (view === 'map') setTimeout(() => map.resize(), 80);
+        };
+        listButton.addEventListener('click', () => setView('list'));
+        mapButton.addEventListener('click', () => setView('map'));
+        setView('list');
     });
     </script>
     @endpush

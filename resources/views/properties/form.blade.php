@@ -118,10 +118,6 @@
         <label class="check"><input type="checkbox" name="allow_sms" value="1" @checked(old('allow_sms', $listing->allow_sms ?? $listing->show_phone ?? false))> امکان ارسال پیامک فعال باشد</label>
     </section>
 
-    <div class="form-actions">
-        <button class="btn lg" type="submit">{{ $listing->exists ? 'ذخیره تغییرات' : 'ثبت و انتشار آگهی' }}</button>
-        <a class="btn light lg" href="{{ route('properties.mine') }}">انصراف</a>
-    </div>
 @php($mapApiKey = config('services.neshan.map_key'))
 @if($mapApiKey)
     @push('head')
@@ -164,6 +160,11 @@
 <input type="hidden" name="latitude" id="property-latitude" value="{{ old('latitude', $listing->latitude) }}">
 <input type="hidden" name="longitude" id="property-longitude" value="{{ old('longitude', $listing->longitude) }}">
 </section>
+
+    <div class="form-actions">
+        <button class="btn lg" type="submit">{{ $listing->exists ? 'ذخیره تغییرات' : 'ثبت و انتشار آگهی' }}</button>
+        <a class="btn light lg" href="{{ route('properties.mine') }}">انصراف</a>
+    </div>
 
 </form>
 
@@ -339,6 +340,7 @@
 </script>
 @if($mapApiKey)
 <script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+<script src="{{ asset('js/market-map.js') }}?v={{ @filemtime(public_path('js/market-map.js')) }}"></script>
 <script>
 (function () {
     const initPropertyLocationMap = () => {
@@ -358,14 +360,16 @@
         const initial = hasPoint ? [Number(lngInput.value), Number(latInput.value)] : [51.389, 35.6892];
         let map;
         try {
-            map = new maplibregl.Map({
-                container: mapElement,
-                style: 'https://static.neshan.org/sdk/maplibre/styles/light.json',
-                center: initial,
-                zoom: hasPoint ? 16 : 11,
-                apiKey: @json($mapApiKey),
-                attributionControl: true
-            });
+            map = window.MarketMap
+                ? window.MarketMap.create({container: mapElement, apiKey: @json($mapApiKey), center: initial, zoom: hasPoint ? 16 : 11, locate: true})
+                : new maplibregl.Map({
+                    container: mapElement,
+                    style: 'https://static.neshan.org/sdk/maplibre/styles/light.json',
+                    center: initial,
+                    zoom: hasPoint ? 16 : 11,
+                    apiKey: @json($mapApiKey),
+                    attributionControl: true
+                });
         } catch (error) {
             console.error('Property location map initialization failed:', error);
             if (status) status.textContent = 'راه‌اندازی نقشه ناموفق بود؛ لطفاً صفحه را تازه‌سازی کن و اتصال نقشه را بررسی کن.';
@@ -376,9 +380,24 @@
         let pointerStart = null;
         let lastPointerSelectionAt = 0;
 
+        const overlay = document.querySelector('.property-map-overlay');
+        const areaSourceId = 'property-selected-area';
+        // وقتی «موقعیت تقریبی» انتخاب شده، محدوده‌ی حدودی‌ای که بازدیدکننده می‌بیند روی نقشه پیش‌نمایش داده می‌شود.
+        const updateArea = () => {
+            const source = map.getSource(areaSourceId);
+            if (!source || !window.MarketMap) return;
+            const approx = document.querySelector('input[name="location_visibility"]:checked');
+            const lat = Number(latInput.value), lng = Number(lngInput.value);
+            const show = latInput.value !== '' && lngInput.value !== '' && approx && approx.value === 'approximate';
+            source.setData(show ? window.MarketMap.circle(lng, lat, 500) : {type: 'FeatureCollection', features: []});
+        };
+        document.querySelectorAll('input[name="location_visibility"]').forEach((radio) => radio.addEventListener('change', updateArea));
+
         const syncPoint = (point) => {
             latInput.value = Number(point.lat).toFixed(7);
             lngInput.value = Number(point.lng).toFixed(7);
+            if (overlay) overlay.classList.add('is-done');
+            updateArea();
             if (status) status.textContent = 'موقعیت ثبت شد. برای اصلاح، نقطهٔ دیگری روی نقشه انتخاب کن.';
         };
         const pointFeature = (point) => ({
@@ -413,6 +432,9 @@
 
         map.on('load', () => {
             map.resize();
+            map.addSource(areaSourceId, {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+            map.addLayer({id: areaSourceId + '-fill', type: 'fill', source: areaSourceId, paint: {'fill-color': '#16845f', 'fill-opacity': 0.14}});
+            map.addLayer({id: areaSourceId + '-line', type: 'line', source: areaSourceId, paint: {'line-color': '#16845f', 'line-width': 2, 'line-opacity': 0.6, 'line-dasharray': [2, 2]}});
             if (hasPoint) setPoint({lat: Number(latInput.value), lng: Number(lngInput.value)});
         });
         map.on('click', (event) => {
@@ -476,6 +498,8 @@
             if (source) source.setData({type: 'FeatureCollection', features: []});
             latInput.value = '';
             lngInput.value = '';
+            if (overlay) overlay.classList.remove('is-done');
+            updateArea();
             if (status) status.textContent = 'موقعیت انتخاب‌شده پاک شد؛ برای ثبت دوباره روی نقشه کلیک کن.';
         });
     };

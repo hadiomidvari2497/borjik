@@ -64,16 +64,35 @@
 @if($mapPoint && $mapApiKey)
 @push('scripts')
 <script src="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.umd.js"></script>
+<script src="{{ asset('js/market-map.js') }}?v={{ @filemtime(public_path('js/market-map.js')) }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
     const el=document.getElementById('property-detail-map');
-    if(!el||!window.maplibregl)return;
+    if(!el||!window.maplibregl||!window.MarketMap)return;
+    const M=window.MarketMap, fallback=document.getElementById('property-detail-map-fallback');
     const lng=@json($mapPoint['longitude']),lat=@json($mapPoint['latitude']);
     const isExact=@json($listing->location_visibility === 'exact');
-    const map=new maplibregl.Map({container:el,style:'https://static.neshan.org/sdk/maplibre/styles/light.json',center:[lng,lat],zoom:isExact?16:14,apiKey:@json($mapApiKey)});
-    map.on('load',function(){
-        map.addSource('property-detail-location',{type:'geojson',data:{type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:{}}});
-        map.addLayer({id:'property-detail-location-point',type:'circle',source:'property-detail-location',paint:{'circle-radius':10,'circle-color':'#16845f','circle-stroke-color':'#fff','circle-stroke-width':3}});
+    let failed=false;
+    // نقشه فقط وقتی به صفحه‌ی نمایش نزدیک شود ساخته می‌شود.
+    M.whenVisible(el,function(){
+        const map=M.create({container:el,apiKey:@json($mapApiKey),center:[lng,lat],zoom:isExact?16:14});
+        map.on('load',function(){
+            map.resize();
+            if(isExact){
+                map.addSource('property-detail-location',{type:'geojson',data:{type:'Feature',geometry:{type:'Point',coordinates:[lng,lat]},properties:{}}});
+                map.addLayer({id:'property-detail-location-halo',type:'circle',source:'property-detail-location',paint:{'circle-radius':24,'circle-color':'#16845f','circle-opacity':0.16}});
+                map.addLayer({id:'property-detail-location-point',type:'circle',source:'property-detail-location',paint:{'circle-radius':10,'circle-color':'#16845f','circle-stroke-color':'#fff','circle-stroke-width':3}});
+            }else{
+                // موقعیت تقریبی: به‌جای نقطه‌ای که دقیق به نظر برسد، محدوده‌ی حدودی نمایش داده می‌شود.
+                map.addSource('property-detail-area',{type:'geojson',data:M.circle(lng,lat,500)});
+                map.addLayer({id:'property-detail-area-fill',type:'fill',source:'property-detail-area',paint:{'fill-color':'#16845f','fill-opacity':0.15}});
+                map.addLayer({id:'property-detail-area-line',type:'line',source:'property-detail-area',paint:{'line-color':'#16845f','line-width':2,'line-opacity':0.7}});
+            }
+        });
+        map.on('error',function(){
+            if(failed)return;failed=true;
+            if(fallback)fallback.hidden=false;
+        });
     });
 });
 </script>
@@ -250,8 +269,16 @@ document.addEventListener('DOMContentLoaded', function () {
         <section class="panel rise" aria-labelledby="property-location-title">
             <h2 id="property-location-title">موقعیت ملک روی نقشه</h2>
             @if($mapApiKey)
-                <div id="property-detail-map" class="property-location-map" role="img" aria-label="موقعیت {{ $listing->location_visibility === 'exact' ? 'دقیق' : 'تقریبی' }} ملک روی نقشه"></div>
+                <div id="property-detail-map" class="property-location-map" role="region" aria-label="موقعیت {{ $listing->location_visibility === 'exact' ? 'دقیق' : 'تقریبی' }} ملک روی نقشه"></div>
                 <p class="property-location-note">@if($listing->location_visibility === 'exact')ثبت‌کننده آگهی انتخاب کرده است که موقعیت دقیق ملک روی نقشه برای همه نمایش داده شود.@elseثبت‌کننده آگهی نمایش موقعیت تقریبی را انتخاب کرده است؛ نشانگر برای حفظ حریم خصوصی کمی جابه‌جا شده است.@endif</p>
+                <p class="map-fallback" id="property-detail-map-fallback" role="status" hidden>نقشه بارگذاری نشد؛ اتصال اینترنت را بررسی کنید و صفحه را دوباره باز کنید.</p>
+                @if($listing->location_visibility === 'exact')
+                    @php($dest = rtrim(rtrim(number_format((float) $mapPoint['latitude'], 6, '.', ''), '0'), '.').','.rtrim(rtrim(number_format((float) $mapPoint['longitude'], 6, '.', ''), '0'), '.'))
+                    <div class="route-links" aria-label="مسیریابی تا ملک">
+                        <a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ $dest }}" target="_blank" rel="noopener noreferrer">مسیریابی با گوگل‌مپ</a>
+                        <a href="https://waze.com/ul?ll={{ $dest }}&amp;navigate=yes" target="_blank" rel="noopener noreferrer">مسیریابی با ویز</a>
+                    </div>
+                @endif
             @else
                 <p class="property-location-note">موقعیت این ملک ثبت شده است؛ نمایش نقشه پس از فعال‌سازی سرویس نقشه در دسترس خواهد بود.</p>
             @endif
