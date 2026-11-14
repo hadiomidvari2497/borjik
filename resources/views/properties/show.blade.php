@@ -380,8 +380,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 @if($tourRooms->isNotEmpty())
 <section class="property-tour-entry" aria-label="خانه‌گردی مجازی">
-    <div class="property-tour-entry-copy"><strong>قبل از بازدید حضوری، داخل خانه قدم بزنید</strong><span>{{ \App\Support\Fa::num($tourRooms->count()) }} فضای پانورامای ۳۶۰ درجه · چرخش آزاد با لمس انگشت یا ماوس</span></div>
-    <button type="button" data-tour-open>◉ شروع خانه‌گردی ۳۶۰ درجه</button>
+    <div class="property-tour-entry-copy"><strong>قبل از بازدید حضوری، داخل خانه را تماشا کنید</strong><span>{{ \App\Support\Fa::num($tourRooms->count()) }} فضای پانوراما · حرکت آزاد افقی و عمودی با لمس انگشت یا ماوس</span></div>
+    <button type="button" data-tour-open>◉ شروع خانه‌گردی مجازی</button>
 </section>
 <script type="application/json" data-tour-data>{!! json_encode($tourRooms->map(fn ($room) => ['name' => $room->name, 'url' => $room->imageUrl(), 'projection' => $room->projection])->values(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
 <dialog class="property-tour-dialog" data-property-tour aria-label="خانه‌گردی مجازی ۳۶۰ درجه">
