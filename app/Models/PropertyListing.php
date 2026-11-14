@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PropertyListing extends Model
 {
@@ -21,7 +22,7 @@ class PropertyListing extends Model
     ];
 
     protected $fillable = [
-        'user_id', 'unit_id', 'parking_count', 'show_phone', 'allow_phone_call', 'allow_sms', 'listing_type', 'property_type', 'title', 'description',
+        'user_id', 'unit_id', 'latitude', 'longitude', 'location_visibility', 'parking_count', 'show_phone', 'allow_phone_call', 'allow_sms', 'listing_type', 'property_type', 'title', 'description',
         'province', 'city', 'neighborhood', 'address', 'hide_address', 'area',
         'bedrooms', 'bathrooms', 'floor', 'total_floors', 'built_year',
         'document_type', 'amenities', 'price', 'deposit', 'monthly_rent',
@@ -41,6 +42,8 @@ class PropertyListing extends Model
             'expires_at' => 'datetime',
             'moderated_at' => 'datetime',
             'area' => 'decimal:2',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
         ];
     }
 

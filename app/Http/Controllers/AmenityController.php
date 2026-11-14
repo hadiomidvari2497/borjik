@@ -6,6 +6,7 @@ use App\Models\Block;
 use App\Models\Building;
 use App\Models\Unit;
 use App\Services\AmenityService;
+use App\Services\SubscriptionUnitAccess;
 use App\Support\CurrentBuilding;
 use App\Support\MobileNumber;
 use DomainException;
@@ -32,11 +33,18 @@ abstract class AmenityController extends Controller
             ->orderBy('block_id')->orderByRaw('cast(number as unsigned), number')
             ->paginate(25)->withQueryString();
 
+        $building = Building::find(app(CurrentBuilding::class)->id());
+        $subscription = $building?->subscription;
+        $unitsQuery = Unit::with('block')->orderBy('block_id')->orderByRaw('cast(number as unsigned), number');
+        if ($subscription && is_array($subscription->active_unit_ids)) {
+            $unitsQuery->whereIn('units.id', app(SubscriptionUnitAccess::class)->activeIds($subscription));
+        }
+
         return view('amenities.index', [
             'cfg' => $c,
             'items' => $items,
             'blocks' => Block::orderBy('number')->get(),
-            'units' => Unit::with('block')->orderBy('block_id')->orderByRaw('cast(number as unsigned), number')->get(),
+            'units' => $unitsQuery->get(),
             'stats' => ['total' => $m::count(), 'assigned' => $m::where('status', 'assigned')->count()],
             'declared' => (int) Building::find(app(CurrentBuilding::class)->id())->{$c['declared']},
         ]);

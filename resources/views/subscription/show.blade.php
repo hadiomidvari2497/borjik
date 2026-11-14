@@ -78,7 +78,7 @@
     <div class="bl-row-ic" aria-hidden="true"><svg class="i"><use href="#doc"/></svg></div>
     <div><b>پرداخت #{{ $F::num($p->id) }}</b><small>{{ $p->subscription?->plan?->name ?? 'اشتراک' }} · {{ $p->paid_at ? $F::date($p->paid_at, 'Y/m/d H:i') : '—' }}</small></div>
     <div class="bl-amt">{{ $F::money($p->amount) }}</div>
-    <div>@if($p->status === 'paid')<a class="bl-mini" href="{{ route('subscription.payment.receipt', ['payment'=>$p->id]) }}">مشاهده فاکتور</a>@elseif($p->status === 'pending')<span class="bl-pill warn">در انتظار پرداخت</span>@else<span class="bl-pill bad">ناموفق</span>@endif</div>
+    <div>@if($p->status === 'paid')<a class="bl-mini" href="{{ route('subscription.payment.receipt', ['payment'=>$p->id]) }}">مشاهده فاکتور</a>@elseif($p->status === 'pending' && $p->gateway === 'card_to_card')<span class="bl-pill warn">در انتظار بررسی مدیر</span>@elseif($p->status === 'pending')<span class="bl-pill warn">در انتظار پرداخت</span>@else<span class="bl-pill bad">ناموفق</span>@endif</div>
 </div>
 @endforeach
 </section>

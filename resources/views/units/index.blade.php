@@ -15,7 +15,7 @@
     @endcan
   </div>
   @if($quota)
-    <div class="quota" style="margin-top:6px"><span>سقف اشتراک: {{ \App\Support\Fa::num($quota['used']) }} از {{ \App\Support\Fa::num($quota['limit']) }} واحد</span>
+    <div class="quota" style="margin-top:6px"><span>واحدهای فعال: {{ \App\Support\Fa::num($quota['active_count']) }} از {{ \App\Support\Fa::num($quota['total']) }} واحد (ظرفیت پلن: {{ \App\Support\Fa::num($quota['limit']) }})</span>
       <div class="bar"><i style="width:{{ min(100, $quota['limit'] ? $quota['used'] / $quota['limit'] * 100 : 0) }}%"></i></div>
       @unless($quota['active'])<span class="pill u">اشتراک منقضی است</span>@endunless</div>
   @else
@@ -56,6 +56,21 @@
     </tbody>
   </table></div>
   {{ $units->links() }}
+  @endif
+ 
+  @if($archivedUnits->isNotEmpty())
+    <section style="margin-top:24px">
+      <h3>واحدهای مازاد بر ظرفیت اشتراک</h3>
+      <p style="color:var(--muted);margin:6px 0 12px">این واحدها حذف نشده‌اند و اطلاعاتشان محفوظ است؛ در حال حاضر فقط اطلاعات پایه آن‌ها قابل مشاهده است و عملیات مدیریتی برایشان غیرفعال است.</p>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>بلوک</th><th>واحد</th><th>طبقه</th><th>وضعیت</th></tr></thead>
+        <tbody>
+        @foreach($archivedUnits as $archived)
+          <tr><td>{{ $archived->block?->name }}</td><td><b>{{ \App\Support\Fa::digits($archived->number) }}</b></td><td>{{ \App\Support\Fa::digits($archived->floor) }}</td><td><span class="pill u">مازاد - فقط مشاهده</span></td></tr>
+        @endforeach
+        </tbody>
+      </table></div>
+    </section>
   @endif
 </div>
 @endsection

@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\BuildingUserController;
 use App\Http\Controllers\Admin\BuildingDirectoryController;
 use App\Http\Controllers\Admin\BuildingToolsController;
 use App\Http\Controllers\Admin\PaymentGatewayController;
+use App\Http\Controllers\Admin\ManualSubscriptionPaymentController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\Admin\SeoController;
 use App\Http\Controllers\Admin\SmsLogController;
@@ -172,9 +173,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/', 'store')->name('store');
         });
 
-        Route::prefix('subscription-payments')->name('subscription-payments.')->middleware('admin.can:subscriptions.manage')->controller(SubscriptionPaymentReportController::class)->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/export', 'export')->name('export');
+        Route::prefix('subscription-payments')->name('subscription-payments.')->middleware('admin.can:subscriptions.manage')->group(function () {
+            Route::get('/', [SubscriptionPaymentReportController::class, 'index'])->name('index');
+            Route::get('/export', [SubscriptionPaymentReportController::class, 'export'])->name('export');
+            Route::get('/{payment}/proof', [ManualSubscriptionPaymentController::class, 'downloadProof'])->whereNumber('payment')->name('proof');
+            Route::post('/{payment}/approve', [ManualSubscriptionPaymentController::class, 'approve'])->whereNumber('payment')->name('approve');
+            Route::post('/{payment}/reject', [ManualSubscriptionPaymentController::class, 'reject'])->whereNumber('payment')->name('reject');
         });
 
         Route::prefix('sms')->name('sms.')->group(function () {

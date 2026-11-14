@@ -33,7 +33,10 @@ Route::get('/trust-and-security', [MarketingController::class, 'seoPage'])->defa
 
 
 Route::get('/properties', [PropertyListingController::class, 'index'])->name('properties.index');
+Route::get('/properties/map-search', [PropertyListingController::class, 'mapSearch'])->middleware('throttle:60,1')->name('properties.map-search');
 Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])->whereNumber('listing')->name('properties.show');
+
+    Route::post('/properties/{listing}/phone-click', [PropertyListingController::class, 'recordPhoneClick'])->whereNumber('listing')->middleware('throttle:30,1')->name('properties.phone-click');
 
 Route::middleware('auth')->group(function () {
     Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
@@ -52,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/properties/{listing}', [PropertyListingController::class, 'update'])->whereNumber('listing')->name('properties.update');
     Route::delete('/properties/{listing}', [PropertyListingController::class, 'destroy'])->whereNumber('listing')->name('properties.destroy');
     Route::post('/properties/{listing}/close', [PropertyListingController::class, 'close'])->whereNumber('listing')->name('properties.close');
+    Route::post('/properties/{listing}/renew', [PropertyListingController::class, 'renew'])->whereNumber('listing')->middleware('throttle:10,1')->name('properties.renew');
 });
 
 require __DIR__.'/auth.php';

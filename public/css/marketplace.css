@@ -34,7 +34,7 @@ h1,h2,h3{line-height:1.5;margin:0}
 .topin{display:flex;align-items:center;gap:20px;min-height:66px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;color:var(--brand-d)}
 .brand img{width:34px;height:34px;border-radius:10px}
-.brand small{display:block;font-size:11px;font-weight:500;color:var(--mute);line-height:1.2}
+.brand small{display:block;font-size:12px;font-weight:500;color:var(--mute);line-height:1.2}
 .nav{display:flex;gap:4px;margin-inline-start:12px}
 .nav a{padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink-2);transition:background .15s,color .15s}
 .nav a:hover{background:var(--brand-50);color:var(--brand-d)}
@@ -174,7 +174,7 @@ a.card:hover .photo img{transform:scale(1.05)}
 .hl-ic{grid-row:1/3;width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,var(--brand-50),#d3ece6);color:var(--brand-d)}
 .hl-ic .icon{width:21px;height:21px;stroke-width:1.8}
 .highlights b{font-size:14.5px;font-weight:800;line-height:1.5}
-.highlights small{font-size:11.8px;color:var(--mute);line-height:1.4}
+.highlights small{font-size:12px;color:var(--mute);line-height:1.4}
 
 /* اسلایدر تصاویر */
 .gallery{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:10px;box-shadow:var(--shadow)}
@@ -304,7 +304,7 @@ a.card:hover .photo img{transform:scale(1.05)}
   .mbar-spacer{display:block;height:84px}
   .mbar{position:fixed;inset:auto 0 0 0;z-index:40;display:flex;align-items:center;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.94);backdrop-filter:saturate(1.4) blur(14px);border-top:1px solid var(--line);box-shadow:0 -10px 30px -14px rgba(13,43,44,.3)}
   .mbar-price{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.5;color:var(--brand-d)}
-  .mbar-price small{font-size:11.5px;color:var(--mute)}
+  .mbar-price small{font-size:12px;color:var(--mute)}
   .mbar-price b{font-size:15.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mbar .btn{padding:11px 18px;font-size:13.5px}
 }
@@ -341,8 +341,8 @@ a.card:hover .photo img{transform:scale(1.05)}
   .card .photo{flex:0 0 128px;width:128px;aspect-ratio:auto;min-height:148px}
   .card .photo::after{display:none}
   .card .photo>.icon{width:34px;height:34px}
-  .badge{top:8px;inset-inline-start:8px;padding:2px 9px;font-size:11px}
-  .count{bottom:8px;inset-inline-end:8px;padding:1px 8px;font-size:11px}
+  .badge{top:8px;inset-inline-start:8px;padding:2px 9px;font-size:12px}
+  .count{bottom:8px;inset-inline-end:8px;padding:1px 8px;font-size:12px}
   .count .icon{width:1em;height:1em}
   .card>.body{min-width:0;padding:11px 14px 12px}
   .body h3{font-size:14px;margin-bottom:4px;line-height:1.7}
@@ -350,7 +350,7 @@ a.card:hover .photo img{transform:scale(1.05)}
   .specs{margin-top:8px;padding-top:0;border-top:0;gap:2px 12px;font-size:12px}
   .price{padding-top:8px;font-size:14.5px}
   .price div{gap:5px}
-  .price small{font-size:11.5px}
+  .price small{font-size:12px}
 
   /* صفحه جزئیات */
   .crumbs{flex-wrap:nowrap;overflow:hidden;margin-bottom:10px}
@@ -388,7 +388,7 @@ a.card:hover .photo img{transform:scale(1.05)}
 /* ───────── ناوبری بازار: منوی حساب (دسکتاپ) و نوار پایین (موبایل) ───────── */
 .top-end{display:flex;align-items:center;gap:10px;margin-inline-start:auto}
 .top .top-end .btn{margin-inline-start:0}
-.nbadge{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-inline-start:4px;border-radius:999px;background:var(--brand);color:#fff;font-size:11px;font-weight:700;line-height:1;font-style:normal}
+.nbadge{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-inline-start:4px;border-radius:999px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;line-height:1;font-style:normal}
 .nav a{display:inline-flex;align-items:center}
 .umenu{position:relative}
 .umenu summary{list-style:none;display:flex;align-items:center;gap:8px;height:42px;padding:0 10px 0 12px;border:1px solid var(--line);border-radius:999px;background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2);transition:border-color .15s,box-shadow .15s}
@@ -418,12 +418,12 @@ a.card:hover .photo img{transform:scale(1.05)}
   .btn-t{white-space:nowrap}
   body:has(.tabbar) .main{padding-bottom:92px}
   .tabbar{position:fixed;inset-inline:0;bottom:0;z-index:35;display:grid;grid-template-columns:repeat(5,1fr);align-items:end;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:rgba(255,255,255,.96);backdrop-filter:saturate(1.4) blur(12px)}
-  .tabbar:has(.tab-add):not(:has(button)){grid-template-columns:repeat(3,1fr)}
-  .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border:0;background:transparent;font:inherit;font-size:11px;color:var(--mute);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .tabbar:has(.tab-add):not(:has(button)){grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border:0;background:transparent;font:inherit;font-size:12px;color:var(--mute);cursor:pointer;-webkit-tap-highlight-color:transparent}
   .tabbar .icon{width:22px;height:22px}
   .tabbar [aria-current="page"]{color:var(--brand-d);font-weight:700}
   .tab-ico{position:relative;display:inline-flex}
-  .tab-ico .nbadge{position:absolute;top:-6px;inset-inline-end:-10px;margin:0;min-width:17px;height:17px;font-size:10px;border:2px solid #fff;box-sizing:content-box}
+  .tab-ico .nbadge{position:absolute;top:-6px;inset-inline-end:-10px;margin:0;min-width:17px;height:17px;font-size:12px;border:2px solid #fff;box-sizing:content-box}
   .tabbar .tab-add{padding:0}
   .tab-add span{display:grid;place-items:center;width:50px;height:50px;margin-top:-22px;border-radius:50%;background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(27,122,107,.4);border:4px solid #fff;box-sizing:content-box}
   .tab-add .icon{width:24px;height:24px;stroke-width:2.2}
@@ -455,5 +455,135 @@ label:has(>input[type=checkbox]),label:has(>input[type=radio]){display:flex;alig
   .zoom-btn{min-height:44px}
   .nav-btn{width:44px;height:44px;margin-top:-22px}
   body{font-size:14px}
-  .tabbar a,.tabbar button{font-size:11.5px}
+  .tabbar a,.tabbar button{font-size:12px}
+}
+
+/* ───────── فرم آگهی: کارت‌های مرحله‌ای، فیلدهای مبلغ، آپلودر ───────── */
+.listing-form{display:grid;gap:18px;margin-bottom:28px}
+.form-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow)}
+.form-card h2{display:flex;align-items:center;gap:10px;font-size:16px;margin:0 0 14px;color:var(--brand-d)}
+.form-card .step{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--brand-50);color:var(--brand-d);font-size:13px;font-weight:800}
+.form-intro{display:flex;gap:10px;align-items:flex-start;background:var(--brand-50);border-radius:var(--r-md);padding:12px 14px;color:var(--brand-d);font-size:12.5px;line-height:1.9}
+.form-alert{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:var(--r-md);background:#fdecea;color:var(--danger);font-weight:700;font-size:13px}
+.req{color:var(--danger);font-weight:800;margin-inline-start:3px}
+.lbl{display:flex;align-items:center}
+.form-help{font-size:12px;color:var(--mute);line-height:1.9;margin:4px 0 0;font-weight:400}
+.span-all{grid-column:1/-1}
+.affix{position:relative;display:block}
+.affix.has-suffix input{padding-inline-end:62px}
+.affix .suffix{position:absolute;inset-block:0;inset-inline-end:12px;display:flex;align-items:center;font-style:normal;font-size:12px;color:var(--mute);pointer-events:none}
+.field.has-error input,.field.has-error select,.field.has-error textarea,.field input.is-invalid,.field select.is-invalid,.field textarea.is-invalid{border-color:var(--danger);box-shadow:0 0 0 3px rgba(180,35,24,.12)}
+.field-error{color:var(--danger);font-size:12px;font-weight:500;line-height:1.7}
+.check{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;cursor:pointer}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap}
+.form-card .fields>[data-for]{min-width:0}
+.form-card .fields>[data-for][hidden]{display:none}
+
+.uploader{margin-top:18px}
+.uploader-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.photo-counter{padding:2px 12px;border-radius:999px;background:var(--brand-50);color:var(--brand-d);font-size:12px;font-weight:700}
+.photo-counter.is-full{background:var(--amber-50);color:var(--amber)}
+.dropzone{display:grid;justify-items:center;gap:4px;padding:24px 16px;border:2px dashed #b9cfc9;border-radius:var(--r-md);background:#f8fbfa;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+.dropzone:hover,.dropzone.is-over{border-color:var(--brand);background:var(--brand-50)}
+.dropzone .icon{width:34px;height:34px;color:var(--brand);stroke-width:1.3}
+.dropzone .dz-btn{margin-top:6px;min-height:44px}
+#property-photos:focus-visible+.dropzone{outline:3px solid #2aa893;outline-offset:2px}
+.photo-grid{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.ph-item{position:relative;aspect-ratio:4/3;border-radius:var(--r-sm);overflow:hidden;border:2px solid var(--line);background:#e4eeeb}
+.ph-item.is-cover{border-color:var(--brand)}
+.ph-item img{width:100%;height:100%;object-fit:cover}
+.ph-del{position:absolute;top:4px;inset-inline-start:4px;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:#fff;font-size:0;cursor:pointer;display:grid;place-items:center}
+.ph-del::before{content:"×";display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(8,30,30,.72);font-size:20px;line-height:1}
+.ph-cover{position:absolute;inset-inline:0;bottom:0;min-height:44px;border:0;background:rgba(8,30,30,.62);color:#fff;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.ph-item.is-cover .ph-cover{display:none}
+.ph-badge{display:none;position:absolute;inset-inline:0;bottom:0;padding:6px 8px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;text-align:center}
+.ph-item.is-cover .ph-badge{display:block}
+
+/* ───────── آگهی‌های من ───────── */
+.collapsible{padding:0;margin-bottom:22px}
+.collapsible>summary{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;list-style:none;min-height:56px}
+.collapsible>summary::-webkit-details-marker{display:none}
+.collapsible .sum-text{display:grid;flex:1}
+.collapsible .sum-text b{font-size:15px}
+.collapsible .sum-text small{color:var(--mute);font-size:12.5px}
+.collapsible-body{padding:0 20px 20px}
+.collapsible[open]>summary .sum-chev{transform:rotate(180deg)}
+.info-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-sm);background:var(--slate-50);color:var(--slate);font-size:12.5px;margin-top:8px}
+.section-title{font-size:16px;margin:6px 2px 14px}
+.my-card .photo{display:grid}
+.my-card .badge.st-active,.tag.st-active{background:var(--brand-50);color:var(--brand-d)}
+.my-card .badge.st-pending,.tag.st-pending{background:var(--amber-50);color:var(--amber)}
+.my-card .badge.st-closed,.tag.st-closed,.my-card .badge.st-draft,.tag.st-draft{background:var(--slate-50);color:var(--slate)}
+.my-card .badge.st-rejected,.tag.st-rejected{background:#fdecea;color:var(--danger)}
+.my-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;font-size:12px;color:var(--mute)}
+.my-meta .views{display:inline-flex;align-items:center;gap:5px}
+.card-actions{display:flex;gap:8px;align-items:center;margin-top:14px}
+.card-actions>.btn:first-child{flex:1;min-height:44px}
+.more-menu{position:relative}
+.more-menu>summary{list-style:none;min-width:44px;min-height:44px;padding:0 14px;font-size:20px;line-height:1}
+.more-menu>summary::-webkit-details-marker{display:none}
+.more-menu .menu{position:absolute;inset-inline-end:0;bottom:calc(100% + 6px);z-index:20;min-width:170px;padding:6px;background:#fff;border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-up)}
+.more-menu .menu a,.more-menu .menu button{display:flex;align-items:center;width:100%;min-height:44px;padding:0 12px;border:0;background:transparent;border-radius:var(--r-sm);font:inherit;font-size:13px;text-align:start;color:var(--ink);cursor:pointer}
+.more-menu .menu a:hover,.more-menu .menu button:hover{background:var(--bg)}
+.more-menu .menu .danger{color:var(--danger)}
+.btn.danger{background:var(--danger)}
+.btn.danger:hover{background:#8f1c12}
+.confirm-dialog{width:min(420px,calc(100% - 32px));padding:22px;border:0;border-radius:var(--r-lg);box-shadow:var(--shadow-up);color:var(--ink)}
+.confirm-dialog::backdrop{background:rgba(8,30,30,.5)}
+.confirm-dialog h2{font-size:17px;margin-bottom:8px}
+.confirm-dialog p{margin:0;color:var(--ink-2);font-size:13.5px}
+.empty-ico{display:inline-grid;place-items:center;width:64px;height:64px;margin-bottom:12px;border-radius:50%;background:var(--brand-50);color:var(--brand)}
+.empty-ico .icon{width:28px;height:28px}
+.empty .actions{margin-top:18px}
+@media(max-width:700px){
+  .form-card{padding:15px}
+  .photo-grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+  .more-menu .menu{bottom:auto;top:calc(100% + 6px)}
+}
+
+
+
+/* ───────── نقشه جستجوی بازار املاک ───────── */
+.map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;color:var(--ink-2);font-size:13px;font-weight:700}
+.map-toolbar>div{display:flex;gap:6px}.map-toolbar .btn{padding:7px 13px;font-size:12px}
+.map-toolbar .btn[aria-pressed="true"]{background:var(--brand-d);color:#fff}
+.map-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);gap:18px;align-items:start}
+.map-list{min-width:0}.map-panel{position:sticky;top:84px;min-width:0;padding:9px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+#property-results-map{height:min(70vh,760px);min-height:480px;border-radius:13px;overflow:hidden;background:#e7efec}
+.map-caption,.map-status{margin:7px 5px 2px;color:var(--mute);font-size:12px;line-height:1.8}.map-status{color:var(--brand-d);min-height:22px}
+.property-map-marker{max-width:145px;padding:5px 9px;border:2px solid #fff;border-radius:999px;background:var(--brand-d);color:#fff;font:700 11px Vazirmatn,Tahoma,sans-serif;white-space:nowrap;box-shadow:0 2px 9px #0d2b2c55;cursor:pointer}
+.maplibregl-popup-content{font-family:Vazirmatn,Tahoma,sans-serif;text-align:right;direction:rtl;line-height:1.8}.maplibregl-popup-content strong{font-size:13px}.maplibregl-popup-content p{margin:4px 0;color:var(--brand-d);font-weight:700}.maplibregl-popup-content a{color:var(--brand);font-weight:700}
+@media(max-width:900px){.map-layout{grid-template-columns:1fr}.map-panel{position:static}.map-toolbar{display:flex}.map-layout[data-view="list"] .map-panel{display:none}.map-layout[data-view="map"] .map-list{display:none}#property-results-map{height:68vh;min-height:420px}}
+@media(min-width:901px){.map-toolbar{display:none}.map-list .grid{grid-template-columns:repeat(auto-fill,minmax(235px,1fr))}}
+@media(max-width:600px){.map-layout{gap:10px}.map-panel{padding:6px}#property-results-map{height:calc(100dvh - 190px);min-height:360px}.map-toolbar{margin-bottom:9px}}
+
+/* Property location picker: integrated, legible and touch-friendly. */
+.property-location-card{display:grid;gap:16px}
+.property-map-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.property-map-heading h2{margin:3px 0 7px;font-size:19px;color:var(--ink)}
+.property-map-heading p{margin:0;max-width:720px;color:var(--mute);font-size:13px;line-height:1.9}
+.property-map-eyebrow{font-size:12px;font-weight:800;color:var(--brand-d)}
+.property-map-heading-icon{display:grid;place-items:center;flex:0 0 46px;height:46px;border-radius:15px;background:#e8f4f0;color:var(--brand-d);font-size:29px;font-weight:700}
+.property-map-shell{position:relative;isolation:isolate;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:#eaf0ed;box-shadow:0 8px 24px #173c3210}
+#property-location-map{width:100%;height:clamp(340px,48vw,480px);min-height:320px;background:#eaf0ed;cursor:crosshair}
+.property-map-overlay{position:absolute;z-index:2;top:14px;right:14px;padding:8px 12px;border:1px solid #ffffffb8;border-radius:999px;background:#fffefa;color:#244b40;font-size:12px;font-weight:800;box-shadow:0 3px 14px #193c3020;pointer-events:none}
+.property-map-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.property-map-feedback{display:flex;align-items:center;gap:9px;min-width:0;color:var(--ink-2);font-size:12px;line-height:1.8}
+.property-map-live-dot{width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:#b6a36a;box-shadow:0 0 0 4px #b6a36a20}
+.property-map-feedback:has(#property-location-status:not(:empty)) .property-map-live-dot{background:var(--brand);box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 15%,transparent)}
+.property-map-clear{flex:0 0 auto;white-space:nowrap}
+.property-map-unavailable{display:grid;gap:6px;padding:22px;border:1px dashed var(--line);border-radius:14px;background:#f7faf8;color:var(--ink-2);font-size:13px}
+.property-map-unavailable strong{color:var(--ink)}
+.property-location-card .maplibregl-ctrl-group{overflow:hidden;border:0;border-radius:11px;box-shadow:0 3px 14px #193c3024}
+.property-location-card .maplibregl-ctrl button{width:34px;height:34px}
+.property-location-card .maplibregl-ctrl-attrib{font-size:12px}
+@media(max-width:600px){
+ .property-location-card{gap:13px;padding:14px}
+ .property-map-heading h2{font-size:16px}
+ .property-map-heading p{font-size:12px}
+ .property-map-heading-icon{flex-basis:38px;height:38px;border-radius:12px;font-size:24px}
+ #property-location-map{height:54vh;min-height:330px;max-height:440px}
+ .property-map-overlay{top:10px;right:10px;padding:7px 10px;font-size:12px}
+ .property-map-footer{align-items:flex-start;flex-direction:column}
+ .property-map-clear{width:100%}
 }

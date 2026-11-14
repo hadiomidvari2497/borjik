@@ -13,6 +13,7 @@ use App\Models\StorageAssignment;
 use App\Models\Unit;
 use App\Models\UnitParty;
 use App\Services\SubscriptionLimit;
+use App\Services\SubscriptionUnitAccess;
 use App\Services\BuildingService;
 use App\Services\UnitFinance;
 use App\Services\UnitService;
@@ -23,27 +24,32 @@ use Illuminate\Validation\Rule;
 
 class UnitController extends Controller
 {
-    public function index(Request $request, SubscriptionLimit $limit, UnitFinance $finance, BuildingService $buildingService)
+    public function index(Request $request, SubscriptionLimit $limit, UnitFinance $finance, BuildingService $buildingService, SubscriptionUnitAccess $unitAccess)
     {
+        $building = Building::findOrFail(app(CurrentBuilding::class)->id());
+        $sub = $buildingService->ensureActiveSubscription($building);
+        $activeIds = $sub ? $unitAccess->activeIds($sub) : [];
+
         $units = Unit::with('block')
             ->withCount([
                 'parkingAssignments as parkings_count' => fn ($q) => $q->whereNull('released_at'),
                 'storageAssignments as storages_count' => fn ($q) => $q->whereNull('released_at'),
             ])
+            ->when($sub && is_array($sub->active_unit_ids), fn ($q) => $q->whereIn('units.id', $activeIds))
             ->when($request->filled('block_id'), fn ($q) => $q->where('block_id', $request->integer('block_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', (string) $request->input('status')))
             ->when($request->filled('q'), fn ($q) => $q->where('number', 'like', '%'.MobileNumber::toLatinDigits($request->string('q')).'%'))
             ->orderBy('block_id')->orderByRaw('cast(number as unsigned), number')
             ->paginate(25)->withQueryString();
 
-        $building = Building::findOrFail(app(CurrentBuilding::class)->id());
-        $sub = $buildingService->ensureActiveSubscription($building);
-
         return view('units.index', [
             'units' => $units,
             'blocks' => Block::orderBy('number')->get(),
             'balances' => $finance->balances($units->pluck('id')->all()),
-            'quota' => $sub ? ['used' => $limit->used($sub), 'limit' => $sub->units_limit, 'active' => $sub->isActive()] : null,
+            'quota' => $sub ? ['used' => $limit->used($sub), 'limit' => $sub->units_limit, 'active' => $sub->isActive(), 'active_count' => count($activeIds), 'total' => $unitAccess->totalUnits($building)] : null,
+            'archivedUnits' => $sub && is_array($sub->active_unit_ids)
+                ? Unit::with('block')->where('building_id', $building->id)->whereNotIn('id', $activeIds)->orderBy('block_id')->orderByRaw('cast(number as unsigned), number')->get()
+                : collect(),
         ]);
     }
 
@@ -155,6 +161,7 @@ class UnitController extends Controller
     public function edit(int $unit)
     {
         $unit = Unit::findOrFail($unit);
+        $this->assertUnitWithinSubscription($unit);
 
         return view('units.form', ['unit' => $unit, 'blocks' => Block::orderBy('number')->get(), 'directions' => Direction::cases()]);
     }
@@ -162,6 +169,7 @@ class UnitController extends Controller
     public function update(Request $request, int $unit)
     {
         $unit = Unit::findOrFail($unit);
+        $this->assertUnitWithinSubscription($unit);
         $data = $this->validated($request, $unit);
 
         // وضعیت «فروخته‌شده» و «اجاره‌داده‌شده» فقط با ثبت قرارداد عوض می‌شود؛ دستی فقط خالی ⇄ در حال تعمیر.
@@ -178,6 +186,7 @@ class UnitController extends Controller
     public function destroy(int $unit)
     {
         $unit = Unit::findOrFail($unit);
+        $this->assertUnitWithinSubscription($unit);
 
         $blockers = array_filter([
             UnitParty::where('unit_id', $unit->id)->exists() ? 'مالک یا مستأجر' : null,
@@ -193,6 +202,17 @@ class UnitController extends Controller
         $unit->forceDelete();
 
         return redirect()->route('units.index')->with('status', 'واحد حذف شد.');
+    }
+
+    private function assertUnitWithinSubscription(Unit $unit): void
+    {
+        $building = Building::findOrFail(app(CurrentBuilding::class)->id());
+        abort_unless((int) $unit->building_id === (int) $building->id, 404);
+        $subscription = app(BuildingService::class)->ensureActiveSubscription($building);
+        if ($subscription && is_array($subscription->active_unit_ids)) {
+            abort_unless(in_array((int) $unit->id, app(SubscriptionUnitAccess::class)->activeIds($subscription), true), 403,
+                'این واحد در ظرفیت اشتراک فعلی شما قرار ندارد و فقط به‌صورت آرشیوی قابل مشاهده است.');
+        }
     }
 
     private function building(): Building

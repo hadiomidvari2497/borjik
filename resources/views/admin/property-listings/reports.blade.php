@@ -31,6 +31,9 @@
             </div>
             @if($report->details)<p style="white-space:pre-line;line-height:1.8">{{ $report->details }}</p>@endif
             <small class="muted">تاریخ ثبت: {{ $report->created_at ? $F::date($report->created_at, 'j F Y H:i') : '—' }}</small>
+            @if($report->reviewed_at)
+                <p class="muted" style="margin:6px 0 0">رسیدگی توسط {{ $report->reviewedBy?->name ?? $report->reviewedBy?->username ?? 'مدیر سامانه' }} · {{ $F::date($report->reviewed_at, 'j F Y H:i') }}</p>
+            @endif
             @if($report->status === 'pending')
                 <form method="POST" action="{{ route('admin.property-listings.reports.update', $report->id) }}" class="fgrid" style="margin-top:14px">
                     @csrf

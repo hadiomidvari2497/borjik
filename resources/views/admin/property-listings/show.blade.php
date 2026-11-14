@@ -5,7 +5,7 @@
     $F = \App\Support\Fa::class;
     $typeLabels = ['sale' => 'فروش', 'rent' => 'اجاره', 'buy_request' => 'درخواست خرید', 'rent_request' => 'درخواست اجاره'];
     $propertyLabels = ['residential' => 'مسکونی', 'commercial' => 'تجاری', 'land' => 'زمین'];
-    $statusLabels = ['pending' => 'در انتظار تأیید', 'active' => 'فعال', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
+    $statusLabels = ['pending' => 'در انتظار تأیید', 'active' => 'فعال', 'expired' => 'منقضی‌شده', 'closed' => 'غیرفعال', 'rejected' => 'ردشده'];
 @endphp
 <div class="card">
     <div class="page-h">
@@ -19,6 +19,7 @@
         <div><small class="muted">وضعیت</small><div><b>{{ $statusLabels[$listing->status] ?? $listing->status }}</b></div></div>
         <div><small class="muted">شهر و محله</small><div><b>{{ $listing->province }} {{ $listing->city }} {{ $listing->neighborhood }}</b></div></div>
         <div><small class="muted">تاریخ ثبت</small><div><b>{{ $listing->created_at ? $F::date($listing->created_at, 'j F Y H:i') : '—' }}</b></div></div>
+        <div><small class="muted">پایان اعتبار</small><div><b>{{ $listing->expires_at ? $F::date($listing->expires_at, 'j F Y H:i') : 'بدون انقضا' }}</b></div></div>
     </div>
 </div>
 

@@ -16,6 +16,9 @@ use App\Models\Invoice;
 use App\Models\ParkingAssignment;
 use App\Models\StorageAssignment;
 use App\Models\Unit;
+use App\Models\Building;
+use App\Services\SubscriptionUnitAccess;
+use App\Support\CurrentBuilding;
 use App\Models\UnitParty;
 use Morilog\Jalali\Jalalian;
 use Illuminate\Support\Collection;
@@ -58,7 +61,7 @@ class ChargePeriodService
 
         $parking = ParkingAssignment::whereNull('released_at')->pluck('unit_id')->flip();
         $storage = StorageAssignment::whereNull('released_at')->pluck('unit_id')->flip();
-        $inputs = Unit::all()
+        $inputs = $this->activeUnitsQuery()->get()
             ->map(fn (Unit $u) => UnitInput::fromModel($u, $parking->has($u->id), $storage->has($u->id)))
             ->all();
 
@@ -110,7 +113,7 @@ class ChargePeriodService
                         'title' => $expense->title,
                         'amount' => (int) $expense->amount,
                     ])->values()->all(),
-                'units' => Unit::all()->map(fn (Unit $unit) => [
+                'units' => $this->activeUnitsQuery()->get()->map(fn (Unit $unit) => [
                     'id' => $unit->id,
                     'block_id' => $unit->block_id,
                     'number' => $unit->number,
@@ -150,7 +153,7 @@ class ChargePeriodService
 
             $amounts = $period->settings_snapshot['amounts'] ?? [];
             $settings = ChargeSetting::firstOrFail();
-            $units = Unit::whereIn('id', array_keys($amounts))->get()->keyBy('id');
+            $units = $this->activeUnitsQuery()->whereIn('id', array_keys($amounts))->get()->keyBy('id');
             $parties = UnitParty::whereNull('to_date')->get()->groupBy('unit_id');
             $rents = Contract::where('type', 'rent')->where('status', 'active')->get()->keyBy('unit_id');
             $issued = today();
@@ -215,6 +218,20 @@ class ChargePeriodService
                 ['category' => 'invoice', 'key' => 'charge:'.$meta['period_id'], 'label' => 'مشاهده صورت‌حساب‌ها']);
         }
     }
+    /** واحدهای مجاز برای عملیات شارژ؛ واحدهای مازاد از محاسبه و صدور جدید کنار گذاشته می‌شوند. */
+    private function activeUnitsQuery()
+    {
+        $query = Unit::query();
+        $buildingId = app(CurrentBuilding::class)->id();
+        $subscription = $buildingId ? Building::find($buildingId)?->subscription : null;
+
+        if ($subscription && is_array($subscription->active_unit_ids)) {
+            $query->whereIn('id', app(SubscriptionUnitAccess::class)->activeIds($subscription));
+        }
+
+        return $query;
+    }
+
     /** مسئول پرداخت شارژ (بند ۴.۱۵.۱): ساکن فعلی؛ در واحد اجاره‌ای طبق «شارژ بر عهده» قرارداد؛ در غیر این صورت مالک. */
     private function payerFor(Unit $unit, ?Contract $contract, Collection $parties): ?int
     {
