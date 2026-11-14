@@ -10,6 +10,25 @@
   var title = dialog.querySelector('[data-tour-title]');
   var roomsNav = dialog.querySelector('[data-tour-rooms]');
   var closeButton = dialog.querySelector('[data-tour-close]');
+  var loading = dialog.querySelector('[data-tour-loading]');
+  var counter = dialog.querySelector('[data-tour-counter]');
+  var hint = dialog.querySelector('[data-tour-hint]');
+  var autoButton = dialog.querySelector('[data-tour-auto]');
+  var prevButton = dialog.querySelector('[data-tour-prev]');
+  var nextButton = dialog.querySelector('[data-tour-next]');
+  var autoRotate = false, hintTimer = 0;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fa(n) { return Number(n).toLocaleString('fa-IR', { useGrouping: false }); }
+  function setLoading(on) { if (loading) loading.hidden = !on; }
+  function setAuto(on) {
+    autoRotate = !!on && projection === 'equirectangular';
+    if (autoButton) { autoButton.setAttribute('aria-pressed', autoRotate ? 'true' : 'false'); autoButton.hidden = projection !== 'equirectangular'; }
+  }
+  function hideHint() { if (hint) hint.classList.add('is-hidden'); window.clearTimeout(hintTimer); }
+  function zoomBy(step) {
+    if (projection === 'flat') { zoom = Math.max(1, Math.min(6, zoom * (step > 0 ? 1.25 : 0.8))); renderFlat(); }
+    else fov = Math.max(0.55, Math.min(1.65, fov - step * 0.18));
+  }
   var gl = canvas && (canvas.getContext('webgl', { alpha: false, antialias: true }) || canvas.getContext('experimental-webgl'));
   var program, texture, image, yaw = 0, pitch = 0, fov = 1.15;
   var dragging = false, lastX = 0, lastY = 0, roomIndex = 0, rooms = [], raf = 0;
@@ -62,6 +81,7 @@
     if (!gl || !image || projection !== 'equirectangular') return;
     resize();
     gl.useProgram(program);
+    if (autoRotate && !dragging) yaw += 0.0022;
     gl.uniform1f(gl.getUniformLocation(program, 'yaw'), yaw);
     gl.uniform1f(gl.getUniformLocation(program, 'pitch'), pitch);
     gl.uniform1f(gl.getUniformLocation(program, 'fov'), fov);
@@ -107,6 +127,13 @@
     var room = rooms[roomIndex];
     projection = room.projection === 'flat' ? 'flat' : 'equirectangular';
     title.textContent = room.name + (projection === 'flat' ? ' · پانورامای موبایل' : ' · ۳۶۰ درجه');
+    if (counter) counter.textContent = fa(roomIndex + 1) + ' از ' + fa(rooms.length);
+    if (prevButton) prevButton.hidden = rooms.length < 2;
+    if (nextButton) nextButton.hidden = rooms.length < 2;
+    var active = roomsNav.children[roomIndex];
+    if (active && active.scrollIntoView) active.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+    setLoading(true);
+    setAuto(!reduceMotion);
     Array.prototype.forEach.call(roomsNav.children, function (button, i) {
       button.setAttribute('aria-current', i === roomIndex ? 'true' : 'false');
     });
@@ -116,7 +143,9 @@
     canvas.hidden = projection !== 'equirectangular';
     fallback.hidden = projection === 'equirectangular' && !!gl;
     image = new Image();
+    image.onerror = function () { setLoading(false); if (loading) { loading.hidden = false; loading.querySelector('span:last-child').textContent = 'بارگذاری تصویر انجام نشد.'; } };
     image.onload = function () {
+      setLoading(false);
       if (projection === 'equirectangular' && gl) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -140,12 +169,15 @@
     rooms.forEach(function (room, index) {
       var button = document.createElement('button');
       button.type = 'button';
-      button.textContent = room.name;
+      var thumb = document.createElement('img'); thumb.src = room.url; thumb.alt = ''; thumb.loading = 'lazy'; thumb.decoding = 'async';
+      var label = document.createElement('span'); label.textContent = room.name;
+      button.append(thumb, label);
       button.addEventListener('click', function () { setRoom(index); });
       roomsNav.appendChild(button);
     });
     if (typeof dialog.showModal === 'function') dialog.showModal();
     document.documentElement.classList.add('tour-open');
+    if (hint) { hint.classList.remove('is-hidden'); window.clearTimeout(hintTimer); hintTimer = window.setTimeout(hideHint, 5000); }
     setRoom(0);
   }
 
@@ -174,6 +206,8 @@
       pinchZoom = projection === 'flat' ? zoom : fov;
       dragging = false;
     }
+    hideHint();
+    if (autoRotate) setAuto(false);
     event.preventDefault();
   }
 
@@ -245,11 +279,20 @@
   bindSurface(canvas);
   bindSurface(fallback);
 
+  if (prevButton) prevButton.addEventListener('click', function () { setRoom(roomIndex - 1); });
+  if (nextButton) nextButton.addEventListener('click', function () { setRoom(roomIndex + 1); });
+  var zi = dialog.querySelector('[data-tour-zoom-in]'), zo = dialog.querySelector('[data-tour-zoom-out]');
+  if (zi) zi.addEventListener('click', function () { zoomBy(1); hideHint(); });
+  if (zo) zo.addEventListener('click', function () { zoomBy(-1); hideHint(); });
+  if (autoButton) autoButton.addEventListener('click', function () { setAuto(!autoRotate); });
+
   document.addEventListener('keydown', function (event) {
     if (!dialog.open) return;
     if (event.key === 'Escape') closeTour();
     if (event.key === 'ArrowLeft') setRoom(roomIndex + 1);
     if (event.key === 'ArrowRight') setRoom(roomIndex - 1);
+    if (event.key === '+' || event.key === '=') zoomBy(1);
+    if (event.key === '-') zoomBy(-1);
   });
   window.addEventListener('resize', function () {
     if (projection === 'flat') renderFlat();
