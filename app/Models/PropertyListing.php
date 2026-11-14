@@ -47,6 +47,11 @@ class PropertyListing extends Model
         ];
     }
 
+    public function tourRooms(): HasMany
+    {
+        return $this->hasMany(PropertyListingTourRoom::class, 'property_listing_id')->orderBy('sort_order')->orderBy('id');
+    }
+
     public function inquiries(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(PropertyListingInquiry::class, 'property_listing_id');
