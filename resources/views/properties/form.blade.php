@@ -13,6 +13,36 @@
 @endphp
 <section class="hero"><h1>{{ $listing->exists ? 'ویرایش آگهی' : 'ثبت آگهی ملکی' }}</h1><p>ثبت آگهی برای همه کاربران آزاد است؛ اتصال به واحد ساختمان اختیاری است.</p></section>
 
+@if($listing->exists)
+<section class="tour-manager" aria-labelledby="tour-manager-title">
+    <h2 id="tour-manager-title">خانه‌گردی مجازی ۳۶۰ درجه</h2>
+    <p>از هر اتاق یک تصویر پانورامای کروی ۳۶۰ درجه بارگذاری کنید. این تصاویر در نمایشگر تمام‌صفحه آگهی به بازدیدکنندگان اجازه می‌دهند اطراف فضا را بچرخانند و بین اتاق‌ها جابه‌جا شوند. حداکثر ۸ فضا، هر تصویر تا ۱۵ مگابایت.</p>
+    @if($errors->has('name') || $errors->has('panorama'))
+        <div class="field-error" role="alert">@foreach($errors->get('name') as $message){{ $message }} @endforeach @foreach($errors->get('panorama') as $message){{ $message }} @endforeach</div>
+    @endif
+    <form class="tour-room-form" method="POST" enctype="multipart/form-data" action="{{ route('properties.tour-rooms.store', $listing) }}">
+        @csrf
+        <label>نام فضا<input type="text" name="name" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی" required></label>
+        <label>تصویر پانورامای ۳۶۰ درجه<input type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required></label>
+        <button type="submit">افزودن فضا</button>
+    </form>
+    @if($listing->tourRooms->isNotEmpty())
+        <div class="tour-room-list">
+            @foreach($listing->tourRooms as $room)
+                <div class="tour-room-item">
+                    <img src="{{ $room->imageUrl() }}" alt="" loading="lazy">
+                    <span>{{ $room->name }}</span>
+                    <form method="POST" action="{{ route('properties.tour-rooms.destroy', [$listing, $room]) }}" onsubmit="return confirm('این فضا از خانه‌گردی حذف شود؟')">
+                        @csrf @method('DELETE')
+                        <button type="submit" aria-label="حذف {{ $room->name }}">×</button>
+                    </form>
+                </div>
+            @endforeach
+        </div>
+    @endif
+</section>
+@endif
+
 <form class="listing-form" method="POST" enctype="multipart/form-data" novalidate action="{{ $listing->exists ? route('properties.update',$listing) : route('properties.store') }}">
     @csrf @if($listing->exists)@method('PUT')@endif
 
