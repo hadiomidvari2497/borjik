@@ -48,7 +48,7 @@
 .lead-filters .field{display:grid;gap:6px;font-size:12px;color:#60746a}
 .lead-filters input,.lead-filters select{width:100%;min-height:42px;border:1px solid #dfe8e2;border-radius:10px;padding:8px 10px;background:#fff;color:inherit;font:inherit}
 .lead-filter-actions{display:flex;gap:7px;flex-wrap:wrap}
-.lead-status{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.lead-status{position:relative;z-index:1;isolation:isolate;display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
 .lead-status form{display:flex;gap:6px;align-items:center}
 .lead-status select{max-width:145px;min-height:32px;border:1px solid #dfe8e2;border-radius:8px;padding:4px 7px;background:#fff;font:inherit;font-size:11px}
 .lead-status button{border:0;border-radius:8px;padding:7px 10px;background:#eaf5ee;color:#246b4d;font:inherit;font-size:11px;cursor:pointer}
@@ -103,6 +103,29 @@
                         </form>
                     @endif
                 </div>
+                @if($isRecipient)
+                    <div class="lead-reminder">
+                        @if($inquiry->follow_up_at)
+                            <span class="reminder-state @if($inquiry->follow_up_at->isPast()) overdue @else upcoming @endif">
+                                @if($inquiry->follow_up_at->isPast()) پیگیری عقب‌افتاده: @else یادآوری: @endif{{ Fa::stamp($inquiry->follow_up_at) }}
+                            </span>
+                        @endif
+                        <details>
+                            <summary>{{ $inquiry->follow_up_at ? 'ویرایش یادآوری' : 'تنظیم یادآوری پیگیری' }}</summary>
+                            <form method="POST" action="{{ route('properties.inquiries.update', $inquiry) }}">
+                                @csrf
+                                @method('PATCH')
+                                <label>زمان پیگیری
+                                    <input type="datetime-local" name="follow_up_at" value="{{ $inquiry->follow_up_at?->format('Y-m-d\\TH:i') }}" step="60">
+                                </label>
+                                <label>یادداشت
+                                    <input type="text" name="follow_up_note" value="{{ $inquiry->follow_up_note }}" maxlength="1000" placeholder="مثلاً تماس برای هماهنگی بازدید">
+                                </label>
+                                <button type="submit">ذخیره یادآوری</button>
+                            </form>
+                        </details>
+                    </div>
+                @endif
             </div>
             <div class="convo-side">
                 <time class="convo-time" datetime="{{ $when->toIso8601String() }}">{{ Fa::stamp($when) }}</time>

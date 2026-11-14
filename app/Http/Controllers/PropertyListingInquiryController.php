@@ -243,12 +243,20 @@ class PropertyListingInquiryController extends Controller
         abort_unless((int) $inquiry->recipient_user_id === (int) $request->user()->id, 403);
 
         $data = $request->validate([
-            'status' => ['required', Rule::in(['new', 'contacted', 'agreed', 'closed'])],
+            'status' => ['sometimes', 'required', Rule::in(['new', 'contacted', 'agreed', 'closed'])],
+            'follow_up_at' => ['sometimes', 'nullable', 'date'],
+            'follow_up_note' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 
-        $inquiry->update(['status' => $data['status'], 'read_at' => $inquiry->read_at ?? now()]);
+        if (array_key_exists('status', $data)) {
+            $data['read_at'] = $inquiry->read_at ?? now();
+        }
 
-        return back()->with('status', 'وضعیت گفتگو به‌روزرسانی شد.');
+        $inquiry->update($data);
+
+        return back()->with('status', array_key_exists('status', $data)
+            ? 'وضعیت گفتگو به‌روزرسانی شد.'
+            : 'یادآوری پیگیری ذخیره شد.');
     }
 
     private function authorizeParticipant(Request $request, PropertyListingInquiry $inquiry): void

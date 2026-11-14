@@ -11,12 +11,12 @@ class PropertyListingInquiry extends Model
 {
     protected $fillable = [
         'property_listing_id', 'sender_user_id', 'recipient_user_id',
-        'sender_name', 'sender_mobile', 'message', 'status', 'read_at',
+        'sender_name', 'sender_mobile', 'message', 'status', 'read_at', 'follow_up_at', 'follow_up_note',
     ];
 
     protected function casts(): array
     {
-        return ['read_at' => 'datetime'];
+        return ['read_at' => 'datetime', 'follow_up_at' => 'datetime'];
     }
 
     public function listing(): BelongsTo

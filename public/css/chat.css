@@ -220,3 +220,16 @@ body.is-chat{background:#dfe9e6}
 .reply-bar span b{margin-inline-end:4px}
 .reply-bar button{flex:none;width:24px;height:24px;border:0;border-radius:50%;padding:0;display:grid;place-items:center;background:transparent;color:inherit;cursor:pointer}
 .reply-bar button .icon{width:13px;height:13px;stroke-width:2.4}
+
+/* یادآوری پیگیری سرنخ‌ها */
+.lead-reminder{position:relative;z-index:1;display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:8px;font-size:12px}
+.lead-reminder details{position:relative}
+.lead-reminder summary{cursor:pointer;color:var(--brand-d);font-weight:700;list-style:none}
+.lead-reminder summary::-webkit-details-marker{display:none}
+.lead-reminder details form{display:grid;gap:8px;min-width:min(280px,75vw);margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:var(--shadow);position:relative;z-index:2}
+.lead-reminder label{display:grid;gap:4px;color:var(--mute)}
+.lead-reminder input{width:100%;min-height:34px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;color:var(--ink);font:inherit}
+.lead-reminder button{justify-self:start;border:0;border-radius:8px;padding:7px 10px;background:var(--brand-50);color:var(--brand-d);font:inherit;cursor:pointer}
+.reminder-state{font-size:12px;font-weight:700}
+.reminder-state.upcoming{color:var(--brand-d)}
+.reminder-state.overdue{color:#b4533c}
