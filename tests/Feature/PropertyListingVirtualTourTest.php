@@ -53,7 +53,7 @@ class PropertyListingVirtualTourTest extends TestCase
 
         $this->get(route('properties.show', $listing))
             ->assertOk()
-            ->assertSee('&quot;projection&quot;:&quot;flat&quot;', false);
+            ->assertSee('"projection":"flat"', false);
     }
 
     public function test_professional_360_upload_still_requires_a_two_to_one_ratio(): void
