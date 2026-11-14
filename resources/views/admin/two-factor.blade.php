@@ -19,6 +19,12 @@
         <span><b>پیامک</b><small>ارسال کد به موبایل</small></span>
       </button>
     @endif
+    @if($recoveryAvailable)
+      <button class="two-factor-tab {{ session('two_factor_tab') === 'recovery' ? 'is-active' : '' }}" id="recovery-tab" type="button" role="tab" aria-selected="{{ session('two_factor_tab') === 'recovery' ? 'true' : 'false' }}" aria-controls="recovery-panel" data-tab="recovery">
+        <span class="tab-symbol" aria-hidden="true">⌘</span>
+        <span><b>کد بازیابی</b><small>کد اضطراری یک‌بارمصرف</small></span>
+      </button>
+    @endif
   </div>
 
   <section class="two-factor-panel {{ session('two_factor_tab', 'authenticator') === 'authenticator' ? 'is-visible' : '' }}" id="authenticator-panel" role="tabpanel" aria-labelledby="authenticator-tab" data-panel="authenticator" {{ session('two_factor_tab', 'authenticator') === 'authenticator' ? '' : 'hidden' }}>
