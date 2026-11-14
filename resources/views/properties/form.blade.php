@@ -1,80 +1,123 @@
 @extends('layouts.marketplace')
 @section('title', $listing->exists ? 'ویرایش آگهی' : 'ثبت آگهی')
+@push('head')<link rel="stylesheet" href="{{ asset('css/listing-form.css') }}?v={{ @filemtime(public_path('css/listing-form.css')) }}">@endpush
+@push('scripts')<script>window.LISTING_UNITS = @json($unitAutofillData);</script><script src="{{ asset('js/listing-form.js') }}?v={{ @filemtime(public_path('js/listing-form.js')) }}" defer></script>@endpush
 @section('content')
-<style>
-.form-section{margin:0 0 22px;padding:18px;border:1px solid #e7efec;border-radius:15px;background:#fbfdfc}
-.form-section h2{font-size:15px;margin:0 0 14px;color:#1d5e53}.form-help{font-size:11px;color:#7b8f88;line-height:1.9;margin:5px 0 0}
-.photo-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:9px;margin-top:12px}
-.photo-preview img{width:100%;height:92px;object-fit:cover;border-radius:10px;border:1px solid #e1eae7}
-.photo-existing{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #e6eeea;border-radius:10px;margin:7px 0;font-size:12px}
-.photo-existing img{width:64px;height:54px;object-fit:cover;border-radius:7px}
-.form-intro{display:flex;gap:10px;align-items:flex-start;background:#edf6f2;border-radius:12px;padding:12px;color:#35665b;font-size:12px;line-height:1.9;margin-bottom:18px}
-@media(max-width:600px){.form-section{padding:13px}}
-</style>
-<section class="hero"><h1>{{ $listing->exists ? 'ویرایش آگهی' : 'ثبت آگهی ملکی' }}</h1><p>ثبت آگهی برای همه کاربران آزاد است؛ اتصال به واحد ساختمان اختیاری است.</p></section>
-<form class="panel" method="POST" enctype="multipart/form-data" action="{{ $listing->exists ? route('properties.update',$listing) : route('properties.store') }}">@csrf @if($listing->exists)@method('PUT')@endif
-@if($errors->any())<div class="error">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>@endif
-<div class="form-intro"><strong>نکته:</strong><span>ثبت آگهی مستقل از عضویت در ساختمان است. اگر مدیر یا مالک واحد هستید، می‌توانید آن را به واحد مربوط متصل کنید تا اطلاعات عمومی مجاز به‌صورت خودکار تکمیل شود.</span></div>
-<section class="form-section"><h2>اطلاعات اصلی آگهی</h2><div class="fields">
-<label class="field">اتصال اختیاری به واحد<select name="unit_id" id="property-unit"><option value="">آگهی مستقل (بدون اتصال به واحد)</option>@foreach($units as $unit)<option value="{{ $unit->id }}" @selected((string) old('unit_id',$listing->unit_id)===(string) $unit->id)>{{ $unit->building?->name ?? 'ساختمان' }} · {{ $unit->block?->name ? $unit->block->name.' · ' : '' }}واحد {{ $unit->getAttribute('unit_number') ?? $unit->getAttribute('number') ?? $unit->id }}</option>@endforeach</select></label>
-<label class="field">نوع آگهی<select name="listing_type" required>@foreach(['sale'=>'فروش','rent'=>'اجاره','buy_request'=>'درخواست خرید','rent_request'=>'درخواست اجاره'] as $k=>$v)<option value="{{ $k }}" @selected(old('listing_type',$listing->listing_type)===$k)>{{ $v }}</option>@endforeach</select></label>
-<label class="field">نوع ملک<select name="property_type" required>@foreach(['residential'=>'مسکونی','commercial'=>'تجاری','land'=>'زمین'] as $k=>$v)<option value="{{ $k }}" @selected(old('property_type',$listing->property_type)===$k)>{{ $v }}</option>@endforeach</select></label>
-<label class="field">عنوان<input name="title" value="{{ old('title',$listing->title) }}" required maxlength="180"></label><label class="field">استان<input name="province" value="{{ old('province',$listing->province) }}"></label><label class="field">شهر<input name="city" value="{{ old('city',$listing->city) }}" required></label><label class="field">محله<input name="neighborhood" value="{{ old('neighborhood',$listing->neighborhood) }}"></label>
-<label class="field">متراژ<input type="number" name="area" min="1" value="{{ old('area',$listing->area) }}"></label><label class="field">تعداد اتاق<input type="number" name="bedrooms" min="0" value="{{ old('bedrooms',$listing->bedrooms) }}"></label><label class="field">تعداد سرویس<input type="number" name="bathrooms" min="0" value="{{ old('bathrooms',$listing->bathrooms) }}"></label><label class="field">تعداد پارکینگ<input type="number" name="parking_count" min="0" value="{{ old('parking_count',$listing->parking_count) }}"></label><label class="field">طبقه<input type="number" name="floor" value="{{ old('floor',$listing->floor) }}"></label><label class="field">کل طبقات<input type="number" name="total_floors" min="1" value="{{ old('total_floors',$listing->total_floors) }}"></label><label class="field">سال ساخت شمسی<input type="number" name="built_year" min="1300" max="1500" value="{{ old('built_year',$listing->built_year) }}"></label>
-<label class="field">قیمت فروش / مبلغ درخواستی<input type="number" name="price" min="0" value="{{ old('price',$listing->price) }}"></label><label class="field">ودیعه<input type="number" name="deposit" min="0" value="{{ old('deposit',$listing->deposit) }}"></label><label class="field">اجاره ماهانه<input type="number" name="monthly_rent" min="0" value="{{ old('monthly_rent',$listing->monthly_rent) }}"></label>
-<label class="field">نوع سند<input name="document_type" value="{{ old('document_type',$listing->document_type) }}"></label><label class="field">آدرس تقریبی<input name="address" value="{{ old('address',$listing->address) }}"><span class="form-help">در صورت فعال بودن گزینه عدم نمایش آدرس، این مقدار در صفحه عمومی نشان داده نمی‌شود.</span></label>
-</div></section>
-<section class="form-section"><h2>توضیحات و تصاویر</h2><div class="fields">
-<label class="field">توضیحات کامل<textarea name="description" required maxlength="10000">{{ old('description',$listing->description) }}</textarea><span class="form-help">ویژگی‌های مهم ملک و شرایط معامله را دقیق بنویسید.</span></label>
-<label class="field">افزودن تصاویر (حداکثر ۱۲ عکس، هرکدام تا ۵ مگابایت)<input id="property-photos" type="file" name="photos[]" accept="image/jpeg,image/png,image/webp" multiple><span class="form-help">فرمت‌های مجاز: JPG، PNG و WebP</span></label>
-</div><div id="photo-error" class="error" role="status" aria-live="polite"></div><div id="photo-preview" class="photo-preview" aria-live="polite"></div>
-@if($listing->photos)
-    <h3 style="font-size:13px;margin:18px 0 8px">تصاویر فعلی؛ برای نگه‌داشتن تیک را روشن بگذارید</h3>
-    @foreach($listing->photos as $photo)
-        <label class="photo-existing"><img src="{{ asset('storage/'.$photo) }}" alt="تصویر فعلی"><input type="checkbox" name="existing_photos[]" value="{{ $photo }}" checked> حفظ این تصویر</label>
-    @endforeach
+@php
+    $type = old('listing_type', $listing->listing_type ?: 'sale');
+    $existing = collect($listing->photos ?? [])->values();
+    $keep = collect(old('existing_photos', $existing->all()));
+@endphp
+<section class="hero"><h1>{{ $listing->exists ? 'ویرایش آگهی' : 'ثبت آگهی ملکی' }}</h1><p>{{ $listing->exists ? 'اطلاعات آگهی را به‌روز کنید.' : 'در چند مرحله‌ی کوتاه آگهی خود را منتشر کنید؛ ثبت آگهی برای همه آزاد است.' }}</p></section>
+
+<form class="lform" id="listing-form" method="POST" enctype="multipart/form-data" novalidate action="{{ $listing->exists ? route('properties.update',$listing) : route('properties.store') }}">
+@csrf @if($listing->exists)@method('PUT')@endif
+
+@if($errors->any())
+<div class="lform-errors" id="form-errors" role="alert" tabindex="-1">
+    <b>لطفاً موارد زیر را اصلاح کنید:</b>
+    <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+</div>
 @endif
+
+<section class="lsec">
+    <header><span class="n">۱</span><div><h2>نوع آگهی</h2><p>مشخص کنید چه می‌خواهید ثبت کنید.</p></div></header>
+    <div class="seg-pick" role="radiogroup" aria-label="نوع آگهی">
+        @foreach(['sale'=>'فروش','rent'=>'اجاره','buy_request'=>'درخواست خرید','rent_request'=>'درخواست اجاره'] as $k=>$v)
+            <label><input type="radio" name="listing_type" value="{{ $k }}" @checked($type===$k)><span>{{ $v }}</span></label>
+        @endforeach
+    </div>
+    <div class="grid2">
+        <div class="fld"><label for="f-property_type">نوع ملک<i class="req">*</i></label>
+            <div class="ctl"><select id="f-property_type" name="property_type" required>@foreach(['residential'=>'مسکونی','commercial'=>'تجاری','land'=>'زمین'] as $k=>$v)<option value="{{ $k }}" @selected(old('property_type',$listing->property_type ?: 'residential')===$k)>{{ $v }}</option>@endforeach</select></div>
+        </div>
+        @if($units->isNotEmpty())
+        <div class="fld"><label for="property-unit">اتصال به واحد ساختمان <em class="opt">(اختیاری)</em></label>
+            <div class="ctl"><select name="unit_id" id="property-unit"><option value="">آگهی مستقل (بدون اتصال)</option>@foreach($units as $unit)<option value="{{ $unit->id }}" @selected((string) old('unit_id',$listing->unit_id)===(string) $unit->id)>{{ $unit->building?->name ?? 'ساختمان' }} · {{ $unit->block?->name ? $unit->block->name.' · ' : '' }}واحد {{ $unit->getAttribute('unit_number') ?? $unit->getAttribute('number') ?? $unit->id }}</option>@endforeach</select></div>
+            <small class="help">اگر مدیر یا مالک واحد هستید، با اتصال آگهی اطلاعات عمومی مجاز خودکار پر می‌شود.</small>
+        </div>
+        @else
+        <div class="fld"><label>نوع ثبت</label><p class="help" style="margin:0;font-size:13px">آگهی مستقل (بدون اتصال به واحد)</p></div>
+        @endif
+    </div>
 </section>
-<div class="form-section"><h2>راه‌های ارتباط با من</h2><p class="form-help">می‌توانید هر روش ارتباطی را جداگانه فعال یا غیرفعال کنید. شماره موبایل فقط برای روش‌های فعال نمایش داده می‌شود.</p><div class="actions"><label><input type="checkbox" name="allow_phone_call" value="1" @checked(old('allow_phone_call', $listing->allow_phone_call ?? $listing->show_phone ?? false))> امکان تماس تلفنی فعال باشد</label><label><input type="checkbox" name="allow_sms" value="1" @checked(old('allow_sms', $listing->allow_sms ?? $listing->show_phone ?? false))> امکان ارسال پیامک فعال باشد</label></div></div>
-<div class="actions"><label><input type="checkbox" name="hide_address" value="1" @checked(old('hide_address',$listing->exists ? $listing->hide_address : true))> آدرس دقیق در آگهی عمومی نمایش داده نشود</label><label><input type="checkbox" name="allow_exchange" value="1" @checked(old('allow_exchange',$listing->allow_exchange))> معاوضه پذیرفته می‌شود</label></div>
-<div class="actions"><button class="btn">ثبت و انتشار آگهی</button><a class="btn light" href="{{ route('properties.mine') }}">انصراف</a></div>
+
+<section class="lsec">
+    <header><span class="n">۲</span><div><h2>موقعیت و عنوان</h2><p>عنوان کوتاه و دقیق، تعداد بازدید را بیشتر می‌کند.</p></div></header>
+    <div class="grid2">
+        <div class="span2">@include('properties.partials.field', ['name'=>'title','label'=>'عنوان آگهی','required'=>true,'maxlength'=>180,'placeholder'=>'مثلاً: آپارتمان ۹۵ متری نوساز در ونک','listing'=>$listing])</div>
+        @include('properties.partials.field', ['name'=>'province','label'=>'استان','placeholder'=>'مثلاً: تهران','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'city','label'=>'شهر','required'=>true,'placeholder'=>'مثلاً: تهران','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'neighborhood','label'=>'محله','placeholder'=>'مثلاً: ونک','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'address','label'=>'آدرس تقریبی','placeholder'=>'خیابان، کوچه، پلاک (اختیاری)','help'=>'اگر گزینه‌ی «عدم نمایش آدرس» روشن باشد، عموم آن را نمی‌بینند.','listing'=>$listing])
+    </div>
+</section>
+
+<section class="lsec">
+    <header><span class="n">۳</span><div><h2>مشخصات ملک</h2><p>فقط چیزهایی را که می‌دانید پر کنید.</p></div></header>
+    <div class="grid3">
+        @include('properties.partials.field', ['name'=>'area','label'=>'متراژ','type'=>'number','suffix'=>'متر','placeholder'=>'۹۵','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'bedrooms','label'=>'اتاق خواب','type'=>'number','placeholder'=>'۲','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'bathrooms','label'=>'سرویس بهداشتی','type'=>'number','placeholder'=>'۱','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'parking_count','label'=>'پارکینگ','type'=>'number','placeholder'=>'۱','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'floor','label'=>'طبقه','type'=>'number','placeholder'=>'۳','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'total_floors','label'=>'کل طبقات','type'=>'number','placeholder'=>'۵','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'built_year','label'=>'سال ساخت','type'=>'number','placeholder'=>'۱۴۰۲','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'document_type','label'=>'نوع سند','placeholder'=>'مثلاً: تک‌برگ','listing'=>$listing])
+    </div>
+</section>
+
+<section class="lsec">
+    <header><span class="n">۴</span><div><h2>قیمت</h2><p>مبلغ‌ها را به تومان وارد کنید؛ جداکننده‌ی هزارگان خودکار گذاشته می‌شود.</p></div></header>
+    <div class="grid2">
+        @include('properties.partials.field', ['name'=>'price','label'=>'قیمت / مبلغ مورد نظر','money'=>true,'suffix'=>'تومان','show'=>'sale buy_request','placeholder'=>'۵,۰۰۰,۰۰۰,۰۰۰','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'deposit','label'=>'ودیعه (رهن)','money'=>true,'suffix'=>'تومان','show'=>'rent rent_request','placeholder'=>'۲۰۰,۰۰۰,۰۰۰','listing'=>$listing])
+        @include('properties.partials.field', ['name'=>'monthly_rent','label'=>'اجاره ماهانه','money'=>true,'suffix'=>'تومان','show'=>'rent rent_request','placeholder'=>'۱۵,۰۰۰,۰۰۰','listing'=>$listing])
+    </div>
+</section>
+
+<section class="lsec">
+    <header><span class="n">۵</span><div><h2>توضیحات و تصاویر</h2><p>آگهی با عکس باکیفیت چند برابر بیشتر دیده می‌شود.</p></div></header>
+    <div class="fld @error('description') has-error @enderror">
+        <label for="f-description">توضیحات کامل<i class="req">*</i></label>
+        <div class="ctl"><textarea id="f-description" name="description" required maxlength="10000" placeholder="ویژگی‌های مهم ملک، امکانات، شرایط معامله و…">{{ old('description',$listing->description) }}</textarea></div>
+        <small class="help"><span id="desc-count">۰</span> / ۱۰٬۰۰۰ نویسه</small>
+        @error('description')<small class="ferr" role="alert">{{ $message }}</small>@enderror
+    </div>
+
+    <div class="photos" id="photos" data-max="12">
+        <div class="photos-head"><b>تصاویر ملک</b><span id="photo-count" aria-live="polite">۰ از ۱۲</span></div>
+        <input id="property-photos" class="sr-only" type="file" name="photos[]" accept="image/jpeg,image/png,image/webp" multiple tabindex="-1">
+        <input type="hidden" name="main_photo" id="main-photo" value="">
+        <button type="button" class="drop" id="photo-drop"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><b>انتخاب تصویر یا رها کردن اینجا</b><small>JPG، PNG یا WebP · هر تصویر تا ۵ مگابایت · حداکثر ۱۲ تصویر</small></button>
+        <div id="photo-error" class="ferr" role="alert"></div>
+        <div id="photo-grid" class="pgrid" aria-live="polite">
+            @foreach($existing as $photo)
+                <div class="ph" data-existing="{{ $photo }}" @if(! $keep->contains($photo)) hidden @endif>
+                    <img src="{{ asset('storage/'.$photo) }}" alt="تصویر فعلی">
+                    <input type="hidden" name="existing_photos[]" value="{{ $photo }}" @if(! $keep->contains($photo)) disabled @endif>
+                    <button type="button" class="ph-main" data-act="main" aria-label="انتخاب به‌عنوان تصویر اصلی" title="تصویر اصلی">★</button>
+                    <button type="button" class="ph-del" data-act="del" aria-label="حذف تصویر"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
+                </div>
+            @endforeach
+        </div>
+        <small class="help">تصویر اول (برچسب «اصلی») روی کارت آگهی نمایش داده می‌شود؛ با ★ می‌توانید تصویر اصلی را عوض کنید.</small>
+    </div>
+</section>
+
+<section class="lsec">
+    <header><span class="n">۶</span><div><h2>راه‌های ارتباط و حریم خصوصی</h2><p>شماره‌ی موبایل فقط برای روش‌هایی نمایش داده می‌شود که فعال کنید.</p></div></header>
+    <div class="checks">
+        <label><input type="checkbox" name="allow_phone_call" value="1" @checked(old('allow_phone_call', $listing->allow_phone_call ?? $listing->show_phone ?? false))><span>امکان تماس تلفنی فعال باشد</span></label>
+        <label><input type="checkbox" name="allow_sms" value="1" @checked(old('allow_sms', $listing->allow_sms ?? $listing->show_phone ?? false))><span>امکان ارسال پیامک فعال باشد</span></label>
+        <label><input type="checkbox" name="hide_address" value="1" @checked(old('hide_address',$listing->exists ? $listing->hide_address : true))><span>آدرس دقیق در آگهی عمومی نمایش داده نشود</span></label>
+        <label><input type="checkbox" name="allow_exchange" value="1" @checked(old('allow_exchange',$listing->allow_exchange))><span>معاوضه پذیرفته می‌شود</span></label>
+    </div>
+</section>
+
+<div class="lbar">
+    <a class="btn light" href="{{ route('properties.mine') }}">انصراف</a>
+    <button class="btn lg" type="submit" id="submit-btn">{{ $listing->exists ? 'ذخیره تغییرات' : 'ثبت و انتشار آگهی' }}</button>
+</div>
 </form>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const photoInput = document.getElementById('property-photos');
-    const preview = document.getElementById('photo-preview');
-    if (photoInput && preview) {
-        photoInput.addEventListener('change', function () {
-            preview.replaceChildren();
-            const error = document.getElementById('photo-error');
-            if (error) error.textContent = '';
-            const files = Array.from(this.files || []);
-            if (files.length > 12) {
-                if (error) error.textContent = 'حداکثر ۱۲ تصویر می‌توانید انتخاب کنید.';
-                this.value = '';
-                return;
-            }
-            files.forEach(function (file) {
-                if (!file.type.startsWith('image/')) return;
-                const image = document.createElement('img');
-                image.alt = file.name;
-                image.src = URL.createObjectURL(file);
-                image.onload = function () { URL.revokeObjectURL(image.src); };
-                preview.appendChild(image);
-            });
-        });
-    }
-    const selector = document.getElementById('property-unit');
-    const data = @json($unitAutofillData);
-    if (!selector) return;
-    selector.addEventListener('change', function () {
-        const details = data[this.value];
-        if (!details) return;
-        Object.entries(details).forEach(([name, value]) => {
-            const field = document.querySelector('[name="' + name + '"]');
-            if (field) field.value = value ?? '';
-        });
-    });
-});
-</script>
 @endsection

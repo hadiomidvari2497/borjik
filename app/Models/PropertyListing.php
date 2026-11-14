@@ -44,6 +44,11 @@ class PropertyListing extends Model
         ];
     }
 
+    public function inquiries(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PropertyListingInquiry::class, 'property_listing_id');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

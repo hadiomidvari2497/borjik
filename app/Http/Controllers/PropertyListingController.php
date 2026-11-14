@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PropertyListingController extends Controller
 {
@@ -85,7 +86,7 @@ class PropertyListingController extends Controller
 
     public function mine(Request $request, PropertyListingQuota $quota, PaymentGatewayRegistry $gateways)
     {
-        $listings = PropertyListing::where('user_id', $request->user()->id)->latest()->paginate(15);
+        $listings = PropertyListing::where('user_id', $request->user()->id)->withCount('inquiries')->latest()->paginate(15);
         $packages = collect(SiteSetting::get('property_listings.packages', []))->filter(fn ($package) => is_array($package) && ! empty($package['active']) && (int) ($package['price'] ?? 0) > 0)->values();
         $availableCredits = $quota->availableCredits($request->user()->id);
         $paymentGateways = $gateways->active();
@@ -113,7 +114,7 @@ class PropertyListingController extends Controller
 
         $listing = DB::transaction(function () use ($request, $data) {
             $consumedCredit = app(PropertyListingQuota::class)->consumeForNewListing($request->user());
-            $data['photos'] = $this->storePhotos($request);
+            $data['photos'] = $this->applyMainPhoto($request, $this->storePhotos($request), 0);
             $listing = PropertyListing::create($data);
 
             if ($consumedCredit) {
@@ -152,7 +153,7 @@ class PropertyListingController extends Controller
         foreach ($removedPhotos as $photo) {
             Storage::disk('public')->delete($photo);
         }
-        $data['photos'] = array_values(array_merge($keptPhotos, $this->storePhotos($request)));
+        $data['photos'] = $this->applyMainPhoto($request, array_values(array_merge($keptPhotos, $this->storePhotos($request))), count($keptPhotos));
         $data['status'] = $listing->status;
         $listing->update($data);
 
@@ -183,8 +184,50 @@ class PropertyListingController extends Controller
         abort_unless((int) $listing->user_id === (int) $request->user()->id, 403);
     }
 
+    /** ارقام فارسی/عربی و جداکننده‌ی هزارگان را به عدد خام تبدیل می‌کند (مثلاً «۵٬۲۰۰٬۰۰۰» → 5200000). */
+    private function normalizeNumbers(Request $request): void
+    {
+        $keys = ['area', 'parking_count', 'bedrooms', 'bathrooms', 'floor', 'total_floors', 'built_year', 'price', 'deposit', 'monthly_rent'];
+        $map = ['۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4', '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+            '٫' => '.', ',' => '', '،' => '', '٬' => '', ' ' => '', "\u{200c}" => ''];
+        $clean = [];
+        foreach ($keys as $key) {
+            $value = $request->input($key);
+            if (is_string($value)) {
+                $value = strtr($value, $map);
+                $clean[$key] = $value === '' ? null : $value;
+            }
+        }
+        $request->merge($clean);
+    }
+
+    /** عکس اصلی را اول فهرست می‌گذارد: main_photo یا مسیر عکس فعلی است یا «new:N» برای N‌امین عکس تازه. */
+    private function applyMainPhoto(Request $request, array $photos, int $keptCount): array
+    {
+        $main = (string) $request->input('main_photo', '');
+        if ($main === '' || $photos === []) {
+            return $photos;
+        }
+        $index = null;
+        if (str_starts_with($main, 'new:')) {
+            $n = (int) substr($main, 4);
+            $index = $keptCount + $n;
+        } else {
+            $found = array_search($main, $photos, true);
+            $index = $found === false ? null : $found;
+        }
+        if ($index === null || ! isset($photos[$index])) {
+            return $photos;
+        }
+        $first = array_splice($photos, $index, 1);
+
+        return array_values(array_merge($first, $photos));
+    }
+
     private function validated(Request $request, ?PropertyListing $listing = null): array
     {
+        $this->normalizeNumbers($request);
         $data = $request->validate([
             'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')],
             'listing_type' => ['required', Rule::in(['sale', 'rent', 'buy_request', 'rent_request'])],
@@ -218,10 +261,10 @@ class PropertyListingController extends Controller
 
         $type = $data['listing_type'];
         if ($type === 'sale' && empty($data['price'])) {
-            abort(422, 'برای آگهی فروش، قیمت را وارد کنید.');
+            throw ValidationException::withMessages(['price' => 'برای آگهی فروش، قیمت را وارد کنید.']);
         }
         if ($type === 'rent' && empty($data['deposit']) && empty($data['monthly_rent'])) {
-            abort(422, 'برای آگهی اجاره، ودیعه یا اجاره ماهانه را وارد کنید.');
+            throw ValidationException::withMessages(['monthly_rent' => 'برای آگهی اجاره، ودیعه یا اجاره ماهانه را وارد کنید.']);
         }
 
         unset($data['photos']);
