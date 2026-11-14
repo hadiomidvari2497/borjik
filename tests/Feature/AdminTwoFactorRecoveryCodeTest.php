@@ -97,11 +97,15 @@ class AdminTwoFactorRecoveryCodeTest extends TestCase
             'password' => 'secret-pass-1',
         ]);
 
-        $pending = session('admin_2fa');
-        $pending['started_at'] = now()->subSeconds(121)->timestamp;
-        session(['admin_2fa' => $pending]);
-
-        $this->post(route('admin.two-factor.recovery.verify'), ['code' => 'FFFFFFFFFFFFFFFF'])
+        $this->withSession([
+            'admin_2fa' => [
+                'id' => $admin->id,
+                'remember' => false,
+                'expires' => now()->addMinutes(5)->timestamp,
+                'started_at' => now()->subSeconds(121)->timestamp,
+                'tries' => 0,
+            ],
+        ])->post(route('admin.two-factor.recovery.verify'), ['code' => 'FFFFFFFFFFFFFFFF'])
             ->assertSessionHasErrors('recovery_code');
 
         $this->assertCount(1, $admin->fresh()->two_factor_recovery_codes);
