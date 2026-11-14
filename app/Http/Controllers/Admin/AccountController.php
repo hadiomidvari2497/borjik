@@ -165,7 +165,7 @@ class AccountController extends Controller
             return back()->withErrors(['password' => 'رمز عبور نادرست است.']);
         }
 
-        $me->forceFill(['two_factor_secret' => null, 'two_factor_enabled' => false, 'two_factor_sms_enabled' => false])->save();
+        $me->forceFill(['two_factor_secret' => null, 'two_factor_enabled' => false, 'two_factor_sms_enabled' => false, 'two_factor_recovery_codes' => null])->save();
 
         return redirect()->route('admin.account')->with('status', 'تأیید دومرحله‌ای غیرفعال شد.');
     }
