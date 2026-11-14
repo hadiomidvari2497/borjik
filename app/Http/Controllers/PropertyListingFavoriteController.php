@@ -41,6 +41,13 @@ class PropertyListingFavoriteController extends Controller
             $message = 'آگهی به نشان‌شده‌ها اضافه شد.';
         }
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'saved' => ! $saved,
+                'message' => $message,
+            ]);
+        }
+
         return back()->with('status', $message);
     }
 }
