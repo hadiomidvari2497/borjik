@@ -52,6 +52,11 @@ class PropertyListing extends Model
         return $this->hasMany(PropertyListingInquiry::class, 'property_listing_id');
     }
 
+    public function favoritedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'property_listing_favorites')->withTimestamps();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
