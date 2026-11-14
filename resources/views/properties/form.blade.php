@@ -31,7 +31,7 @@
     <section class="form-card" aria-labelledby="sec-main">
         <h2 id="sec-main"><span class="step">۱</span>اطلاعات اصلی</h2>
         <div class="fields">
-            <label class="field @if($invalid('unit_id')) has-error @endif" for="property-unit"><span class="lbl"><span class="lbl-text">اتصال اختیاری به واحد</span></span>
+            <label class="field span-all @if($invalid('unit_id')) has-error @endif" for="property-unit"><span class="lbl"><span class="lbl-text">اتصال اختیاری به واحد</span></span>
                 <select name="unit_id" id="property-unit"><option value="">آگهی مستقل (بدون اتصال به واحد)</option>@foreach($units as $unit)<option value="{{ $unit->id }}" @selected((string) old('unit_id',$listing->unit_id)===(string) $unit->id)>{{ $unit->building?->name ?? 'ساختمان' }} · {{ $unit->block?->name ? $unit->block->name.' · ' : '' }}واحد {{ $unit->getAttribute('unit_number') ?? $unit->getAttribute('number') ?? $unit->id }}</option>@endforeach</select>
                 @error('unit_id')<span class="field-error" role="alert">{{ $message }}</span>@enderror
             </label>
@@ -122,7 +122,7 @@
     <div class="tour-manager-head">
         <div class="tour-manager-title-wrap">
             <span class="tour-manager-kicker">اختیاری · افزایش اعتماد و بازدید</span>
-            <h2 id="tour-manager-title">خانه‌گردی مجازی</h2>
+            <h2 id="tour-manager-title"><span class="step">۵</span>خانه‌گردی مجازی ۳۶۰ درجه</h2>
             <p>فضاهای مختلف ملک را با تصویر پانوراما معرفی کن تا بازدیدکننده قبل از مراجعه، حس حضور در خانه را تجربه کند.</p>
         </div>
         <div class="tour-manager-mark" aria-hidden="true"><span>۳۶۰°</span><small>خانه‌گردی</small></div>
@@ -265,7 +265,7 @@
 
     {{-- ۶. راه‌های ارتباطی --}}
     <section class="form-card" aria-labelledby="sec-contact">
-        <h2 id="sec-contact"><span class="step">۵</span>راه‌های ارتباطی</h2>
+        <h2 id="sec-contact"><span class="step">۶</span>راه‌های ارتباطی</h2>
         <p class="form-help">می‌توانید هر روش ارتباطی را جداگانه فعال یا غیرفعال کنید. شماره موبایل فقط برای روش‌های فعال نمایش داده می‌شود؛ گفتگوی درون‌برنامه‌ای همیشه فعال است.</p>
         <label class="check"><input type="checkbox" name="allow_phone_call" value="1" @checked(old('allow_phone_call', $listing->allow_phone_call ?? $listing->show_phone ?? false))> امکان تماس تلفنی فعال باشد</label>
         <label class="check"><input type="checkbox" name="allow_sms" value="1" @checked(old('allow_sms', $listing->allow_sms ?? $listing->show_phone ?? false))> امکان ارسال پیامک فعال باشد</label>
@@ -281,8 +281,7 @@
 <section class="form-card property-location-card" aria-labelledby="property-location-title">
     <div class="property-map-heading">
         <div>
-            <span class="property-map-eyebrow">موقعیت ملک</span>
-            <h2 id="property-location-title">انتخاب موقعیت روی نقشه</h2>
+            <h2 id="property-location-title"><span class="step">۷</span>موقعیت روی نقشه</h2>
             <p>روی محل ملک کلیک کن تا نقطه ثبت شود؛ سپس خودت مشخص کن موقعیت عمومی آگهی دقیق باشد یا تقریبی.</p>
         </div>
         <span class="property-map-heading-icon" aria-hidden="true">⌖</span>
@@ -325,16 +324,7 @@
 
 
 @push('scripts')
-<style>
-.location-visibility-choice{display:grid;gap:10px;margin:16px 0;padding:14px;border:1px solid #dfeae4;border-radius:16px;min-width:0}
-.location-visibility-choice legend{padding:0 6px;color:#244b3e;font-weight:700;font-size:14px}
-.location-visibility-option{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid #e5eee9;border-radius:12px;background:#fbfdfc;cursor:pointer}
-.location-visibility-option:has(input:checked){border-color:#73ad91;background:#f0f8f3}
-.location-visibility-option input{margin-top:4px;accent-color:#16845f}
-.location-visibility-option span{display:grid;gap:4px}
-.location-visibility-option strong{color:#25483d;font-size:13px}
-.location-visibility-option small{color:#71867d;font-size:12px;line-height:1.8}
-</style>
+
 <script>
 (function () {
     var FA = '۰۱۲۳۴۵۶۷۸۹', AR = '٠١٢٣٤٥٦٧٨٩';
@@ -441,9 +431,9 @@
         li.querySelectorAll('.ph-cover,.ph-del,.ph-badge').forEach(function (n) { n.remove(); });
         var del = mkBtn('ph-del', 'حذف تصویر', '×');
         del.addEventListener('click', function () { remove(item); });
-        var cv = mkBtn('ph-cover', 'انتخاب به‌عنوان عکس اصلی', 'عکس اصلی');
+        var cv = mkBtn('ph-cover', 'انتخاب به‌عنوان عکس اصلی', 'انتخاب به‌عنوان اصلی');
         cv.addEventListener('click', function () { coverItem = item; render(); });
-        var badge = document.createElement('span'); badge.className = 'ph-badge'; badge.textContent = 'عکس اصلی';
+        var badge = document.createElement('span'); badge.className = 'ph-badge'; badge.textContent = '★ عکس اصلی';
         li.append(del, cv, badge);
     }
     grid.querySelectorAll('li[data-kind="existing"]').forEach(function (li) {

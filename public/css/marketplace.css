@@ -633,3 +633,46 @@ label:has(>input[type=checkbox]),label:has(>input[type=radio]){display:flex;alig
 .market-card-wrap.is-removing{opacity:0;transform:scale(.97);transition:opacity .2s ease,transform .2s ease}
 .market-favorite-toast{position:fixed;z-index:12000;inset-inline-start:20px;bottom:24px;max-width:min(420px,calc(100vw - 32px));padding:12px 17px;border:1px solid #d8e9df;border-radius:14px;background:#fff;color:#245443;box-shadow:0 12px 35px #173c3226;font-size:13px;line-height:1.8;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
 .market-favorite-toast.is-visible{opacity:1;transform:translateY(0)}
+
+/* ───────── پالیش فرم آگهی: ریتم یکسان، هدر هماهنگ، نوار ذخیره چسبان ───────── */
+.listing-form{gap:16px}
+.listing-form .form-card{padding:22px 24px;border-radius:var(--r-lg)}
+.listing-form .form-card>h2,.listing-form .tour-manager-head h2,.listing-form .property-map-heading h2{display:flex;align-items:center;gap:11px;margin:0 0 16px;font-size:17px;font-weight:800;color:var(--ink)}
+.listing-form .tour-manager-head h2,.listing-form .property-map-heading h2{margin:6px 0 6px}
+.form-card .step{flex:0 0 auto;width:30px;height:30px;border-radius:10px;background:var(--brand);color:#fff;font-size:13px;box-shadow:0 4px 10px color-mix(in srgb,var(--brand) 28%,transparent)}
+.listing-form .property-map-heading-icon{background:var(--brand-50)}
+.form-intro{align-items:center;border:1px solid color-mix(in srgb,var(--brand) 16%,transparent);font-size:12.5px}
+.form-intro strong{flex:0 0 auto}
+.listing-form .check{padding:6px 14px;border:1px solid var(--line);border-radius:12px;background:#fbfdfc;transition:border-color .15s,background .15s}
+.listing-form .check:has(input:checked){border-color:color-mix(in srgb,var(--brand) 45%,transparent);background:var(--brand-50)}
+.listing-form .check input,.location-visibility-option input{accent-color:var(--brand);width:18px;height:18px;flex:0 0 18px}
+.form-card>.check+.check{margin-top:10px}.form-card>.fields+.check,.form-card>.form-help+.check{margin-top:14px}
+.location-visibility-choice{display:grid;gap:10px;margin:0;padding:14px;border:1px solid var(--line);border-radius:16px;min-width:0}
+.location-visibility-choice legend{padding:0 6px;color:var(--ink);font-weight:700;font-size:14px}
+.location-visibility-option{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fbfdfc;cursor:pointer;transition:border-color .15s,background .15s}
+.location-visibility-option:has(input:checked){border-color:color-mix(in srgb,var(--brand) 45%,transparent);background:var(--brand-50)}
+.location-visibility-option input{margin-top:3px}
+.location-visibility-option span{display:grid;gap:4px}
+.location-visibility-option strong{color:var(--ink);font-size:13px}
+.location-visibility-option small{color:var(--mute);font-size:12px;line-height:1.8}
+.property-map-unavailable{border-style:solid;background:var(--brand-50);border-color:transparent}
+.ph-cover{min-height:34px;font-size:12px;opacity:.96}
+.ph-item.is-cover{border-color:var(--brand);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 30%,transparent)}
+.ph-badge{background:linear-gradient(transparent,color-mix(in srgb,var(--brand-d) 92%,transparent));padding:14px 8px 7px}
+.listing-form .fields textarea{min-height:150px;line-height:2;resize:vertical}
+
+/* نوار ذخیره‌ی چسبان */
+.listing-form .form-actions{position:sticky;bottom:0;z-index:20;display:flex;align-items:center;gap:10px;margin:4px -6px 0;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r-md);background:color-mix(in srgb,var(--card) 92%,transparent);-webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);box-shadow:0 -6px 24px rgba(15,79,72,.08)}
+.listing-form .form-actions .btn{min-height:46px}
+.listing-form .form-actions .btn:not(.light){min-width:190px}
+
+@media(max-width:700px){
+  .listing-form{gap:12px}
+  .listing-form .form-card{padding:16px 14px}
+  .listing-form .form-card>h2,.listing-form .tour-manager-head h2,.listing-form .property-map-heading h2{font-size:15.5px}
+  #sec-specs~.fields,.form-card[aria-labelledby=sec-specs] .fields{grid-template-columns:1fr 1fr;gap:12px}
+  .form-card[aria-labelledby=sec-main] .fields{grid-template-columns:1fr 1fr;gap:12px}
+  .form-intro{font-size:12px;padding:10px 12px}
+  .listing-form .form-actions{margin:0 -4px;padding:10px 12px;border-radius:var(--r-md);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+  .listing-form .form-actions .btn:not(.light){flex:1;min-width:0}
+}
