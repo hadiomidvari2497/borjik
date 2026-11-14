@@ -28,6 +28,7 @@ html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 76px);scrollbar-widt
 ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(42,155,143,.4);border-radius:8px;border:2px solid transparent;background-clip:content-box}
 ::-webkit-scrollbar-thumb:hover{background:rgba(42,155,143,.7);background-clip:content-box;border:2px solid transparent}
+html,body{max-width:100%;overflow-x:clip}
 *{box-sizing:border-box;margin:0}
 body{font-family:'Vazirmatn',Tahoma,'Segoe UI',sans-serif;color:var(--text);background:radial-gradient(60% 45% at 85% 8%,var(--glow1),transparent 70%),radial-gradient(50% 40% at 10% 90%,var(--glow2),transparent 70%),linear-gradient(135deg,var(--bg1),var(--bg2));background-attachment:fixed;min-height:100%;font-size:14px;-webkit-tap-highlight-color:transparent}
 svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
@@ -113,8 +114,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
   .main{margin-inline-start:0}
   .side{z-index:30;top:0;bottom:0;right:0;width:min(300px,86vw);border-radius:24px 0 0 24px;
     padding-top:calc(22px + env(safe-area-inset-top,0px));padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
-    transform:translateX(105%);transition:transform .25s ease;background:color-mix(in srgb,var(--card) 90%,transparent)}
-  .side.open{transform:none}
+    transform:translateX(105%);visibility:hidden;pointer-events:none;transition:transform .25s ease,visibility 0s .25s;background:color-mix(in srgb,var(--card) 90%,transparent)}
+  .side.open{transform:none;visibility:visible;pointer-events:auto;transition:transform .25s ease,visibility 0s}
   .scrim{display:block;position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s}
   .scrim.open{opacity:1;pointer-events:auto}
   .ib.burger{display:grid}
@@ -130,6 +131,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--brand);outline-offs
   .bnav{display:flex;position:fixed;z-index:12;left:0;right:0;bottom:0;justify-content:space-around;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));backdrop-filter:blur(14px) saturate(150%);-webkit-backdrop-filter:blur(14px) saturate(150%);background:var(--glass);box-shadow:0 -4px 16px rgba(0,0,0,.12);border-top:1px solid var(--line)}
   .bnav a,.bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;color:var(--muted);font-size:10.5px;text-decoration:none;min-height:48px;justify-content:center}
   .bnav .on{color:var(--brand);background:var(--brand-soft);font-weight:700}
+  /* نوار پایین و هدر کدر باشند تا محتوا از زیرشان پیدا نشود */
+  .bnav{background:color-mix(in srgb,var(--card) 96%,transparent)}
+  .top{background:color-mix(in srgb,var(--card) 94%,transparent)}
+  /* فاصله‌ی بین نوار وضعیت گوشی و هدر ثابت پوشانده شود */
+  body::before{content:"";position:fixed;z-index:11;top:0;left:0;right:0;height:calc(8px + env(safe-area-inset-top,0px));background:var(--bg1);pointer-events:none}
 }
 @media (max-width:420px){.kpis{grid-template-columns:1fr 1fr}.kpi .h{font-size:12px}.big{font-size:26px}}
 @media (prefers-reduced-motion:reduce){.side,.scrim{transition:none}}
