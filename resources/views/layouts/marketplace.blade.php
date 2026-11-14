@@ -22,6 +22,7 @@
 <meta property="og:description" content="@yield('meta_description', 'آگهی‌های خرید، فروش و اجاره ملک در بازار املاک صابخونه')">
 <meta property="og:url" content="{{ $canonicalUrl }}">
 <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
+<link rel="stylesheet" href="{{ asset('css/jdate.css') }}?v={{ @filemtime(public_path('css/jdate.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/marketplace.css') }}?v={{ @filemtime(public_path('css/marketplace.css')) }}">
 @stack('head')
 </head><body class="@yield('body_class')">
@@ -125,6 +126,7 @@
 @endauth
 @endif
 @stack('scripts')
+<script src="{{ asset('js/jdate.js') }}?v={{ @filemtime(public_path('js/jdate.js')) }}" defer></script>
 <script src="{{ asset('js/market-ui.js') }}?v={{ @filemtime(public_path('js/market-ui.js')) }}" defer></script>
 <script>
 (function(){
