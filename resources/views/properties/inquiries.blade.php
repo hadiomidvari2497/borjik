@@ -103,6 +103,29 @@
                         </form>
                     @endif
                 </div>
+                @if($isRecipient)
+                    <div class="lead-reminder">
+                        @if($inquiry->follow_up_at)
+                            <span class="reminder-state @if($inquiry->follow_up_at->isPast()) overdue @else upcoming @endif">
+                                @if($inquiry->follow_up_at->isPast()) پیگیری عقب‌افتاده: @else یادآوری: @endif{{ Fa::stamp($inquiry->follow_up_at) }}
+                            </span>
+                        @endif
+                        <details>
+                            <summary>{{ $inquiry->follow_up_at ? 'ویرایش یادآوری' : 'تنظیم یادآوری پیگیری' }}</summary>
+                            <form method="POST" action="{{ route('properties.inquiries.update', $inquiry) }}">
+                                @csrf
+                                @method('PATCH')
+                                <label>زمان پیگیری
+                                    <input type="datetime-local" name="follow_up_at" value="{{ $inquiry->follow_up_at?->format('Y-m-d\\TH:i') }}" step="60">
+                                </label>
+                                <label>یادداشت
+                                    <input type="text" name="follow_up_note" value="{{ $inquiry->follow_up_note }}" maxlength="1000" placeholder="مثلاً تماس برای هماهنگی بازدید">
+                                </label>
+                                <button type="submit">ذخیره یادآوری</button>
+                            </form>
+                        </details>
+                    </div>
+                @endif
             </div>
             <div class="convo-side">
                 <time class="convo-time" datetime="{{ $when->toIso8601String() }}">{{ Fa::stamp($when) }}</time>
