@@ -1,12 +1,12 @@
 <?php
 
-namespace App\\Http\\Controllers;
+namespace App\Http\Controllers;
 
-use App\\Models\\PropertyListing;
-use App\\Models\\PropertyListingTourRoom;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\Storage;
-use Illuminate\\Validation\\ValidationException;
+use App\Models\PropertyListing;
+use App\Models\PropertyListingTourRoom;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class PropertyListingTourController extends Controller
 {
