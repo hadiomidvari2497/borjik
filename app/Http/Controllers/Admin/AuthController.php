@@ -42,7 +42,7 @@ class AuthController extends Controller
         if ($user->two_factor_enabled && $user->two_factor_secret) {
             $request->session()->put('admin_2fa', [
                 'id' => $user->id, 'remember' => $request->boolean('remember'),
-                'expires' => now()->timestamp + self::CHALLENGE_TTL, 'tries' => 0,
+                'expires' => now()->timestamp + self::CHALLENGE_TTL, 'started_at' => now()->timestamp, 'tries' => 0,
             ]);
 
             return redirect()->route('admin.two-factor.challenge');
@@ -65,6 +65,7 @@ class AuthController extends Controller
                 && $user->two_factor_sms_enabled && $user->mobile && $user->mobile_verified_at,
             'maskedMobile' => $user?->mobile ? substr($user->mobile, 0, 4).'*****'.substr($user->mobile, -2) : null,
             'recoveryAvailable' => $user && count($user->two_factor_recovery_codes ?? []) > 0,
+            'recoveryDelay' => max(0, (($pending['started_at'] ?? now()->timestamp) + 120) - now()->timestamp),
         ]);
     }
 
@@ -164,6 +165,11 @@ class AuthController extends Controller
             return redirect()->route('admin.login')->with('error', 'نشست تأیید دومرحله‌ای منقضی شده است؛ دوباره وارد شوید.');
         }
 
+        $recoveryUnlockAt = ($pending['started_at'] ?? now()->timestamp) + 120;
+        if (now()->timestamp < $recoveryUnlockAt) {
+            return redirect()->route('admin.two-factor.challenge')->with('error', 'کد بازیابی اضطراری پس از گذشت دو دقیقه از شروع تأیید دومرحله‌ای فعال می‌شود.');
+        }
+
         $data = $request->validate(['code' => ['required', 'string', 'min:16', 'max:22']]);
         $code = strtoupper(preg_replace('/[^A-Z0-9]/', '', $data['code']));
 
@@ -195,7 +201,7 @@ class AuthController extends Controller
             }
             $request->session()->put('admin_2fa', $pending);
 
-            return back()->with('two_factor_tab', 'recovery')->withErrors(['code' => 'کد بازیابی نامعتبر یا قبلاً استفاده شده است.']);
+            return back()->with('show_recovery_form', true)->withErrors(['recovery_code' => 'کد بازیابی نامعتبر یا قبلاً استفاده شده است.']);
         }
 
         $request->session()->forget('admin_2fa');
