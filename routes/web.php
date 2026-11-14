@@ -9,6 +9,7 @@ use App\Http\Controllers\PropertyListingController;
 use App\Http\Controllers\PropertyListingPackageController;
 use App\Http\Controllers\PropertyListingReportController;
 use App\Http\Controllers\PropertyListingInquiryController;
+use App\Http\Controllers\PropertyListingTourController;
 
 Route::post('/analytics/heartbeat', [AnalyticsCollectionController::class, 'heartbeat'])->middleware('throttle:120,1')->name('analytics.heartbeat');
 Route::post('/analytics/event', [AnalyticsCollectionController::class, 'event'])->middleware('throttle:120,1')->name('analytics.event');
