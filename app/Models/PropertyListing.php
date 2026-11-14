@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class PropertyListing extends Model
 {
@@ -51,7 +52,7 @@ class PropertyListing extends Model
     {
         static::deleting(function (self $listing): void {
             foreach ($listing->tourRooms as $room) {
-                \\Illuminate\\Support\\Facades\\Storage::disk('public')->delete($room->image_path);
+                Storage::disk('public')->delete($room->image_path);
             }
         });
     }
