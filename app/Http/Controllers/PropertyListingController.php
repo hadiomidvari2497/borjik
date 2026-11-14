@@ -38,6 +38,7 @@ class PropertyListingController extends Controller
         ]);
 
         $listings = PropertyListing::query()->published()
+            ->when($request->user(), fn ($query) => $query->withExists(['favoritedByUsers as is_favorited' => fn ($favorites) => $favorites->where('users.id', $request->user()->id)]))
             ->when(! empty($filters['q']), function ($query) use ($filters) {
                 $term = trim($filters['q']);
                 $query->where(function ($nested) use ($term) {
@@ -170,11 +171,12 @@ class PropertyListingController extends Controller
             DB::table('property_listing_daily_stats')->where('property_listing_id', $listing->id)
                 ->where('stat_date', now()->toDateString())->increment('views_count');
         }
+        $isFavorited = auth()->check() && $listing->favoritedByUsers()->where('users.id', auth()->id())->exists();
         $mapPoint = $listing->latitude !== null && $listing->longitude !== null ? $this->publicMapPoint($listing) : null;
         $mapApiKey = config('services.neshan.map_key');
         $similar = PropertyListing::published()->whereKeyNot($listing->getKey())->where('listing_type', $listing->listing_type)
             ->orderByRaw('CASE WHEN city = ? THEN 0 ELSE 1 END', [(string) $listing->city])->latest()->limit(4)->get();
-        return view('properties.show', compact('listing', 'similar', 'mapPoint', 'mapApiKey'));
+        return view('properties.show', compact('listing', 'similar', 'mapPoint', 'mapApiKey', 'isFavorited'));
     }
 
     public function recordPhoneClick(Request $request, PropertyListing $listing)
