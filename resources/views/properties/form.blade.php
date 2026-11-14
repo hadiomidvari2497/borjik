@@ -172,15 +172,22 @@
 
 @if($listing->exists)
 <section class="tour-manager" aria-labelledby="tour-manager-title">
-    <h2 id="tour-manager-title">خانه‌گردی مجازی ۳۶۰ درجه</h2>
-    <p>از هر اتاق یک تصویر پانورامای کروی ۳۶۰ درجه بارگذاری کنید. این تصاویر در نمایشگر تمام‌صفحه آگهی به بازدیدکنندگان اجازه می‌دهند اطراف فضا را بچرخانند و بین اتاق‌ها جابه‌جا شوند. حداکثر ۸ فضا، هر تصویر تا ۱۵ مگابایت.</p>
+    <h2 id="tour-manager-title">خانه‌گردی مجازی</h2>
+    <p>می‌توانید برای هر فضا تصویر ۳۶۰ درجه حرفه‌ای یا پانورامای معمولی گوشی اضافه کنید. نمایشگر متناسب با نوع تصویر به‌صورت خودکار فعال می‌شود؛ حداکثر ۸ فضا و ۱۵ مگابایت برای هر تصویر.</p>
     @if($errors->has('name') || $errors->has('panorama'))
         <div class="field-error" role="alert">@foreach($errors->get('name') as $message){{ $message }} @endforeach @foreach($errors->get('panorama') as $message){{ $message }} @endforeach</div>
     @endif
     <form class="tour-room-form" method="POST" enctype="multipart/form-data" action="{{ route('properties.tour-rooms.store', $listing) }}">
         @csrf
         <label>نام فضا<input type="text" name="name" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی" required></label>
-        <label>تصویر پانورامای ۳۶۰ درجه<input type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required><small class="tour-upload-hint">حداکثر حجم هر تصویر: <strong>۱۵ مگابایت</strong> · نسبت تصویر ۲ به ۱</small></label>
+        <label>نوع پانوراما
+            <select name="projection" required>
+                <option value="equirectangular" @selected(old('projection', 'equirectangular') === 'equirectangular')>۳۶۰ درجه حرفه‌ای (کروی)</option>
+                <option value="flat" @selected(old('projection') === 'flat')>پانورامای معمولی موبایل</option>
+            </select>
+            <small class="tour-upload-hint">برای عکس دوربین ۳۶۰ گزینه اول و برای عکس پانورامای دوربین گوشی گزینه دوم را انتخاب کنید.</small>
+        </label>
+        <label>تصویر پانوراما<input type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required><small class="tour-upload-hint">حداکثر حجم: <strong>۱۵ مگابایت</strong> · ۳۶۰ حرفه‌ای: نسبت ۲ به ۱ · موبایل: تصویر عریض</small></label>
         <button type="submit">افزودن فضا</button>
     </form>
     @if($listing->tourRooms->isNotEmpty())
