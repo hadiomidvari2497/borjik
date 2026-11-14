@@ -75,6 +75,8 @@
       button.setAttribute('aria-current', i === roomIndex ? 'true' : 'false');
     });
     yaw = 0; pitch = 0;
+    if (raf) window.cancelAnimationFrame(raf);
+    raf = 0;
     image = new Image();
     image.onload = function () {
       if (gl) {
