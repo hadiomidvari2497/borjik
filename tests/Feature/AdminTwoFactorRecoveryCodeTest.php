@@ -97,6 +97,9 @@ class AdminTwoFactorRecoveryCodeTest extends TestCase
             'password' => 'secret-pass-1',
         ]);
 
+        // Recovery codes intentionally remain locked for the first two minutes.
+        $this->travel(121)->seconds();
+
         $this->post(route('admin.two-factor.recovery.verify'), ['code' => 'FFFFFFFFFFFFFFFF'])
             ->assertSessionHasErrors('recovery_code');
 
