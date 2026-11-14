@@ -185,23 +185,6 @@ document.addEventListener('DOMContentLoaded', function () {
     <span>{{ \Illuminate\Support\Str::limit($listing->title, 48) }}</span>
 </nav>
 
-@if($tourRooms->isNotEmpty())
-<section class="property-tour-entry" aria-label="خانه‌گردی مجازی">
-    <div class="property-tour-entry-copy"><strong>قبل از بازدید حضوری، داخل خانه قدم بزنید</strong><span>{{ \App\Support\Fa::num($tourRooms->count()) }} فضای پانورامای ۳۶۰ درجه · چرخش آزاد با لمس انگشت یا ماوس</span></div>
-    <button type="button" data-tour-open>◉ شروع خانه‌گردی ۳۶۰ درجه</button>
-</section>
-<script type="application/json" data-tour-data>{!! json_encode($tourRooms->map(fn ($room) => ['name' => $room->name, 'url' => $room->imageUrl()])->values(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
-<dialog class="property-tour-dialog" data-property-tour aria-label="خانه‌گردی مجازی ۳۶۰ درجه">
-    <div class="property-tour-stage">
-        <canvas aria-label="نمای پانورامای ۳۶۰ درجه؛ برای چرخش تصویر را بکشید"></canvas>
-        <img data-tour-fallback alt="نمای پانورامای فضای انتخاب‌شده" hidden>
-    </div>
-    <div class="property-tour-top"><strong data-tour-title>خانه‌گردی مجازی</strong><button type="button" class="property-tour-close" data-tour-close aria-label="بستن خانه‌گردی">×</button></div>
-    <div class="property-tour-hint">برای چرخش، تصویر را لمس کنید و بکشید</div>
-    <nav class="property-tour-rooms" data-tour-rooms aria-label="انتخاب فضای ملک"></nav>
-</dialog>
-@endif
-
 <div class="detail">
     <div class="detail-main">
         <header class="titlebar rise">
@@ -394,6 +377,23 @@ document.addEventListener('DOMContentLoaded', function () {
         @endauth
     </aside>
 </div>
+
+@if($tourRooms->isNotEmpty())
+<section class="property-tour-entry" aria-label="خانه‌گردی مجازی">
+    <div class="property-tour-entry-copy"><strong>قبل از بازدید حضوری، داخل خانه قدم بزنید</strong><span>{{ \App\Support\Fa::num($tourRooms->count()) }} فضای پانورامای ۳۶۰ درجه · چرخش آزاد با لمس انگشت یا ماوس</span></div>
+    <button type="button" data-tour-open>◉ شروع خانه‌گردی ۳۶۰ درجه</button>
+</section>
+<script type="application/json" data-tour-data>{!! json_encode($tourRooms->map(fn ($room) => ['name' => $room->name, 'url' => $room->imageUrl()])->values(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+<dialog class="property-tour-dialog" data-property-tour aria-label="خانه‌گردی مجازی ۳۶۰ درجه">
+    <div class="property-tour-stage">
+        <canvas aria-label="نمای پانورامای ۳۶۰ درجه؛ برای چرخش تصویر را بکشید"></canvas>
+        <img data-tour-fallback alt="نمای پانورامای فضای انتخاب‌شده" hidden>
+    </div>
+    <div class="property-tour-top"><strong data-tour-title>خانه‌گردی مجازی</strong><button type="button" class="property-tour-close" data-tour-close aria-label="بستن خانه‌گردی">×</button></div>
+    <div class="property-tour-hint">برای چرخش، تصویر را لمس کنید و بکشید</div>
+    <nav class="property-tour-rooms" data-tour-rooms aria-label="انتخاب فضای ملک"></nav>
+</dialog>
+@endif
 
 @if($similar->isNotEmpty())
 <section class="similar" aria-labelledby="similar-title">
