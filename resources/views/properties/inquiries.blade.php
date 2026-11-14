@@ -6,17 +6,56 @@
     use App\Support\Fa;
 
     $me = (int) auth()->id();
-    $statusLabels = ['new' => 'جدید', 'contacted' => 'در حال گفتگو', 'closed' => 'بسته‌شده'];
+    $statusLabels = $statusLabels ?? ['new' => 'جدید', 'contacted' => 'در حال پیگیری', 'agreed' => 'توافق‌شده', 'closed' => 'بسته‌شده'];
 @endphp
 @include('properties.partials.chat-icons')
 
 <header class="inbox-head">
     <div>
-        <h1>پیام‌ها</h1>
-        <p>@if($inquiries->total() > 0){{ Fa::num($inquiries->total()) }} گفتگوی خصوصی با خریداران و فروشندگان@else گفتگوهای شما با خریداران و فروشندگان اینجا نمایش داده می‌شود@endif</p>
+        <h1>مدیریت درخواست‌ها و گفتگوها</h1>
+        <p>@if($inquiries->total() > 0){{ Fa::num($inquiries->total()) }} نتیجه از گفتگوهای خریداران و فروشندگان@else درخواست‌های مشتریان و گفتگوهای شما اینجا نمایش داده می‌شود@endif</p>
     </div>
     <a class="btn light" href="{{ route('properties.mine') }}">آگهی‌های من</a>
 </header>
+
+<form class="panel lead-filters" method="GET" action="{{ route('properties.inquiries.index') }}" aria-label="فیلتر درخواست‌ها">
+    <label class="field">جست‌وجو
+        <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام مشتری یا عنوان آگهی">
+    </label>
+    <label class="field">آگهی
+        <select name="listing_id">
+            <option value="">همه آگهی‌ها</option>
+            @foreach($ownedListings as $ownedListing)
+                <option value="{{ $ownedListing->id }}" @selected((string) ($filters['listing_id'] ?? '') === (string) $ownedListing->id)>{{ $ownedListing->title }}</option>
+            @endforeach
+        </select>
+    </label>
+    <label class="field">وضعیت پیگیری
+        <select name="status">
+            <option value="">همه وضعیت‌ها</option>
+            @foreach($statusLabels as $statusKey => $statusLabel)
+                <option value="{{ $statusKey }}" @selected(($filters['status'] ?? '') === $statusKey)>{{ $statusLabel }}</option>
+            @endforeach
+        </select>
+    </label>
+    <div class="lead-filter-actions">
+        <button class="btn" type="submit">اعمال فیلتر</button>
+        <a class="btn light" href="{{ route('properties.inquiries.index') }}">پاک‌کردن</a>
+    </div>
+</form>
+<style>
+.lead-filters{display:grid;grid-template-columns:2fr 1.4fr 1fr auto;align-items:end;gap:12px;margin:0 0 18px}
+.lead-filters .field{display:grid;gap:6px;font-size:12px;color:#60746a}
+.lead-filters input,.lead-filters select{width:100%;min-height:42px;border:1px solid #dfe8e2;border-radius:10px;padding:8px 10px;background:#fff;color:inherit;font:inherit}
+.lead-filter-actions{display:flex;gap:7px;flex-wrap:wrap}
+.lead-status{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.lead-status form{display:flex;gap:6px;align-items:center}
+.lead-status select{max-width:145px;min-height:32px;border:1px solid #dfe8e2;border-radius:8px;padding:4px 7px;background:#fff;font:inherit;font-size:11px}
+.lead-status button{border:0;border-radius:8px;padding:7px 10px;background:#eaf5ee;color:#246b4d;font:inherit;font-size:11px;cursor:pointer}
+.lead-status .current{font-size:11px;color:#60746a}
+@media(max-width:760px){.lead-filters{grid-template-columns:1fr 1fr}.lead-filter-actions{grid-column:1/-1}}
+@media(max-width:420px){.lead-filters{grid-template-columns:1fr}}
+</style>
 
 <section class="inbox" aria-label="فهرست گفتگوها">
     @forelse($inquiries as $inquiry)
@@ -48,6 +87,22 @@
                 </div>
                 <div class="convo-ad"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg><span>{{ $listing?->title ?? 'آگهی حذف‌شده' }}</span></div>
                 <div class="convo-preview">@if($previewMine)<em>شما:</em> @endif{{ \Illuminate\Support\Str::limit(preg_replace('/\s+/u', ' ', (string) $previewBody), 110) }}</div>
+                <div class="lead-status">
+                    <span class="current">وضعیت: {{ $statusLabels[$inquiry->status] ?? $inquiry->status }}</span>
+                    @if($isRecipient)
+                        <form method="POST" action="{{ route('properties.inquiries.update', $inquiry) }}">
+                            @csrf
+                            @method('PATCH')
+                            <label class="sr-only" for="lead-status-{{ $inquiry->id }}">تغییر وضعیت درخواست {{ $partner }}</label>
+                            <select id="lead-status-{{ $inquiry->id }}" name="status">
+                                @foreach($statusLabels as $statusKey => $statusLabel)
+                                    <option value="{{ $statusKey }}" @selected($inquiry->status === $statusKey)>{{ $statusLabel }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit">ذخیره</button>
+                        </form>
+                    @endif
+                </div>
             </div>
             <div class="convo-side">
                 <time class="convo-time" datetime="{{ $when->toIso8601String() }}">{{ Fa::stamp($when) }}</time>

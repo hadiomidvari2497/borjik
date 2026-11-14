@@ -79,17 +79,40 @@ class PropertyListingInquiryController extends Controller
     public function index(Request $request)
     {
         $userId = (int) $request->user()->id;
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::in(['new', 'contacted', 'agreed', 'closed'])],
+            'listing_id' => ['nullable', 'integer', 'min:1'],
+            'q' => ['nullable', 'string', 'max:120'],
+        ]);
+        $ownedListings = PropertyListing::query()->where('user_id', $userId)->orderByDesc('created_at')->get(['id', 'title']);
+        $ownedListingIds = $ownedListings->pluck('id')->all();
+        if (! empty($filters['listing_id'])) {
+            abort_unless(in_array((int) $filters['listing_id'], $ownedListingIds, true), 403);
+        }
+
         $inquiries = PropertyListingInquiry::query()
             ->where(fn ($query) => $query->where('recipient_user_id', $userId)->orWhere('sender_user_id', $userId))
+            ->when(! empty($filters['status']), fn ($query) => $query->where('status', $filters['status']))
+            ->when(! empty($filters['listing_id']), fn ($query) => $query->where('recipient_user_id', $userId)->where('property_listing_id', (int) $filters['listing_id']))
+            ->when(! empty($filters['q']), function ($query) use ($filters) {
+                $term = trim($filters['q']);
+                $query->where(function ($nested) use ($term) {
+                    $nested->where('sender_name', 'like', '%'.$term.'%')
+                        ->orWhereHas('listing', fn ($listing) => $listing->where('title', 'like', '%'.$term.'%'));
+                });
+            })
             ->with(['listing', 'sender', 'recipient', 'latestMessage.attachments'])
             ->withMax('messages', 'created_at')
             ->withCount(['messages as unread_messages_count' => fn ($query) => $query
                 ->where('sender_user_id', '!=', $userId)
                 ->whereNull('read_at')])
             ->latest('updated_at')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
-        return view('properties.inquiries', compact('inquiries'));
+        $statusLabels = ['new' => 'جدید', 'contacted' => 'در حال پیگیری', 'agreed' => 'توافق‌شده', 'closed' => 'بسته‌شده'];
+
+        return view('properties.inquiries', compact('inquiries', 'ownedListings', 'filters', 'statusLabels'));
     }
 
     public function show(Request $request, PropertyListingInquiry $inquiry)
@@ -220,7 +243,7 @@ class PropertyListingInquiryController extends Controller
         abort_unless((int) $inquiry->recipient_user_id === (int) $request->user()->id, 403);
 
         $data = $request->validate([
-            'status' => ['required', Rule::in(['new', 'contacted', 'closed'])],
+            'status' => ['required', Rule::in(['new', 'contacted', 'agreed', 'closed'])],
         ]);
 
         $inquiry->update(['status' => $data['status'], 'read_at' => $inquiry->read_at ?? now()]);
