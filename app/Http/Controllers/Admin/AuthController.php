@@ -164,7 +164,7 @@ class AuthController extends Controller
             return redirect()->route('admin.login')->with('error', 'نشست تأیید دومرحله‌ای منقضی شده است؛ دوباره وارد شوید.');
         }
 
-        $data = $request->validate(['code' => ['required', 'string', 'min:12', 'max:20']]);
+        $data = $request->validate(['code' => ['required', 'string', 'min:16', 'max:22']]);
         $code = strtoupper(preg_replace('/[^A-Z0-9]/', '', $data['code']));
 
         $user = DB::transaction(function () use ($pending, $code) {
