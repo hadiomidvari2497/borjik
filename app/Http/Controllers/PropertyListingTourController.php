@@ -16,13 +16,14 @@ class PropertyListingTourController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:80'],
-            'panorama' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:15360'],
+            'panorama' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'dimensions:ratio=2', 'max:15360'],
         ], [
             'name.required' => 'نام فضا را وارد کنید.',
             'name.max' => 'نام فضا نباید بیشتر از ۸۰ نویسه باشد.',
             'panorama.required' => 'تصویر پانورامای ۳۶۰ درجه را انتخاب کنید.',
             'panorama.image' => 'فایل انتخاب‌شده تصویر معتبر نیست.',
             'panorama.mimes' => 'فرمت تصویر باید JPG، PNG یا WebP باشد.',
+            'panorama.dimensions' => 'تصویر باید پانورامای عریض با نسبت ابعاد ۲ به ۱ باشد.',
             'panorama.max' => 'حجم تصویر باید حداکثر ۱۵ مگابایت باشد.',
             'panorama.uploaded' => 'بارگذاری تصویر ناموفق بود؛ حجم فایل را بررسی کنید.',
         ]);
