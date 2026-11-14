@@ -171,40 +171,151 @@
 </form>
 
 @if($listing->exists)
+@php($tourRooms = $listing->tourRooms)
 <section class="tour-manager" aria-labelledby="tour-manager-title">
-    <h2 id="tour-manager-title">خانه‌گردی مجازی</h2>
-    <p>می‌توانید برای هر فضا تصویر ۳۶۰ درجه حرفه‌ای یا پانورامای معمولی گوشی اضافه کنید. نمایشگر متناسب با نوع تصویر به‌صورت خودکار فعال می‌شود؛ حداکثر ۸ فضا و ۱۵ مگابایت برای هر تصویر.</p>
-    @if($errors->has('name') || $errors->has('panorama'))
-        <div class="field-error" role="alert">@foreach($errors->get('name') as $message){{ $message }} @endforeach @foreach($errors->get('panorama') as $message){{ $message }} @endforeach</div>
-    @endif
-    <form class="tour-room-form" method="POST" enctype="multipart/form-data" action="{{ route('properties.tour-rooms.store', $listing) }}">
-        @csrf
-        <label>نام فضا<input type="text" name="name" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی" required></label>
-        <label>نوع پانوراما
-            <select name="projection" required>
-                <option value="equirectangular" @selected(old('projection', 'equirectangular') === 'equirectangular')>۳۶۰ درجه حرفه‌ای (کروی)</option>
-                <option value="flat" @selected(old('projection') === 'flat')>پانورامای معمولی موبایل</option>
-            </select>
-            <small class="tour-upload-hint">برای عکس دوربین ۳۶۰ گزینه اول و برای عکس پانورامای دوربین گوشی گزینه دوم را انتخاب کنید.</small>
-        </label>
-        <label>تصویر پانوراما<input type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required><small class="tour-upload-hint">حداکثر حجم: <strong>۱۵ مگابایت</strong> · ۳۶۰ حرفه‌ای: نسبت ۲ به ۱ · موبایل: تصویر عریض</small></label>
-        <button type="submit">افزودن فضا</button>
-    </form>
-    @if($listing->tourRooms->isNotEmpty())
-        <div class="tour-room-list">
-            @foreach($listing->tourRooms as $room)
-                <div class="tour-room-item">
-                    <img src="{{ $room->imageUrl() }}" alt="" loading="lazy">
-                    <span>{{ $room->name }}</span>
-                    <form method="POST" action="{{ route('properties.tour-rooms.destroy', [$listing, $room]) }}" data-confirm="این فضا از خانه‌گردی حذف شود؟" data-danger>
-                        @csrf @method('DELETE')
-                        <button type="submit" aria-label="حذف {{ $room->name }}">×</button>
-                    </form>
-                </div>
+    <div class="tour-manager-head">
+        <div class="tour-manager-title-wrap">
+            <span class="tour-manager-kicker">PROPERTY EXPERIENCE</span>
+            <h2 id="tour-manager-title">خانه‌گردی مجازی</h2>
+            <p>فضاهای مختلف ملک را با تصویر پانوراما معرفی کن تا بازدیدکننده قبل از مراجعه، حس حضور در خانه را تجربه کند.</p>
+        </div>
+        <div class="tour-manager-mark" aria-hidden="true"><span>360</span><small>TOUR</small></div>
+    </div>
+
+    <div class="tour-manager-stats" aria-label="محدودیت‌های خانه‌گردی">
+        <span><b>{{ \App\Support\Fa::num($tourRooms->count()) }}</b> از ۸ فضا</span>
+        <span><b>۱۵ MB</b> حداکثر حجم هر تصویر</span>
+        <span><b>۲ نوع</b> پانورامای قابل پشتیبانی</span>
+    </div>
+
+    @if($errors->has('name') || $errors->has('panorama') || $errors->has('projection'))
+        <div class="tour-form-alert" role="alert">
+            <strong>تصویر یا اطلاعات فضا نیاز به بررسی دارد.</strong>
+            @foreach(['name', 'projection', 'panorama'] as $field)
+                @foreach($errors->get($field) as $message)<span>{{ $message }}</span>@endforeach
             @endforeach
         </div>
     @endif
+
+    @if($tourRooms->isNotEmpty())
+        <div class="tour-existing-section">
+            <div class="tour-section-heading"><div><span class="tour-section-eyebrow">YOUR TOUR</span><h3>فضاهای ثبت‌شده</h3></div><span class="tour-section-count">{{ \App\Support\Fa::num($tourRooms->count()) }} فضا</span></div>
+            <div class="tour-room-list">
+                @foreach($tourRooms as $room)
+                    <article class="tour-room-item">
+                        <div class="tour-room-thumb">
+                            <img src="{{ $room->imageUrl() }}" alt="پیش‌نمایش {{ $room->name }}" loading="lazy">
+                            <span class="tour-room-type">{{ $room->isFull360() ? '۳۶۰° کروی' : 'پانورامای موبایل' }}</span>
+                        </div>
+                        <div class="tour-room-meta"><strong>{{ $room->name }}</strong><small>{{ $room->isFull360() ? 'نمایش کروی و چرخش کامل' : 'نمایش عریض با حرکت آزاد' }}</small></div>
+                        <form method="POST" action="{{ route('properties.tour-rooms.destroy', [$listing, $room]) }}" data-confirm="فضای «{{ $room->name }}» از خانه‌گردی حذف شود؟" data-danger>
+                            @csrf @method('DELETE')
+                            <button class="tour-room-delete" type="submit" aria-label="حذف {{ $room->name }}" title="حذف فضا">×</button>
+                        </form>
+                    </article>
+                @endforeach
+            </div>
+        </div>
+    @else
+        <div class="tour-empty-state">
+            <span class="tour-empty-icon" aria-hidden="true">◎</span>
+            <strong>هنوز فضایی به خانه‌گردی اضافه نکرده‌ای</strong>
+            <span>از فرم زیر شروع کن؛ مثلاً پذیرایی یا آشپزخانه.</span>
+        </div>
+    @endif
+
+    @if($tourRooms->count() < 8)
+        <div class="tour-add-section">
+            <div class="tour-section-heading"><div><span class="tour-section-eyebrow">ADD A NEW SPACE</span><h3>افزودن فضای جدید</h3></div><span class="tour-next-step">فضای {{ \App\Support\Fa::num($tourRooms->count() + 1) }}</span></div>
+            <form class="tour-room-form" method="POST" enctype="multipart/form-data" action="{{ route('properties.tour-rooms.store', $listing) }}">
+                @csrf
+                <div class="tour-form-fields">
+                    <label class="tour-field tour-name-field"><span class="tour-field-label">نام فضا</span><input type="text" name="name" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی، آشپزخانه یا اتاق خواب" required></label>
+                    <label class="tour-field tour-projection-field"><span class="tour-field-label">نوع تصویر</span>
+                        <select name="projection" id="tour-projection" required>
+                            <option value="equirectangular" @selected(old('projection', 'equirectangular') === 'equirectangular')>۳۶۰ درجه حرفه‌ای</option>
+                            <option value="flat" @selected(old('projection') === 'flat')>پانورامای معمولی موبایل</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="tour-projection-info" id="tour-projection-info">
+                    <span class="tour-info-icon" aria-hidden="true">ⓘ</span>
+                    <span><strong>پانورامای ۳۶۰ درجه حرفه‌ای</strong><small>مناسب دوربین‌های ۳۶۰؛ تصویر باید نسبت دقیق ۲ به ۱ داشته باشد.</small></span>
+                </div>
+                <label class="tour-dropzone" for="tour-panorama-file" id="tour-dropzone">
+                    <input id="tour-panorama-file" type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required>
+                    <span class="tour-drop-icon" aria-hidden="true">↑</span>
+                    <span class="tour-drop-copy"><strong id="tour-file-title">تصویر پانوراما را انتخاب کن</strong><small id="tour-file-caption">برای انتخاب فایل کلیک کن · JPG، PNG یا WebP</small></span>
+                    <span class="tour-browse-button">انتخاب تصویر</span>
+                </label>
+                <div class="tour-upload-preview" id="tour-upload-preview" hidden><img id="tour-preview-image" alt="پیش‌نمایش تصویر انتخاب‌شده"><div><strong id="tour-preview-name"></strong><small id="tour-preview-size"></small></div><button type="button" id="tour-clear-file" aria-label="حذف تصویر انتخاب‌شده">×</button></div>
+                <div class="tour-form-footer"><span>حداکثر ۱۵ مگابایت برای هر فضا · مجموعاً تا ۸ فضا</span><button type="submit" class="tour-submit-button"><span>＋</span> افزودن به خانه‌گردی</button></div>
+            </form>
+        </div>
+    @else
+        <div class="tour-limit-note">ظرفیت خانه‌گردی تکمیل شده است. برای افزودن فضای جدید، ابتدا یکی از فضاهای فعلی را حذف کن.</div>
+    @endif
 </section>
+<script>
+(function () {
+    var input = document.getElementById('tour-panorama-file');
+    if (!input) return;
+    var projection = document.getElementById('tour-projection');
+    var info = document.getElementById('tour-projection-info');
+    var dropzone = document.getElementById('tour-dropzone');
+    var preview = document.getElementById('tour-upload-preview');
+    var image = document.getElementById('tour-preview-image');
+    var title = document.getElementById('tour-file-title');
+    var caption = document.getElementById('tour-file-caption');
+    var name = document.getElementById('tour-preview-name');
+    var size = document.getElementById('tour-preview-size');
+    var clear = document.getElementById('tour-clear-file');
+    var objectUrl = null;
+    function updateProjection() {
+        var flat = projection.value === 'flat';
+        info.classList.toggle('is-flat', flat);
+        info.querySelector('strong').textContent = flat ? 'پانورامای معمولی موبایل' : 'پانورامای ۳۶۰ درجه حرفه‌ای';
+        info.querySelector('small').textContent = flat ? 'مناسب عکس پانورامای گوشی؛ نسبت تصویر می‌تواند متفاوت باشد و در نمایشگر قابل حرکت است.' : 'مناسب دوربین‌های ۳۶۰؛ تصویر باید نسبت دقیق ۲ به ۱ داشته باشد.';
+    }
+    function clearFile() {
+        input.value = '';
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+        preview.hidden = true;
+        dropzone.hidden = false;
+        title.textContent = 'تصویر پانوراما را انتخاب کن';
+        caption.textContent = 'برای انتخاب فایل کلیک کن · JPG، PNG یا WebP';
+    }
+    projection.addEventListener('change', updateProjection);
+    input.addEventListener('change', function () {
+        var file = input.files && input.files[0];
+        if (!file) return;
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = URL.createObjectURL(file);
+        image.src = objectUrl;
+        name.textContent = file.name;
+        size.textContent = (file.size / 1048576).toFixed(2) + ' مگابایت';
+        title.textContent = 'تصویر انتخاب شد';
+        caption.textContent = 'برای جایگزینی، دوباره فایل انتخاب کن';
+        preview.hidden = false;
+        dropzone.hidden = true;
+    });
+    clear.addEventListener('click', clearFile);
+    ['dragenter', 'dragover'].forEach(function (eventName) {
+        dropzone.addEventListener(eventName, function (event) { event.preventDefault(); dropzone.classList.add('is-dragging'); });
+    });
+    ['dragleave', 'drop'].forEach(function (eventName) {
+        dropzone.addEventListener(eventName, function (event) { event.preventDefault(); dropzone.classList.remove('is-dragging'); });
+    });
+    dropzone.addEventListener('drop', function (event) {
+        if (event.dataTransfer && event.dataTransfer.files.length) {
+            input.files = event.dataTransfer.files;
+            input.dispatchEvent(new Event('change', {bubbles: true}));
+        }
+    });
+    updateProjection();
+})();
+</script>
 @endif
 
 @push('scripts')
