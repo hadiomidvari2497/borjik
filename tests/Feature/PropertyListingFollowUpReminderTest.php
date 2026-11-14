@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\PropertyListing;
-use App\\Models\\PropertyListingInquiry;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Illuminate\\Support\\Facades\\Artisan;
-use Tests\\TestCase;
+use App\Models\PropertyListing;
+use App\Models\PropertyListingInquiry;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use Tests\TestCase;
 
 class PropertyListingFollowUpReminderTest extends TestCase
 {
@@ -63,7 +63,7 @@ class PropertyListingFollowUpReminderTest extends TestCase
 
         $this->actingAs($owner)
             ->patch(route('properties.inquiries.update', $inquiry), [
-                'follow_up_at' => now()->subSeconds(30)->format('Y-m-d\\TH:i'),
+                'follow_up_at' => now()->subSeconds(30)->format('Y-m-d\TH:i'),
                 'follow_up_note' => 'تماس مجدد',
             ])
             ->assertRedirect();
