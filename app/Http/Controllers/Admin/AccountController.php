@@ -147,8 +147,8 @@ class AccountController extends Controller
         $plainCodes = [];
         $hashedCodes = [];
         for ($i = 0; $i < 10; $i++) {
-            $compact = strtoupper(bin2hex(random_bytes(6)));
-            $plainCodes[] = substr($compact, 0, 4).'-'.substr($compact, 4, 4).'-'.substr($compact, 8, 4);
+            $compact = strtoupper(bin2hex(random_bytes(8)));
+            $plainCodes[] = substr($compact, 0, 4).'-'.substr($compact, 4, 4).'-'.substr($compact, 8, 4).'-'.substr($compact, 12, 4);
             $hashedCodes[] = Hash::make($compact);
         }
 
