@@ -121,11 +121,11 @@
 <section class="form-card tour-manager" aria-labelledby="tour-manager-title">
     <div class="tour-manager-head">
         <div class="tour-manager-title-wrap">
-            <span class="tour-manager-kicker">PROPERTY EXPERIENCE</span>
+            <span class="tour-manager-kicker">اختیاری · افزایش اعتماد و بازدید</span>
             <h2 id="tour-manager-title">خانه‌گردی مجازی</h2>
             <p>فضاهای مختلف ملک را با تصویر پانوراما معرفی کن تا بازدیدکننده قبل از مراجعه، حس حضور در خانه را تجربه کند.</p>
         </div>
-        <div class="tour-manager-mark" aria-hidden="true"><span>360</span><small>TOUR</small></div>
+        <div class="tour-manager-mark" aria-hidden="true"><span>۳۶۰°</span><small>خانه‌گردی</small></div>
     </div>
 
     <div class="tour-manager-stats" aria-label="محدودیت‌های خانه‌گردی">
@@ -145,7 +145,7 @@
 
     @if($tourRooms->isNotEmpty())
         <div class="tour-existing-section">
-            <div class="tour-section-heading"><div><span class="tour-section-eyebrow">YOUR TOUR</span><h3>فضاهای ثبت‌شده</h3></div><span class="tour-section-count">{{ \App\Support\Fa::num($tourRooms->count()) }} فضا</span></div>
+            <div class="tour-section-heading"><div><span class="tour-section-eyebrow">تور فعلی</span><h3>فضاهای ثبت‌شده</h3></div><span class="tour-section-count">{{ \App\Support\Fa::num($tourRooms->count()) }} فضا</span></div>
             <div class="tour-room-list">
                 @foreach($tourRooms as $room)
                     <article class="tour-room-item">
@@ -164,7 +164,7 @@
         </div>
     @else
         <div class="tour-empty-state">
-            <span class="tour-empty-icon" aria-hidden="true">◎</span>
+            <span class="tour-empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="4.2"/><path d="M12 3c2.6 2.2 4 5.2 4 9s-1.4 6.8-4 9c-2.6-2.2-4-5.2-4-9s1.4-6.8 4-9z"/></svg></span>
             <strong>هنوز فضایی به خانه‌گردی اضافه نکرده‌ای</strong>
             <span>از فرم زیر شروع کن؛ مثلاً پذیرایی یا آشپزخانه.</span>
         </div>
@@ -172,7 +172,7 @@
 
     @if($tourRooms->count() < 8)
         <div class="tour-add-section">
-            <div class="tour-section-heading"><div><span class="tour-section-eyebrow">ADD A NEW SPACE</span><h3>افزودن فضای جدید</h3></div><span class="tour-next-step">فضای {{ \App\Support\Fa::num($tourRooms->count() + 1) }}</span></div>
+            <div class="tour-section-heading"><div><span class="tour-section-eyebrow">فضای تازه</span><h3>افزودن فضای جدید</h3></div><span class="tour-next-step">فضای {{ \App\Support\Fa::num($tourRooms->count() + 1) }}</span></div>
             <div class="tour-room-form">
                 <div class="tour-form-fields">
                     <label class="tour-field tour-name-field"><span class="tour-field-label">نام فضا</span><input type="text" name="name" form="tour-room-upload-form" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی، آشپزخانه یا اتاق خواب" required></label>
@@ -184,17 +184,17 @@
                     </label>
                 </div>
                 <div class="tour-projection-info" id="tour-projection-info">
-                    <span class="tour-info-icon" aria-hidden="true">ⓘ</span>
+                    <span class="tour-info-icon" aria-hidden="true">i</span>
                     <span><strong>پانورامای ۳۶۰ درجه حرفه‌ای</strong><small>مناسب دوربین‌های ۳۶۰؛ تصویر باید نسبت دقیق ۲ به ۱ داشته باشد.</small></span>
                 </div>
                 <label class="tour-dropzone" for="tour-panorama-file" id="tour-dropzone">
                     <input id="tour-panorama-file" type="file" name="panorama" form="tour-room-upload-form" accept="image/jpeg,image/png,image/webp" required>
-                    <span class="tour-drop-icon" aria-hidden="true">↑</span>
+                    <span class="tour-drop-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg></span>
                     <span class="tour-drop-copy"><strong id="tour-file-title">تصویر پانوراما را انتخاب کن</strong><small id="tour-file-caption">برای انتخاب فایل کلیک کن · JPG، PNG یا WebP</small></span>
                     <span class="tour-browse-button">انتخاب تصویر</span>
                 </label>
                 <div class="tour-upload-preview" id="tour-upload-preview" hidden><img id="tour-preview-image" alt="پیش‌نمایش تصویر انتخاب‌شده"><div><strong id="tour-preview-name"></strong><small id="tour-preview-size"></small></div><button type="button" id="tour-clear-file" aria-label="حذف تصویر انتخاب‌شده">×</button></div>
-                <div class="tour-form-footer"><span>حداکثر ۱۵ مگابایت برای هر فضا · مجموعاً تا ۸ فضا</span><button type="submit" form="tour-room-upload-form" class="tour-submit-button"><span>＋</span> افزودن به خانه‌گردی</button></div>
+                <div class="tour-form-footer"><span>حداکثر ۱۵ مگابایت برای هر فضا · مجموعاً تا ۸ فضا</span><button type="submit" form="tour-room-upload-form" class="tour-submit-button"><span aria-hidden="true">＋</span> افزودن به خانه‌گردی</button></div>
             </div>
         </div>
     @else
@@ -271,6 +271,7 @@
         <label class="check"><input type="checkbox" name="allow_sms" value="1" @checked(old('allow_sms', $listing->allow_sms ?? $listing->show_phone ?? false))> امکان ارسال پیامک فعال باشد</label>
     </section>
 
+@push('head')<link rel="stylesheet" href="{{ asset('css/property-tour.css') }}?v={{ @filemtime(public_path('css/property-tour.css')) }}">@endpush
 @php($mapApiKey = config('services.neshan.map_key'))
 @if($mapApiKey)
     @push('head')
