@@ -47,9 +47,11 @@ class PropertyListingVirtualTourTest extends TestCase
             'panorama' => UploadedFile::fake()->image('bedroom.jpg'),
         ])->assertForbidden();
 
+        auth()->logout();
         $this->delete(route('properties.tour-rooms.destroy', [$listing, $room]))->assertRedirect(route('login'));
         $this->actingAs($other)->delete(route('properties.tour-rooms.destroy', [$listing, $room]))->assertForbidden();
         $this->assertDatabaseHas('property_listing_tour_rooms', ['id' => $room->id]);
+        $this->actingAs($owner)->get(route('properties.edit', $listing))->assertOk()->assertSee('خانه‌گردی مجازی ۳۶۰ درجه');
     }
 
     public function test_tour_room_upload_requires_a_valid_image_and_limits_rooms_to_eight(): void
