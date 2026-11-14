@@ -14,7 +14,7 @@ class AdminUser extends Authenticatable
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['password', 'two_factor_secret', 'remember_token'];
+    protected $hidden = ['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'];
 
     /** @var list<string>|null */
     private ?array $permissionCache = null;
