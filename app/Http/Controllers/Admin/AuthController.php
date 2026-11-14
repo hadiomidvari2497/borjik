@@ -63,7 +63,8 @@ class AuthController extends Controller
         return view('admin.two-factor', [
             'smsAvailable' => $user && $user->isActive() && $user->two_factor_enabled
                 && $user->two_factor_sms_enabled && $user->mobile && $user->mobile_verified_at,
-            'maskedMobile' => $user?->mobile ? substr($user->mobile, 0, 4).'*****'.substr($user->mobile, -2) : null,\n            'recoveryAvailable' => $user && count($user->two_factor_recovery_codes ?? []) > 0,
+            'maskedMobile' => $user?->mobile ? substr($user->mobile, 0, 4).'*****'.substr($user->mobile, -2) : null,
+            'recoveryAvailable' => $user && count($user->two_factor_recovery_codes ?? []) > 0,
         ]);
     }
 
