@@ -9,6 +9,7 @@ use App\Http\Controllers\PropertyListingController;
 use App\Http\Controllers\PropertyListingPackageController;
 use App\Http\Controllers\PropertyListingReportController;
 use App\Http\Controllers\PropertyListingInquiryController;
+use App\Http\Controllers\PropertyListingFavoriteController;
 
 Route::post('/analytics/heartbeat', [AnalyticsCollectionController::class, 'heartbeat'])->middleware('throttle:120,1')->name('analytics.heartbeat');
 Route::post('/analytics/event', [AnalyticsCollectionController::class, 'event'])->middleware('throttle:120,1')->name('analytics.event');
@@ -39,6 +40,8 @@ Route::get('/properties/{listing}', [PropertyListingController::class, 'show'])-
     Route::post('/properties/{listing}/phone-click', [PropertyListingController::class, 'recordPhoneClick'])->whereNumber('listing')->middleware('throttle:30,1')->name('properties.phone-click');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/my/saved-properties', [PropertyListingFavoriteController::class, 'index'])->name('properties.favorites.index');
+    Route::post('/properties/{listing}/favorite', [PropertyListingFavoriteController::class, 'toggle'])->whereNumber('listing')->middleware('throttle:60,1')->name('properties.favorites.toggle');
     Route::get('/my/properties', [PropertyListingController::class, 'mine'])->name('properties.mine');
     Route::get('/my/property-inquiries', [PropertyListingInquiryController::class, 'index'])->name('properties.inquiries.index');
     Route::get('/my/property-inquiries/{inquiry}', [PropertyListingInquiryController::class, 'show'])->whereNumber('inquiry')->name('properties.chat.show');
