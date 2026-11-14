@@ -61,7 +61,7 @@ class AuthController extends Controller
         return view('admin.two-factor', [
             'smsAvailable' => $user && $user->isActive() && $user->two_factor_enabled
                 && $user->two_factor_sms_enabled && $user->mobile && $user->mobile_verified_at,
-            'maskedMobile' => $user?->mobile ? substr($user->mobile, 0, 4).'*****'.substr($user->mobile, -2) : null,
+            'maskedMobile' => $user?->mobile ? substr($user->mobile, 0, 4).'*****'.substr($user->mobile, -2) : null,\n            'recoveryAvailable' => $user && count($user->two_factor_recovery_codes ?? []) > 0,
         ]);
     }
 
@@ -146,6 +146,53 @@ class AuthController extends Controller
             $request->session()->put('admin_2fa', $pending);
 
             return back()->with('two_factor_tab', 'authenticator')->withErrors(['code' => 'کد تأیید نادرست است.']);
+        }
+
+        $request->session()->forget('admin_2fa');
+
+        return $this->finish($request, $user, (bool) $pending['remember']);
+    }
+
+
+    public function verifyRecoveryChallenge(Request $request)
+    {
+        $pending = $this->pendingChallenge($request);
+        if (! $pending) {
+            return redirect()->route('admin.login')->with('error', 'نشست تأیید دومرحله‌ای منقضی شده است؛ دوباره وارد شوید.');
+        }
+
+        $data = $request->validate(['code' => ['required', 'string', 'min:12', 'max:20']]);
+        $code = strtoupper(preg_replace('/[^A-Z0-9]/', '', $data['code']));
+
+        $user = DB::transaction(function () use ($pending, $code) {
+            $admin = AdminUser::query()->whereKey($pending['id'])->lockForUpdate()->first();
+            if (! $admin || ! $admin->isActive() || ! $admin->two_factor_enabled) {
+                return null;
+            }
+
+            $codes = $admin->two_factor_recovery_codes ?? [];
+            foreach ($codes as $index => $hash) {
+                if (is_string($hash) && Hash::check($code, $hash)) {
+                    unset($codes[$index]);
+                    $admin->forceFill(['two_factor_recovery_codes' => array_values($codes)])->save();
+
+                    return $admin;
+                }
+            }
+
+            return null;
+        });
+
+        if (! $user) {
+            $pending['tries']++;
+            if ($pending['tries'] >= self::CHALLENGE_MAX_TRIES) {
+                $request->session()->forget('admin_2fa');
+
+                return redirect()->route('admin.login')->with('error', 'تعداد تلاش‌های ناموفق زیاد بود؛ دوباره وارد شوید.');
+            }
+            $request->session()->put('admin_2fa', $pending);
+
+            return back()->with('two_factor_tab', 'recovery')->withErrors(['code' => 'کد بازیابی نامعتبر یا قبلاً استفاده شده است.']);
         }
 
         $request->session()->forget('admin_2fa');
