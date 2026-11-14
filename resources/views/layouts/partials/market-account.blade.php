@@ -6,6 +6,7 @@
 <div class="acc-links">
     <a href="{{ route('profile.edit') }}"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>پروفایل من</a>
     <a href="{{ route('properties.mine') }}"><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg>آگهی‌های من</a>
+    <a href="{{ route('properties.favorites.index') }}"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg>نشان‌شده‌ها</a>
     <a href="{{ route('properties.inquiries.index') }}"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>پیام‌ها @if($unread > 0)<span class="nbadge">{{ \App\Support\Fa::num(min($unread, 99)) }}</span>@endif</a>
     <a href="{{ route('home') }}"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg>صفحه اصلی سایت</a>
     <a href="{{ route('dashboard') }}"><svg class="icon" aria-hidden="true"><use href="#i-building"/></svg>پنل مدیریت ساختمان</a>
