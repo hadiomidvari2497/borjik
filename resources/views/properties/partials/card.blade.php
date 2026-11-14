@@ -3,6 +3,7 @@
     $cardBadge = match($listing->listing_type) { 'rent' => 'rent', 'buy_request', 'rent_request' => 'req', default => '' };
     $cardFa = \App\Support\Fa::class;
 @endphp
+<div class="market-card-wrap">
 <a class="card" href="{{ route('properties.show', $listing) }}">
     <div class="photo @if($cardPhotos) has-img @endif">
         <span class="badge {{ $cardBadge }}">{{ $listing->listingTypeLabel() }}</span>
@@ -30,3 +31,9 @@
         </div>
     </div>
 </a>
+@auth
+<form class="market-save-form" method="POST" action="{{ route('properties.favorites.toggle', $listing) }}">@csrf
+<button class="market-save-btn @if((bool) ($listing->is_favorited ?? false)) is-saved @endif" type="submit" aria-label="{{ (bool) ($listing->is_favorited ?? false) ? 'حذف از نشان‌شده‌ها' : 'نشان کردن آگهی' }}" title="{{ (bool) ($listing->is_favorited ?? false) ? 'نشان‌شده' : 'نشان کردن' }}"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg></button>
+</form>
+@endauth
+</div>
