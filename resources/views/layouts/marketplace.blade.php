@@ -130,6 +130,7 @@
 @stack('scripts')
 <script src="{{ asset('js/jdate.js') }}?v={{ @filemtime(public_path('js/jdate.js')) }}" defer></script>
 <script src="{{ asset('js/market-ui.js') }}?v={{ @filemtime(public_path('js/market-ui.js')) }}" defer></script>
+<script src="{{ asset('js/market-favorites.js') }}?v={{ @filemtime(public_path('js/market-favorites.js')) }}" defer></script>
 <script>
 (function(){
   var d=document.getElementById('umenu');
