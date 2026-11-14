@@ -112,67 +112,11 @@
         </div>
     </section>
 
-    {{-- ۵. راه‌های ارتباطی --}}
-    <section class="form-card" aria-labelledby="sec-contact">
-        <h2 id="sec-contact"><span class="step">۵</span>راه‌های ارتباطی</h2>
-        <p class="form-help">می‌توانید هر روش ارتباطی را جداگانه فعال یا غیرفعال کنید. شماره موبایل فقط برای روش‌های فعال نمایش داده می‌شود؛ گفتگوی درون‌برنامه‌ای همیشه فعال است.</p>
-        <label class="check"><input type="checkbox" name="allow_phone_call" value="1" @checked(old('allow_phone_call', $listing->allow_phone_call ?? $listing->show_phone ?? false))> امکان تماس تلفنی فعال باشد</label>
-        <label class="check"><input type="checkbox" name="allow_sms" value="1" @checked(old('allow_sms', $listing->allow_sms ?? $listing->show_phone ?? false))> امکان ارسال پیامک فعال باشد</label>
-    </section>
-
-@php($mapApiKey = config('services.neshan.map_key'))
-@if($mapApiKey)
-    @push('head')
-        <link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">
-    @endpush
-@endif
-<section class="form-card property-location-card" aria-labelledby="property-location-title">
-    <div class="property-map-heading">
-        <div>
-            <span class="property-map-eyebrow">موقعیت ملک</span>
-            <h2 id="property-location-title">انتخاب موقعیت روی نقشه</h2>
-            <p>روی محل ملک کلیک کن تا نقطه ثبت شود؛ سپس خودت مشخص کن موقعیت عمومی آگهی دقیق باشد یا تقریبی.</p>
-        </div>
-        <span class="property-map-heading-icon" aria-hidden="true">⌖</span>
-    </div>
-    <fieldset class="location-visibility-choice">
-        <legend>موقعیت ملک در آگهی عمومی چگونه نمایش داده شود؟</legend>
-        <label class="location-visibility-option">
-            <input type="radio" name="location_visibility" value="approximate" @checked(old('location_visibility', $listing->location_visibility ?: 'approximate') === 'approximate')>
-            <span><strong>موقعیت تقریبی</strong><small>نشانگر کمی جابه‌جا می‌شود تا نشانی دقیق ملک محفوظ بماند.</small></span>
-        </label>
-        <label class="location-visibility-option">
-            <input type="radio" name="location_visibility" value="exact" @checked(old('location_visibility', $listing->location_visibility ?: 'approximate') === 'exact')>
-            <span><strong>موقعیت دقیق</strong><small>همین نقطه‌ای که روی نقشه انتخاب کرده‌ای، برای همه بازدیدکنندگان نمایش داده می‌شود.</small></span>
-        </label>
-        @error('location_visibility')<span class="field-error" role="alert">{{ $message }}</span>@enderror
-    </fieldset>
-@if($mapApiKey)
-    <div class="property-map-shell">
-        <div id="property-location-map" role="application" aria-label="نقشه انتخاب موقعیت ملک"></div>
-        <div class="property-map-overlay">برای انتخاب، روی نقشه ضربه بزن</div>
-    </div>
-    <div class="property-map-footer">
-        <div class="property-map-feedback"><span class="property-map-live-dot" aria-hidden="true"></span><span id="property-location-status" role="status" aria-live="polite">برای ثبت موقعیت، روی محل ملک در نقشه کلیک کن.</span></div>
-        <button class="btn light property-map-clear" type="button" id="clear-property-location">حذف موقعیت</button>
-    </div>
-@else
-    <div class="property-map-unavailable"><strong>نقشه هنوز فعال نشده</strong><span>برای فعال‌شدن انتخاب موقعیت، کلید نقشه باید در تنظیمات محیطی سرور ثبت شود.</span></div>
-@endif
-<input type="hidden" name="latitude" id="property-latitude" value="{{ old('latitude', $listing->latitude) }}">
-<input type="hidden" name="longitude" id="property-longitude" value="{{ old('longitude', $listing->longitude) }}">
-</section>
-
-    <div class="form-actions">
-        <button class="btn lg" type="submit">{{ $listing->exists ? 'ذخیره تغییرات' : 'ثبت و انتشار آگهی' }}</button>
-        <a class="btn light lg" href="{{ route('properties.mine') }}">انصراف</a>
-    </div>
-
 </form>
 
 @if($listing->exists)
 @php($tourRooms = $listing->tourRooms)
-<section class="tour-manager" aria-labelledby="tour-manager-title">
+<section class="form-card tour-manager" aria-labelledby="tour-manager-title">
     <div class="tour-manager-head">
         <div class="tour-manager-title-wrap">
             <span class="tour-manager-kicker">PROPERTY EXPERIENCE</span>
@@ -317,6 +261,69 @@
 })();
 </script>
 @endif
+
+<form class="listing-form listing-form-continuation" method="POST" enctype="multipart/form-data" novalidate action="{{ $listing->exists ? route('properties.update',$listing) : route('properties.store') }}">
+    @csrf @if($listing->exists)@method('PUT')@endif
+
+    {{-- ۶. راه‌های ارتباطی --}}
+    <section class="form-card" aria-labelledby="sec-contact">
+        <h2 id="sec-contact"><span class="step">۵</span>راه‌های ارتباطی</h2>
+        <p class="form-help">می‌توانید هر روش ارتباطی را جداگانه فعال یا غیرفعال کنید. شماره موبایل فقط برای روش‌های فعال نمایش داده می‌شود؛ گفتگوی درون‌برنامه‌ای همیشه فعال است.</p>
+        <label class="check"><input type="checkbox" name="allow_phone_call" value="1" @checked(old('allow_phone_call', $listing->allow_phone_call ?? $listing->show_phone ?? false))> امکان تماس تلفنی فعال باشد</label>
+        <label class="check"><input type="checkbox" name="allow_sms" value="1" @checked(old('allow_sms', $listing->allow_sms ?? $listing->show_phone ?? false))> امکان ارسال پیامک فعال باشد</label>
+    </section>
+
+@php($mapApiKey = config('services.neshan.map_key'))
+@if($mapApiKey)
+    @push('head')
+        <link rel="stylesheet" href="https://unpkg.com/@neshan-maps-platform/maplibre-sdk@6.16.0/dist/neshan-maplibre-sdk.css">
+    @endpush
+@endif
+<section class="form-card property-location-card" aria-labelledby="property-location-title">
+    <div class="property-map-heading">
+        <div>
+            <span class="property-map-eyebrow">موقعیت ملک</span>
+            <h2 id="property-location-title">انتخاب موقعیت روی نقشه</h2>
+            <p>روی محل ملک کلیک کن تا نقطه ثبت شود؛ سپس خودت مشخص کن موقعیت عمومی آگهی دقیق باشد یا تقریبی.</p>
+        </div>
+        <span class="property-map-heading-icon" aria-hidden="true">⌖</span>
+    </div>
+    <fieldset class="location-visibility-choice">
+        <legend>موقعیت ملک در آگهی عمومی چگونه نمایش داده شود؟</legend>
+        <label class="location-visibility-option">
+            <input type="radio" name="location_visibility" value="approximate" @checked(old('location_visibility', $listing->location_visibility ?: 'approximate') === 'approximate')>
+            <span><strong>موقعیت تقریبی</strong><small>نشانگر کمی جابه‌جا می‌شود تا نشانی دقیق ملک محفوظ بماند.</small></span>
+        </label>
+        <label class="location-visibility-option">
+            <input type="radio" name="location_visibility" value="exact" @checked(old('location_visibility', $listing->location_visibility ?: 'approximate') === 'exact')>
+            <span><strong>موقعیت دقیق</strong><small>همین نقطه‌ای که روی نقشه انتخاب کرده‌ای، برای همه بازدیدکنندگان نمایش داده می‌شود.</small></span>
+        </label>
+        @error('location_visibility')<span class="field-error" role="alert">{{ $message }}</span>@enderror
+    </fieldset>
+@if($mapApiKey)
+    <div class="property-map-shell">
+        <div id="property-location-map" role="application" aria-label="نقشه انتخاب موقعیت ملک"></div>
+        <div class="property-map-overlay">برای انتخاب، روی نقشه ضربه بزن</div>
+    </div>
+    <div class="property-map-footer">
+        <div class="property-map-feedback"><span class="property-map-live-dot" aria-hidden="true"></span><span id="property-location-status" role="status" aria-live="polite">برای ثبت موقعیت، روی محل ملک در نقشه کلیک کن.</span></div>
+        <button class="btn light property-map-clear" type="button" id="clear-property-location">حذف موقعیت</button>
+    </div>
+@else
+    <div class="property-map-unavailable"><strong>نقشه هنوز فعال نشده</strong><span>برای فعال‌شدن انتخاب موقعیت، کلید نقشه باید در تنظیمات محیطی سرور ثبت شود.</span></div>
+@endif
+<input type="hidden" name="latitude" id="property-latitude" value="{{ old('latitude', $listing->latitude) }}">
+<input type="hidden" name="longitude" id="property-longitude" value="{{ old('longitude', $listing->longitude) }}">
+</section>
+
+    <div class="form-actions">
+        <button class="btn lg" type="submit">{{ $listing->exists ? 'ذخیره تغییرات' : 'ثبت و انتشار آگهی' }}</button>
+        <a class="btn light lg" href="{{ route('properties.mine') }}">انصراف</a>
+    </div>
+
+</form>
+
+
 
 @push('scripts')
 <style>
