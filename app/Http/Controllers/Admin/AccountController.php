@@ -125,6 +125,39 @@ class AccountController extends Controller
         return redirect()->route('admin.account')->with('status', 'تأیید دومرحله‌ای فعال شد.');
     }
 
+
+    public function generateRecoveryCodes(Request $request)
+    {
+        $data = $request->validate([
+            'password' => ['required', 'string'],
+            'authenticator_code' => ['required', 'string', 'size:6'],
+        ]);
+        $admin = $this->me();
+
+        if (! $admin->two_factor_enabled || ! $admin->two_factor_secret) {
+            return back()->withErrors(['recovery_codes' => 'ابتدا Google Authenticator را فعال کنید.']);
+        }
+        if (! Hash::check($data['password'], $admin->password)) {
+            return back()->withErrors(['password' => 'رمز عبور نادرست است.']);
+        }
+        if (! Totp::verify($admin->two_factor_secret, MobileNumber::toLatinDigits($data['authenticator_code']))) {
+            return back()->withErrors(['authenticator_code' => 'کد Google Authenticator نادرست است.']);
+        }
+
+        $plainCodes = [];
+        $hashedCodes = [];
+        for ($i = 0; $i < 10; $i++) {
+            $compact = strtoupper(bin2hex(random_bytes(6)));
+            $plainCodes[] = substr($compact, 0, 4).'-'.substr($compact, 4, 4).'-'.substr($compact, 8, 4);
+            $hashedCodes[] = Hash::make($compact);
+        }
+
+        $admin->forceFill(['two_factor_recovery_codes' => $hashedCodes])->save();
+
+        return redirect()->route('admin.account')->with('recovery_codes', $plainCodes)
+            ->with('status', '۱۰ کد بازیابی جدید ساخته شد. این کدها فقط همین یک بار نمایش داده می‌شوند.');
+    }
+
     public function twoFactorDisable(Request $request)
     {
         $me = $this->me();
