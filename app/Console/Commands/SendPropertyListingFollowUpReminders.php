@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Console\\Commands;
+namespace App\Console\Commands;
 
-use App\\Models\\PropertyListingInquiry;
-use App\\Notifications\\PropertyListingNotification;
-use Illuminate\\Console\\Command;
-use Illuminate\\Support\\Facades\\DB;
+use App\Models\PropertyListingInquiry;
+use App\Notifications\PropertyListingNotification;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class SendPropertyListingFollowUpReminders extends Command
 {
