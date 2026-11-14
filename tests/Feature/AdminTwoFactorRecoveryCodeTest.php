@@ -51,7 +51,7 @@ class AdminTwoFactorRecoveryCodeTest extends TestCase
             'password' => 'secret-pass-1',
         ])->assertRedirect(route('admin.two-factor.challenge'));
 
-        $this->get(route('admin.two-factor.challenge'))->assertOk()->assertDontSee('استفاده از کد اضطراری');
+        $this->get(route('admin.two-factor.challenge'))->assertOk()->assertSee('data-delay="120"')->assertDontSee('id="recovery-tab"');
 
         $pending = session('admin_2fa');
         $pending['started_at'] = now()->subSeconds(121)->timestamp;
