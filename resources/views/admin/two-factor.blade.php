@@ -52,6 +52,20 @@
     </section>
   @endif
 
+  @if($recoveryAvailable)
+    <section class="two-factor-panel {{ session('two_factor_tab') === 'recovery' ? 'is-visible' : '' }}" id="recovery-panel" role="tabpanel" aria-labelledby="recovery-tab" data-panel="recovery" {{ session('two_factor_tab') === 'recovery' ? '' : 'hidden' }}>
+      <div class="method-title"><span class="method-dot"></span><b>کد بازیابی اضطراری</b></div>
+      <p class="method-description">اگر به پیامک و Google Authenticator دسترسی ندارید، یکی از کدهای بازیابی ذخیره‌شده را وارد کنید. هر کد فقط یک بار قابل استفاده است.</p>
+      <form method="POST" action="{{ route('admin.two-factor.recovery.verify') }}">@csrf
+        <div class="field">
+          <input class="otp" name="code" inputmode="text" maxlength="20" autocomplete="off" placeholder="XXXX-XXXX-XXXX" dir="ltr" style="letter-spacing:.12em" required>
+          @error('code')<div class="err">{{ $message }}</div>@enderror
+        </div>
+        <button class="btn" type="submit">استفاده از کد بازیابی و ورود</button>
+      </form>
+    </section>
+  @endif
+
   <p class="fine"><a href="{{ route('admin.login') }}">بازگشت به ورود</a></p>
 </div>
 
@@ -61,7 +75,7 @@
 .two-factor-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 14px;border-radius:18px;background:rgba(28,79,74,.09);color:#1c4f4a;font-size:27px}
 .two-factor-heading .h1{margin:0 0 9px}
 .two-factor-heading .lead{margin:0;line-height:1.9}
-.two-factor-tabs{display:grid;grid-template-columns:repeat({{ $smsAvailable ? 2 : 1 }},minmax(0,1fr));gap:9px;padding:6px;background:#f1f5f4;border:1px solid #e3ebe8;border-radius:16px;margin-bottom:18px}
+.two-factor-tabs{display:grid;grid-template-columns:repeat({{ (int) $smsAvailable + (int) $recoveryAvailable + 1 }},minmax(0,1fr));gap:9px;padding:6px;background:#f1f5f4;border:1px solid #e3ebe8;border-radius:16px;margin-bottom:18px}
 .two-factor-tab{display:flex;align-items:center;justify-content:center;gap:10px;min-height:68px;padding:10px 8px;border:1px solid transparent;border-radius:12px;background:transparent;color:#60716e;cursor:pointer;font:inherit;text-align:right;transition:background .25s ease,border-color .25s ease,box-shadow .25s ease,color .25s ease}
 .two-factor-tab b,.two-factor-tab small{display:block}
 .two-factor-tab b{font-size:13px;font-weight:800}
@@ -84,7 +98,7 @@
 .sms-code-divider{display:flex;align-items:center;gap:10px;margin:17px 0;color:#9aa7a3;font-size:11px}
 .sms-code-divider:before,.sms-code-divider:after{content:"";height:1px;flex:1;background:#e8eeeb}
 .two-factor-page .fine{text-align:center;margin-top:20px}
-@media(max-width:480px){.two-factor-panel{padding:18px 14px}.two-factor-tab{gap:7px}.two-factor-tab b{font-size:12px}}
+@media(max-width:480px){.two-factor-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.two-factor-panel{padding:18px 14px}.two-factor-tab{gap:7px}.two-factor-tab b{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.two-factor-tab{transition:none}.two-factor-panel.is-visible{animation:none}}
 </style>
 <script>
