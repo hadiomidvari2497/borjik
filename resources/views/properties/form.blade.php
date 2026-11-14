@@ -23,7 +23,7 @@
     <form class="tour-room-form" method="POST" enctype="multipart/form-data" action="{{ route('properties.tour-rooms.store', $listing) }}">
         @csrf
         <label>نام فضا<input type="text" name="name" maxlength="80" value="{{ old('name') }}" placeholder="مثلاً پذیرایی" required></label>
-        <label>تصویر پانورامای ۳۶۰ درجه<input type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required></label>
+        <label>تصویر پانورامای ۳۶۰ درجه<input type="file" name="panorama" accept="image/jpeg,image/png,image/webp" required><small class="tour-upload-hint">حداکثر حجم هر تصویر: <strong>۱۵ مگابایت</strong> · نسبت تصویر ۲ به ۱</small></label>
         <button type="submit">افزودن فضا</button>
     </form>
     @if($listing->tourRooms->isNotEmpty())
