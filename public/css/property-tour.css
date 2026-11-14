@@ -1,8 +1,8 @@
 .property-tour-entry{position:relative;isolation:isolate;display:flex;align-items:center;justify-content:space-between;gap:24px;margin:30px 0 28px;padding:26px 28px;overflow:hidden;border:1px solid #cfe5d8;border-radius:24px;background:radial-gradient(circle at 8% 0%,rgba(40,153,107,.13),transparent 36%),linear-gradient(115deg,#f0faf4 0%,#fff 58%,#f6fbf8 100%);box-shadow:0 14px 38px rgba(24,79,56,.09)}
 .property-tour-entry:before{position:absolute;z-index:-1;inset-inline-start:-32px;bottom:-72px;width:190px;height:190px;border:1px solid rgba(22,132,95,.12);border-radius:50%;box-shadow:0 0 0 18px rgba(22,132,95,.035),0 0 0 38px rgba(22,132,95,.025);content:""}
-.property-tour-entry-copy{display:grid;gap:8px;max-width:580px}.property-tour-entry-copy strong{display:flex;align-items:center;gap:10px;color:#174b38;font-size:18px;font-weight:900;letter-spacing:-.2px}.property-tour-entry-copy strong:before{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #d2eade;border-radius:14px;background:#e5f5eb;color:var(--brand,#16845f);content:"360°";font-size:12px;font-weight:900;direction:ltr}.property-tour-entry-copy span{color:#60796d;font-size:13px;line-height:1.9}
-.property-tour-entry button,.tour-room-form button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 22px;border:1px solid var(--brand-d,#137651);border-radius:15px;background:linear-gradient(135deg,var(--brand,#20966c),var(--brand-d,#11734f));color:#fff;font:inherit;font-size:14px;font-weight:850;cursor:pointer;white-space:nowrap;box-shadow:0 8px 18px rgba(17,115,79,.2);transition:transform .18s,box-shadow .18s,filter .18s}
-.property-tour-entry button:before{content:"◉";font-size:18px}.property-tour-entry button:hover,.tour-room-form button:hover{filter:brightness(1.04);transform:translateY(-2px);box-shadow:0 12px 24px rgba(17,115,79,.25)}.property-tour-entry button:focus-visible,.tour-room-form button:focus-visible{outline:3px solid rgba(22,132,95,.25);outline-offset:3px}
+.property-tour-entry-copy{display:grid;gap:8px;max-width:580px}.property-tour-entry-copy strong{display:flex;align-items:center;gap:10px;color:#174b38;font-size:18px;font-weight:900;letter-spacing:-.2px}.property-tour-entry-copy span{color:#60796d;font-size:13px;line-height:1.9}
+.pt-entry-cta,.tour-room-form button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 22px;border:1px solid var(--brand-d,#137651);border-radius:15px;background:linear-gradient(135deg,var(--brand,#20966c),var(--brand-d,#11734f));color:#fff;font:inherit;font-size:14px;font-weight:850;cursor:pointer;white-space:nowrap;box-shadow:0 8px 18px rgba(17,115,79,.2);transition:transform .18s,box-shadow .18s,filter .18s}
+.pt-entry-cta:hover,.tour-room-form button:hover{filter:brightness(1.04);transform:translateY(-2px);box-shadow:0 12px 24px rgba(17,115,79,.25)}.pt-entry-cta:focus-visible,.tour-room-form button:focus-visible{outline:3px solid rgba(22,132,95,.25);outline-offset:3px}
 .property-tour-dialog{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;border:0;background:#07130f;color:#fff;overflow:hidden}
 .property-tour-dialog::backdrop{background:#07130f}
 .property-tour-stage{position:absolute;inset:0;touch-action:none;cursor:grab}
@@ -12,7 +12,7 @@
 .property-tour-top{position:absolute;z-index:2;top:0;inset-inline:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 18px 14px;background:linear-gradient(#07130fc9,transparent)}
 .property-tour-top strong{font-size:15px;text-shadow:0 1px 5px #000}
 .property-tour-close{display:grid;place-items:center;width:46px;height:46px;border:1px solid #ffffff55;border-radius:50%;background:#10241dcc;color:#fff;font-size:26px;cursor:pointer}
-.property-tour-hint{position:absolute;top:82px;left:50%;transform:translateX(-50%);padding:7px 12px;border:1px solid #ffffff30;border-radius:999px;background:#07130f88;color:#fff;font-size:12px;white-space:nowrap;pointer-events:none}
+.property-tour-hint-old{position:absolute;top:82px;left:50%;transform:translateX(-50%);padding:7px 12px;border:1px solid #ffffff30;border-radius:999px;background:#07130f88;color:#fff;font-size:12px;white-space:nowrap;pointer-events:none}
 .property-tour-rooms{position:absolute;z-index:2;inset-inline:0;bottom:0;display:flex;gap:9px;overflow-x:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(transparent,#07130fe8);scrollbar-width:none}
 .property-tour-rooms::-webkit-scrollbar{display:none}
 .property-tour-rooms button{flex:0 0 auto;min-height:44px;padding:0 16px;border:1px solid #ffffff66;border-radius:999px;background:#142820d9;color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
@@ -29,7 +29,7 @@ html.tour-open,html.tour-open body{overflow:hidden}
 .tour-room-item span{flex:1;min-width:0;color:#24483c;font-size:12px;font-weight:700}
 .tour-room-item button{min-width:38px;height:38px;border:1px solid #f0dada;border-radius:9px;background:#fff8f8;color:#b33d3d;font-size:19px;cursor:pointer}
 .tour-manager .field-error{display:block;margin-top:5px;color:#b33d3d;font-size:12px}
-@media(max-width:640px){.property-tour-entry{align-items:stretch;flex-direction:column}.property-tour-entry button{width:100%}.tour-room-form{grid-template-columns:1fr}.tour-room-form button{width:100%}.tour-manager{padding:15px}.property-tour-hint{top:76px}}
+@media(max-width:640px){.property-tour-entry{align-items:stretch;flex-direction:column}.pt-entry-cta{width:100%}.tour-room-form{grid-template-columns:1fr}.tour-room-form button{width:100%}.tour-manager{padding:15px}.property-tour-hint{top:76px}}
 
 .tour-manager{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(145deg,#fbfefc,#f5faf7);box-shadow:0 12px 30px rgba(24,79,56,.06)}
 .tour-manager:before{position:absolute;top:0;inset-inline:0;height:4px;background:linear-gradient(90deg,var(--brand,#16845f),#8bc8a7,#d7eee0);content:""}
@@ -37,7 +37,7 @@ html.tour-open,html.tour-open body{overflow:hidden}
 .tour-upload-hint{display:block;margin-top:1px;color:#788b81;font-size:11px;font-weight:500}.tour-upload-hint strong{color:var(--brand,#16845f);font-weight:900}
 .tour-room-form input[type=file]{padding:8px;background:#fff}.tour-room-form input:focus,.tour-room-form select:focus{outline:3px solid rgba(22,132,95,.13);border-color:#78b99a}
 .tour-room-item{background:#fff;box-shadow:0 3px 12px rgba(24,79,56,.035);transition:border-color .18s,transform .18s}.tour-room-item:hover{border-color:#b7d9c6;transform:translateY(-1px)}
-@media(max-width:640px){.property-tour-entry{gap:18px;margin:24px 0;padding:20px;border-radius:20px}.property-tour-entry-copy strong{font-size:16px}.property-tour-entry button{min-height:48px}.tour-manager h2{font-size:16px}}
+@media(max-width:640px){.property-tour-entry{gap:18px;margin:24px 0;padding:20px;border-radius:20px}.property-tour-entry-copy strong{font-size:16px}.pt-entry-cta{min-height:48px}.tour-manager h2{font-size:16px}}
 
 /* Polished virtual-tour editor */
 .tour-manager{margin:30px 0 24px;padding:0;border:1px solid #dcebe3;border-radius:24px;background:#fff;box-shadow:0 16px 44px rgba(25,76,54,.075);overflow:hidden}
@@ -138,3 +138,65 @@ html.tour-open,html.tour-open body{overflow:hidden}
 .tour-room-type{font-size:10px;padding:3px 7px;border-radius:6px;inset-inline-end:5px;right:auto}
 .tour-room-meta strong{font-size:13px}.tour-room-meta small{font-size:11px}
 .tour-empty-state{padding:18px 16px}
+
+/* ───────── صفحه‌ی آگهی: ورودی و نمایشگر خانه‌گردی ───────── */
+.property-tour-entry{display:grid;grid-template-columns:minmax(170px,230px) minmax(0,1fr) auto;align-items:center;gap:22px;margin:28px 0;padding:16px;border:1px solid color-mix(in srgb,var(--brand,#1b7a6b) 22%,#fff);border-radius:24px;background:linear-gradient(115deg,color-mix(in srgb,var(--brand,#1b7a6b) 8%,#fff),#fff 62%);box-shadow:0 14px 38px rgba(15,79,72,.08)}
+.property-tour-entry:before{display:none}
+.pt-entry-media{position:relative;display:block;width:100%;aspect-ratio:16/11;padding:0;overflow:hidden;border:0;border-radius:18px;background:#0e2b26;cursor:pointer;box-shadow:0 10px 24px rgba(15,79,72,.22);isolation:isolate}
+.pt-entry-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s ease}
+.pt-entry-media:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(7,19,15,.05),rgba(7,19,15,.55))}
+.pt-entry-media:hover img{transform:scale(1.06)}
+.pt-entry-360{position:absolute;z-index:2;top:10px;inset-inline-start:10px;padding:4px 10px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:rgba(7,19,15,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;font-size:13px;font-weight:900;direction:ltr}
+.pt-entry-play{position:absolute;z-index:2;inset:0;margin:auto;display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:#fff;color:var(--brand,#1b7a6b);box-shadow:0 0 0 8px rgba(255,255,255,.28),0 8px 22px rgba(0,0,0,.28);animation:ptPulse 2.4s ease-out infinite}
+.pt-entry-play svg{margin-inline-start:-2px}
+@keyframes ptPulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.5),0 8px 22px rgba(0,0,0,.28)}70%,100%{box-shadow:0 0 0 16px rgba(255,255,255,0),0 8px 22px rgba(0,0,0,.28)}}
+.property-tour-entry-copy{display:grid;gap:9px;min-width:0;max-width:none}
+.pt-badge{justify-self:start;padding:4px 11px;border-radius:999px;background:color-mix(in srgb,var(--brand,#1b7a6b) 12%,#fff);color:var(--brand-d,#0f4f48);font-size:12px;font-weight:800}
+.property-tour-entry-copy strong{display:block;color:var(--ink,#16332d);font-size:19px;font-weight:900;line-height:1.7}
+.pt-entry-sub{color:var(--mute,#6a8176);font-size:13px;line-height:1.8}
+.pt-chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 0;padding:0;list-style:none}
+.pt-chips li{padding:4px 11px;border:1px solid var(--line,#dce6e3);border-radius:999px;background:#fff;color:var(--ink-2,#34584b);font-size:12px;font-weight:700}
+.pt-entry-cta{min-height:52px;padding:0 24px;background:linear-gradient(135deg,var(--brand,#1b7a6b),var(--brand-d,#0f4f48));border-color:transparent}
+.pt-entry-cta svg{flex:0 0 auto}
+
+.property-tour-dialog{background:#050f0c}
+.property-tour-loading{position:absolute;z-index:1;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;color:#d7ece4;font-size:13px;pointer-events:none;background:radial-gradient(circle,rgba(5,15,12,.55),rgba(5,15,12,.9))}
+.property-tour-loading[hidden]{display:none}
+.pt-spinner{width:38px;height:38px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:ptSpin .8s linear infinite}
+@keyframes ptSpin{to{transform:rotate(360deg)}}
+.property-tour-top{z-index:3;padding:calc(14px + env(safe-area-inset-top)) 18px 26px;background:linear-gradient(rgba(5,15,12,.78),transparent)}
+.pt-title{display:flex;align-items:center;gap:10px;min-width:0}
+.property-tour-top strong{overflow:hidden;font-size:16px;text-overflow:ellipsis;white-space:nowrap}
+.pt-counter{flex:0 0 auto;padding:3px 10px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}
+.property-tour-close{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.35);transition:background .2s}
+.property-tour-close:hover{background:rgba(255,255,255,.26)}
+.pt-arrow{position:absolute;z-index:3;top:50%;display:grid;place-items:center;width:48px;height:48px;margin-top:-24px;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:rgba(5,15,12,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;cursor:pointer;transition:background .2s,transform .2s}
+.pt-arrow:hover{background:rgba(255,255,255,.22)}.pt-arrow[hidden]{display:none}
+.pt-prev{inset-inline-start:14px}.pt-next{inset-inline-end:14px}
+.pt-tools{position:absolute;z-index:3;inset-inline-end:14px;bottom:112px;display:grid;gap:8px}
+.pt-tools button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:14px;background:rgba(5,15,12,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font:inherit;font-size:22px;line-height:1;cursor:pointer;transition:background .2s}
+.pt-tools button:hover{background:rgba(255,255,255,.22)}
+.pt-tools button[aria-pressed=true]{border-color:#9be0bd;background:var(--brand,#1b7a6b)}
+.pt-tools button[hidden]{display:none}
+.property-tour-hint{position:absolute;z-index:3;top:auto;bottom:122px;left:50%;display:flex;align-items:center;gap:8px;padding:9px 15px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(5,15,12,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-size:12px;font-weight:700;transform:translateX(-50%);transition:opacity .5s,transform .5s;pointer-events:none}
+.property-tour-hint.is-hidden{opacity:0;transform:translate(-50%,8px)}
+.property-tour-rooms{z-index:3;gap:10px;padding:26px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(5,15,12,.92));scroll-snap-type:x proximity}
+.property-tour-rooms button{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:112px;min-height:0;padding:5px;border:2px solid rgba(255,255,255,.22);border-radius:14px;background:rgba(20,40,32,.7);scroll-snap-align:center;transition:border-color .2s,transform .2s}
+.property-tour-rooms button:hover{transform:translateY(-2px)}
+.property-tour-rooms button img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:9px;background:#142820}
+.property-tour-rooms button span{overflow:hidden;padding:0 3px 2px;font-size:12px;font-weight:700;text-align:center;text-overflow:ellipsis;white-space:nowrap}
+.property-tour-rooms button[aria-current=true]{border-color:#9be0bd;background:color-mix(in srgb,var(--brand,#1b7a6b) 70%,#000);box-shadow:0 0 0 3px rgba(155,224,189,.3)}
+.property-tour-rooms button:focus-visible,.pt-arrow:focus-visible,.pt-tools button:focus-visible,.property-tour-close:focus-visible,.pt-entry-media:focus-visible{outline:3px solid #9be0bd;outline-offset:2px}
+
+@media(max-width:760px){
+ .property-tour-entry{grid-template-columns:1fr;gap:14px;margin:22px 0;padding:12px;border-radius:20px}
+ .pt-entry-media{aspect-ratio:16/9;border-radius:15px}
+ .property-tour-entry-copy{padding:2px 4px}.property-tour-entry-copy strong{font-size:16px}
+ .pt-entry-cta{width:100%}
+ .pt-arrow{width:42px;height:42px;margin-top:-21px}
+ .pt-tools{bottom:136px}.pt-tools button{width:42px;height:42px}
+ .property-tour-hint{bottom:196px}
+ .property-tour-rooms button{width:98px}
+}
+@media(prefers-reduced-motion:reduce){.pt-entry-play,.pt-spinner{animation:none}.pt-entry-media img{transition:none}}
+.property-tour-stage canvas[hidden],.property-tour-stage img[hidden]{display:none!important}

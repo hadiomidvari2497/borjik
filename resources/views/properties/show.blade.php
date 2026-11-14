@@ -379,9 +379,24 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
 
 @if($tourRooms->isNotEmpty())
+@php($tourFirst = $tourRooms->first())
+@php($tourCount = $tourRooms->count())
 <section class="property-tour-entry" aria-label="خانه‌گردی مجازی">
-    <div class="property-tour-entry-copy"><strong>قبل از بازدید حضوری، داخل خانه را تماشا کنید</strong><span>{{ \App\Support\Fa::num($tourRooms->count()) }} فضای پانوراما · حرکت آزاد افقی و عمودی با لمس انگشت یا ماوس</span></div>
-    <button type="button" data-tour-open>◉ شروع خانه‌گردی مجازی</button>
+    <button type="button" class="pt-entry-media" data-tour-open aria-label="شروع خانه‌گردی مجازی">
+        <img src="{{ $tourFirst->imageUrl() }}" alt="" loading="lazy" decoding="async">
+        <span class="pt-entry-360" aria-hidden="true">۳۶۰°</span>
+        <span class="pt-entry-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg></span>
+    </button>
+    <div class="property-tour-entry-copy">
+        <span class="pt-badge">خانه‌گردی مجازی</span>
+        <strong>قبل از بازدید حضوری، داخل خانه را تماشا کنید</strong>
+        <span class="pt-entry-sub">{{ \App\Support\Fa::num($tourCount) }} فضا · با لمس انگشت یا ماوس بچرخید و زوم کنید</span>
+        <ul class="pt-chips" aria-label="فضاهای قابل مشاهده">@foreach($tourRooms->take(6) as $room)<li>{{ $room->name }}</li>@endforeach
+@if($tourCount > 6)<li>+{{ \App\Support\Fa::num($tourCount - 6) }}</li>
+@endif
+</ul>
+    </div>
+    <button type="button" class="pt-entry-cta" data-tour-open><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="4.2"/><path d="M12 3c2.6 2.2 4 5.2 4 9s-1.4 6.8-4 9c-2.6-2.2-4-5.2-4-9s1.4-6.8 4-9z"/></svg>شروع خانه‌گردی</button>
 </section>
 <script type="application/json" data-tour-data>{!! json_encode($tourRooms->map(fn ($room) => ['name' => $room->name, 'url' => $room->imageUrl(), 'projection' => $room->projection])->values(), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
 <dialog class="property-tour-dialog" data-property-tour aria-label="خانه‌گردی مجازی ۳۶۰ درجه">
@@ -389,8 +404,19 @@ document.addEventListener('DOMContentLoaded', function () {
         <canvas aria-label="نمای پانوراما؛ برای جابه‌جایی تصویر را بکشید"></canvas>
         <img data-tour-fallback alt="نمای پانورامای فضای انتخاب‌شده" hidden>
     </div>
-    <div class="property-tour-top"><strong data-tour-title>خانه‌گردی مجازی</strong><button type="button" class="property-tour-close" data-tour-close aria-label="بستن خانه‌گردی">×</button></div>
-    <div class="property-tour-hint">برای چرخش، تصویر را لمس کنید و بکشید</div>
+    <div class="property-tour-loading" data-tour-loading role="status" aria-live="polite"><span class="pt-spinner" aria-hidden="true"></span><span>در حال بارگذاری تصویر…</span></div>
+    <div class="property-tour-top">
+        <div class="pt-title"><strong data-tour-title>خانه‌گردی مجازی</strong><span class="pt-counter" data-tour-counter></span></div>
+        <button type="button" class="property-tour-close" data-tour-close aria-label="بستن خانه‌گردی">×</button>
+    </div>
+    <button type="button" class="pt-arrow pt-prev" data-tour-prev aria-label="فضای قبلی"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button type="button" class="pt-arrow pt-next" data-tour-next aria-label="فضای بعدی"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="pt-tools" role="group" aria-label="ابزار نمایش">
+        <button type="button" data-tour-zoom-in aria-label="بزرگ‌نمایی">+</button>
+        <button type="button" data-tour-zoom-out aria-label="کوچک‌نمایی">−</button>
+        <button type="button" data-tour-auto aria-pressed="false" aria-label="چرخش خودکار" title="چرخش خودکار"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4h-4"/></svg></button>
+    </div>
+    <div class="property-tour-hint" data-tour-hint><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12h8M5 9l-3 3 3 3M19 9l3 3-3 3"/></svg><span>برای چرخش، تصویر را بکشید</span></div>
     <nav class="property-tour-rooms" data-tour-rooms aria-label="انتخاب فضای ملک"></nav>
 </dialog>
 @endif
