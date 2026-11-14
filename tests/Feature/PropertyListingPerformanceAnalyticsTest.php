@@ -110,6 +110,56 @@ class PropertyListingPerformanceAnalyticsTest extends TestCase
         ]);
     }
 
+    public function test_listing_owner_can_schedule_and_clear_a_lead_follow_up(): void
+    {
+        $owner = $this->owner();
+        $buyer = User::create([
+            'first_name' => 'خریدار',
+            'last_name' => 'یادآوری',
+            'mobile' => '09129990004',
+            'status' => 'active',
+            'profile_completed_at' => now(),
+        ]);
+        $listing = $this->listing($owner);
+        $inquiryId = DB::table('property_listing_inquiries')->insertGetId([
+            'property_listing_id' => $listing->id,
+            'sender_user_id' => $buyer->id,
+            'recipient_user_id' => $owner->id,
+            'sender_name' => 'خریدار یادآوری',
+            'message' => 'برای بازدید تماس بگیرید',
+            'status' => 'new',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $followUpAt = now()->addDay()->startOfMinute();
+
+        $this->actingAs($owner)
+            ->patch(route('properties.inquiries.update', $inquiryId), [
+                'follow_up_at' => $followUpAt->format('Y-m-d\\TH:i'),
+                'follow_up_note' => 'تماس برای هماهنگی بازدید',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('property_listing_inquiries', [
+            'id' => $inquiryId,
+            'follow_up_note' => 'تماس برای هماهنگی بازدید',
+        ]);
+        $this->assertEquals(
+            $followUpAt->timestamp,
+            $this->assertDatabaseHas('property_listing_inquiries', ['id' => $inquiryId]) ? strtotime(DB::table('property_listing_inquiries')->where('id', $inquiryId)->value('follow_up_at')) : 0
+        );
+
+        $this->actingAs($owner)
+            ->patch(route('properties.inquiries.update', $inquiryId), ['follow_up_at' => '', 'follow_up_note' => ''])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('property_listing_inquiries', [
+            'id' => $inquiryId,
+            'follow_up_at' => null,
+            'follow_up_note' => null,
+        ]);
+    }
+
     public function test_only_listing_owner_can_change_a_lead_status(): void
     {
         $owner = $this->owner();
