@@ -18,6 +18,35 @@
     <a class="btn light" href="{{ route('properties.mine') }}">آگهی‌های من</a>
 </header>
 
+@if(($followUpTodayCount ?? 0) > 0 || ($followUpOverdueCount ?? 0) > 0 || ($followUps ?? collect())->isNotEmpty())
+    <section class="panel lead-follow-up-overview" aria-label="پیگیری‌های سررسیدشده">
+        <div class="lead-follow-up-heading">
+            <div>
+                <h2>پیگیری‌های امروز</h2>
+                <p>یادآوری‌های سررسیدشده‌ی مشتریان آگهی‌های شما</p>
+            </div>
+            <div class="lead-follow-up-counts">
+                <span class="today-count">امروز: {{ Fa::num($followUpTodayCount ?? 0) }}</span>
+                <span class="overdue-count">عقب‌افتاده: {{ Fa::num($followUpOverdueCount ?? 0) }}</span>
+            </div>
+        </div>
+        @if(($followUps ?? collect())->isNotEmpty())
+            <div class="lead-follow-up-list">
+                @foreach($followUps as $followUp)
+                    <a href="{{ route('properties.chat.show', $followUp) }}" class="lead-follow-up-item">
+                        <span class="lead-follow-up-person">{{ $followUp->counterpartName($me) ?: 'مشتری آگهی' }}</span>
+                        <span class="lead-follow-up-listing">{{ $followUp->listing?->title ?? 'آگهی حذف‌شده' }}</span>
+                        @if($followUp->follow_up_note)<span class="lead-follow-up-note">{{ $followUp->follow_up_note }}</span>@endif
+                        <time class="@if($followUp->follow_up_at->isPast()) overdue @endif">{{ Fa::stamp($followUp->follow_up_at) }}</time>
+                    </a>
+                @endforeach
+            </div>
+        @else
+            <p class="lead-follow-up-empty">برای امروز پیگیری زمان‌بندی‌شده‌ای ندارید.</p>
+        @endif
+    </section>
+@endif
+
 <form class="panel lead-filters" method="GET" action="{{ route('properties.inquiries.index') }}" aria-label="فیلتر درخواست‌ها">
     <label class="field">جست‌وجو
         <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="نام مشتری یا عنوان آگهی">
@@ -44,6 +73,21 @@
     </div>
 </form>
 <style>
+.lead-follow-up-overview{margin:0 0 18px;padding:16px}
+.lead-follow-up-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lead-follow-up-heading h2{margin:0;font-size:16px}
+.lead-follow-up-heading p{margin:5px 0 0;color:#60746a;font-size:12px}
+.lead-follow-up-counts{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:700}
+.lead-follow-up-counts span{padding:6px 9px;border-radius:8px;background:#edf7f0;color:#246b4d}
+.lead-follow-up-counts .overdue-count{background:#fff0ed;color:#a84432}
+.lead-follow-up-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:13px}
+.lead-follow-up-item{display:grid;gap:4px;padding:10px;border:1px solid #e3ebe5;border-radius:10px;color:inherit;text-decoration:none;min-width:0}
+.lead-follow-up-item:hover{border-color:#8eb9a0;background:#f8fcf9}
+.lead-follow-up-person{font-size:13px;font-weight:700}
+.lead-follow-up-listing,.lead-follow-up-note{font-size:11px;color:#60746a;overflow-wrap:anywhere}
+.lead-follow-up-item time{font-size:11px;color:#246b4d;font-weight:700}
+.lead-follow-up-item time.overdue{color:#a84432}
+.lead-follow-up-empty{margin:12px 0 0;color:#60746a;font-size:12px}
 .lead-filters{display:grid;grid-template-columns:2fr 1.4fr 1fr auto;align-items:end;gap:12px;margin:0 0 18px}
 .lead-filters .field{display:grid;gap:6px;font-size:12px;color:#60746a}
 .lead-filters input,.lead-filters select{width:100%;min-height:42px;border:1px solid #dfe8e2;border-radius:10px;padding:8px 10px;background:#fff;color:inherit;font:inherit}

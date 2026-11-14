@@ -68,6 +68,7 @@ $tracked(Schedule::command('charges:issue-late-fees')->dailyAt('07:30')->without
 $tracked(Schedule::command('requests:notify-overdue')->dailyAt('07:00')->withoutOverlapping(), 'requests:notify-overdue');
 $tracked(Schedule::command('properties:expire-listings')->dailyAt('07:15')->withoutOverlapping(), 'properties:expire-listings');
 $tracked(Schedule::command('calendar:send-reminders')->everyMinute()->withoutOverlapping(), 'calendar:send-reminders');
+$tracked(Schedule::command('properties:send-follow-up-reminders')->everyMinute()->withoutOverlapping(), 'properties:send-follow-up-reminders');
 $tracked(Schedule::command('borjik:health-check')->everyFiveMinutes()->withoutOverlapping(10), 'borjik:health-check');
 $tracked(Schedule::command('support:check-sla')->everyFiveMinutes()->withoutOverlapping(10), 'support:check-sla');
 $tracked(Schedule::command('borjik:performance-sample')->everyFiveMinutes()->withoutOverlapping(10), 'borjik:performance-sample');

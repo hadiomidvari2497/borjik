@@ -16,7 +16,7 @@ class PropertyListingInquiry extends Model
 
     protected function casts(): array
     {
-        return ['read_at' => 'datetime', 'follow_up_at' => 'datetime'];
+        return ['read_at' => 'datetime', 'follow_up_at' => 'datetime', 'follow_up_notified_at' => 'datetime'];
     }
 
     public function listing(): BelongsTo
