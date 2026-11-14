@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\\Database\\Eloquent\\Model;
+use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
 
 class PropertyListingTourRoom extends Model
 {
-    protected $fillable = ['property_listing_id', 'name', 'image_path', 'sort_order'];
+    protected $fillable = ['property_listing_id', 'name', 'image_path', 'projection', 'sort_order'];
 
     public function listing(): BelongsTo
     {
@@ -17,5 +17,10 @@ class PropertyListingTourRoom extends Model
     public function imageUrl(): string
     {
         return asset('storage/'.$this->image_path);
+    }
+
+    public function isFull360(): bool
+    {
+        return $this->projection === 'equirectangular';
     }
 }
