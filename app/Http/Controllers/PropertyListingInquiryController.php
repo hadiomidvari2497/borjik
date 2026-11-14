@@ -273,11 +273,11 @@ class PropertyListingInquiryController extends Controller
             $data['read_at'] = $inquiry->read_at ?? now();
         }
 
-        if (array_key_exists('follow_up_at', $data)) {
-            $data['follow_up_notified_at'] = null;
+        $inquiry->fill($data);
+        if ($inquiry->isDirty('follow_up_at')) {
+            $inquiry->follow_up_notified_at = null;
         }
-
-        $inquiry->update($data);
+        $inquiry->save();
 
         return back()->with('status', array_key_exists('status', $data)
             ? 'وضعیت گفتگو به‌روزرسانی شد.'
