@@ -45,7 +45,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/two-factor', [AuthController::class, 'challenge'])->name('two-factor.challenge');
         Route::post('/two-factor', [AuthController::class, 'verifyChallenge'])->middleware('throttle:admin-login')->name('two-factor.verify');
         Route::post('/two-factor/sms/request', [AuthController::class, 'requestSmsChallenge'])->middleware('throttle:admin-login')->name('two-factor.sms.request');
-        Route::post('/two-factor/sms/verify', [AuthController::class, 'verifySmsChallenge'])->middleware('throttle:admin-login')->name('two-factor.sms.verify');\n        Route::post('/two-factor/recovery/verify', [AuthController::class, 'verifyRecoveryChallenge'])->middleware('throttle:admin-login')->name('two-factor.recovery.verify');
+        Route::post('/two-factor/sms/verify', [AuthController::class, 'verifySmsChallenge'])->middleware('throttle:admin-login')->name('two-factor.sms.verify');
+        Route::post('/two-factor/recovery/verify', [AuthController::class, 'verifyRecoveryChallenge'])->middleware('throttle:admin-login')->name('two-factor.recovery.verify');
     });
 
     Route::middleware(['admin', EnsureAdminTwoFactor::class, RecordAdminActivity::class])->group(function () {
@@ -97,7 +98,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/mobile', 'saveMobile')->middleware('throttle:5,1')->name('.mobile');
             Route::post('/mobile/request', 'requestMobileVerification')->middleware('throttle:5,1')->name('.mobile.request');
             Route::post('/mobile/verify', 'verifyMobile')->middleware('throttle:6,1')->name('.mobile.verify');
-            Route::post('/sms-two-factor', 'toggleSmsTwoFactor')->middleware('throttle:5,1')->name('.sms-two-factor');\n            Route::post('/recovery-codes', 'generateRecoveryCodes')->middleware('throttle:3,1')->name('.recovery-codes');
+            Route::post('/sms-two-factor', 'toggleSmsTwoFactor')->middleware('throttle:5,1')->name('.sms-two-factor');
+            Route::post('/recovery-codes', 'generateRecoveryCodes')->middleware('throttle:3,1')->name('.recovery-codes');
             Route::get('/two-factor', 'twoFactorSetup')->name('.two-factor');
             Route::post('/two-factor', 'twoFactorConfirm')->middleware('throttle:6,1')->name('.two-factor.confirm');
             Route::delete('/two-factor', 'twoFactorDisable')->middleware('throttle:5,1')->name('.two-factor.disable');
