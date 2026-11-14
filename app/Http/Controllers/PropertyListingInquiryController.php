@@ -110,9 +110,30 @@ class PropertyListingInquiryController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $followUpQuery = PropertyListingInquiry::query()
+            ->where('recipient_user_id', $userId)
+            ->whereNotNull('follow_up_at')
+            ->where('status', '!=', 'closed');
+        $followUpTodayCount = (clone $followUpQuery)
+            ->whereBetween('follow_up_at', [now()->startOfDay(), now()->endOfDay()])
+            ->count();
+        $followUpOverdueCount = (clone $followUpQuery)
+            ->where('follow_up_at', '<', now())
+            ->count();
+        $followUps = (clone $followUpQuery)
+            ->where('follow_up_at', '<=', now()->endOfDay())
+            ->with(['listing', 'sender'])
+            ->orderByRaw('CASE WHEN follow_up_at < ? THEN 0 ELSE 1 END', [now()])
+            ->orderBy('follow_up_at')
+            ->limit(8)
+            ->get();
+
         $statusLabels = ['new' => 'جدید', 'contacted' => 'در حال پیگیری', 'agreed' => 'توافق‌شده', 'closed' => 'بسته‌شده'];
 
-        return view('properties.inquiries', compact('inquiries', 'ownedListings', 'filters', 'statusLabels'));
+        return view('properties.inquiries', compact(
+            'inquiries', 'ownedListings', 'filters', 'statusLabels',
+            'followUpTodayCount', 'followUpOverdueCount', 'followUps'
+        ));
     }
 
     public function show(Request $request, PropertyListingInquiry $inquiry)
@@ -250,6 +271,10 @@ class PropertyListingInquiryController extends Controller
 
         if (array_key_exists('status', $data)) {
             $data['read_at'] = $inquiry->read_at ?? now();
+        }
+
+        if (array_key_exists('follow_up_at', $data)) {
+            $data['follow_up_notified_at'] = null;
         }
 
         $inquiry->update($data);
