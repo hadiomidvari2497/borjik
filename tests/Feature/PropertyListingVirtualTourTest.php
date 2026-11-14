@@ -9,6 +9,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
+/** @group virtual-tour */
 class PropertyListingVirtualTourTest extends TestCase
 {
     use RefreshDatabase;
